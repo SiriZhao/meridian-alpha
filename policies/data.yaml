@@ -1,0 +1,15 @@
+example_defaults: true
+account_snapshot_max_age_seconds: 3600
+quote_max_age_seconds: 900
+historical_cache_enabled: true
+nav_discrepancy_tolerance: 25.00
+evidence:
+  max_total_evidence_items: 50
+  max_items_per_type: 10
+  max_summary_characters_per_item: 2000
+evidence_completeness:
+  minimum_total_items: 0
+  minimum_distinct_sources: 0
+  required_evidence_types: []
+  maximum_age_by_type: {}
+  minimum_point_in_time_quality: 0

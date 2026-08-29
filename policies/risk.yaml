@@ -1,0 +1,9 @@
+example_defaults: true
+long_only: true
+allow_leverage: false
+max_position_weight: 0.10
+max_sector_weight: 0.25
+min_cash_weight: 0.10
+max_daily_turnover: 0.20
+max_single_order_nav_percent: 0.05
+max_number_positions: 10

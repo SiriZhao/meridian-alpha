@@ -1,0 +1,3 @@
+example_defaults: true
+name: manual_test
+tickers: [AAPL, MSFT, NVDA, SPY]

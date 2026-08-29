@@ -1,0 +1,307 @@
+"""Sanitized, idempotent SQLite audit storage."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import sqlite3
+from collections.abc import Sequence
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+from meridian.schemas import DailyDecision
+
+SCHEMA_VERSION = 1
+
+
+@dataclass(frozen=True)
+class StoredRun:
+    run_id: str
+    decision_hash: str
+    overall_status: str
+    as_of: str
+    created_at: str
+
+
+class AuditStore:
+    """Stores sanitized decisions; never accepts raw account snapshots or secrets."""
+
+    def __init__(self, path: Path, *, persist_sensitive_account_data: bool = False) -> None:
+        if persist_sensitive_account_data:
+            raise ValueError("persist_sensitive_account_data must remain false by default")
+        self.path = path
+
+    def connect(self) -> sqlite3.Connection:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(self.path)
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    def migrate(self) -> None:
+        with self.connect() as connection:
+            connection.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS schema_migrations (
+                    version INTEGER PRIMARY KEY
+                );
+                CREATE TABLE IF NOT EXISTS runs (
+                    run_id TEXT PRIMARY KEY,
+                    decision_hash TEXT NOT NULL,
+                    overall_status TEXT NOT NULL,
+                    as_of TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS recommendations (
+                    run_id TEXT NOT NULL REFERENCES runs(run_id),
+                    ticker TEXT NOT NULL,
+                    target_weight TEXT NOT NULL,
+                    rationale TEXT NOT NULL,
+                    PRIMARY KEY (run_id, ticker)
+                );
+                CREATE TABLE IF NOT EXISTS target_portfolios (
+                    run_id TEXT PRIMARY KEY REFERENCES runs(run_id),
+                    allocator_name TEXT NOT NULL,
+                    allocator_version TEXT NOT NULL,
+                    cash_weight TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS order_drafts (
+                    run_id TEXT NOT NULL REFERENCES runs(run_id),
+                    ticker TEXT NOT NULL,
+                    side TEXT NOT NULL,
+                    quantity TEXT NOT NULL,
+                    preferred_limit TEXT,
+                    status TEXT NOT NULL,
+                    reason TEXT NOT NULL,
+                    PRIMARY KEY (run_id, ticker)
+                );
+                CREATE TABLE IF NOT EXISTS system_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    run_id TEXT NOT NULL REFERENCES runs(run_id),
+                    event_type TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS model_metadata (
+                    run_id TEXT NOT NULL REFERENCES runs(run_id),
+                    provider TEXT NOT NULL,
+                    model_name TEXT NOT NULL,
+                    framework_version TEXT NOT NULL,
+                    PRIMARY KEY (run_id, provider, model_name)
+                );
+                INSERT OR IGNORE INTO schema_migrations(version) VALUES (1);
+                """
+            )
+
+    @staticmethod
+    def decision_hash(decision: DailyDecision) -> str:
+        return hashlib.sha256(decision.stable_json().encode("utf-8")).hexdigest()
+
+    def write_decision(self, decision: DailyDecision) -> None:
+        """Write once or accept only the byte-equivalent decision for a run id."""
+        digest = self.decision_hash(decision)
+        self.migrate()
+        with self.connect() as connection:
+            existing = connection.execute(
+                "SELECT decision_hash FROM runs WHERE run_id = ?", (decision.run_id,)
+            ).fetchone()
+            if existing is not None:
+                if existing["decision_hash"] != digest:
+                    raise ValueError("run_id already exists with a contradictory decision")
+                return
+            connection.execute(
+                "INSERT INTO runs(run_id, decision_hash, overall_status, as_of) VALUES (?, ?, ?, ?)",
+                (decision.run_id, digest, decision.overall_status, decision.as_of.isoformat()),
+            )
+            if decision.target_portfolio is not None:
+                portfolio = decision.target_portfolio
+                connection.execute(
+                    "INSERT INTO target_portfolios VALUES (?, ?, ?, ?)",
+                    (
+                        decision.run_id,
+                        portfolio.allocator_name,
+                        portfolio.allocator_version,
+                        str(portfolio.cash_weight),
+                    ),
+                )
+                connection.executemany(
+                    "INSERT INTO recommendations VALUES (?, ?, ?, ?)",
+                    [
+                        (
+                            decision.run_id,
+                            position.ticker,
+                            str(position.target_weight),
+                            position.rationale,
+                        )
+                        for position in portfolio.positions
+                    ],
+                )
+            connection.executemany(
+                "INSERT INTO order_drafts VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [
+                    (
+                        decision.run_id,
+                        order.ticker,
+                        order.side,
+                        str(order.quantity),
+                        str(order.preferred_limit) if order.preferred_limit is not None else None,
+                        order.status,
+                        order.reason,
+                    )
+                    for order in decision.orders
+                ],
+            )
+            connection.execute(
+                "INSERT INTO system_events(run_id, event_type, payload_json) VALUES (?, ?, ?)",
+                (
+                    decision.run_id,
+                    "daily_decision_recorded",
+                    json.dumps(
+                        {"warnings": decision.warnings, "blocked_reasons": decision.blocked_reasons}
+                    ),
+                ),
+            )
+
+    def write_research_outcomes(self, run_id: str, outcomes: Sequence[object]) -> None:
+        """Persist only safe model metadata and status; never transcripts or secrets."""
+        self.migrate()
+        with self.connect() as connection:
+            if (
+                connection.execute("SELECT 1 FROM runs WHERE run_id = ?", (run_id,)).fetchone()
+                is None
+            ):
+                raise ValueError("cannot attach research outcomes to unknown run")
+            for outcome in outcomes:
+                connection.execute(
+                    "INSERT OR IGNORE INTO model_metadata(run_id, provider, model_name, framework_version) VALUES (?, ?, ?, ?)",
+                    (
+                        run_id,
+                        str(getattr(outcome, "provider", "UNKNOWN")),
+                        str(getattr(outcome, "model_name", "UNKNOWN")),
+                        str(getattr(outcome, "framework_version", "UNKNOWN")),
+                    ),
+                )
+                payload = {
+                    "ticker": str(getattr(outcome, "ticker", "UNKNOWN")),
+                    "status": str(getattr(outcome, "status", "UNKNOWN")),
+                    "framework": str(getattr(outcome, "framework", "UNKNOWN")),
+                    "graph_rating": getattr(outcome, "graph_rating", None),
+                    "selected_analysts": list(
+                        getattr(outcome, "selected_analysts", ())
+                    ),
+                    "reports_present": list(getattr(outcome, "reports_present", ())),
+                    "started_at": getattr(
+                        getattr(outcome, "started_at", None), "isoformat", lambda: None
+                    )(),
+                    "completed_at": getattr(
+                        getattr(outcome, "completed_at", None), "isoformat", lambda: None
+                    )(),
+                    "retry_count": int(getattr(outcome, "retry_count", 0)),
+                    "duration_seconds": str(getattr(outcome, "duration_seconds", "UNKNOWN")),
+                    "point_in_time_status": str(
+                        getattr(outcome, "point_in_time_status", "UNKNOWN")
+                    ),
+                    "error_code": getattr(outcome, "error_code", None),
+                    "token_usage": getattr(outcome, "token_usage", None),
+                }
+                connection.execute(
+                    "INSERT INTO system_events(run_id, event_type, payload_json) VALUES (?, ?, ?)",
+                    (run_id, "research_outcome", json.dumps(payload, sort_keys=True)),
+                )
+
+    def write_research_pipeline(self, run_id: str, result: Any) -> None:
+        """Persist only bounded pipeline metadata; never evidence prose or credentials."""
+        self.migrate()
+        with self.connect() as connection:
+            if (
+                connection.execute("SELECT 1 FROM runs WHERE run_id = ?", (run_id,)).fetchone()
+                is None
+            ):
+                raise ValueError("cannot attach research pipeline to unknown run")
+            candidate_set = result.candidate_set
+            payload = {
+                "mode": str(result.mode),
+                "status": str(result.status),
+                "synthetic": bool(result.synthetic),
+                "candidates": [
+                    {
+                        "ticker": candidate.ticker,
+                        "rank": candidate.rank,
+                        "quant_score": str(candidate.quant_score),
+                        "is_existing_holding": candidate.is_existing_holding,
+                        "deferred_reason": candidate.deferred_reason,
+                    }
+                    for candidate in (*candidate_set.candidates, *candidate_set.deferred)
+                ],
+                "graph": [
+                    {
+                        "ticker": summary.ticker,
+                        "status": str(summary.status),
+                        "graph_rating": summary.graph_rating,
+                        "provider": summary.provider,
+                        "model": summary.model,
+                        "framework_version": summary.framework_version,
+                        "duration_seconds": str(summary.duration_seconds),
+                    }
+                    for summary in result.graph_summaries
+                ],
+                "evidence_ids": [
+                    item.stable_id
+                    for packet in result.evidence_packets
+                    for item in packet.items
+                ],
+                "grounded": [
+                    {
+                        "ticker": outcome.ticker,
+                        "status": str(outcome.status),
+                        "provider": outcome.provider,
+                        "model": outcome.model,
+                        "error_code": outcome.error_code,
+                    }
+                    for outcome in result.grounded_outcomes
+                ],
+                "agent_signals": [
+                    {
+                        "ticker": signal.ticker,
+                        "direction": signal.direction,
+                        "conviction": str(signal.conviction),
+                        "evidence_ids": [item.stable_id for item in signal.evidence],
+                    }
+                    for signal in result.agent_signals
+                ],
+                "warnings": list(result.warnings),
+            }
+            connection.execute(
+                "INSERT INTO system_events(run_id, event_type, payload_json) VALUES (?, ?, ?)",
+                (run_id, "research_pipeline", json.dumps(payload, sort_keys=True)),
+            )
+
+    def list_runs(self) -> list[StoredRun]:
+        self.migrate()
+        with self.connect() as connection:
+            return [
+                StoredRun(**dict(row))
+                for row in connection.execute("SELECT * FROM runs ORDER BY created_at DESC")
+            ]
+
+    def get_decision_summary(self, run_id: str) -> dict[str, object] | None:
+        self.migrate()
+        with self.connect() as connection:
+            run = connection.execute("SELECT * FROM runs WHERE run_id = ?", (run_id,)).fetchone()
+            if run is None:
+                return None
+            return {
+                "run": dict(run),
+                "orders": [
+                    dict(row)
+                    for row in connection.execute(
+                        "SELECT * FROM order_drafts WHERE run_id = ?", (run_id,)
+                    )
+                ],
+                "recommendations": [
+                    dict(row)
+                    for row in connection.execute(
+                        "SELECT * FROM recommendations WHERE run_id = ?", (run_id,)
+                    )
+                ],
+            }

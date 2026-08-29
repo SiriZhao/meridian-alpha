@@ -1,0 +1,13 @@
+{
+  "snapshot_id": "synthetic-empty-zero-001",
+  "account_alias": "synthetic-zero",
+  "provider": "fixture",
+  "as_of": "2026-08-28T14:30:00+00:00",
+  "currency": "USD",
+  "total_equity": "0",
+  "cash": "0",
+  "holdings": [],
+  "recent_investment_transactions": [],
+  "sync_state": "SYNCED",
+  "freshness_state": "VERIFIED"
+}

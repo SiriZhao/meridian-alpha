@@ -1,0 +1,3 @@
+example_defaults: true
+allocator_selection: finrlx
+max_correlation_proxy_weight: 0.20

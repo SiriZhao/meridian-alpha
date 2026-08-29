@@ -1,0 +1,31 @@
+{
+  "ticker": "AAPL",
+  "as_of": "2026-08-28T14:30:00+00:00",
+  "status": "GRAPH_SUMMARY_ONLY",
+  "graph_rating": "Hold",
+  "selected_analysts": [
+    "market",
+    "social",
+    "news",
+    "fundamentals"
+  ],
+  "reports_present": [
+    "market_report",
+    "sentiment_report",
+    "news_report",
+    "fundamentals_report"
+  ],
+  "provider": "synthetic-tradingagents-graph",
+  "model": "synthetic-graph-v1",
+  "framework_version": "0.3.1",
+  "started_at": "2026-08-28T14:30:00+00:00",
+  "completed_at": "2026-08-28T14:30:00+00:00",
+  "warnings": [
+    "SYNTHETIC - NOT LIVE DATA",
+    "No hidden reasoning or private transcript is stored."
+  ],
+  "point_in_time_status": "HISTORICAL_REPLAY_UNSAFE",
+  "token_usage": null,
+  "estimated_cost": null,
+  "duration_seconds": "0"
+}

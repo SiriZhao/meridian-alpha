@@ -1,0 +1,16 @@
+{
+  "snapshot_id": "synthetic-multi-001",
+  "account_alias": "synthetic-multi",
+  "provider": "fixture",
+  "as_of": "2026-08-28T14:30:00+00:00",
+  "currency": "USD",
+  "total_equity": "50000",
+  "cash": "15000",
+  "holdings": [
+    {"ticker": "AAPL", "quantity": "100", "market_value": "20000", "cost_basis": "18000", "average_cost": "180", "price": "200"},
+    {"ticker": "MSFT", "quantity": "50", "market_value": "15000", "cost_basis": "14000", "average_cost": "280", "price": "300"}
+  ],
+  "recent_investment_transactions": [],
+  "sync_state": "SYNCED",
+  "freshness_state": "VERIFIED"
+}

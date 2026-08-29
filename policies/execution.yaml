@@ -1,0 +1,10 @@
+example_defaults: true
+fractional_shares: false
+time_in_force: DAY
+max_chase_percent: 0.01
+max_gap_percent: 0.05
+minimum_order_notional: 100
+account_freshness_required: true
+market_quote_freshness_required: true
+transaction_reserve_percent: 0.01
+max_spread_percent: 0.01

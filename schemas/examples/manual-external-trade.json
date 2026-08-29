@@ -1,0 +1,13 @@
+{
+  "snapshot_id": "synthetic-manual-trade-001",
+  "account_alias": "synthetic-manual",
+  "provider": "fixture",
+  "as_of": "2026-08-28T14:30:00+00:00",
+  "currency": "USD",
+  "total_equity": "50000",
+  "cash": "35000",
+  "holdings": [{"ticker": "AAPL", "quantity": "75", "market_value": "15000", "price": "200"}],
+  "recent_investment_transactions": [{"ticker": "AAPL", "side": "BUY", "quantity": "75", "price": "200", "timestamp": "2026-08-28T13:00:00+00:00"}],
+  "sync_state": "SYNCED",
+  "freshness_state": "VERIFIED"
+}

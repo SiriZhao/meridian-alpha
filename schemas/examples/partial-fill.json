@@ -1,0 +1,13 @@
+{
+  "snapshot_id": "synthetic-partial-fill-001",
+  "account_alias": "synthetic-partial",
+  "provider": "fixture",
+  "as_of": "2026-08-28T14:30:00+00:00",
+  "currency": "USD",
+  "total_equity": "50000",
+  "cash": "46000",
+  "holdings": [{"ticker": "NVDA", "quantity": "10", "market_value": "4000", "price": "400"}],
+  "recent_investment_transactions": [{"ticker": "NVDA", "side": "BUY", "quantity": "10", "price": "400", "timestamp": "2026-08-28T14:00:00+00:00"}],
+  "sync_state": "PARTIAL",
+  "freshness_state": "VERIFIED"
+}

@@ -1,0 +1,55 @@
+[project]
+name = "meridian-alpha"
+version = "0.0.0"
+description = "AI-assisted, deterministic portfolio decision support for manual US-equity limit orders"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "pydantic>=2.10,<3",
+  "PyYAML>=6.0,<7",
+  "mcp[cli]>=1.24,<2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3,<9",
+  "pyright>=1.1.390",
+  "ruff>=0.9,<1",
+]
+
+[project.scripts]
+meridian = "meridian.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/meridian"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --basetemp=.pytest_tmp"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+reportMissingTypeStubs = "none"
+venvPath = '.'
+venv = '.venv'
+
+[project.optional-dependencies]
+# Isolated optional adapter. Use the official TauricResearch repository rather
+# than the unrelated PyPI project that currently shares the package name.
+research-tradingagents = [
+  "tradingagents @ git+https://github.com/TauricResearch/TradingAgents.git@01477f9afb7a47b849ed4c9259d3a9a4738d9fda",
+]
