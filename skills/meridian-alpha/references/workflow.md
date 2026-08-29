@@ -1,5 +1,6 @@
-# Workflow
+# Host workflow
 
-Current authorized brokerage facts → sanitized AccountSnapshot → validation →
-daily analysis → status gate → optional manual ticket. A new trading day always
-starts from a new snapshot.
+Host-authorized current facts → sanitized HostAccountSnapshotEnvelope →
+validation → shared DailyAnalysisService → mobile rendering. Meridian itself
+makes no finance or broker call. A later Host snapshot, not a prior draft,
+proves any change in holdings or cash.

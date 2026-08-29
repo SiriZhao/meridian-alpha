@@ -1,36 +1,25 @@
 ---
 name: meridian-alpha
-description: Safely orchestrate a current brokerage AccountSnapshot through Meridian Alpha without executing brokerage orders.
+description: Safely validate a sanitized HostAccountSnapshotEnvelope and run read-only Meridian analysis without connecting to a broker or executing orders.
 ---
 
-# Meridian Alpha
+# Meridian Alpha Host workflow
 
-When a user says “运行 Meridian Alpha”, “跑今天的策略”, “分析今天账户”, or
-“给我今天限价单”, use this workflow.
+When a user asks to run Meridian, the Host—not Meridian Python—may obtain
+current facts from an authorized account source. Never name, configure, or
+invoke a particular brokerage, finance SDK, bank SDK, login, credential, or
+account number.
 
-1. Use only a currently authorized financial-data capability to locate the
-   user’s Charles Schwab brokerage and check its connection state.
-2. If supported and freshness is visibly insufficient, request a refresh/resync.
-3. Obtain current cash, holdings, latest balance, and relevant recent investment
-   transactions. Do not read or expose the full account number.
-4. Convert the data to a sanitized `AccountSnapshot` and call
-   `validate_account_snapshot`.
-5. Call `run_daily_analysis` with that snapshot. Its description is: **Use this
-   after obtaining the user’s current brokerage account snapshot from an
-   authorized connected financial-data source.**
-6. If the status is blocked, `NO_CAPITAL`, or `DRAFT`, state why and do not
-   present an executable ticket.
-7. Only for `READY_FOR_MANUAL_ENTRY`, retrieve and display the Manual Order
-   Ticket. The user manually enters each order at Schwab.
-8. Never execute a brokerage order, never infer a fill, and obtain a new account
-   snapshot the next trading day.
-
-Yesterday’s recommendation is never portfolio truth. Current brokerage
-holdings are portfolio truth.
-
-If an authorized current account source is unavailable, do not guess. Report
-`ACCOUNT_DATA_UNAVAILABLE` and do not call the decision workflow with invented
-data.
+1. Sanitize current facts into `HostAccountSnapshotEnvelope`.
+2. Call `validate_host_account_snapshot`.
+3. Call `run_host_daily_analysis` using the same envelope and current as-of
+   time.
+4. Present the returned account state, evidence, target portfolio, risk,
+   readiness, and blockers.
+5. Treat `ANALYSIS_ONLY` and `DRAFT` as non-enterable. Only
+   `READY_FOR_MANUAL_ENTRY` is a manual-entry candidate, never an execution.
+6. Never say `已执行` or that an order filled until a newer host snapshot proves
+   the changed cash/holding state.
 
 Read [workflow.md](references/workflow.md), [account-contract.md](references/account-contract.md),
-[safety.md](references/safety.md), and [order-ticket.md](references/order-ticket.md).
+and [safety.md](references/safety.md).

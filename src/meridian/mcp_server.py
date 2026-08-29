@@ -18,7 +18,9 @@ from starlette.routing import Route
 
 from meridian.audit import AuditStore
 from meridian.config import load_policies
+from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.orchestrator import DailyAnalysisService
+from meridian.provider_registry import provider_certification_map
 from meridian.schemas import AccountSnapshot, AccountSyncState, FreshnessState, RunStatus
 
 ROOT = Path(__file__).parents[2]
@@ -76,6 +78,53 @@ def run_daily_analysis(account_snapshot: AccountSnapshot, run_date: datetime) ->
     STORE.write_decision(decision)
     return decision.model_dump(mode="json")
 
+
+@mcp.tool(
+    title="Validate host account snapshot",
+    description="Validate a sanitized HostAccountSnapshotEnvelope. This tool accepts no account numbers, credentials, or raw connector response.",
+    annotations=READ_ONLY,
+    structured_output=True,
+)
+def validate_host_account_snapshot(envelope: HostAccountSnapshotEnvelope) -> dict[str, Any]:
+    snapshot = normalize_host_snapshot(envelope, now=envelope.retrieved_at)
+    return {
+        "valid": True,
+        "snapshot_id": snapshot.snapshot_id,
+        "coverage_status": envelope.coverage_status,
+        "sync_state": snapshot.sync_state,
+        "freshness_state": snapshot.freshness_state,
+        "manual_entry_eligible": False,
+        "readiness_blocker": "EXECUTION_QUOTE_AUTHORITY_UNAVAILABLE",
+    }
+
+
+@mcp.tool(
+    title="Run host daily analysis",
+    description="Run the same read-only daily-analysis service from a sanitized HostAccountSnapshotEnvelope. It never connects to an account source or submits an order.",
+    annotations=READ_ONLY,
+    structured_output=True,
+)
+def run_host_daily_analysis(envelope: HostAccountSnapshotEnvelope, run_date: datetime) -> dict[str, Any]:
+    snapshot = normalize_host_snapshot(envelope, now=run_date)
+    decision = DailyAnalysisService(None, load_policies(ROOT / "policies")).run(snapshot, run_date)
+    STORE.write_decision(decision)
+    return decision.model_dump(mode="json")
+
+
+@mcp.tool(
+    title="Get provider health",
+    description="Return Meridian's declared provider capabilities and certification posture. This makes no network call.",
+    annotations=READ_ONLY,
+    structured_output=True,
+)
+def get_provider_health() -> dict[str, Any]:
+    return {
+        "providers": {
+            name: certificate.model_dump(mode="json")
+            for name, certificate in provider_certification_map().items()
+        },
+        "execution_quote_authority": False,
+    }
 
 @mcp.tool(
     title="Get run",

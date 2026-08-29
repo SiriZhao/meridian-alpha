@@ -122,3 +122,30 @@ def research_report_markdown(result: ResearchPipelineResult) -> str:
     if result.warnings:
         lines.extend(["", "## Warnings", *[f"- {warning}" for warning in result.warnings]])
     return "\n".join(lines)
+
+
+def mobile_daily_summary(decision: DailyDecision) -> dict[str, object]:
+    """Return a compact Chinese host-rendering contract without execution claims."""
+    label = {
+        RunStatus.READY_FOR_MANUAL_ENTRY: "可手动录入",
+        RunStatus.DRAFT: "草稿",
+        RunStatus.ANALYSIS_ONLY: "建议",
+    }.get(decision.overall_status, "已阻塞")
+    return {
+        "今日状态": label,
+        "账户概览": {
+            "同步": decision.account_sync_state.value,
+            "新鲜度": decision.account_snapshot_status.value,
+        },
+        "市场环境": {"新鲜度": decision.market_data_status.value, "regime": decision.regime},
+        "目标组合": [
+            {"ticker": position.ticker, "target_weight": str(position.target_weight)}
+            for position in (decision.target_portfolio.positions if decision.target_portfolio else ())
+        ],
+        "操作清单": [
+            {"ticker": order.ticker, "side": order.side.value, "status": order.status.value}
+            for order in decision.orders
+        ],
+        "当前阻塞项": list(decision.blocked_reasons),
+        "执行状态": "未执行；仅后续新账户快照可证明成交",
+    }
