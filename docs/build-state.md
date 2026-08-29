@@ -166,3 +166,43 @@ isolation.
 NOT CONNECTED: live DeepSeek/TradingAgents, production evidence providers,
 Schwab, FinRL-X execution, and broker writes. Gate 3B remains blocked pending
 supervised production evidence/PIT certification.
+
+## Gate 3B.1 status
+
+Implemented and tested: durable Gate 2.6 baseline commit, project-owned
+Security Master, US/CBOE calendar semantics, quote normalization, typed market
+capabilities, provider disagreement diagnostics, and a public Stooq SHADOW
+adapter. No historical provider, broker, or executable market-data authority
+is connected. The real-network smoke was attempted only in SHADOW mode and is
+blocked by the current environment's public-network failure.
+
+## Gate 3B.2 status
+
+Implemented and tested: project-owned historical OHLCV contracts, raw/adjusted
+semantics, deterministic quality/reconciliation diagnostics, corporate-action
+events, first-seen ledger and shadow feature lineage. No historical or paid
+provider is connected; no historical information-event PIT certification or
+execution authorization is enabled.
+
+## Gate 3B.3/3B.4 status
+
+IMPLEMENTED/TESTED: project-owned fundamental/news/macro observation contracts,
+per-provider failure isolation, SEC adapter code-only boundary, and bounded
+synthetic shadow daily pipeline with candidate diagnostics.
+
+SHADOW/NOT CONNECTED: SEC historical PIT certification, news publication and
+syndication certification, macro vintage/revision certification, live grounded
+normalizer, live TradingAgents and all broker/account integrations. The shadow
+run issues zero `CertifiedAgentSignal` objects and cannot authorize entry.
+
+## Gate 3B.5 status
+
+IMPLEMENTED/TESTED: clock-relative TradingAgents tests, per-provider evidence
+capability registry, conservative packet PIT aggregation, public Yahoo quote /
+raw OHLCV shadow adapters, SEC Company Facts shadow ingestion, network
+preflight metadata, and bounded real-data shadow reports.
+
+NOT CERTIFIED: authoritative Security Master provenance, Yahoo delay/PIT and
+licensing semantics, SEC filing acceptance-time PIT, news publication/availability,
+and macro vintage semantics. No live DeepSeek/TradingAgents, broker, Schwab,
+account or FinRL-X integration is enabled.

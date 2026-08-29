@@ -1,0 +1,483 @@
+{
+  "abstain_count": 3,
+  "account_data": "SYNTHETIC",
+  "allocator": {
+    "name": "deterministic_alpha_volatility_fallback",
+    "positions": {}
+  },
+  "as_of": "2026-08-29T16:16:36.507225+00:00",
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "candidate_selection": [
+    {
+      "deferred_reason": null,
+      "feature_timestamp": "2026-08-27T20:00:00Z",
+      "is_existing_holding": false,
+      "quant_score": "0.2775275434479531051426165532",
+      "rank": 1,
+      "risk_flags": [],
+      "selection_reasons": [
+        "momentum available",
+        "trend available",
+        "volume ratio available",
+        "volatility available"
+      ],
+      "ticker": "NVDA"
+    },
+    {
+      "deferred_reason": null,
+      "feature_timestamp": "2026-08-27T20:00:00Z",
+      "is_existing_holding": false,
+      "quant_score": "-0.007905161386146340842934695395",
+      "rank": 2,
+      "risk_flags": [],
+      "selection_reasons": [
+        "momentum available",
+        "trend available",
+        "volume ratio available",
+        "volatility available"
+      ],
+      "ticker": "MSFT"
+    },
+    {
+      "deferred_reason": null,
+      "feature_timestamp": "2026-08-27T20:00:00Z",
+      "is_existing_holding": false,
+      "quant_score": "-0.07973111487804111770766874222",
+      "rank": 3,
+      "risk_flags": [],
+      "selection_reasons": [
+        "momentum available",
+        "trend available",
+        "volume ratio available",
+        "volatility available"
+      ],
+      "ticker": "AAPL"
+    }
+  ],
+  "certified_signal_count": 0,
+  "content_hash": "0587cb04a8005963fbbb59c197712d462d6564c52094e8946f20d06d599ec747",
+  "created_at": "2026-08-29T16:16:48.793340+00:00",
+  "deferred_candidates": [],
+  "diagnostics": [
+    {
+      "evidence_completeness": {
+        "complete": false,
+        "distinct_sources": 2,
+        "missing_evidence_types": [],
+        "point_in_time_quality": "0",
+        "stale_evidence_types": [],
+        "total_items": 2,
+        "violations": [
+          "minimum_point_in_time_quality"
+        ]
+      },
+      "evidence_sources": [
+        "SEC:CompanyFacts",
+        "yahoo-chart-public"
+      ],
+      "final_alpha": "0.2775275434479531051426165532",
+      "grounded_research_modifier": "0",
+      "history_bars": 32,
+      "quant_only_score": "0.2775275434479531051426165532",
+      "real_quote": {
+        "ask": null,
+        "available_at": "2026-08-28T20:00:00+00:00",
+        "bid": null,
+        "last": "217.55",
+        "latency_ms": 791.56,
+        "market_status": "CLOSED",
+        "observed_at": "2026-08-28T20:00:00+00:00",
+        "provider": "yahoo",
+        "provider_symbol": "NVDA",
+        "quality_status": "STALE",
+        "retrieved_at": "2026-08-29T16:16:39.036610+00:00"
+      },
+      "research_conviction": null,
+      "research_direction": null,
+      "research_executable": false,
+      "research_status": "INSUFFICIENT_GROUNDING",
+      "risk_penalty": "0",
+      "target_after_risk": "0",
+      "target_before_risk": "0",
+      "ticker": "NVDA"
+    },
+    {
+      "evidence_completeness": {
+        "complete": false,
+        "distinct_sources": 2,
+        "missing_evidence_types": [],
+        "point_in_time_quality": "0",
+        "stale_evidence_types": [],
+        "total_items": 2,
+        "violations": [
+          "minimum_point_in_time_quality"
+        ]
+      },
+      "evidence_sources": [
+        "SEC:CompanyFacts",
+        "yahoo-chart-public"
+      ],
+      "final_alpha": "-0.007905161386146340842934695395",
+      "grounded_research_modifier": "0",
+      "history_bars": 32,
+      "quant_only_score": "-0.007905161386146340842934695395",
+      "real_quote": {
+        "ask": null,
+        "available_at": "2026-08-28T20:00:01+00:00",
+        "bid": null,
+        "last": "513.53",
+        "latency_ms": 841.32,
+        "market_status": "CLOSED",
+        "observed_at": "2026-08-28T20:00:01+00:00",
+        "provider": "yahoo",
+        "provider_symbol": "MSFT",
+        "quality_status": "STALE",
+        "retrieved_at": "2026-08-29T16:16:38.245324+00:00"
+      },
+      "research_conviction": null,
+      "research_direction": null,
+      "research_executable": false,
+      "research_status": "INSUFFICIENT_GROUNDING",
+      "risk_penalty": "0",
+      "target_after_risk": "0",
+      "target_before_risk": "0",
+      "ticker": "MSFT"
+    },
+    {
+      "evidence_completeness": {
+        "complete": false,
+        "distinct_sources": 2,
+        "missing_evidence_types": [],
+        "point_in_time_quality": "0",
+        "stale_evidence_types": [],
+        "total_items": 2,
+        "violations": [
+          "minimum_point_in_time_quality"
+        ]
+      },
+      "evidence_sources": [
+        "SEC:CompanyFacts",
+        "yahoo-chart-public"
+      ],
+      "final_alpha": "-0.07973111487804111770766874222",
+      "grounded_research_modifier": "0",
+      "history_bars": 32,
+      "quant_only_score": "-0.07973111487804111770766874222",
+      "real_quote": {
+        "ask": null,
+        "available_at": "2026-08-28T20:00:01+00:00",
+        "bid": null,
+        "last": "319.7",
+        "latency_ms": 897.38,
+        "market_status": "CLOSED",
+        "observed_at": "2026-08-28T20:00:01+00:00",
+        "provider": "yahoo",
+        "provider_symbol": "AAPL",
+        "quality_status": "STALE",
+        "retrieved_at": "2026-08-29T16:16:37.403965+00:00"
+      },
+      "research_conviction": null,
+      "research_direction": null,
+      "research_executable": false,
+      "research_status": "INSUFFICIENT_GROUNDING",
+      "risk_penalty": "0",
+      "target_after_risk": "0",
+      "target_before_risk": "0",
+      "ticker": "AAPL"
+    }
+  ],
+  "evidence_packets": [
+    {
+      "as_of": "2026-08-29T16:16:36.507225Z",
+      "created_at": "2026-08-29T16:16:36.507225Z",
+      "empty_reason": null,
+      "items": [
+        {
+          "available_at": "2026-08-26T00:00:00Z",
+          "content_hash": null,
+          "document_id": "0001045810-26-000075",
+          "evidence_id": "ev_a6401fd285502d3859de6c87",
+          "evidence_type": "fundamental",
+          "observed_at": "2026-08-26T00:00:00Z",
+          "point_in_time_status": "UNVERIFIED",
+          "provider": "sec-edgar",
+          "published_at": "2026-08-26T00:00:00Z",
+          "retrieved_at": "2026-08-29T16:16:40.666023Z",
+          "source": "SEC:CompanyFacts",
+          "summary": "10-Q USD observation for period ending 2026-07-26",
+          "ticker": "NVDA",
+          "title": "10-Q 0001045810-26-000075",
+          "uri": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json"
+        },
+        {
+          "available_at": "2026-08-28T20:00:00Z",
+          "content_hash": "7b9aee6855f917a5365033f338c27ef1b315422c95c23ffca3bf7b1fce5ffa12",
+          "document_id": "NVDA:2026-08-28T20:00:00+00:00",
+          "evidence_id": "ev_84deaba685e062b418e6f1c3",
+          "evidence_type": "market",
+          "observed_at": "2026-08-28T20:00:00Z",
+          "point_in_time_status": "UNVERIFIED",
+          "provider": "yahoo-market",
+          "published_at": null,
+          "retrieved_at": "2026-08-29T16:16:39.425906Z",
+          "source": "yahoo-chart-public",
+          "summary": "last=217.55; quality=STALE",
+          "ticker": "NVDA",
+          "title": "Yahoo chart last price (CLOSED)",
+          "uri": null
+        }
+      ],
+      "packet_id": "packet_6d4fd742b3b948f7bcd93402",
+      "point_in_time_status": "UNVERIFIED",
+      "provider_statuses": [
+        "yahoo-market:AVAILABLE:1",
+        "sec-edgar:AVAILABLE:1"
+      ],
+      "schema_version": "1",
+      "ticker": "NVDA",
+      "warnings": []
+    },
+    {
+      "as_of": "2026-08-29T16:16:36.507225Z",
+      "created_at": "2026-08-29T16:16:36.507225Z",
+      "empty_reason": null,
+      "items": [
+        {
+          "available_at": "2011-01-27T00:00:00Z",
+          "content_hash": null,
+          "document_id": "0001193125-11-015947",
+          "evidence_id": "ev_a141453a746a93c1e1488619",
+          "evidence_type": "fundamental",
+          "observed_at": "2011-01-27T00:00:00Z",
+          "point_in_time_status": "UNVERIFIED",
+          "provider": "sec-edgar",
+          "published_at": "2011-01-27T00:00:00Z",
+          "retrieved_at": "2026-08-29T16:16:45.799818Z",
+          "source": "SEC:CompanyFacts",
+          "summary": "10-Q USD observation for period ending 2010-12-31",
+          "ticker": "MSFT",
+          "title": "10-Q 0001193125-11-015947",
+          "uri": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json"
+        },
+        {
+          "available_at": "2026-08-28T20:00:01Z",
+          "content_hash": "51b5d4acd84854ef20fe4334aebe1db6c422279b69524dedbead049af89fda6d",
+          "document_id": "MSFT:2026-08-28T20:00:01+00:00",
+          "evidence_id": "ev_a869a6d285b8909cf4a86abe",
+          "evidence_type": "market",
+          "observed_at": "2026-08-28T20:00:01Z",
+          "point_in_time_status": "UNVERIFIED",
+          "provider": "yahoo-market",
+          "published_at": null,
+          "retrieved_at": "2026-08-29T16:16:42.225987Z",
+          "source": "yahoo-chart-public",
+          "summary": "last=513.53; quality=STALE",
+          "ticker": "MSFT",
+          "title": "Yahoo chart last price (CLOSED)",
+          "uri": null
+        }
+      ],
+      "packet_id": "packet_71c25b84dbbe100e4d3d3e89",
+      "point_in_time_status": "UNVERIFIED",
+      "provider_statuses": [
+        "yahoo-market:AVAILABLE:1",
+        "sec-edgar:AVAILABLE:1"
+      ],
+      "schema_version": "1",
+      "ticker": "MSFT",
+      "warnings": []
+    },
+    {
+      "as_of": "2026-08-29T16:16:36.507225Z",
+      "created_at": "2026-08-29T16:16:36.507225Z",
+      "empty_reason": null,
+      "items": [
+        {
+          "available_at": "2018-11-05T00:00:00Z",
+          "content_hash": null,
+          "document_id": "0000320193-18-000145",
+          "evidence_id": "ev_b4adc08146d8278d9b2621e7",
+          "evidence_type": "fundamental",
+          "observed_at": "2018-11-05T00:00:00Z",
+          "point_in_time_status": "UNVERIFIED",
+          "provider": "sec-edgar",
+          "published_at": "2018-11-05T00:00:00Z",
+          "retrieved_at": "2026-08-29T16:16:48.786920Z",
+          "source": "SEC:CompanyFacts",
+          "summary": "10-K USD observation for period ending 2018-09-29",
+          "ticker": "AAPL",
+          "title": "10-K 0000320193-18-000145",
+          "uri": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json"
+        },
+        {
+          "available_at": "2026-08-28T20:00:01Z",
+          "content_hash": "2ca020cdd6b0234c10fd1b8606a719c3a065f96bb08a44923590b5c20eacad24",
+          "document_id": "AAPL:2026-08-28T20:00:01+00:00",
+          "evidence_id": "ev_fd6f4bf81e8ce86e3a5d7357",
+          "evidence_type": "market",
+          "observed_at": "2026-08-28T20:00:01Z",
+          "point_in_time_status": "UNVERIFIED",
+          "provider": "yahoo-market",
+          "published_at": null,
+          "retrieved_at": "2026-08-29T16:16:46.227940Z",
+          "source": "yahoo-chart-public",
+          "summary": "last=319.7; quality=STALE",
+          "ticker": "AAPL",
+          "title": "Yahoo chart last price (CLOSED)",
+          "uri": null
+        }
+      ],
+      "packet_id": "packet_68fe841d2d124ba535d280c4",
+      "point_in_time_status": "UNVERIFIED",
+      "provider_statuses": [
+        "yahoo-market:AVAILABLE:1",
+        "sec-edgar:AVAILABLE:1"
+      ],
+      "schema_version": "1",
+      "ticker": "AAPL",
+      "warnings": []
+    }
+  ],
+  "fundamentals": "REAL_SEC_UNVERIFIED",
+  "graph": "NOT_INVOKED",
+  "graph_summaries": [
+    {
+      "as_of": "2026-08-29T16:16:36.507225Z",
+      "completed_at": "2026-08-29T16:16:36.507225Z",
+      "duration_seconds": null,
+      "estimated_cost": null,
+      "framework_version": "0.3.1",
+      "graph_rating": null,
+      "model": "not-invoked",
+      "point_in_time_status": "HISTORICAL_LIVE_CALL_FORBIDDEN",
+      "provider": "tradingagents",
+      "reports_present": [],
+      "requested_as_of": "2026-08-29T16:16:36.507225Z",
+      "selected_analysts": [],
+      "source_mode": "UNAVAILABLE",
+      "started_at": "2026-08-29T16:16:36.507225Z",
+      "status": "UNAVAILABLE",
+      "ticker": "NVDA",
+      "token_usage": null,
+      "warnings": [
+        "LIVE_TRADINGAGENTS_SKIPPED_BY_POLICY"
+      ]
+    },
+    {
+      "as_of": "2026-08-29T16:16:36.507225Z",
+      "completed_at": "2026-08-29T16:16:36.507225Z",
+      "duration_seconds": null,
+      "estimated_cost": null,
+      "framework_version": "0.3.1",
+      "graph_rating": null,
+      "model": "not-invoked",
+      "point_in_time_status": "HISTORICAL_LIVE_CALL_FORBIDDEN",
+      "provider": "tradingagents",
+      "reports_present": [],
+      "requested_as_of": "2026-08-29T16:16:36.507225Z",
+      "selected_analysts": [],
+      "source_mode": "UNAVAILABLE",
+      "started_at": "2026-08-29T16:16:36.507225Z",
+      "status": "UNAVAILABLE",
+      "ticker": "MSFT",
+      "token_usage": null,
+      "warnings": [
+        "LIVE_TRADINGAGENTS_SKIPPED_BY_POLICY"
+      ]
+    },
+    {
+      "as_of": "2026-08-29T16:16:36.507225Z",
+      "completed_at": "2026-08-29T16:16:36.507225Z",
+      "duration_seconds": null,
+      "estimated_cost": null,
+      "framework_version": "0.3.1",
+      "graph_rating": null,
+      "model": "not-invoked",
+      "point_in_time_status": "HISTORICAL_LIVE_CALL_FORBIDDEN",
+      "provider": "tradingagents",
+      "reports_present": [],
+      "requested_as_of": "2026-08-29T16:16:36.507225Z",
+      "selected_analysts": [],
+      "source_mode": "UNAVAILABLE",
+      "started_at": "2026-08-29T16:16:36.507225Z",
+      "status": "UNAVAILABLE",
+      "ticker": "AAPL",
+      "token_usage": null,
+      "warnings": [
+        "LIVE_TRADINGAGENTS_SKIPPED_BY_POLICY"
+      ]
+    }
+  ],
+  "grounded_statuses": [
+    "INSUFFICIENT_GROUNDING",
+    "INSUFFICIENT_GROUNDING",
+    "INSUFFICIENT_GROUNDING"
+  ],
+  "macro": "UNAVAILABLE",
+  "market_data": "REAL_SHADOW",
+  "mode": "SHADOW_REAL_DATA",
+  "news": "UNAVAILABLE",
+  "provider_failures": [],
+  "real_observations": {
+    "AAPL": {
+      "ask": null,
+      "available_at": "2026-08-28T20:00:01+00:00",
+      "bid": null,
+      "last": "319.7",
+      "latency_ms": 897.38,
+      "market_status": "CLOSED",
+      "observed_at": "2026-08-28T20:00:01+00:00",
+      "provider": "yahoo",
+      "provider_symbol": "AAPL",
+      "quality_status": "STALE",
+      "retrieved_at": "2026-08-29T16:16:37.403965+00:00"
+    },
+    "MSFT": {
+      "ask": null,
+      "available_at": "2026-08-28T20:00:01+00:00",
+      "bid": null,
+      "last": "513.53",
+      "latency_ms": 841.32,
+      "market_status": "CLOSED",
+      "observed_at": "2026-08-28T20:00:01+00:00",
+      "provider": "yahoo",
+      "provider_symbol": "MSFT",
+      "quality_status": "STALE",
+      "retrieved_at": "2026-08-29T16:16:38.245324+00:00"
+    },
+    "NVDA": {
+      "ask": null,
+      "available_at": "2026-08-28T20:00:00+00:00",
+      "bid": null,
+      "last": "217.55",
+      "latency_ms": 791.56,
+      "market_status": "CLOSED",
+      "observed_at": "2026-08-28T20:00:00+00:00",
+      "provider": "yahoo",
+      "provider_symbol": "NVDA",
+      "quality_status": "STALE",
+      "retrieved_at": "2026-08-29T16:16:39.036610+00:00"
+    }
+  },
+  "reconciliation_status": "DRAFT",
+  "risk_violations": [],
+  "schema_version": "1",
+  "security_certification_counts": {
+    "AUTHORITATIVE_VERIFIED": 0,
+    "CONFLICTING": 0,
+    "DEVELOPMENT_VERIFIED": 9,
+    "STALE": 0,
+    "UNKNOWN": 0,
+    "UNVERIFIED": 0,
+    "VERIFIED": 0
+  },
+  "security_master": "DEVELOPMENT_VERIFIED_FIXTURES; AUTHORITATIVE_PROMOTION_PENDING",
+  "warnings": [
+    "REAL PUBLIC OBSERVATIONS; SHADOW ONLY",
+    "SEC FUNDAMENTALS ARE NOT HISTORICAL-PIT CERTIFIED",
+    "YAHOO QUOTES ARE LAST-ONLY AND NON-EXECUTION-GRADE",
+    "LIVE NEWS/MACRO PROVIDERS NOT CONNECTED",
+    "LIVE TRADINGAGENTS AND DEEPSEEK SKIPPED",
+    "SHADOW / NOT AUTHORIZED FOR ENTRY"
+  ]
+}

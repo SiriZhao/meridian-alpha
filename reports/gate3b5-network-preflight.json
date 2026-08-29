@@ -1,0 +1,54 @@
+{
+  "schema_version": "1",
+  "generated_at": "2026-08-29T15:39:13.864767+00:00",
+  "results": [
+    {
+      "endpoint": "sec",
+      "url": "https://data.sec.gov/",
+      "tested_at": "2026-08-29T15:39:10.615372+00:00",
+      "method": "GET",
+      "timeout_seconds": 5,
+      "status": "SUCCESS",
+      "dns_tls_http": "SUCCESS",
+      "http_status": 200,
+      "response_bytes_sampled": 852,
+      "latency_ms": 988.23
+    },
+    {
+      "endpoint": "stooq",
+      "url": "https://stooq.com/q/l/?s=aapl.us&f=sd2t2ohlcv&h&e=csv",
+      "tested_at": "2026-08-29T15:39:11.603085+00:00",
+      "method": "GET",
+      "timeout_seconds": 5,
+      "status": "HTTP_ERROR",
+      "dns_tls_http": "HTTP_REACHED",
+      "http_status": 404,
+      "error": "HTTPError",
+      "latency_ms": 916.58
+    },
+    {
+      "endpoint": "news",
+      "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+      "tested_at": "2026-08-29T15:39:12.519959+00:00",
+      "method": "GET",
+      "timeout_seconds": 5,
+      "status": "SUCCESS",
+      "dns_tls_http": "SUCCESS",
+      "http_status": 200,
+      "response_bytes_sampled": 2048,
+      "latency_ms": 845.02
+    },
+    {
+      "endpoint": "macro",
+      "url": "https://fred.stlouisfed.org/",
+      "tested_at": "2026-08-29T15:39:13.365180+00:00",
+      "method": "GET",
+      "timeout_seconds": 5,
+      "status": "SUCCESS",
+      "dns_tls_http": "SUCCESS",
+      "http_status": 200,
+      "response_bytes_sampled": 2048,
+      "latency_ms": 498.51
+    }
+  ]
+}

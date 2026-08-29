@@ -557,9 +557,16 @@ class DeepSeekGroundedResearchNormalizer:
 
     provider = "deepseek"
 
-    def __init__(self, settings: Any, *, client_factory: Callable[..., Any] | None = None) -> None:
+    def __init__(
+        self,
+        settings: Any,
+        *,
+        client_factory: Callable[..., Any] | None = None,
+        clock: Callable[[], datetime] | None = None,
+    ) -> None:
         self.settings = settings
         self.client_factory = client_factory
+        self.clock = clock or (lambda: datetime.now(UTC))
         self.model = settings.deep_model or settings.model
 
     def normalize(
@@ -580,7 +587,23 @@ class DeepSeekGroundedResearchNormalizer:
             )
         if as_of.tzinfo is None or as_of.utcoffset() is None:
             raise ValueError("as_of must be timezone-aware")
-        age = (datetime.now(UTC) - as_of).total_seconds()
+        try:
+            request = GroundedResearchRequest(
+                graph_summary=graph_summary, evidence_packet=evidence_packet, as_of=as_of
+            )
+        except ValueError as error:
+            return _grounded_outcome(
+                ticker=graph_summary.ticker,
+                as_of=as_of,
+                status=GroundedResearchStatus.INVALID_OUTPUT,
+                provider=self.provider,
+                model=self.model,
+                warnings=(str(error),),
+                error_code="INVALID_OUTPUT",
+            )
+        graph_summary = request.graph_summary
+        evidence_packet = request.evidence_packet
+        age = (self.clock() - as_of).total_seconds()
         if age < 0 or age > self.settings.live_as_of_tolerance_seconds:
             return _grounded_outcome(
                 ticker=graph_summary.ticker,
@@ -648,8 +671,9 @@ class DeepSeekGroundedResearchNormalizer:
             payload = result.model_dump() if isinstance(result, BaseModel) else result
             if not isinstance(payload, Mapping):
                 raise ValueError("DeepSeek structured result is not a mapping")
-            decision_status = str(payload.get("status", "")).upper()
-            reason = str(payload.get("reason", "")).strip()
+            parsed = _DeepSeekGroundedOutput.model_validate(payload)
+            decision_status = parsed.status
+            reason = parsed.reason.strip()
             if decision_status == "ABSTAIN":
                 return _grounded_outcome(
                     ticker=graph_summary.ticker,
@@ -663,9 +687,9 @@ class DeepSeekGroundedResearchNormalizer:
             if decision_status != "AVAILABLE":
                 raise ValueError("structured grounding status must be AVAILABLE or ABSTAIN")
             allowed = {
-                key: payload[key]
-                for key in ("direction", "conviction", "thesis", "risks", "cited_evidence_ids")
-                if key in payload
+                key: value
+                for key, value in parsed.model_dump(exclude_none=True).items()
+                if key in {"direction", "conviction", "thesis", "risks", "cited_evidence_ids"}
             }
             signal = GroundedResearchSignal.model_validate(
                 {

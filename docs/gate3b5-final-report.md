@@ -1,0 +1,101 @@
+# MERIDIAN ALPHA — GATE 3B.5 FINAL STATUS
+
+## BASELINE
+
+- Gate 2.6 baseline commit: `fb4850b03371cc8fc7d70723498bd736b2b3c51f`
+  (`Gate 2.6 safety convergence baseline`).
+- Branch: `main`.
+- Python: `3.12.14`.
+- Final HEAD: `fb4850b03371cc8fc7d70723498bd736b2b3c51f`.
+- Final worktree: intentionally dirty with Gate 3B.1–3B.5 source, tests,
+  reports and documentation; no unrelated files were overwritten.
+- `.gitignore` excludes environment files, credentials, artifacts, databases,
+  runtime state, logs, caches and virtual environments.
+
+## GATE 3B.5 RESULTS
+
+| Gate area | Status | Evidence / boundary |
+| --- | --- | --- |
+| Time-deterministic tests | PASS | LIVE as-of tests use an injectable UTC reference clock; production defaults to real UTC and still rejects stale/future requests. |
+| Multi-provider authorization | PASS | Every cited item resolves its own provider capability certificate; unknown or mismatched providers fail closed. |
+| Packet PIT aggregation | PASS | Mixed/weak item statuses never self-upgrade; only homogeneous explicit certification can promote a packet. |
+| Network preflight | PASS (reachability only) | SEC, BBC RSS and FRED returned HTTP 200; Stooq reached host but returned HTTP 404. This does not certify provider semantics. |
+| Security Master authoritative provenance | BLOCKED | Bounded records are `DEVELOPMENT_VERIFIED`; supervised `AUTHORITATIVE_VERIFIED` promotion remains pending. |
+| Real quote provider | SHADOW / UNVERIFIED | Yahoo chart last-only observations acquired; bid/ask are absent, stale/freshness and delay semantics remain unverified, execution grade is false. |
+| Real historical provider | SHADOW / UNVERIFIED | Yahoo raw OHLCV acquired and normalized; historical information-event availability is not certified. |
+| SEC PIT certification | NOT CERTIFIED | Company Facts preserves CIK/accession/filed metadata, but filed date is not treated as acceptance/publication time. |
+| News provider | NOT CONNECTED | No provider with defensible publication/availability and syndication semantics was promoted. |
+| Macro vintage provider | NOT CONNECTED | No provider with certified release/vintage semantics was promoted. |
+| Real evidence packet | PASS (shadow) | Packets built for AAPL, MSFT and NVDA with market and SEC observations; evidence remains unverified for execution. |
+| Real-data shadow run | PASS (non-executable) | Synthetic $50,000 account, real public market/SEC observations, bounded three-ticker run, zero certified signals. |
+
+## REAL VS SYNTHETIC PROVENANCE
+
+- ACCOUNT: `SYNTHETIC`.
+- MARKET: `REAL_SHADOW`.
+- FUNDAMENTALS: `REAL_SEC_UNVERIFIED` where returned.
+- NEWS: `UNAVAILABLE`.
+- MACRO: `UNAVAILABLE`.
+- GRAPH: `NOT_INVOKED` (live TradingAgents skipped).
+- NORMALIZER: `FAKE` (live DeepSeek skipped).
+- AUTHORIZATION: `SHADOW / NOT AUTHORIZED FOR ENTRY`.
+
+The real shadow artifacts are `reports/gate3b5-real-shadow.json` and
+`reports/gate3b5-real-shadow.md`. The run produced 0 CertifiedAgentSignal
+objects and 3 `INSUFFICIENT_GROUNDING` outcomes. No executable research,
+allocation, manual-entry readiness or order authorization was produced.
+
+## VALIDATION
+
+- Pytest: **160 passed**.
+- Targeted Gate 3B.5 tests: **PASS**.
+- Future-date/boundary replay: **PASS** using the injected reference clock for
+  current, tolerance-edge, stale and future LIVE as-of cases; REPLAY remains
+  isolated from live providers.
+- Ruff: **PASS**.
+- Pyright: **PASS**.
+- `git diff --check`: **PASS**.
+- Provider capability registry: `reports/gate3b5-provider-certification.json`.
+- Network preflight metadata: `reports/gate3b5-network-preflight.json`.
+
+## SAFETY ATTESTATIONS
+
+- LIVE DEEPSEEK CALLS: **ZERO**.
+- LIVE TRADINGAGENTS CALLS: **ZERO**.
+- SCHWAB: **NOT CONNECTED**.
+- BROKER: **NONE**.
+- FINRL-X: **NOT ENABLED**.
+- REAL ACCOUNT DATA: **NOT CONNECTED**.
+- REAL ORDERS: **ZERO**.
+- SECRETS READ: **ZERO**.
+- Broker execution surface scan: no forbidden runtime order operations found.
+
+## RELEASE DECISION
+
+**HOST_ACCOUNT_INTEGRATION_BLOCKED**
+
+Known P0: **none**.
+
+Known P1 blockers:
+
+1. Establish supervised authoritative Security Master identity and
+   provider-symbol provenance for the bounded universe.
+2. Independently certify Yahoo (or another provider) delay, licensing,
+   timestamp and historical availability semantics.
+3. Establish SEC acceptance/publication-time evidence for historical PIT.
+4. Select and certify a news provider's publication/availability and
+   syndication semantics.
+5. Select and certify a macro provider's release/vintage semantics.
+
+The host-account integration gate is blocked until the remaining provenance and
+provider-certification blockers are resolved. This phase stops here; Gate 3B.6
+and account/broker integration are not started.
+
+## REVIEW PACKAGE
+
+- `artifacts/meridian-alpha-gate3b5-review.zip`
+- `artifacts/meridian-alpha-gate3b5-review-manifest.txt`
+
+The package was generated by the existing safe source-review mechanism and
+contains no `.env*` files, credentials, databases, runtime caches, `.git`, or
+`.venv` paths.

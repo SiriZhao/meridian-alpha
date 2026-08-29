@@ -92,3 +92,39 @@ capability, completeness, and timestamp checks. Synthetic and replay artifacts
 cannot authorize executable research. TEST and REPLAY are non-network modes;
 LIVE requires explicit policy enablement. This gate does not connect production
 data providers or brokers.
+
+## Gate 3B.1 shadow market data
+
+Gate 3B.1 introduces a provider-independent Security Master and quote contract.
+Unknown symbols, wrong provider mappings, future/stale timestamps, currency
+mismatches and inverted markets fail closed. Public quote observations are
+explicitly SHADOW and cannot create executable research, allocation or manual
+order readiness. Bid/ask is never inferred from a last price.
+
+## Gate 3B.2 historical data
+
+Historical market rows and corporate actions carry separate event, observed,
+available and retrieved timestamps. `available_at` controls look-ahead. Raw and
+adjusted prices are never conflated, and adjusted prices cannot be used for
+manual order pricing. Historical fixtures remain SHADOW/REPLAY-only and cannot
+authorize executable research or orders.
+
+## Gate 3B.3/3B.4 evidence and shadow status
+
+Fundamental, news and macro observations are Meridian-owned and carry explicit
+publication/release, available and retrieval times. Current SEC Company Facts
+integration is code-only and not historical-PIT certified. Replay fixtures are
+synthetic and cannot authorize executable research.
+
+The Gate 3B.4 daily exercise is a bounded TEST/shadow run over a synthetic
+account. It reports graph context and evidence diagnostics separately and
+always emits `SHADOW / NOT AUTHORIZED FOR ENTRY`; no real account, broker,
+DeepSeek or TradingAgents call is made.
+
+## Gate 3B.5 real shadow data
+
+Real public market and SEC observations may be displayed in a bounded shadow
+run, but remain `UNVERIFIED`/non-executable until provider capability and
+point-in-time certification pass. Quotes are last-only where bid/ask is absent;
+adjusted or stale data cannot authorize execution. The shadow account is
+synthetic and output remains `SHADOW / NOT AUTHORIZED FOR ENTRY`.

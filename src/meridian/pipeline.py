@@ -121,6 +121,7 @@ class FakeGraphResearchProvider:
             warnings=("SYNTHETIC - NOT LIVE DATA",),
             point_in_time_status=PointInTimeStatus.HISTORICAL_REPLAY_UNSAFE,
             duration_seconds=Decimal("0"),
+            source_mode="TEST",
         )
 
 
@@ -276,14 +277,20 @@ class ResearchPipelineService:
                     warnings.append(f"{ticker}:NON_EXECUTABLE_MODE:{mode.value}")
                 else:
                     try:
-                        capabilities = self.evidence_providers[0].capabilities if self.evidence_providers else None
-                        if capabilities is None:
-                            raise ValueError("no provider capabilities for authorization")
+                        provider_registry: dict[str, object] = {}
+                        for provider in self.evidence_providers:
+                            name = provider.capabilities.provider_name
+                            existing = provider_registry.get(name)
+                            if existing is not None and existing != provider.capabilities:
+                                raise ValueError(f"PROVIDER_CAPABILITY_CONFLICT:{name}")
+                            provider_registry[name] = provider.capabilities
+                        if not provider_registry:
+                            raise ValueError("PROVIDER_CAPABILITY_UNAVAILABLE")
                         signals.append(
                             EvidenceAuthorizationService().authorize(
                                 result.signal,
                                 packet,
-                                provider_capabilities=capabilities,
+                                provider_registry=provider_registry,
                             )
                         )
                     except ValueError as error:

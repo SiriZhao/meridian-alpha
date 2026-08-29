@@ -10,6 +10,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Protocol
 
+from meridian.quotes import MarketQuoteProvider, QuoteObservation
 from meridian.schemas import MarketSnapshot
 
 
@@ -199,3 +200,8 @@ class YFinanceProvider:
 
     def get_volatility_context(self) -> dict[str, Decimal]:
         return {}
+
+
+# Gate 3B.1 provider-neutral quote aliases; the legacy MarketDataProvider remains for snapshots.
+QuoteProvider = MarketQuoteProvider
+MarketQuote = QuoteObservation

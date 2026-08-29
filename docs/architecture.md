@@ -164,3 +164,60 @@ and incomplete evidence are diagnostic-only. Candidate selection is quant-only
 and bounded before any graph call. `available_at` is the authoritative
 anti-look-ahead timestamp; only closed PIT states are executable. A synchronized
 account snapshot is required for a READY manual ticket.
+
+## Gate 3B.1 shadow market foundation
+
+Security identity is resolved by the project-owned `SecurityMaster` before any
+quote is normalized. It distinguishes exchange calendars and provider symbols
+(including `VIX` / `^VIX`) and fails closed for unknown or conflicting identity.
+The project-owned trading calendar applies timezone-aware US equity/CBOE
+sessions, holidays, DST and completed-session semantics.
+
+`QuoteObservation` and `MarketDataCapabilityCertificate` are provider-neutral.
+The optional `StooqQuoteProvider` is a public, last-price-only SHADOW adapter;
+its observations carry provenance and freshness but are permanently
+`execution_quote_grade=false`. SHADOW observations cannot authorize grounded
+research or manual tickets. Historical data integration and any promotion to
+executable market-data authority are future Gate 3B work.
+
+## Gate 3B.2 historical foundation
+
+Historical OHLCV is normalized through the project-owned `HistoricalBar` and
+`HistoricalBarSeries` contracts. `available_at` is authoritative for
+anti-look-ahead; a dated market fact is not proof that an information event was
+historically knowable. Raw, adjusted-close and fully-adjusted OHLCV are explicit
+and never mixed; adjusted prices cannot feed execution pricing.
+
+Corporate actions use `CorporateActionEvent` plus an append-only
+`FirstSeenLedger`. Missing announcement/known-at evidence remains explicitly
+uncertified, and first-seen timestamps are assigned at observation time rather
+than backdated. Provider disagreements and missing sessions are diagnostics,
+not imputation instructions. Gate 3B.2 remains shadow/replay-only.
+
+## Gate 3B.3/3B.4 production evidence and shadow run
+
+Meridian-owned `FundamentalObservation`, `NewsObservation` and
+`MacroObservation` contracts keep publication/release, availability and
+retrieval timestamps distinct. The SEC adapter is code-only and explicitly
+non-PIT-certified; replay evidence is synthetic. No provider observation may
+bypass the existing packet, citation, completeness, capability and certified
+signal gates.
+
+The bounded `run_shadow_daily` service demonstrates the deterministic pipeline
+with a sanitized synthetic account and TEST-mode providers. Its artifacts are
+marked `SHADOW / NOT AUTHORIZED FOR ENTRY`; zero certified signals are issued.
+Gate 3B.3/3B.4 does not connect live data, brokers or account providers.
+
+## Gate 3B.5 real shadow boundary
+
+Gate 3B.5 adds bounded public Yahoo chart adapters for last-price quotes and
+raw OHLCV plus a code-only SEC Company Facts adapter. All observations are
+normalized through Meridian contracts and retain provider/timestamp
+provenance. Yahoo delay/PIT semantics and SEC filing availability remain
+unverified; neither provider is execution-grade.
+
+A real-data shadow run uses a synthetic account and a three-ticker candidate
+budget. It does not invoke live TradingAgents or DeepSeek and cannot issue a
+CertifiedAgentSignal or manual-entry authorization. Multi-provider evidence is
+authorized per cited item through a capability registry, and mixed packet PIT
+states never self-upgrade.

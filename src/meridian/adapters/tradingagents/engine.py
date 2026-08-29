@@ -200,10 +200,18 @@ class HistoricalLiveResearchForbidden(RuntimeError):
     """Raised when a LIVE graph request is materially historical."""
 
 
-def _live_as_of_within_tolerance(as_of: datetime, tolerance_seconds: int) -> bool:
+def _live_as_of_within_tolerance(
+    as_of: datetime,
+    tolerance_seconds: int,
+    *,
+    now: datetime | None = None,
+) -> bool:
     if as_of.tzinfo is None or as_of.utcoffset() is None:
         return False
-    age = (datetime.now(UTC) - as_of).total_seconds()
+    reference = now or datetime.now(UTC)
+    if reference.tzinfo is None or reference.utcoffset() is None:
+        return False
+    age = (reference - as_of).total_seconds()
     return 0 <= age <= tolerance_seconds
 
 

@@ -1,0 +1,493 @@
+{
+  "abstain_count": 0,
+  "account_source": "SYNTHETIC_MANUAL_FIXTURE",
+  "allocator": {
+    "name": "deterministic_alpha_volatility_fallback",
+    "positions": {}
+  },
+  "as_of": "2026-08-28T20:00:00+00:00",
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "blocked_non_executable_count": 3,
+  "candidate_selection": [
+    {
+      "deferred_reason": null,
+      "feature_timestamp": "2026-08-28T20:00:00Z",
+      "is_existing_holding": false,
+      "quant_score": "0.3",
+      "rank": 1,
+      "risk_flags": [],
+      "selection_reasons": [
+        "momentum available",
+        "trend available"
+      ],
+      "ticker": "QQQ"
+    },
+    {
+      "deferred_reason": null,
+      "feature_timestamp": "2026-08-28T20:00:00Z",
+      "is_existing_holding": false,
+      "quant_score": "0.25",
+      "rank": 2,
+      "risk_flags": [],
+      "selection_reasons": [
+        "momentum available",
+        "trend available"
+      ],
+      "ticker": "SPY"
+    },
+    {
+      "deferred_reason": null,
+      "feature_timestamp": "2026-08-28T20:00:00Z",
+      "is_existing_holding": false,
+      "quant_score": "0.2",
+      "rank": 3,
+      "risk_flags": [],
+      "selection_reasons": [
+        "momentum available",
+        "trend available"
+      ],
+      "ticker": "NVDA"
+    }
+  ],
+  "certified_signal_count": 0,
+  "content_hash": "fe18b053a9df9bbbc22f5058e3b6df8aaf4cc27000158912417e7b5223012895",
+  "created_at": "2026-08-28T20:00:00+00:00",
+  "deferred_candidates": [
+    {
+      "deferred_reason": "BUDGET_LIMIT",
+      "feature_timestamp": "2026-08-28T20:00:00Z",
+      "is_existing_holding": false,
+      "quant_score": "0.15",
+      "rank": 4,
+      "risk_flags": [],
+      "selection_reasons": [
+        "momentum available",
+        "trend available"
+      ],
+      "ticker": "MSFT"
+    },
+    {
+      "deferred_reason": "BUDGET_LIMIT",
+      "feature_timestamp": "2026-08-28T20:00:00Z",
+      "is_existing_holding": false,
+      "quant_score": "0.1",
+      "rank": 5,
+      "risk_flags": [],
+      "selection_reasons": [
+        "momentum available",
+        "trend available"
+      ],
+      "ticker": "AAPL"
+    }
+  ],
+  "diagnostics": [
+    {
+      "evidence_completeness": {
+        "complete": false,
+        "distinct_sources": 3,
+        "missing_evidence_types": [],
+        "point_in_time_quality": "0",
+        "stale_evidence_types": [],
+        "total_items": 3,
+        "violations": [
+          "minimum_point_in_time_quality"
+        ]
+      },
+      "evidence_sources": [
+        "SYNTHETIC:replay-fundamental",
+        "SYNTHETIC:replay-macro",
+        "SYNTHETIC:replay-news"
+      ],
+      "final_alpha": "0.3",
+      "grounded_research_modifier": "0",
+      "quant_only_score": "0.3",
+      "research_conviction": "0.60",
+      "research_direction": "BULLISH",
+      "research_executable": false,
+      "research_status": "AVAILABLE",
+      "risk_penalty": "0",
+      "target_after_risk": {},
+      "target_before_risk": {},
+      "ticker": "QQQ"
+    },
+    {
+      "evidence_completeness": {
+        "complete": false,
+        "distinct_sources": 3,
+        "missing_evidence_types": [],
+        "point_in_time_quality": "0",
+        "stale_evidence_types": [],
+        "total_items": 3,
+        "violations": [
+          "minimum_point_in_time_quality"
+        ]
+      },
+      "evidence_sources": [
+        "SYNTHETIC:replay-fundamental",
+        "SYNTHETIC:replay-macro",
+        "SYNTHETIC:replay-news"
+      ],
+      "final_alpha": "0.25",
+      "grounded_research_modifier": "0",
+      "quant_only_score": "0.25",
+      "research_conviction": "0.60",
+      "research_direction": "BULLISH",
+      "research_executable": false,
+      "research_status": "AVAILABLE",
+      "risk_penalty": "0",
+      "target_after_risk": {},
+      "target_before_risk": {},
+      "ticker": "SPY"
+    },
+    {
+      "evidence_completeness": {
+        "complete": false,
+        "distinct_sources": 3,
+        "missing_evidence_types": [],
+        "point_in_time_quality": "0",
+        "stale_evidence_types": [],
+        "total_items": 3,
+        "violations": [
+          "minimum_point_in_time_quality"
+        ]
+      },
+      "evidence_sources": [
+        "SYNTHETIC:replay-fundamental",
+        "SYNTHETIC:replay-macro",
+        "SYNTHETIC:replay-news"
+      ],
+      "final_alpha": "0.2",
+      "grounded_research_modifier": "0",
+      "quant_only_score": "0.2",
+      "research_conviction": "0.60",
+      "research_direction": "BULLISH",
+      "research_executable": false,
+      "research_status": "AVAILABLE",
+      "risk_penalty": "0",
+      "target_after_risk": {},
+      "target_before_risk": {},
+      "ticker": "NVDA"
+    }
+  ],
+  "evidence_packets": [
+    {
+      "as_of": "2026-08-28T20:00:00Z",
+      "created_at": "2026-08-28T20:00:00Z",
+      "empty_reason": null,
+      "items": [
+        {
+          "available_at": "2026-08-28T20:00:00Z",
+          "content_hash": null,
+          "document_id": null,
+          "evidence_id": "ev_3d5cc200ff0342e9f9a98568",
+          "evidence_type": "fundamental",
+          "observed_at": "2026-08-28T20:00:00Z",
+          "point_in_time_status": "SYNTHETIC",
+          "provider": "replay-fundamental",
+          "published_at": null,
+          "retrieved_at": "2026-08-28T20:00:00Z",
+          "source": "SYNTHETIC:replay-fundamental",
+          "summary": "SYNTHETIC - NOT LIVE DATA",
+          "ticker": "NVDA",
+          "title": "SYNTHETIC - NOT LIVE DATA",
+          "uri": null
+        },
+        {
+          "available_at": "2026-08-28T20:00:00Z",
+          "content_hash": null,
+          "document_id": null,
+          "evidence_id": "ev_9ce0a6b84cd1046deef4999e",
+          "evidence_type": "macro",
+          "observed_at": "2026-08-28T20:00:00Z",
+          "point_in_time_status": "SYNTHETIC",
+          "provider": "replay-macro",
+          "published_at": null,
+          "retrieved_at": "2026-08-28T20:00:00Z",
+          "source": "SYNTHETIC:replay-macro",
+          "summary": "SYNTHETIC - NOT LIVE DATA",
+          "ticker": "NVDA",
+          "title": "SYNTHETIC - NOT LIVE DATA",
+          "uri": null
+        },
+        {
+          "available_at": "2026-08-28T20:00:00Z",
+          "content_hash": null,
+          "document_id": null,
+          "evidence_id": "ev_4eeec9b5b7ad83a527184d37",
+          "evidence_type": "news",
+          "observed_at": "2026-08-28T20:00:00Z",
+          "point_in_time_status": "SYNTHETIC",
+          "provider": "replay-news",
+          "published_at": null,
+          "retrieved_at": "2026-08-28T20:00:00Z",
+          "source": "SYNTHETIC:replay-news",
+          "summary": "SYNTHETIC - NOT LIVE DATA",
+          "ticker": "NVDA",
+          "title": "SYNTHETIC - NOT LIVE DATA",
+          "uri": null
+        }
+      ],
+      "packet_id": "packet_de5672809ec72a3894110053",
+      "point_in_time_status": "HISTORICAL_REPLAY_UNSAFE",
+      "provider_statuses": [
+        "replay-fundamental:AVAILABLE:1",
+        "replay-news:AVAILABLE:1",
+        "replay-macro:AVAILABLE:1"
+      ],
+      "schema_version": "1",
+      "ticker": "NVDA",
+      "warnings": []
+    },
+    {
+      "as_of": "2026-08-28T20:00:00Z",
+      "created_at": "2026-08-28T20:00:00Z",
+      "empty_reason": null,
+      "items": [
+        {
+          "available_at": "2026-08-28T20:00:00Z",
+          "content_hash": null,
+          "document_id": null,
+          "evidence_id": "ev_d9cab0bac2ecae2feb4f895d",
+          "evidence_type": "fundamental",
+          "observed_at": "2026-08-28T20:00:00Z",
+          "point_in_time_status": "SYNTHETIC",
+          "provider": "replay-fundamental",
+          "published_at": null,
+          "retrieved_at": "2026-08-28T20:00:00Z",
+          "source": "SYNTHETIC:replay-fundamental",
+          "summary": "SYNTHETIC - NOT LIVE DATA",
+          "ticker": "QQQ",
+          "title": "SYNTHETIC - NOT LIVE DATA",
+          "uri": null
+        },
+        {
+          "available_at": "2026-08-28T20:00:00Z",
+          "content_hash": null,
+          "document_id": null,
+          "evidence_id": "ev_a51015ace263c9a489e9e40e",
+          "evidence_type": "macro",
+          "observed_at": "2026-08-28T20:00:00Z",
+          "point_in_time_status": "SYNTHETIC",
+          "provider": "replay-macro",
+          "published_at": null,
+          "retrieved_at": "2026-08-28T20:00:00Z",
+          "source": "SYNTHETIC:replay-macro",
+          "summary": "SYNTHETIC - NOT LIVE DATA",
+          "ticker": "QQQ",
+          "title": "SYNTHETIC - NOT LIVE DATA",
+          "uri": null
+        },
+        {
+          "available_at": "2026-08-28T20:00:00Z",
+          "content_hash": null,
+          "document_id": null,
+          "evidence_id": "ev_a1813a7760ec2bc40736863c",
+          "evidence_type": "news",
+          "observed_at": "2026-08-28T20:00:00Z",
+          "point_in_time_status": "SYNTHETIC",
+          "provider": "replay-news",
+          "published_at": null,
+          "retrieved_at": "2026-08-28T20:00:00Z",
+          "source": "SYNTHETIC:replay-news",
+          "summary": "SYNTHETIC - NOT LIVE DATA",
+          "ticker": "QQQ",
+          "title": "SYNTHETIC - NOT LIVE DATA",
+          "uri": null
+        }
+      ],
+      "packet_id": "packet_a328798fcf88555cb7f1113a",
+      "point_in_time_status": "HISTORICAL_REPLAY_UNSAFE",
+      "provider_statuses": [
+        "replay-fundamental:AVAILABLE:1",
+        "replay-news:AVAILABLE:1",
+        "replay-macro:AVAILABLE:1"
+      ],
+      "schema_version": "1",
+      "ticker": "QQQ",
+      "warnings": []
+    },
+    {
+      "as_of": "2026-08-28T20:00:00Z",
+      "created_at": "2026-08-28T20:00:00Z",
+      "empty_reason": null,
+      "items": [
+        {
+          "available_at": "2026-08-28T20:00:00Z",
+          "content_hash": null,
+          "document_id": null,
+          "evidence_id": "ev_2d1583bd81229f314bbbd466",
+          "evidence_type": "fundamental",
+          "observed_at": "2026-08-28T20:00:00Z",
+          "point_in_time_status": "SYNTHETIC",
+          "provider": "replay-fundamental",
+          "published_at": null,
+          "retrieved_at": "2026-08-28T20:00:00Z",
+          "source": "SYNTHETIC:replay-fundamental",
+          "summary": "SYNTHETIC - NOT LIVE DATA",
+          "ticker": "SPY",
+          "title": "SYNTHETIC - NOT LIVE DATA",
+          "uri": null
+        },
+        {
+          "available_at": "2026-08-28T20:00:00Z",
+          "content_hash": null,
+          "document_id": null,
+          "evidence_id": "ev_a4561a8313b063e5bd289ea1",
+          "evidence_type": "macro",
+          "observed_at": "2026-08-28T20:00:00Z",
+          "point_in_time_status": "SYNTHETIC",
+          "provider": "replay-macro",
+          "published_at": null,
+          "retrieved_at": "2026-08-28T20:00:00Z",
+          "source": "SYNTHETIC:replay-macro",
+          "summary": "SYNTHETIC - NOT LIVE DATA",
+          "ticker": "SPY",
+          "title": "SYNTHETIC - NOT LIVE DATA",
+          "uri": null
+        },
+        {
+          "available_at": "2026-08-28T20:00:00Z",
+          "content_hash": null,
+          "document_id": null,
+          "evidence_id": "ev_3d0d0329ce9418e269c91361",
+          "evidence_type": "news",
+          "observed_at": "2026-08-28T20:00:00Z",
+          "point_in_time_status": "SYNTHETIC",
+          "provider": "replay-news",
+          "published_at": null,
+          "retrieved_at": "2026-08-28T20:00:00Z",
+          "source": "SYNTHETIC:replay-news",
+          "summary": "SYNTHETIC - NOT LIVE DATA",
+          "ticker": "SPY",
+          "title": "SYNTHETIC - NOT LIVE DATA",
+          "uri": null
+        }
+      ],
+      "packet_id": "packet_701b45bdc3b4e3c58d72e4ee",
+      "point_in_time_status": "HISTORICAL_REPLAY_UNSAFE",
+      "provider_statuses": [
+        "replay-fundamental:AVAILABLE:1",
+        "replay-news:AVAILABLE:1",
+        "replay-macro:AVAILABLE:1"
+      ],
+      "schema_version": "1",
+      "ticker": "SPY",
+      "warnings": []
+    }
+  ],
+  "graph_summaries": [
+    {
+      "as_of": "2026-08-28T20:00:00Z",
+      "completed_at": "2026-08-28T20:00:00Z",
+      "duration_seconds": "0",
+      "estimated_cost": null,
+      "framework_version": "0.3.1",
+      "graph_rating": "Hold",
+      "model": "synthetic-graph-v1",
+      "point_in_time_status": "HISTORICAL_REPLAY_UNSAFE",
+      "provider": "synthetic-tradingagents-graph",
+      "reports_present": [
+        "market_report",
+        "sentiment_report",
+        "news_report",
+        "fundamentals_report"
+      ],
+      "requested_as_of": "2026-08-28T20:00:00Z",
+      "selected_analysts": [
+        "market",
+        "social",
+        "news",
+        "fundamentals"
+      ],
+      "source_mode": "TEST",
+      "started_at": "2026-08-28T20:00:00Z",
+      "status": "GRAPH_SUMMARY_ONLY",
+      "ticker": "NVDA",
+      "token_usage": null,
+      "warnings": [
+        "SYNTHETIC - NOT LIVE DATA"
+      ]
+    },
+    {
+      "as_of": "2026-08-28T20:00:00Z",
+      "completed_at": "2026-08-28T20:00:00Z",
+      "duration_seconds": "0",
+      "estimated_cost": null,
+      "framework_version": "0.3.1",
+      "graph_rating": "Hold",
+      "model": "synthetic-graph-v1",
+      "point_in_time_status": "HISTORICAL_REPLAY_UNSAFE",
+      "provider": "synthetic-tradingagents-graph",
+      "reports_present": [
+        "market_report",
+        "sentiment_report",
+        "news_report",
+        "fundamentals_report"
+      ],
+      "requested_as_of": "2026-08-28T20:00:00Z",
+      "selected_analysts": [
+        "market",
+        "social",
+        "news",
+        "fundamentals"
+      ],
+      "source_mode": "TEST",
+      "started_at": "2026-08-28T20:00:00Z",
+      "status": "GRAPH_SUMMARY_ONLY",
+      "ticker": "QQQ",
+      "token_usage": null,
+      "warnings": [
+        "SYNTHETIC - NOT LIVE DATA"
+      ]
+    },
+    {
+      "as_of": "2026-08-28T20:00:00Z",
+      "completed_at": "2026-08-28T20:00:00Z",
+      "duration_seconds": "0",
+      "estimated_cost": null,
+      "framework_version": "0.3.1",
+      "graph_rating": "Hold",
+      "model": "synthetic-graph-v1",
+      "point_in_time_status": "HISTORICAL_REPLAY_UNSAFE",
+      "provider": "synthetic-tradingagents-graph",
+      "reports_present": [
+        "market_report",
+        "sentiment_report",
+        "news_report",
+        "fundamentals_report"
+      ],
+      "requested_as_of": "2026-08-28T20:00:00Z",
+      "selected_analysts": [
+        "market",
+        "social",
+        "news",
+        "fundamentals"
+      ],
+      "source_mode": "TEST",
+      "started_at": "2026-08-28T20:00:00Z",
+      "status": "GRAPH_SUMMARY_ONLY",
+      "ticker": "SPY",
+      "token_usage": null,
+      "warnings": [
+        "SYNTHETIC - NOT LIVE DATA"
+      ]
+    }
+  ],
+  "grounded_statuses": [
+    "AVAILABLE",
+    "AVAILABLE",
+    "AVAILABLE"
+  ],
+  "mode": "SHADOW",
+  "non_executable_grounded_count": 3,
+  "pipeline_status": "INSUFFICIENT_GROUNDING",
+  "provider_failures": [],
+  "reconciliation_status": "DRAFT",
+  "risk_violations": [],
+  "schema_version": "1",
+  "security_master": "DEFAULT_VERIFIED_FIXTURE_ONLY",
+  "warnings": [
+    "SYNTHETIC - NOT LIVE DATA",
+    "SHADOW / NOT AUTHORIZED FOR ENTRY"
+  ]
+}

@@ -21,12 +21,20 @@ _TICKERS = ("AAPL", "MSFT", "NVDA", "META", "GOOGL")
 
 class ProviderCapabilities(StableModel):
     provider_name: str
-    supports_live: bool
-    supports_historical: bool
-    supports_point_in_time: bool
-    requires_api_key: bool
-    execution_grade: bool
-    research_grade: bool
+    supports_live: bool = False
+    supports_historical: bool = False
+    supports_point_in_time: bool = False
+    requires_api_key: bool = False
+    execution_grade: bool = False
+    research_grade: bool = False
+    supports_bid: bool = False
+    supports_ask: bool = False
+    supports_last: bool = False
+    supports_ohlcv: bool = False
+    supports_adjusted_data: bool = False
+    supports_corporate_actions: bool = False
+    timestamp_semantics: str = "UNVERIFIED"
+    execution_quote_grade: bool = False
 
 
 class EvidenceProvider(Protocol):
@@ -234,18 +242,7 @@ class EvidencePacketBuilder:
         packet_digest = hashlib.sha256(
             f"{ticker.upper()}|{as_of.isoformat()}|{ids}".encode()
         ).hexdigest()[:24]
-        executable_items = {
-            "VERIFIED_LIVE_AS_OF",
-            "CERTIFIED_HISTORICAL_PIT",
-            "VERIFIED",
-            "RECENT",
-        }
-        if synthetic:
-            point_status = "HISTORICAL_REPLAY_UNSAFE"
-        elif bounded and all(item.point_in_time_status.value in executable_items for item in bounded):
-            point_status = "CERTIFIED_HISTORICAL_PIT"
-        else:
-            point_status = "UNVERIFIED"
+        point_status = self.aggregate_point_in_time_status(tuple(bounded), synthetic=synthetic)
         return ResearchEvidencePacket(
             packet_id=f"packet_{packet_digest}",
             ticker=ticker.upper(),
@@ -257,9 +254,31 @@ class EvidencePacketBuilder:
                 for observation in observations
             ),
             warnings=tuple(warnings),
-            point_in_time_status=EvidencePointInTimeStatus(point_status),
+            point_in_time_status=point_status,
             empty_reason=";".join(warnings) if not bounded else None,
         )
+
+    @staticmethod
+    def aggregate_point_in_time_status(
+        items: tuple[EvidenceItem, ...], *, synthetic: bool = False
+    ) -> EvidencePointInTimeStatus:
+        """Aggregate conservatively; packet status never upgrades its items."""
+        if synthetic or any(
+            item.point_in_time_status
+            in {
+                EvidencePointInTimeStatus.SYNTHETIC,
+                EvidencePointInTimeStatus.REPLAY_UNSAFE,
+                EvidencePointInTimeStatus.HISTORICAL_REPLAY_UNSAFE,
+            }
+            for item in items
+        ):
+            return EvidencePointInTimeStatus.HISTORICAL_REPLAY_UNSAFE
+        statuses = {item.point_in_time_status for item in items}
+        if statuses == {EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT}:
+            return EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT
+        if statuses == {EvidencePointInTimeStatus.VERIFIED_LIVE_AS_OF}:
+            return EvidencePointInTimeStatus.VERIFIED_LIVE_AS_OF
+        return EvidencePointInTimeStatus.UNVERIFIED
 
 
 class _SyntheticEvidenceProvider:

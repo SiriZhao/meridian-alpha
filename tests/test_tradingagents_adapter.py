@@ -15,7 +15,7 @@ from meridian.research import (
 from meridian.schemas import EvidenceItem
 
 ROOT = Path(__file__).parents[1]
-AS_OF = datetime(2026, 8, 28, 14, 30, tzinfo=UTC)
+AS_OF = datetime.now(UTC) - timedelta(minutes=1)
 
 
 def settings(live=False):
@@ -289,7 +289,7 @@ def test_official_graph_runner_returns_only_safe_metadata(monkeypatch):
         "trader_investment_plan",
         "final_trade_decision",
     )
-    assert captured["propagate"] == ("AAPL", "2026-08-28", "stock")
+    assert captured["propagate"] == ("AAPL", AS_OF.date().isoformat(), "stock")
     assert captured["config"]["checkpoint_enabled"] is False
     assert "private prose" not in str(result)
 
@@ -379,3 +379,29 @@ def test_evidence_packet_citations_are_resolved():
         assert "unknown cited evidence" in str(error)
     else:
         raise AssertionError("unknown evidence IDs must fail closed")
+
+
+def test_live_as_of_guard_is_deterministic_with_injected_clock() -> None:
+    frozen_now = datetime(2027, 1, 15, 15, 0, tzinfo=UTC)
+    assert adapter_module._live_as_of_within_tolerance(
+        frozen_now - timedelta(seconds=30), 60, now=frozen_now
+    )
+    assert adapter_module._live_as_of_within_tolerance(
+        frozen_now - timedelta(seconds=60), 60, now=frozen_now
+    )
+    assert not adapter_module._live_as_of_within_tolerance(
+        frozen_now - timedelta(seconds=61), 60, now=frozen_now
+    )
+    assert not adapter_module._live_as_of_within_tolerance(
+        frozen_now + timedelta(seconds=1), 60, now=frozen_now
+    )
+
+
+def test_live_as_of_guard_rejects_naive_timestamps() -> None:
+    frozen_now = datetime(2027, 1, 15, 15, 0, tzinfo=UTC)
+    assert not adapter_module._live_as_of_within_tolerance(
+        datetime(2027, 1, 15, 14, 59, 30), 60, now=frozen_now
+    )
+    assert not adapter_module._live_as_of_within_tolerance(
+        frozen_now - timedelta(seconds=30), 60, now=datetime(2027, 1, 15, 15, 0)
+    )
