@@ -19,6 +19,7 @@ from meridian.config import EvidencePacketPolicy, ResearchBudgetPolicy
 from meridian.evidence import EvidencePacketBuilder, EvidenceProvider
 from meridian.research import (
     CertifiedAgentSignal,
+    CertifiedEvidenceView,
     EvidenceCitationValidator,
     GraphResearchSummary,
     GroundedResearchNormalizer,
@@ -26,6 +27,7 @@ from meridian.research import (
     GroundedResearchReplayStore,
     GroundedResearchStatus,
     PointInTimeStatus,
+    ResearchContextPacket,
     ResearchEvidencePacket,
     ResearchMode,
     ResearchOutcome,
@@ -255,6 +257,23 @@ class ResearchPipelineService:
                 self.evidence_providers,
             )
             packets.append(packet)
+            normalizer_packet = packet
+            provider_registry: dict[str, object] = {}
+            if mode is ResearchPipelineMode.LIVE:
+                for provider in self.evidence_providers:
+                    name = provider.capabilities.provider_name
+                    existing = provider_registry.get(name)
+                    if existing is not None and existing != provider.capabilities:
+                        raise ValueError(f"PROVIDER_CAPABILITY_CONFLICT:{name}")
+                    provider_registry[name] = provider.capabilities
+                context_packet = ResearchContextPacket(
+                    context_id=f"context_{packet.packet_id}", ticker=ticker,
+                    as_of=as_of, items=packet.items, created_at=packet.created_at or as_of,
+                )
+                certified_view = CertifiedEvidenceView.from_context(
+                    context_packet, provider_registry=provider_registry,
+                )
+                normalizer_packet = certified_view.packet
             if self.normalizer is None:
                 result = GroundedResearchOutcome(
                     ticker=ticker,
@@ -267,7 +286,7 @@ class ResearchPipelineService:
                     error_code="GROUNDED_NORMALIZER_UNAVAILABLE",
                 )
             else:
-                result = self.normalizer.normalize(summary, packet, as_of)
+                result = self.normalizer.normalize(summary, normalizer_packet, as_of)
             grounded.append(result)
             if result.available and result.signal is not None:
                 # TEST and REPLAY are deliberately non-executable.  A
@@ -277,19 +296,12 @@ class ResearchPipelineService:
                     warnings.append(f"{ticker}:NON_EXECUTABLE_MODE:{mode.value}")
                 else:
                     try:
-                        provider_registry: dict[str, object] = {}
-                        for provider in self.evidence_providers:
-                            name = provider.capabilities.provider_name
-                            existing = provider_registry.get(name)
-                            if existing is not None and existing != provider.capabilities:
-                                raise ValueError(f"PROVIDER_CAPABILITY_CONFLICT:{name}")
-                            provider_registry[name] = provider.capabilities
                         if not provider_registry:
                             raise ValueError("PROVIDER_CAPABILITY_UNAVAILABLE")
                         signals.append(
                             EvidenceAuthorizationService().authorize(
                                 result.signal,
-                                packet,
+                                normalizer_packet,
                                 provider_registry=provider_registry,
                             )
                         )

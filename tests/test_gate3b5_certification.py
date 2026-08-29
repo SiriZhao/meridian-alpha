@@ -158,3 +158,37 @@ def test_packet_claim_cannot_overstate_item_pit_certification() -> None:
         EvidenceAuthorizationService().authorize(
             _grounded((item,)), packet, provider_registry={"market-a": _caps("market-a", live=True)}
         )
+
+def test_certified_view_filters_mixed_context_before_normalization() -> None:
+    from meridian.research import CertifiedEvidenceView, ResearchContextPacket
+
+    safe = _item("sec-accepted", EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT)
+    yahoo = _item("yahoo", EvidencePointInTimeStatus.UNVERIFIED)
+    synthetic = _item("replay", EvidencePointInTimeStatus.SYNTHETIC)
+    future = _item("future", EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT).model_copy(
+        update={"available_at": AS_OF.replace(year=AS_OF.year + 1)}
+    )
+    context = ResearchContextPacket(
+        context_id="mixed-context", ticker="AAPL", as_of=AS_OF, created_at=AS_OF,
+        items=(safe, yahoo, synthetic, future),
+    )
+    view = CertifiedEvidenceView.from_context(
+        context,
+        provider_registry={
+            "sec-accepted": _caps("sec-accepted"),
+            "yahoo": _caps("yahoo"),
+            "replay": _caps("replay"),
+            "future": _caps("future"),
+        },
+        clock=lambda: AS_OF,
+    )
+    assert tuple(item.provider for item in view.packet.items) == ("sec-accepted",)
+    assert sum("PIT_NOT_EXECUTABLE" in exclusion for exclusion in view.excluded) == 2
+    assert any("AFTER_DECISION_AS_OF" in exclusion for exclusion in view.excluded)
+
+
+def test_certified_view_is_sealed() -> None:
+    from meridian.research import CertifiedEvidenceView
+
+    with pytest.raises(ValueError, match="only be built"):
+        CertifiedEvidenceView(packet=_packet((_item("safe", EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT),), EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT), context_id="bypass")

@@ -86,6 +86,7 @@ class GraphResearchSummary(StableModel):
         return self
 
 _CERTIFICATION_TOKEN = object()
+_CERTIFIED_VIEW_TOKEN = object()
 
 class CertifiedAgentSignal(StableModel):
     """Sealed executable research authorization issued by the evidence gate."""
@@ -243,6 +244,100 @@ class ResearchEvidencePacket(StableModel):
         if unknown:
             raise ValueError(f"unknown cited evidence id(s): {sorted(unknown)}")
 
+
+class ResearchContextPacket(StableModel):
+    """Mixed-trust research context for diagnostics and shadow reporting."""
+
+    context_id: str = Field(min_length=1, max_length=128)
+    ticker: str = Field(pattern=r"^[A-Z][A-Z0-9.\-]{0,14}$")
+    as_of: datetime
+    items: tuple[EvidenceItem, ...] = Field(default=(), max_length=500)
+    created_at: datetime
+
+    @model_validator(mode="after")
+    def validate_context(self):
+        for name, value in (("as_of", self.as_of), ("created_at", self.created_at)):
+            if value.tzinfo is None or value.utcoffset() is None:
+                raise ValueError(f"research context {name} must be timezone-aware")
+        return self
+
+
+class CertifiedEvidenceView(StableModel):
+    """Sealed exact evidence input permitted for executable grounding.
+
+    It is derived item-by-item from mixed context. The source context is never
+    supplied to the executable normalizer, so unverified material cannot affect
+    a model before citation validation.
+    """
+
+    packet: ResearchEvidencePacket
+    context_id: str = Field(min_length=1, max_length=128)
+    excluded: tuple[str, ...] = ()
+
+    def __init__(self, **data: Any) -> None:
+        token = data.pop("_certified_view_token", None)
+        if token is not _CERTIFIED_VIEW_TOKEN:
+            raise ValueError("CertifiedEvidenceView may only be built from a ResearchContextPacket")
+        super().__init__(**data)
+
+    @classmethod
+    def from_context(
+        cls,
+        context: ResearchContextPacket,
+        *,
+        provider_registry: Mapping[str, Any],
+        clock: Callable[[], datetime] | None = None,
+    ) -> CertifiedEvidenceView:
+        from meridian.evidence import EvidencePacketBuilder
+
+        now = (clock or (lambda: datetime.now(UTC)))()
+        if now.tzinfo is None or now.utcoffset() is None:
+            raise ValueError("certified evidence clock must be timezone-aware")
+        accepted: list[EvidenceItem] = []
+        excluded: list[str] = []
+        executable_statuses = {
+            EvidencePointInTimeStatus.VERIFIED_LIVE_AS_OF,
+            EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT,
+        }
+        for item in context.items:
+            reason: str | None = None
+            provider = (item.provider or "").strip()
+            capability = provider_registry.get(provider)
+            if item.ticker is not None and item.ticker != context.ticker:
+                reason = "IDENTITY_MISMATCH"
+            elif "available_at" not in item.model_fields_set or item.available_at is None:
+                reason = "AVAILABLE_AT_REQUIRED"
+            elif item.available_at > context.as_of or item.observed_at > context.as_of:
+                reason = "AFTER_DECISION_AS_OF"
+            elif item.point_in_time_status not in executable_statuses:
+                reason = "PIT_NOT_EXECUTABLE"
+            elif capability is None:
+                reason = "PROVIDER_CAPABILITY_UNAVAILABLE"
+            elif str(getattr(capability, "provider_name", "")).strip() != provider:
+                reason = "PROVIDER_CAPABILITY_MISMATCH"
+            elif getattr(capability, "research_grade", False) is not True:
+                reason = "PROVIDER_NOT_RESEARCH_GRADE"
+            elif getattr(capability, "supports_point_in_time", False) is not True:
+                reason = "PROVIDER_NOT_PIT_CAPABLE"
+            elif item.point_in_time_status is EvidencePointInTimeStatus.VERIFIED_LIVE_AS_OF and getattr(capability, "supports_live", False) is not True:
+                reason = "PROVIDER_NOT_LIVE_CAPABLE"
+            elif item.point_in_time_status is EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT and getattr(capability, "supports_historical", False) is not True:
+                reason = "PROVIDER_NOT_HISTORICAL_CAPABLE"
+            if reason is None:
+                accepted.append(item)
+            else:
+                excluded.append(f"{item.stable_id}:{reason}")
+        status = EvidencePacketBuilder.aggregate_point_in_time_status(tuple(accepted))
+        ids = ":".join(item.stable_id for item in accepted)
+        digest = hashlib.sha256(f"{context.context_id}|{ids}".encode()).hexdigest()[:24]
+        packet = ResearchEvidencePacket(
+            packet_id=f"certified_{digest}", ticker=context.ticker, as_of=context.as_of,
+            created_at=now, items=tuple(accepted), point_in_time_status=status,
+            empty_reason="NO_CERTIFIED_EVIDENCE" if not accepted else None,
+            warnings=tuple(excluded),
+        )
+        return cls(_certified_view_token=_CERTIFIED_VIEW_TOKEN, packet=packet,
+                   context_id=context.context_id, excluded=tuple(excluded))
 
 class GroundedResearchResult(StableModel):
     """Future normalization result; not used to manufacture a live signal yet."""
