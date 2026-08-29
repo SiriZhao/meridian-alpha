@@ -1,16 +1,11 @@
-# Failure / safety evaluation matrix
+# Failure matrix
 
-| Category | Case | Expected result |
-| --- | --- | --- |
-| Account | no account / missing holdings | `ACCOUNT_DATA_UNAVAILABLE` or blocked |
-| Account | $0 balance | `NO_CAPITAL`, no orders |
-| Account | stale snapshot / partial fill / manual trade | use current snapshot only; never infer fill |
-| Market | missing/stale quote, wide spread, gap, outage | draft or `BLOCKED_STALE_MARKET` |
-| AI | timeout, malformed output, contradiction, rate limit | ticker failure isolated; no fabricated signal |
-| Allocator | FinRL-X unavailable/invalid artifact | deterministic fallback |
-| Orders | insufficient cash, oversell, tiny/duplicate order | no invalid draft |
-| System | retry, duplicate run id, corrupt cache | idempotent audit or fail closed |
-
-The current pytest suite covers the zero-capital, stale-account, no-look-ahead,
-cash-budget, and leverage-disabled cases. The remaining rows require a verified
-data integration and expanded property/evaluation suite before release.
+| Failure | Expected state |
+| --- | --- |
+| Account stale/partial/conflicting | BLOCKED_STALE_ACCOUNT or ANALYSIS_ONLY; no ticket |
+| Unknown security / quote / historical row | fail closed; no inferred identity/value |
+| SEC/news/macro unavailable | explicit provider failure or insufficient grounding; never neutral alpha |
+| Evidence authorization/citation failure | no CertifiedAgentSignal |
+| DeepSeek/TradingAgents unavailable | explicit unavailable/abstain; no retry storm |
+| FinRL-X manifest/artifact unavailable | MODEL_UNAVAILABLE; deterministic allocator remains production path |
+| Risk or order-pricing failure | DRAFT/blocked; no manual-ready result |

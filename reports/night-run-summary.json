@@ -1,0 +1,1 @@
+{ "status": "READY_FOR_CHATGPT_FINANCE_HOST_TEST", "tests": 169, "broker": "NONE", "schwab": "NOT_CONNECTED", "real_orders": 0, "finrlx_promoted": false, "live_deepseek": "SKIPPED", "live_tradingagents": "SKIPPED" }
