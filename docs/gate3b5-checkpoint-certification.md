@@ -15,5 +15,4 @@ databases, caches, credentials/secrets, and review artifacts. No environment
 or secret file was read. No broker, Schwab, account, order, or execution
 surface was introduced.
 
-The Gate 3B.5 checkpoint commit is recorded in the follow-up certification
-commit so this document can contain its final immutable SHA.
+The Gate 3B.5 checkpoint commit is `15e41977b6619f2bad220e719fb8366ab94746a6`.
