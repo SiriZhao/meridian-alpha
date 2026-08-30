@@ -1,0 +1,10 @@
+{
+  "provider": "sec-edgar-submissions",
+  "retrieved_at": "2026-08-30T00:00:00Z",
+  "results": [
+    {"ticker":"AAPL","cik":"0000320193","accession":"0000320193-18-000145","acceptance_datetime":"2018-11-05T13:01:40Z","pit_status":"CERTIFIED_HISTORICAL_PIT"},
+    {"ticker":"MSFT","cik":"0000789019","pit_status":"UNVERIFIED","reason":"ACCESSION_NOT_IN_CURRENT_SUBMISSIONS_LISTING"},
+    {"ticker":"NVDA","cik":"0001045810","accession":"0001045810-26-000075","acceptance_datetime":"2026-08-26T20:36:00Z","pit_status":"CERTIFIED_HISTORICAL_PIT"}
+  ],
+  "notes": ["No filed-date midnight was used as availability.","Results are bounded public SEC observations, not order authorization."]
+}

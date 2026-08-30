@@ -31,3 +31,11 @@ def test_acceptance_after_cutoff_and_accession_mismatch_fail_closed() -> None:
     assert SECAccessionCertifiedFactsAdapter().certify(fact(), metadata(T + timedelta(seconds=1)), T) is None
     with pytest.raises(ValueError, match="ACCESSION_MISMATCH"):
         SECAccessionCertifiedFactsAdapter().certify(fact().model_copy(update={"document_id": "0000320193-26-000002"}), metadata(), T)
+
+def test_naive_times_and_cik_accession_identity_mismatch_are_rejected() -> None:
+    with pytest.raises(ValueError, match="timezone-aware"):
+        SECFilingMetadata.model_validate({**metadata().model_dump(), "acceptance_datetime": datetime(2026, 8, 30)})
+    with pytest.raises(ValueError, match="timezone-aware"):
+        SECFilingMetadata.model_validate({**metadata().model_dump(), "retrieved_at": datetime(2026, 8, 30)})
+    with pytest.raises(ValueError, match="CIK_ACCESSION_MISMATCH"):
+        SECFilingMetadata.model_validate({**metadata().model_dump(), "accession_issuer_cik": "0000000001"})
