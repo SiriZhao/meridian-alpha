@@ -8,6 +8,7 @@ connector response.
 from __future__ import annotations
 
 import hashlib
+import re
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
@@ -23,6 +24,15 @@ from meridian.schemas import (
 )
 from meridian.security_master import DEFAULT_SECURITY_MASTER, SecurityMaster
 
+_SENSITIVE_HOST_PATTERN = re.compile(r"(?i)(api[_-]?key|access[_-]?token|authorization|password|credential|brokerage[_-]?login|account[_-]?(number|id))")
+
+
+def _reject_sensitive_host_text(value: object) -> None:
+    if isinstance(value, str) and _SENSITIVE_HOST_PATTERN.search(value):
+        raise ValueError("HOST_SENSITIVE_FIELD_REJECTED")
+    if isinstance(value, (tuple, list)):
+        for item in value:
+            _reject_sensitive_host_text(item)
 
 class HostCoverageStatus(StrEnum):
     COMPLETE = "COMPLETE"
@@ -61,6 +71,7 @@ class HostAccountSnapshotEnvelope(StableModel):
 
     @model_validator(mode="after")
     def validate_envelope(self):
+        _reject_sensitive_host_text((self.source_kind, self.source_name, self.pending_or_unknown_state, self.warnings))
         if self.retrieved_at < self.as_of:
             raise ValueError("retrieved_at must not precede as_of")
         if self.total_equity < self.cash:

@@ -1,0 +1,1 @@
+# Allocator challenger comparison`n`nFinRL-X has no validated artifact/runtime. The deterministic allocator remains production; challenger comparison is unavailable and FinRL-X is not promoted.`n

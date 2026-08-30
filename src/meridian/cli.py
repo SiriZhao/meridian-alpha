@@ -19,6 +19,7 @@ from meridian.evidence import (
     FakeMarketEvidenceProvider,
     FakeNewsEvidenceProvider,
 )
+from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.market import FakeMarketDataProvider
 from meridian.orchestrator import DailyAnalysisService, DailyOrchestrator
 from meridian.pipeline import (
@@ -155,6 +156,8 @@ def main() -> None:
     runs_subparsers.add_parser("list")
     show = runs_subparsers.add_parser("show")
     show.add_argument("run_id")
+    host_smoke = subparsers.add_parser("host-smoke")
+    host_smoke.add_argument("snapshot", help="Path to a sanitized HostAccountSnapshotEnvelope JSON file")
     daily = subparsers.add_parser("daily")
     daily.add_argument("--account-fixture", required=True)
     daily.add_argument("--date", required=True)
@@ -195,6 +198,15 @@ def main() -> None:
     args = parser.parse_args()
     root = Path.cwd()
     policies = load_policies(root / "policies")
+    if args.command == "host-smoke":
+        try:
+            envelope = HostAccountSnapshotEnvelope.model_validate_json(Path(args.snapshot).read_text(encoding="utf-8"))
+            snapshot = normalize_host_snapshot(envelope)
+            decision = DailyAnalysisService(None, policies).run(snapshot, datetime.now(snapshot.as_of.tzinfo))
+            print(json.dumps({"validation": "VALID", "account_readiness": snapshot.freshness_state.value, "market_readiness": "EXECUTION_QUOTE_AUTHORITY_UNAVAILABLE", "research_readiness": "ANALYSIS_ONLY", "risk_readiness": "DETERMINISTIC_RISK_AVAILABLE", "manual_entry_readiness": False, "blockers": ["EXECUTION_QUOTE_AUTHORITY_UNAVAILABLE"], "decision": decision.model_dump(mode="json")}, default=str))
+        except (OSError, ValueError) as error:
+            raise SystemExit(f"HOST_SMOKE_REJECTED:{error}") from error
+        return
     if args.command == "config":
         print("Configuration is valid.")
         return

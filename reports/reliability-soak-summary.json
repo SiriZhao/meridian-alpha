@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "mode": "OFFLINE_REPLAY_SAFETY",
+  "scenarios": {
+    "fresh_account": "PASS", "stale_account": "PASS_BLOCKED", "partial_account": "PASS_ANALYSIS_ONLY",
+    "future_evidence": "PASS_REJECTED", "future_quote": "PASS_REJECTED", "stale_quote": "PASS_DRAFT",
+    "deepseek_unavailable": "PASS_EXPLICIT", "deepseek_invalid_json": "PASS_INVALID_OUTPUT", "deepseek_abstain": "PASS_NO_SIGNAL",
+    "finrlx_unavailable": "PASS_MODEL_UNAVAILABLE", "duplicate_snapshot": "PASS_CONFLICT_REJECTED",
+    "external_trade_partial_fill": "PASS_NEXT_SNAPSHOT_REQUIRED", "dislocation_uncertified": "PASS_REJECTED"
+  },
+  "live_network_calls": 0,
+  "broker_calls": 0,
+  "result": "PASS"
+}

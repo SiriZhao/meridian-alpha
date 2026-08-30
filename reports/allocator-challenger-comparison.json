@@ -1,0 +1,8 @@
+{
+  "status": "MODEL_UNAVAILABLE",
+  "deterministic_allocator": "deterministic_alpha_volatility_fallback",
+  "finrlx_challenger": "MODEL_UNAVAILABLE: manifest/artifact/runtime absent",
+  "comparison": null,
+  "promotion_eligible": false,
+  "broker_or_execution_imports": false
+}

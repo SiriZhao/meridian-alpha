@@ -74,3 +74,8 @@ def test_host_coverage_cases_preserve_analysis_only_boundaries() -> None:
     assert complete.sync_state is AccountSyncState.SYNCED
     assert partial.sync_state is AccountSyncState.PARTIAL
     assert partial.freshness_state is FreshnessState.VERIFIED
+def test_host_sensitive_fields_are_rejected_before_normalization() -> None:
+    with pytest.raises(ValueError, match="HOST_SENSITIVE_FIELD_REJECTED"):
+        envelope(warnings=("authorization: secret",))
+    with pytest.raises(ValueError, match="HOST_SENSITIVE_FIELD_REJECTED"):
+        envelope(source_name="account_number=123456")

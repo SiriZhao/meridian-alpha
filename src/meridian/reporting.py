@@ -138,6 +138,11 @@ def mobile_daily_summary(decision: DailyDecision) -> dict[str, object]:
             "新鲜度": decision.account_snapshot_status.value,
         },
         "市场环境": {"新鲜度": decision.market_data_status.value, "regime": decision.regime},
+        "Quant 判断": "确定性量化/风控结果；不代表成交。",
+        "AI 研判": "仅限已认证证据的 Shadow 研判。",
+        "抄底观察": "仅研究观察；不可直接决定仓位或订单。",
+        "证据": "证据授权与 PIT 状态见运行报告。",
+        "风险": list(decision.blocked_reasons),
         "目标组合": [
             {"ticker": position.ticker, "target_weight": str(position.target_weight)}
             for position in (decision.target_portfolio.positions if decision.target_portfolio else ())
