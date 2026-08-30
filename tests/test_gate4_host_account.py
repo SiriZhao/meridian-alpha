@@ -67,3 +67,10 @@ def test_old_as_of_is_stale_even_when_old_retrieved_at_is_nearby() -> None:
     old = T - timedelta(hours=2)
     snapshot = normalize_host_snapshot(envelope(as_of=old, retrieved_at=old + timedelta(seconds=1)), trusted_now=T, replay=True, max_age_seconds=60)
     assert snapshot.freshness_state is FreshnessState.STALE
+
+def test_host_coverage_cases_preserve_analysis_only_boundaries() -> None:
+    complete = normalize_host_snapshot(envelope(), trusted_now=T, replay=True)
+    partial = normalize_host_snapshot(envelope(coverage_status=HostCoverageStatus.PARTIAL), trusted_now=T, replay=True)
+    assert complete.sync_state is AccountSyncState.SYNCED
+    assert partial.sync_state is AccountSyncState.PARTIAL
+    assert partial.freshness_state is FreshnessState.VERIFIED

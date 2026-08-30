@@ -53,3 +53,9 @@ def test_dislocation_modifier_requires_sealed_certified_evidence_view() -> None:
     assert bounded_modifier(certified) == Decimal("0.10")
     with pytest.raises(ValueError, match="exact CertifiedEvidenceView"):
         certify_dislocation_assessment(assessment.model_copy(update={"cited_evidence_ids": ("unknown",)}), view)
+
+def test_raw_dislocation_assessment_cannot_authorize_modifier() -> None:
+    raw = DislocationAssessment(ticker="AAPL", status=DislocationStatus.AVAILABLE,
+        stance="BULLISH", dislocation_conviction=Decimal("1"), cited_evidence_ids=("not-enough",))
+    with pytest.raises(TypeError, match="CertifiedDislocationAssessment"):
+        bounded_modifier(raw)  # type: ignore[arg-type]

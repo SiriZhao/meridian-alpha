@@ -108,6 +108,8 @@ def bounded_modifier(
     certified: CertifiedDislocationAssessment, *, maximum: Decimal = Decimal("0.10")
 ) -> Decimal:
     """Return only a bounded modifier from sealed certified evidence research."""
+    if not isinstance(certified, CertifiedDislocationAssessment):
+        raise TypeError("bounded dislocation modifier requires CertifiedDislocationAssessment")
     assessment = certified.assessment
     if assessment.status is not DislocationStatus.AVAILABLE or assessment.dislocation_conviction is None:
         return Decimal("0")

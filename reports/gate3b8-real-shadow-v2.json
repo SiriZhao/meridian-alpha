@@ -1,0 +1,11 @@
+{
+  "run_type": "gate3b8_real_shadow_v2",
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "account": "SYNTHETIC_HOST_STYLE",
+  "market": "REAL_SHADOW_UNVERIFIED",
+  "certified_evidence_count": 0,
+  "certified_signal_count": 0,
+  "llm": "SKIPPED_PRECONDITION_UNMET",
+  "dislocation": "SKIPPED_NO_CERTIFIED_EVIDENCE",
+  "tickers": []
+}
