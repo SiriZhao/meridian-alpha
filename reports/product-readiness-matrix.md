@@ -1,21 +1,30 @@
-# Product readiness matrix
+# Product readiness matrix — Gate 5B/5C/5D
 
-| Capability | Implemented | Real | PIT certified | Shadow | Executable | Tested | Current blocker |
+`IMPLEMENTED` describes a Meridian contract or adapter boundary; `REAL` and
+`PIT CERTIFIED` describe observed evidence, not intent. No row authorizes a
+broker action.
+
+| Capability | IMPLEMENTED | REAL | PIT CERTIFIED | SHADOW | EXECUTABLE | TESTED | BLOCKER |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Account truth | Yes | No | N/A | Yes | No | Yes | READY_FOR_SUPERVISED_HOST_INPUT; no real envelope |
-| Security identity | Yes | Partial | No | Yes | No | Yes | 0/11 authoritative provenance records; 11 bounded development records |
-| Market research data | Yes | Yes | No | Yes | No | Yes | Yahoo is excluded from certified prompts |
-| Execution quote | No | No | No | No | No | Yes | TO_BE_SELECTED; Yahoo is last-only |
-| Historical OHLCV | Yes | Yes | No | Yes | No | Yes | availability certification |
-| Corporate actions | Yes | No | No | Yes | No | Yes | source certification |
-| Fundamentals / events | Yes | Yes | Partial | Yes | No | Yes | AAPL/NVDA/MSFT SEC accession path only |
-| News / macro | Contract | No | No | No | No | Yes | provider certification |
-| TradingAgents | Contract | No | No | Optional | No | Yes | not exercised; qualitative-only |
-| DeepSeek grounding | Yes | Yes | Yes | Yes | No | Yes | shadow-only; default disabled |
-| CertifiedAgentSignal | Yes | Yes | Yes | Yes | No | Yes | model returned neutral, no alpha contribution |
-| Dislocation research | Yes | No | Requires certified evidence | Yes | No | Yes | no eligible deterministic candidate in V5 |
-| Quant / deterministic allocator | Yes | Mixed | N/A | Yes | No | Yes | execution quote |
-| FinRL-X challenger | Yes | No | No | Yes | No | Yes | model artifact absent; not promoted |
-| Risk / reconciliation | Yes | No | N/A | Yes | No | Yes | execution quote |
-| ChatGPT Host/MCP | Yes | No | N/A | Yes | No | Yes | sanitized host-smoke harness; supervised input pending |
+| Account truth | Yes | No | N/A | Yes | No | Yes | No real Host envelope; supervised input pending |
+| Security identity | Yes | Partial | No | Yes | No | Yes | 0/11 authoritative provenance records |
+| Market research data | Yes | Yes | No | Yes | No | Yes | Yahoo remains research-shadow only |
+| Execution quote | Contract | No | No | Yes | No | Yes | TO_BE_SELECTED; no certified bid/ask authority |
+| Historical OHLCV | Yes | Yes | No | Yes | No | Yes | provider availability/PIT certification |
+| Corporate actions | Contract | No | No | Yes | No | Yes | source certification pending |
+| Fundamentals | Yes | Yes | Yes | Yes | No | Yes | bounded SEC AAPL/NVDA/MSFT coverage |
+| Company events | Yes | Yes | Per observation | Yes | No | Yes | SEC filing-presence lane only |
+| News | Contract | No | No | Yes | No | Yes | PIT/licensing semantics unverified |
+| Macro | Contract | No | No | Yes | No | Yes | vintage provider configuration unavailable |
+| TradingAgents | Contract | No | No | Yes | No | Yes | qualitative-only; live smoke not run |
+| DeepSeek grounding | Yes | Yes | Yes | Yes | No | Yes | default live research remains OFF |
+| CertifiedAgentSignal | Yes | Yes | Yes | Yes | No | Yes | only authorized shadow signals |
+| Dislocation | Yes | No | Requires certified view | Yes | No | Yes | no eligible certified candidate in last run |
+| Quant | Yes | Mixed | N/A | Yes | No | Yes | shadow analysis only |
+| Deterministic allocator | Yes | Yes | N/A | Yes | No | Yes | execution quote/account gates |
+| FinRL-X challenger | Yes | No | No | Yes | No | Yes | MODEL_UNAVAILABLE; no validated artifact/runtime |
+| Risk | Yes | No | N/A | Yes | No | Yes | manual quote authority absent |
+| Reconciliation | Yes | No | N/A | Yes | No | Yes | requires next fresh account snapshot |
+| Manual ticket | Contract | No | N/A | Yes | No | Yes | quote authority and supervised account absent |
+| Host/MCP | Yes | No | N/A | Yes | No | Yes | sanitized supervised input only |
 | Broker | No | No | N/A | No | No | Yes | intentionally absent |

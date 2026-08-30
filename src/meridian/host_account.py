@@ -24,7 +24,9 @@ from meridian.schemas import (
 )
 from meridian.security_master import DEFAULT_SECURITY_MASTER, SecurityMaster
 
-_SENSITIVE_HOST_PATTERN = re.compile(r"(?i)(api[_-]?key|access[_-]?token|authorization|password|credential|brokerage[_-]?login|account[_-]?(number|id))")
+_SENSITIVE_HOST_PATTERN = re.compile(
+    r"(?i)(api[_-]?key|access[_-]?token|authorization|password|credential|brokerage[_-]?login|account[_-]?(number|id))"
+)
 
 
 def _reject_sensitive_host_text(value: object) -> None:
@@ -33,6 +35,7 @@ def _reject_sensitive_host_text(value: object) -> None:
     if isinstance(value, (tuple, list)):
         for item in value:
             _reject_sensitive_host_text(item)
+
 
 class HostCoverageStatus(StrEnum):
     COMPLETE = "COMPLETE"
@@ -46,8 +49,12 @@ class HostPosition(StableModel):
     canonical_asset_id: str | None = Field(default=None, min_length=1, max_length=128)
     ticker: str = Field(pattern=r"^[A-Z][A-Z0-9.\-]{0,14}$")
     quantity: Decimal = Field(ge=Decimal("0"), max_digits=18, decimal_places=6)
-    market_value: Decimal | None = Field(default=None, ge=Decimal("0"), max_digits=18, decimal_places=4)
-    cost_basis: Decimal | None = Field(default=None, ge=Decimal("0"), max_digits=18, decimal_places=4)
+    market_value: Decimal | None = Field(
+        default=None, ge=Decimal("0"), max_digits=18, decimal_places=4
+    )
+    cost_basis: Decimal | None = Field(
+        default=None, ge=Decimal("0"), max_digits=18, decimal_places=4
+    )
     currency: str = Field(default="USD", pattern=r"^[A-Z]{3}$")
 
 
@@ -69,9 +76,30 @@ class HostAccountSnapshotEnvelope(StableModel):
     provenance_digest: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     warnings: tuple[str, ...] = ()
 
+    @model_validator(mode="before")
+    @classmethod
+    def reject_sensitive_keys(cls, value: object) -> object:
+        if not isinstance(value, dict):
+            return value
+        rejected = {
+            "account_number",
+            "account_id",
+            "token",
+            "access_token",
+            "refresh_token",
+            "password",
+            "credential",
+            "raw_connector_payload",
+        }
+        if any(str(key).lower() in rejected for key in value):
+            raise ValueError("HOST_SENSITIVE_FIELD_REJECTED")
+        return value
+
     @model_validator(mode="after")
     def validate_envelope(self):
-        _reject_sensitive_host_text((self.source_kind, self.source_name, self.pending_or_unknown_state, self.warnings))
+        _reject_sensitive_host_text(
+            (self.source_kind, self.source_name, self.pending_or_unknown_state, self.warnings)
+        )
         if self.retrieved_at < self.as_of:
             raise ValueError("retrieved_at must not precede as_of")
         if self.total_equity < self.cash:
@@ -80,9 +108,11 @@ class HostAccountSnapshotEnvelope(StableModel):
             raise ValueError("positions must not contain duplicate tickers")
         if self.provenance_digest is None:
             payload = self.model_dump(mode="json", exclude={"provenance_digest"})
-            object.__setattr__(self, "provenance_digest", hashlib.sha256(
-                str(sorted(payload.items())).encode()
-            ).hexdigest())
+            object.__setattr__(
+                self,
+                "provenance_digest",
+                hashlib.sha256(str(sorted(payload.items())).encode()).hexdigest(),
+            )
         return self
 
     @property
@@ -133,16 +163,24 @@ def normalize_host_snapshot(
     holdings: list[Holding] = []
     for position in envelope.positions:
         record = security_master.resolve(position.ticker)
-        if position.canonical_asset_id is not None and position.canonical_asset_id != record.canonical_asset_id:
+        if (
+            position.canonical_asset_id is not None
+            and position.canonical_asset_id != record.canonical_asset_id
+        ):
             raise ValueError("SECURITY_IDENTITY_UNAVAILABLE:canonical_asset_id_mismatch")
         if position.currency != envelope.base_currency or record.currency != envelope.base_currency:
             raise ValueError("HOST_ACCOUNT_CURRENCY_MISMATCH")
         if position.market_value is None:
             raise ValueError("HOST_POSITION_MARKET_VALUE_REQUIRED")
-        holdings.append(Holding(
-            ticker=record.canonical_symbol, quantity=position.quantity,
-            market_value=position.market_value, cost_basis=position.cost_basis,
-        ))
+
+        holdings.append(
+            Holding(
+                ticker=record.canonical_symbol,
+                quantity=position.quantity,
+                market_value=position.market_value,
+                cost_basis=position.cost_basis,
+            )
+        )
     stale = (reference - envelope.as_of).total_seconds() > max_age_seconds
     if envelope.coverage_status is HostCoverageStatus.STALE or stale:
         freshness, sync = FreshnessState.STALE, AccountSyncState.PARTIAL

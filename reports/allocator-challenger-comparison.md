@@ -1,1 +1,9 @@
-# Allocator challenger comparison`n`nFinRL-X has no validated artifact/runtime. The deterministic allocator remains production; challenger comparison is unavailable and FinRL-X is not promoted.`n
+# Allocator challenger comparison
+
+Status: `MODEL_UNAVAILABLE`
+
+No validated FinRL-X artifact or runtime is present. The deterministic
+allocator remains the only allocator used by Meridian. No challenger inference
+or promotion occurred. Observable OOS performance fields are intentionally
+unset; no return, volatility, Sharpe, drawdown, or transaction-cost claim is
+made.

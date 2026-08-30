@@ -1,0 +1,35 @@
+{
+  "schema_version": "1",
+  "gate": "3B.15/4E",
+  "mode": "SHADOW_REAL_DATA",
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "account": "SYNTHETIC_HOST_STYLE",
+  "market": "YAHOO_RESEARCH_SHADOW_ONLY",
+  "security_master_authoritative": "0/11",
+  "sec_pit": "AAPL/NVDA/MSFT existing accession-certified coverage",
+  "company_events": [
+    {
+      "ticker": "AAPL",
+      "form": "10-Q",
+      "accession": "0000320193-25-000073",
+      "accepted_at": "2025-08-01T10:00:42Z",
+      "event": "PERIODIC_FINANCIAL_FILING_AVAILABLE",
+      "status": "CERTIFIED_HISTORICAL_PIT"
+    }
+  ],
+  "news": "UNVERIFIED_SHADOW_NOT_IN_CERTIFIED_EVIDENCE_VIEW",
+  "macro": "CONFIGURATION_UNAVAILABLE_NO_LIVE_CLAIM",
+  "market_regime": "SHADOW_UNVERIFIED_LINEAGE_REQUIRED",
+  "deepseek": "NOT_RERUN; enriched certified facts remain unavailable",
+  "execution_quote": "TO_BE_SELECTED",
+  "manual_entry_ready": false,
+  "orders": 0,
+  "warnings": [
+    "NO_BROKER",
+    "NO_SCHWAB",
+    "NO_REAL_ACCOUNT",
+    "NO_REAL_ORDERS",
+    "AUTHORITATIVE_PROMOTION_PENDING",
+    "YAHOO_EXCLUDED_FROM_CERTIFIED_EVIDENCE_VIEW"
+  ]
+}

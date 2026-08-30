@@ -1,14 +1,57 @@
 {
-  "schema_version": "1",
+  "schema_version": "2",
   "mode": "OFFLINE_REPLAY_SAFETY",
+  "result": "PASS",
   "scenarios": {
-    "fresh_account": "PASS", "stale_account": "PASS_BLOCKED", "partial_account": "PASS_ANALYSIS_ONLY",
-    "future_evidence": "PASS_REJECTED", "future_quote": "PASS_REJECTED", "stale_quote": "PASS_DRAFT",
-    "deepseek_unavailable": "PASS_EXPLICIT", "deepseek_invalid_json": "PASS_INVALID_OUTPUT", "deepseek_abstain": "PASS_NO_SIGNAL",
-    "finrlx_unavailable": "PASS_MODEL_UNAVAILABLE", "duplicate_snapshot": "PASS_CONFLICT_REJECTED",
-    "external_trade_partial_fill": "PASS_NEXT_SNAPSHOT_REQUIRED", "dislocation_uncertified": "PASS_REJECTED"
+    "fresh_account": "PASS",
+    "stale_account": "PASS_BLOCKED",
+    "partial_account": "PASS_ANALYSIS_ONLY",
+    "market_provider_failure": "PASS_EXPLICIT",
+    "sec_unavailable": "PASS_EXPLICIT",
+    "deepseek_timeout": "PASS_EXPLICIT",
+    "deepseek_invalid_json": "PASS_INVALID_OUTPUT",
+    "deepseek_abstain": "PASS_NO_SIGNAL",
+    "deepseek_neutral": "PASS_ZERO_MODIFIER",
+    "tradingagents_unavailable": "PASS_QUALITATIVE_ONLY",
+    "news_unavailable": "PASS_EXCLUDED",
+    "macro_unavailable": "PASS_EXCLUDED",
+    "future_evidence": "PASS_REJECTED",
+    "future_quote": "PASS_REJECTED",
+    "stale_quote": "PASS_DRAFT_ONLY",
+    "duplicate_snapshot": "PASS_CONFLICT_REJECTED",
+    "same_id_changed_contents": "PASS_CONFLICT_REJECTED",
+    "external_trade": "PASS_NEXT_SNAPSHOT_REQUIRED",
+    "partial_fill": "PASS_NEXT_SNAPSHOT_REQUIRED",
+    "restatement": "PASS_PIT_VERSIONED",
+    "dislocation_disagreement": "PASS_COMBINED_CAP",
+    "finrlx_unavailable": "PASS_MODEL_UNAVAILABLE",
+    "finrlx_bad_artifact": "PASS_MODEL_UNAVAILABLE",
+    "symbol_mismatch": "PASS_REJECTED",
+    "account_freshness_self_authorization": "PASS_BLOCKED"
   },
-  "live_network_calls": 0,
-  "broker_calls": 0,
-  "result": "PASS"
+  "invariants": {
+    "cash_never_increases_from_buy_projection": "PASS",
+    "holdings_update_cumulatively": "PASS",
+    "weights_within_policy_bounds": "PASS",
+    "llm_modifier_bounded": "PASS",
+    "combined_research_modifier_bounded": "PASS",
+    "future_evidence_never_authorizes": "PASS",
+    "uncertified_evidence_never_enters_llm": "PASS",
+    "certified_signal_required_for_research_alpha": "PASS",
+    "order_readiness_requires_quote": "PASS",
+    "broker_write_surface_absent": "PASS"
+  },
+  "performance": {
+    "live_network_calls": 0,
+    "broker_calls": 0,
+    "retries": 0,
+    "provider_call_budget": 2,
+    "cache_hit_rate": null,
+    "latency_measurements": "NOT_MEASURED_OFFLINE"
+  },
+  "notes": [
+    "Offline/replay run did not hammer public APIs.",
+    "Failures remain typed/explicit and never become neutral research implicitly.",
+    "FinRL-X remains MODEL_UNAVAILABLE and unpromoted."
+  ]
 }

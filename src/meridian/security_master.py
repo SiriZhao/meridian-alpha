@@ -51,6 +51,37 @@ class SymbolProvenance(StableModel):
     retrieved_at: datetime | None = None
 
 
+class OfficialIdentityProvenance(StableModel):
+    """Review-safe record of a primary-source identity verification."""
+
+    source_name: str = Field(min_length=1, max_length=256)
+    source_uri: str = Field(min_length=1, max_length=2000)
+    retrieved_at: datetime
+    source_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    certification_at: datetime
+
+
+class SecurityIdentityHistory(StableModel):
+    """Time-bounded symbol/identifier continuity for historical replay."""
+
+    identifier: str = Field(min_length=1, max_length=256)
+    identifier_type: str = Field(min_length=1, max_length=64)
+    effective_from: datetime | None = None
+    effective_to: datetime | None = None
+    exchange: str | None = Field(default=None, max_length=64)
+    delisting_state: str = Field(default="ACTIVE", max_length=64)
+    source: str = Field(min_length=1, max_length=256)
+    source_uri: str = Field(min_length=1, max_length=2000)
+    retrieved_at: datetime
+    source_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+    @model_validator(mode="after")
+    def validate_effective_range(self) -> SecurityIdentityHistory:
+        if self.effective_from and self.effective_to and self.effective_to < self.effective_from:
+            raise ValueError("identity effective_to must not precede effective_from")
+        return self
+
+
 class SecurityMasterRecord(StableModel):
     canonical_asset_id: str = Field(min_length=1, max_length=128)
     canonical_symbol: str = Field(pattern=r"^[A-Z][A-Z0-9.\-]{0,15}$")
@@ -65,6 +96,10 @@ class SecurityMasterRecord(StableModel):
     active_to: datetime | None = None
     identifier_provenance: tuple[IdentifierProvenance, ...] = ()
     symbol_provenance: tuple[SymbolProvenance, ...] = ()
+    legal_name: str | None = Field(default=None, max_length=256)
+    cik: str | None = Field(default=None, pattern=r"^\d{10}$")
+    official_identity_provenance: OfficialIdentityProvenance | None = None
+    identity_history: tuple[SecurityIdentityHistory, ...] = ()
     last_verified_at: datetime
     certification_status: SecurityCertificationStatus
 
@@ -75,6 +110,11 @@ class SecurityMasterRecord(StableModel):
                 raise ValueError("active_to must not precede active_from")
         if not self.provider_symbols:
             raise ValueError("at least one provider symbol is required")
+        if self.certification_status is SecurityCertificationStatus.AUTHORITATIVE_VERIFIED:
+            if self.official_identity_provenance is None:
+                raise ValueError("AUTHORITATIVE_VERIFIED requires official identity provenance")
+            if self.asset_type is AssetType.EQUITY and self.cik is None:
+                raise ValueError("AUTHORITATIVE_VERIFIED equity requires CIK")
         return self
 
 
@@ -105,79 +145,145 @@ _DEFAULT_RECORDS = (
         currency="USD",
         timezone="America/New_York",
         country="US",
-        identifier_provenance=(IdentifierProvenance(source="meridian-fixture", identifier="AAPL", observed_at=datetime(2026, 1, 1, tzinfo=UTC)),),
+        identifier_provenance=(
+            IdentifierProvenance(
+                source="meridian-fixture",
+                identifier="AAPL",
+                observed_at=datetime(2026, 1, 1, tzinfo=UTC),
+            ),
+        ),
         symbol_provenance=(),
         last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
-        canonical_asset_id="US-EQ-MSFT", canonical_symbol="MSFT",
-        provider_symbols={"stooq": "msft.us", "yahoo": "MSFT"}, asset_type=AssetType.EQUITY,
-        primary_exchange="NASDAQ", trading_calendar="US_EQUITY", currency="USD",
-        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        canonical_asset_id="US-EQ-MSFT",
+        canonical_symbol="MSFT",
+        provider_symbols={"stooq": "msft.us", "yahoo": "MSFT"},
+        asset_type=AssetType.EQUITY,
+        primary_exchange="NASDAQ",
+        trading_calendar="US_EQUITY",
+        currency="USD",
+        timezone="America/New_York",
+        country="US",
+        last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
-        canonical_asset_id="US-EQ-NVDA", canonical_symbol="NVDA",
-        provider_symbols={"stooq": "nvda.us", "yahoo": "NVDA"}, asset_type=AssetType.EQUITY,
-        primary_exchange="NASDAQ", trading_calendar="US_EQUITY", currency="USD",
-        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        canonical_asset_id="US-EQ-NVDA",
+        canonical_symbol="NVDA",
+        provider_symbols={"stooq": "nvda.us", "yahoo": "NVDA"},
+        asset_type=AssetType.EQUITY,
+        primary_exchange="NASDAQ",
+        trading_calendar="US_EQUITY",
+        currency="USD",
+        timezone="America/New_York",
+        country="US",
+        last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
-        canonical_asset_id="US-EQ-META", canonical_symbol="META",
-        provider_symbols={"stooq": "meta.us", "yahoo": "META"}, asset_type=AssetType.EQUITY,
-        primary_exchange="NASDAQ", trading_calendar="US_EQUITY", currency="USD",
-        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        canonical_asset_id="US-EQ-META",
+        canonical_symbol="META",
+        provider_symbols={"stooq": "meta.us", "yahoo": "META"},
+        asset_type=AssetType.EQUITY,
+        primary_exchange="NASDAQ",
+        trading_calendar="US_EQUITY",
+        currency="USD",
+        timezone="America/New_York",
+        country="US",
+        last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
-        canonical_asset_id="US-EQ-GOOGL", canonical_symbol="GOOGL",
-        provider_symbols={"stooq": "googl.us", "yahoo": "GOOGL"}, asset_type=AssetType.EQUITY,
-        primary_exchange="NASDAQ", trading_calendar="US_EQUITY", currency="USD",
-        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        canonical_asset_id="US-EQ-GOOGL",
+        canonical_symbol="GOOGL",
+        provider_symbols={"stooq": "googl.us", "yahoo": "GOOGL"},
+        asset_type=AssetType.EQUITY,
+        primary_exchange="NASDAQ",
+        trading_calendar="US_EQUITY",
+        currency="USD",
+        timezone="America/New_York",
+        country="US",
+        last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
-        canonical_asset_id="US-ETF-SPY", canonical_symbol="SPY",
-        provider_symbols={"stooq": "spy.us", "yahoo": "SPY"}, asset_type=AssetType.ETF,
-        primary_exchange="NYSEARCA", trading_calendar="US_EQUITY", currency="USD",
-        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        canonical_asset_id="US-ETF-SPY",
+        canonical_symbol="SPY",
+        provider_symbols={"stooq": "spy.us", "yahoo": "SPY"},
+        asset_type=AssetType.ETF,
+        primary_exchange="NYSEARCA",
+        trading_calendar="US_EQUITY",
+        currency="USD",
+        timezone="America/New_York",
+        country="US",
+        last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
-        canonical_asset_id="US-ETF-QQQ", canonical_symbol="QQQ",
-        provider_symbols={"stooq": "qqq.us", "yahoo": "QQQ"}, asset_type=AssetType.ETF,
-        primary_exchange="NASDAQ", trading_calendar="US_EQUITY", currency="USD",
-        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        canonical_asset_id="US-ETF-QQQ",
+        canonical_symbol="QQQ",
+        provider_symbols={"stooq": "qqq.us", "yahoo": "QQQ"},
+        asset_type=AssetType.ETF,
+        primary_exchange="NASDAQ",
+        trading_calendar="US_EQUITY",
+        currency="USD",
+        timezone="America/New_York",
+        country="US",
+        last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
-        canonical_asset_id="US-ETF-SGOV", canonical_symbol="SGOV",
-        provider_symbols={"stooq": "sgov.us", "yahoo": "SGOV"}, asset_type=AssetType.ETF,
-        primary_exchange="NYSEARCA", trading_calendar="US_EQUITY", currency="USD",
-        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        canonical_asset_id="US-ETF-SGOV",
+        canonical_symbol="SGOV",
+        provider_symbols={"stooq": "sgov.us", "yahoo": "SGOV"},
+        asset_type=AssetType.ETF,
+        primary_exchange="NYSEARCA",
+        trading_calendar="US_EQUITY",
+        currency="USD",
+        timezone="America/New_York",
+        country="US",
+        last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
-        canonical_asset_id="US-ETF-GLD", canonical_symbol="GLD",
-        provider_symbols={"stooq": "gld.us", "yahoo": "GLD"}, asset_type=AssetType.ETF,
-        primary_exchange="NYSEARCA", trading_calendar="US_EQUITY", currency="USD",
-        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        canonical_asset_id="US-ETF-GLD",
+        canonical_symbol="GLD",
+        provider_symbols={"stooq": "gld.us", "yahoo": "GLD"},
+        asset_type=AssetType.ETF,
+        primary_exchange="NYSEARCA",
+        trading_calendar="US_EQUITY",
+        currency="USD",
+        timezone="America/New_York",
+        country="US",
+        last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
-        canonical_asset_id="US-ETF-TLT", canonical_symbol="TLT",
-        provider_symbols={"stooq": "tlt.us", "yahoo": "TLT"}, asset_type=AssetType.ETF,
-        primary_exchange="NASDAQ", trading_calendar="US_EQUITY", currency="USD",
-        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        canonical_asset_id="US-ETF-TLT",
+        canonical_symbol="TLT",
+        provider_symbols={"stooq": "tlt.us", "yahoo": "TLT"},
+        asset_type=AssetType.ETF,
+        primary_exchange="NASDAQ",
+        trading_calendar="US_EQUITY",
+        currency="USD",
+        timezone="America/New_York",
+        country="US",
+        last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
-        canonical_asset_id="US-INDEX-VIX", canonical_symbol="VIX",
-        provider_symbols={"stooq": "^vix", "yahoo": "^VIX"}, asset_type=AssetType.INDEX,
-        primary_exchange="CBOE", trading_calendar="CBOE_VIX", currency="USD",
-        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        canonical_asset_id="US-INDEX-VIX",
+        canonical_symbol="VIX",
+        provider_symbols={"stooq": "^vix", "yahoo": "^VIX"},
+        asset_type=AssetType.INDEX,
+        primary_exchange="CBOE",
+        trading_calendar="CBOE_VIX",
+        currency="USD",
+        timezone="America/New_York",
+        country="US",
+        last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
 )
@@ -195,8 +301,14 @@ class SecurityMaster:
         key = symbol.strip().upper()
         canonical = self._aliases.get(key, key)
         record = self._records.get(canonical)
-        if record is None or record.certification_status not in {SecurityCertificationStatus.VERIFIED, SecurityCertificationStatus.DEVELOPMENT_VERIFIED, SecurityCertificationStatus.AUTHORITATIVE_VERIFIED}:
-            raise SecurityIdentityUnavailable(f"{SecurityIdentityStatus.SECURITY_IDENTITY_UNAVAILABLE.value}:{symbol}")
+        if record is None or record.certification_status not in {
+            SecurityCertificationStatus.VERIFIED,
+            SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
+            SecurityCertificationStatus.AUTHORITATIVE_VERIFIED,
+        }:
+            raise SecurityIdentityUnavailable(
+                f"{SecurityIdentityStatus.SECURITY_IDENTITY_UNAVAILABLE.value}:{symbol}"
+            )
         return record
 
     def resolve_authoritative(self, symbol: str) -> SecurityMasterRecord:
@@ -207,6 +319,23 @@ class SecurityMaster:
                 f"{SecurityIdentityStatus.SECURITY_IDENTITY_UNAVAILABLE.value}:authoritative-provenance-required:{symbol}"
             )
         return record
+
+    def identity_for_historical_replay(self, symbol: str, as_of: datetime) -> SecurityMasterRecord:
+        """Resolve only an identity continuity interval covering ``as_of``."""
+        if as_of.tzinfo is None or as_of.utcoffset() is None:
+            raise ValueError("historical identity as_of must be timezone-aware")
+        record = self.resolve_authoritative(symbol)
+        for item in record.identity_history:
+            if item.identifier != record.canonical_symbol:
+                continue
+            if item.effective_from and as_of < item.effective_from:
+                continue
+            if item.effective_to and as_of > item.effective_to:
+                continue
+            return record
+        raise SecurityIdentityUnavailable(
+            f"{SecurityIdentityStatus.SECURITY_IDENTITY_UNAVAILABLE.value}:historical-identity-unknown:{symbol}"
+        )
 
     def lookup(self, symbol: str) -> SecurityMasterRecord | None:
         try:
@@ -223,27 +352,46 @@ class SecurityMaster:
             )
         return value
 
-    def register(self, record: SecurityMasterRecord, *, source: str = "unknown", observed_at: datetime | None = None) -> None:
+    def register(
+        self,
+        record: SecurityMasterRecord,
+        *,
+        source: str = "unknown",
+        observed_at: datetime | None = None,
+    ) -> None:
         """Add a record or mark existing identity CONFLICTING on disagreement."""
         existing = self._records.get(record.canonical_symbol)
         if existing is None:
             self._records[record.canonical_symbol] = record
             return
         fields = tuple(
-            field for field in ("canonical_asset_id", "provider_symbols", "asset_type", "primary_exchange", "trading_calendar", "currency", "timezone", "country")
+            field
+            for field in (
+                "canonical_asset_id",
+                "provider_symbols",
+                "asset_type",
+                "primary_exchange",
+                "trading_calendar",
+                "currency",
+                "timezone",
+                "country",
+            )
             if getattr(existing, field) != getattr(record, field)
         )
         if not fields:
             return
         observed = observed_at or record.last_verified_at
-        self.register_conflict(SecurityMasterConflict(
-            canonical_symbol=record.canonical_symbol,
-            conflicting_fields=fields,
-            source_a=source,
-            source_b="existing",
-            observed_at_a=observed,
-            observed_at_b=existing.last_verified_at,
-        ))
+        self.register_conflict(
+            SecurityMasterConflict(
+                canonical_symbol=record.canonical_symbol,
+                conflicting_fields=fields,
+                source_a=source,
+                source_b="existing",
+                observed_at_a=observed,
+                observed_at_b=existing.last_verified_at,
+            )
+        )
+
     def register_conflict(self, conflict: SecurityMasterConflict) -> None:
         self.conflicts.append(conflict)
         record = self._records.get(conflict.canonical_symbol)
@@ -257,9 +405,3 @@ class SecurityMaster:
 
 
 DEFAULT_SECURITY_MASTER = SecurityMaster()
-
-
-
-
-
-
