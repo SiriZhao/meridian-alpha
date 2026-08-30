@@ -1,0 +1,17 @@
+{
+  "cash": "10000.00",
+  "total_equity": "50000.00",
+  "schema_version": "1",
+  "source_name": "sanitized-host",
+  "positions": [],
+  "coverage_status": "PARTIAL",
+  "source_kind": "HOST_AUTHORIZED_SOURCE",
+  "base_currency": "USD",
+  "snapshot_id": "finance-host-partial-example",
+  "retrieved_at": "2026-08-30T14:30:05Z",
+  "pending_or_unknown_state": "Holdings coverage incomplete",
+  "as_of": "2026-08-30T14:30:00Z",
+  "warnings": [
+    "EXAMPLE_ONLY"
+  ]
+}
