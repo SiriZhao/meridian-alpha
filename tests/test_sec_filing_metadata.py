@@ -39,3 +39,20 @@ def test_naive_times_and_cik_accession_identity_mismatch_are_rejected() -> None:
         SECFilingMetadata.model_validate({**metadata().model_dump(), "retrieved_at": datetime(2026, 8, 30)})
     with pytest.raises(ValueError, match="CIK_ACCESSION_MISMATCH"):
         SECFilingMetadata.model_validate({**metadata().model_dump(), "accession_issuer_cik": "0000000001"})
+
+def test_distinct_certified_provider_emits_only_accession_certified_evidence() -> None:
+    from meridian.sec_filing_metadata import SECAccessionCertifiedFactsProvider
+
+    class Facts:
+        def get_evidence(self, ticker: str, as_of: datetime):
+            return (fact(),)
+
+    class Metadata:
+        def get_metadata(self, cik: str, accession: str):
+            assert cik == "0000320193" and accession == ACC
+            return metadata()
+
+    items = SECAccessionCertifiedFactsProvider(facts_provider=Facts(), metadata_provider=Metadata()).get_evidence("AAPL", T)
+    assert len(items) == 1
+    assert items[0].provider == "sec-edgar-accession-certified"
+    assert items[0].point_in_time_status is EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT

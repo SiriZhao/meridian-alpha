@@ -15,6 +15,8 @@ from urllib.request import Request, urlopen
 
 from pydantic import Field, model_validator
 
+from meridian.evidence import ProviderCapabilities
+from meridian.evidence_foundation import SECCompanyFactsProvider
 from meridian.schemas import EvidenceItem, EvidencePointInTimeStatus, StableModel
 
 
@@ -127,3 +129,48 @@ class SECSubmissionMetadataProvider:
             retrieved_at=retrieved, source_uri=source_uri,
             content_hash=hashlib.sha256(raw if isinstance(raw, bytes) else raw.encode()).hexdigest(),
         )
+class SECAccessionCertifiedFactsProvider:
+    """Distinct research-grade provider path requiring SEC acceptance metadata."""
+
+    provider_name = "sec-edgar-accession-certified"
+    network_capable = True
+
+    def __init__(
+        self,
+        *,
+        facts_provider: Any | None = None,
+        metadata_provider: Any | None = None,
+    ) -> None:
+        self.facts_provider = facts_provider or SECCompanyFactsProvider()
+        self.metadata_provider = metadata_provider or SECSubmissionMetadataProvider()
+        self.capabilities = ProviderCapabilities(
+            provider_name=self.provider_name,
+            supports_historical=True,
+            supports_point_in_time=True,
+            requires_api_key=False,
+            execution_grade=False,
+            research_grade=True,
+        )
+        self._ciks = {
+            "AAPL": "0000320193",
+            "MSFT": "0000789019",
+            "NVDA": "0001045810",
+        }
+
+    def get_evidence(self, ticker: str, as_of: datetime) -> tuple[EvidenceItem, ...]:
+        cik = self._ciks.get(ticker.upper())
+        if cik is None:
+            return ()
+        facts = self.facts_provider.get_evidence(ticker.upper(), as_of)
+        adapter = SECAccessionCertifiedFactsAdapter()
+        certified: list[EvidenceItem] = []
+        for fact in facts:
+            if not fact.document_id:
+                continue
+            metadata = self.metadata_provider.get_metadata(cik, fact.document_id)
+            if metadata is None:
+                continue
+            item = adapter.certify(fact, metadata, as_of)
+            if item is not None:
+                certified.append(item)
+        return tuple(certified)

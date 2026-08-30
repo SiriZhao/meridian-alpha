@@ -1,0 +1,12 @@
+{
+  "run_type": "gate3b9_real_shadow_v3",
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "account": "SYNTHETIC_HOST_STYLE",
+  "market": "YAHOO_REAL_SHADOW_UNVERIFIED",
+  "certified_sec_items": ["AAPL", "NVDA"],
+  "certified_evidence_count": 2,
+  "live_deepseek": "SKIPPED_LIVE_POLICY_DISABLED",
+  "certified_agent_signal_count": 0,
+  "dislocation": "SKIPPED_NO_LIVE_GROUNDED_OUTPUT",
+  "execution_quote": "TO_BE_SELECTED"
+}
