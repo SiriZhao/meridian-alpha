@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from decimal import Decimal
 from enum import StrEnum
+from typing import Any
 
 from pydantic import Field
 
-from meridian.schemas import EvidenceItem, StableModel
+from meridian.research import CertifiedEvidenceView
+from meridian.schemas import StableModel
 
 
 class DislocationStatus(StrEnum):
@@ -70,17 +72,45 @@ class DislocationScreen:
         )
 
 
+_CERTIFIED_DISLOCATION_TOKEN = object()
+
+
+class CertifiedDislocationAssessment(StableModel):
+    """Sealed assessment constructed only from an exact CertifiedEvidenceView."""
+
+    assessment: DislocationAssessment
+    evidence_view_packet_id: str
+
+    def __init__(self, **data: Any) -> None:
+        if data.pop("_certification_token", None) is not _CERTIFIED_DISLOCATION_TOKEN:
+            raise ValueError("CertifiedDislocationAssessment requires CertifiedEvidenceView certification")
+        super().__init__(**data)
+
+
+def certify_dislocation_assessment(
+    assessment: DislocationAssessment, view: CertifiedEvidenceView
+) -> CertifiedDislocationAssessment:
+    packet = view.packet
+    if assessment.ticker != packet.ticker:
+        raise ValueError("dislocation assessment ticker does not match CertifiedEvidenceView")
+    allowed = {item.stable_id for item in packet.items}
+    if assessment.status is DislocationStatus.AVAILABLE:
+        if not assessment.cited_evidence_ids or not set(assessment.cited_evidence_ids).issubset(allowed):
+            raise ValueError("dislocation citations must resolve to exact CertifiedEvidenceView")
+    return CertifiedDislocationAssessment(
+        _certification_token=_CERTIFIED_DISLOCATION_TOKEN,
+        assessment=assessment,
+        evidence_view_packet_id=packet.packet_id,
+    )
+
+
 def bounded_modifier(
-    assessment: DislocationAssessment,
-    evidence: tuple[EvidenceItem, ...],
-    *,
-    maximum: Decimal = Decimal("0.10"),
+    certified: CertifiedDislocationAssessment, *, maximum: Decimal = Decimal("0.10")
 ) -> Decimal:
+    """Return only a bounded modifier from sealed certified evidence research."""
+    assessment = certified.assessment
     if assessment.status is not DislocationStatus.AVAILABLE or assessment.dislocation_conviction is None:
         return Decimal("0")
-    allowed = {item.stable_id for item in evidence}
-    if not assessment.cited_evidence_ids or not set(assessment.cited_evidence_ids).issubset(allowed):
-        raise ValueError("dislocation citations must resolve to certified evidence")
     sign = {
         "BULLISH": Decimal("1"),
         "BEARISH": Decimal("-1"),

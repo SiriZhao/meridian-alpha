@@ -86,7 +86,7 @@ def run_daily_analysis(account_snapshot: AccountSnapshot, run_date: datetime) ->
     structured_output=True,
 )
 def validate_host_account_snapshot(envelope: HostAccountSnapshotEnvelope) -> dict[str, Any]:
-    snapshot = normalize_host_snapshot(envelope, now=envelope.retrieved_at)
+    snapshot = normalize_host_snapshot(envelope)
     return {
         "valid": True,
         "snapshot_id": snapshot.snapshot_id,
@@ -105,7 +105,7 @@ def validate_host_account_snapshot(envelope: HostAccountSnapshotEnvelope) -> dic
     structured_output=True,
 )
 def run_host_daily_analysis(envelope: HostAccountSnapshotEnvelope, run_date: datetime) -> dict[str, Any]:
-    snapshot = normalize_host_snapshot(envelope, now=run_date)
+    snapshot = normalize_host_snapshot(envelope)
     decision = DailyAnalysisService(None, load_policies(ROOT / "policies")).run(snapshot, run_date)
     STORE.write_decision(decision)
     return decision.model_dump(mode="json")

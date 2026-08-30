@@ -98,13 +98,21 @@ def normalize_host_snapshot(
     security_master: SecurityMaster = DEFAULT_SECURITY_MASTER,
     registry: HostSnapshotRegistry | None = None,
     max_age_seconds: int = 900,
-    now: datetime | None = None,
+    trusted_now: datetime | None = None,
+    replay: bool = False,
+    max_retrieved_skew_seconds: int = 30,
 ) -> AccountSnapshot:
-    """Validate and normalize host facts into the existing AccountSnapshot."""
+    """Validate host facts with a system clock; only REPLAY can inject time."""
 
-    reference = now or datetime.now(UTC)
-    if reference.tzinfo is None or reference.utcoffset() is None:
-        raise ValueError("normalization reference time must be timezone-aware")
+    if trusted_now is not None and not replay:
+        raise ValueError("trusted_now injection is allowed only for REPLAY")
+    reference = trusted_now if replay else datetime.now(UTC)
+    if reference is None or reference.tzinfo is None or reference.utcoffset() is None:
+        raise ValueError("trusted current time must be timezone-aware")
+    if envelope.as_of > reference:
+        raise ValueError("HOST_ACCOUNT_AS_OF_IN_FUTURE")
+    if (envelope.retrieved_at - reference).total_seconds() > max_retrieved_skew_seconds:
+        raise ValueError("HOST_ACCOUNT_RETRIEVED_AT_IN_FUTURE")
     if registry is not None:
         registry.register(envelope)
     if envelope.coverage_status is HostCoverageStatus.CONFLICTING:
