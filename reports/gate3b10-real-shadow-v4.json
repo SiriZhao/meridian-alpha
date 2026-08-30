@@ -1,0 +1,11 @@
+{
+  "run_type": "gate3b10_real_shadow_v4",
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "certified_evidence_tickers": ["AAPL", "NVDA"],
+  "certified_evidence_count": 2,
+  "deepseek_live_shadow": "INCONCLUSIVE_NO_SANITIZED_RESULT_PAYLOAD",
+  "maximum_calls_attempted": 2,
+  "certified_agent_signal_count": 0,
+  "llm_modifier": "0",
+  "execution_quote": "TO_BE_SELECTED"
+}

@@ -636,6 +636,32 @@ class FakeGroundedResearchNormalizer:
             )
 
 
+class LiveResearchShadowOptIn(StableModel):
+    """Explicit ephemeral authority for a bounded LIVE research shadow run."""
+
+    enabled: bool = False
+    mode: str = Field(default="LIVE_SHADOW", pattern=r"^LIVE_SHADOW$")
+    max_tickers: int = Field(default=2, ge=1, le=3)
+
+
+def enable_live_research_shadow(settings: Any, opt_in: LiveResearchShadowOptIn) -> Any:
+    """Return a runtime-only settings copy; checked-in defaults remain OFF."""
+    if opt_in.enabled is not True:
+        raise ValueError("LIVE_RESEARCH_SHADOW_OPT_IN_REQUIRED")
+    return settings.model_copy(update={"live_enabled": True})
+
+
+def normalize_certified_shadow(
+    normalizer: GroundedResearchNormalizer,
+    graph_summary: GraphResearchSummary,
+    evidence_view: CertifiedEvidenceView,
+    as_of: datetime,
+) -> GroundedResearchOutcome:
+    """Only this boundary may hand executable grounding input to a live model."""
+    if not isinstance(evidence_view, CertifiedEvidenceView):
+        raise TypeError("live shadow grounding requires CertifiedEvidenceView")
+    return normalizer.normalize(graph_summary, evidence_view.packet, as_of)
+
 class _DeepSeekGroundedOutput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     status: str = Field(pattern=r"^(AVAILABLE|ABSTAIN)$")
