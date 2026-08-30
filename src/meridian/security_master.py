@@ -125,6 +125,20 @@ _DEFAULT_RECORDS = (
         certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
     ),
     SecurityMasterRecord(
+        canonical_asset_id="US-EQ-META", canonical_symbol="META",
+        provider_symbols={"stooq": "meta.us", "yahoo": "META"}, asset_type=AssetType.EQUITY,
+        primary_exchange="NASDAQ", trading_calendar="US_EQUITY", currency="USD",
+        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
+    ),
+    SecurityMasterRecord(
+        canonical_asset_id="US-EQ-GOOGL", canonical_symbol="GOOGL",
+        provider_symbols={"stooq": "googl.us", "yahoo": "GOOGL"}, asset_type=AssetType.EQUITY,
+        primary_exchange="NASDAQ", trading_calendar="US_EQUITY", currency="USD",
+        timezone="America/New_York", country="US", last_verified_at=datetime(2026, 1, 1, tzinfo=UTC),
+        certification_status=SecurityCertificationStatus.DEVELOPMENT_VERIFIED,
+    ),
+    SecurityMasterRecord(
         canonical_asset_id="US-ETF-SPY", canonical_symbol="SPY",
         provider_symbols={"stooq": "spy.us", "yahoo": "SPY"}, asset_type=AssetType.ETF,
         primary_exchange="NYSEARCA", trading_calendar="US_EQUITY", currency="USD",

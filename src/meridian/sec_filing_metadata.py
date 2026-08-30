@@ -96,20 +96,48 @@ class SECSubmissionMetadataProvider:
         )
         response = self.opener(request, timeout=10)
         raw = response.read()
+        source_uri = f"https://data.sec.gov/submissions/CIK{normalized_cik}.json"
         data = json.loads(raw.decode("utf-8") if isinstance(raw, bytes) else raw)
         if not isinstance(data, Mapping) or str(data.get("cik", "")).zfill(10) != normalized_cik:
             raise ValueError("SEC_CIK_MISMATCH")
         filings = data.get("filings", {})
         recent = filings.get("recent", {}) if isinstance(filings, Mapping) else {}
         if not isinstance(recent, Mapping):
-            raise ValueError("SEC_SUBMISSIONS_MALFORMED")
+            raise ValueError("SEC_SUBMISSIONS_MALFORMED") from None
         accessions = recent.get("accessionNumber", [])
         if not isinstance(accessions, list):
-            raise ValueError("SEC_SUBMISSIONS_MALFORMED")
+            raise ValueError("SEC_SUBMISSIONS_MALFORMED") from None
         try:
             index = accessions.index(accession_number)
         except ValueError:
-            return None
+            files = filings.get("files", []) if isinstance(filings, Mapping) else []
+            if not isinstance(files, list):
+                raise ValueError("SEC_SUBMISSIONS_MALFORMED") from None
+            found = False
+            for collection in files[:20]:
+                if not isinstance(collection, Mapping) or not isinstance(collection.get("name"), str):
+                    continue
+                name = str(collection["name"])
+                if "/" in name or "\\" in name:
+                    continue
+                historical_uri = f"https://data.sec.gov/submissions/{name}"
+                historical_response = self.opener(Request(historical_uri, headers={"User-Agent": self.user_agent}), timeout=10)
+                historical_raw = historical_response.read()
+                historical = json.loads(historical_raw.decode("utf-8") if isinstance(historical_raw, bytes) else historical_raw)
+                if not isinstance(historical, Mapping):
+                    raise ValueError("SEC_SUBMISSIONS_MALFORMED") from None
+                historical_accessions = historical.get("accessionNumber", [])
+                if not isinstance(historical_accessions, list) or accession_number not in historical_accessions:
+                    continue
+                recent = historical
+                accessions = historical_accessions
+                index = accessions.index(accession_number)
+                raw = historical_raw
+                source_uri = historical_uri
+                found = True
+                break
+            if not found:
+                return None
         def value(name: str) -> str | None:
             values = recent.get(name, [])
             return str(values[index]) if isinstance(values, list) and index < len(values) and values[index] else None
@@ -121,7 +149,6 @@ class SECSubmissionMetadataProvider:
             return None
         acceptance = datetime.fromisoformat(accepted.replace("Z", "+00:00")).astimezone(UTC)
         retrieved = self.clock()
-        source_uri = f"https://data.sec.gov/submissions/CIK{normalized_cik}.json"
         return SECFilingMetadata(
             cik=normalized_cik, accession_number=accession_number, form=form,
             primary_document=primary_document, filing_date=filing_date,

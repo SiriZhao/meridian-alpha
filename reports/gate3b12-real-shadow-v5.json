@@ -1,0 +1,92 @@
+{
+  "account": "SYNTHETIC_HOST_STYLE",
+  "allocator": {
+    "name": "deterministic_alpha_volatility_fallback",
+    "post_risk_weights": {
+      "NVDA": "0.25"
+    }
+  },
+  "as_of": "2026-08-30T13:37:56.731554+00:00",
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "certified_signal_count": 2,
+  "content_hash": "10e032be9f492eda5aec4f5ffc3d7e0224923e7be13257416560d161d0b60c0f",
+  "created_at": "2026-08-30T13:38:32.778371+00:00",
+  "deepseek": "LIVE_CERTIFIED_GROUNDING",
+  "dislocation": {
+    "modifier": "0",
+    "reason": "NO_ELIGIBLE_DETERMINISTIC_CANDIDATE; no separate dislocation LLM call made",
+    "screened_candidates": [],
+    "status": "ABSTAIN"
+  },
+  "market": "REAL_YAHOO_SHADOW_ONLY",
+  "mode": "LIVE_SHADOW_REAL_DATA",
+  "msft_historical_sec": {
+    "certified_item_count": 1,
+    "status": "CERTIFIED"
+  },
+  "risk_violations": [],
+  "rows": [
+    {
+      "base_research_modifier": "0E-31",
+      "certified_evidence_count": 1,
+      "certified_signal_id": "cert_2a2d3a31acc60650190b8ce2",
+      "combined_modifier_cap": "0.20",
+      "combined_research_modifier": "0E-31",
+      "context_evidence_count": "REAL_YAHOO_PLUS_SEC_CONTEXT",
+      "conviction": "0.5",
+      "direction": "NEUTRAL",
+      "dislocation_modifier": "0",
+      "evidence_ids": [
+        "ev_ce26880cc513e43be0578f83"
+      ],
+      "excluded_evidence": [
+        "yahoo-market:PIT_NOT_EXECUTABLE"
+      ],
+      "final_alpha": "-0.008287163896999924192583374798",
+      "llm_status": "AVAILABLE",
+      "quant_alpha": "-0.01841591977111094265018527733",
+      "response_artifact_hash": "f4b8579060e144065ba195b46339d641be91b4e25b2407bae14d73c4c201887d",
+      "risk_penalty": "0",
+      "target_after_risk": "0",
+      "target_before_risk": "0",
+      "ticker": "AAPL"
+    },
+    {
+      "base_research_modifier": "0E-31",
+      "certified_evidence_count": 1,
+      "certified_signal_id": "cert_9b93d5bd4f3655aa61aafaf9",
+      "combined_modifier_cap": "0.20",
+      "combined_research_modifier": "0E-31",
+      "context_evidence_count": "REAL_YAHOO_PLUS_SEC_CONTEXT",
+      "conviction": "0.5",
+      "direction": "NEUTRAL",
+      "dislocation_modifier": "0",
+      "evidence_ids": [
+        "ev_4e60642b5179d2200ca3eaa1"
+      ],
+      "excluded_evidence": [
+        "yahoo-market:PIT_NOT_EXECUTABLE"
+      ],
+      "final_alpha": "0.1248881554052132001939091966",
+      "llm_status": "AVAILABLE",
+      "quant_alpha": "0.2775292342338071115420204368",
+      "response_artifact_hash": "207d9502f58ffbe6794383dcaef7e7e3197c059664ef062a0e7b5e0526b71f6a",
+      "risk_penalty": "0",
+      "target_after_risk": "0.25",
+      "target_before_risk": "0.25",
+      "ticker": "NVDA"
+    }
+  ],
+  "schema_version": "1",
+  "security_master": {
+    "authoritative_verified": 0,
+    "record_count": 11
+  },
+  "warnings": [
+    "NO_BROKER",
+    "NO_REAL_ACCOUNT",
+    "NO_REAL_ORDERS",
+    "YAHOO_EXCLUDED_FROM_CERTIFIED_PROMPT",
+    "DISLOCATION_ABSTAIN"
+  ]
+}

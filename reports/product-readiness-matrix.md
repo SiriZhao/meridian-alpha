@@ -2,19 +2,20 @@
 
 | Capability | Implemented | Real | PIT certified | Shadow | Executable | Tested | Current blocker |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Account truth | Yes | No | N/A | Yes | No | Yes | Host test only |
-| Security identity | Yes | Partial | No | Yes | No | Yes | authoritative provenance incomplete |
-| Market research data | Yes | Yes | No | Yes | No | Yes | Yahoo shadow-only |
-| Execution quote | No | No | No | No | No | Yes | bid/ask authority unavailable |
+| Account truth | Yes | No | N/A | Yes | No | Yes | Host fixture only |
+| Security identity | Yes | Partial | No | Yes | No | Yes | 0/11 authoritative provenance records; 11 bounded development records |
+| Market research data | Yes | Yes | No | Yes | No | Yes | Yahoo is excluded from certified prompts |
+| Execution quote | No | No | No | No | No | Yes | TO_BE_SELECTED; Yahoo is last-only |
 | Historical OHLCV | Yes | Yes | No | Yes | No | Yes | availability certification |
 | Corporate actions | Yes | No | No | Yes | No | Yes | source certification |
-| Fundamentals / events | Yes | Partial | No | Yes | No | Yes | SEC acceptance-time join incomplete |
+| Fundamentals / events | Yes | Yes | Partial | Yes | No | Yes | AAPL/NVDA/MSFT SEC accession path only |
 | News / macro | Contract | No | No | No | No | Yes | provider certification |
-| TradingAgents / DeepSeek | Contract | No | No | Yes | No | Yes | no eligible real view/config smoke |
-| CertifiedAgentSignal | Yes | No | Yes | Yes | No | Yes | shadow account/quotes |
+| TradingAgents | Contract | No | No | Optional | No | Yes | not exercised; qualitative-only |
+| DeepSeek grounding | Yes | Yes | Yes | Yes | No | Yes | shadow-only; default disabled |
+| CertifiedAgentSignal | Yes | Yes | Yes | Yes | No | Yes | model returned neutral, no alpha contribution |
+| Dislocation research | Yes | No | Requires certified evidence | Yes | No | Yes | no eligible deterministic candidate in V5 |
 | Quant / deterministic allocator | Yes | Mixed | N/A | Yes | No | Yes | execution quote |
-| FinRL-X challenger | Yes | No | No | Yes | No | Yes | manifest/artifact absent |
-| Dislocation research | Yes | No | Requires certified evidence | Yes | No | Yes | real certified evidence absent |
+| FinRL-X challenger | Yes | No | No | Yes | No | Yes | model artifact absent; not promoted |
 | Risk / reconciliation | Yes | No | N/A | Yes | No | Yes | execution quote |
-| ChatGPT Host/MCP | Yes | No | N/A | Yes | No | Yes | host integration test pending |
+| ChatGPT Host/MCP | Yes | No | N/A | Yes | No | Yes | supervised host-data smoke only |
 | Broker | No | No | N/A | No | No | Yes | intentionally absent |

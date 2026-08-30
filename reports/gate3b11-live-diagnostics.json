@@ -1,0 +1,18 @@
+{
+  "gate": "3B.11",
+  "mode": "LIVE_SHADOW",
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "transport_probe": {"http_status": 200, "assistant_content_present": true, "provider_envelope_parsed": true},
+  "grounding": {
+    "call_count": 2,
+    "certified_signal_count": 2,
+    "outcomes": [
+      {"ticker": "AAPL", "status": "AVAILABLE", "http_status": 200, "latency_ms": 5108, "response_bytes": 2603, "citation_count": 1, "validation": "PASSED"},
+      {"ticker": "NVDA", "status": "AVAILABLE", "http_status": 200, "latency_ms": 10593, "response_bytes": 5191, "citation_count": 1, "validation": "PASSED"}
+    ]
+  },
+  "failure_class": null,
+  "secrets_persisted": false,
+  "broker_or_order_access": false,
+  "result": "LIVE_LLM_TRANSPORT_CONVERGED"
+}

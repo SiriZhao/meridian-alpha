@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import hashlib
-import importlib
 import json
 import os
+import re
+import time
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, Protocol
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -507,6 +510,8 @@ class GroundedResearchOutcome(StableModel):
     warnings: tuple[str, ...] = ()
     error_code: str | None = None
     content_hash: str | None = None
+    diagnostics: tuple[str, ...] = ()
+    structured_payload: dict[str, Any] | None = None
     schema_version: str = "1"
 
     @model_validator(mode="after")
@@ -550,6 +555,8 @@ def _grounded_outcome(
     warnings: tuple[str, ...] = (),
     error_code: str | None = None,
     signal: GroundedResearchSignal | None = None,
+    diagnostics: tuple[str, ...] = (),
+    structured_payload: dict[str, Any] | None = None,
 ) -> GroundedResearchOutcome:
     return GroundedResearchOutcome(
         ticker=ticker,
@@ -561,6 +568,8 @@ def _grounded_outcome(
         created_at=datetime.now(UTC),
         warnings=warnings,
         error_code=error_code,
+        diagnostics=diagnostics,
+        structured_payload=structured_payload,
     )
 
 
@@ -663,18 +672,87 @@ def normalize_certified_shadow(
     return normalizer.normalize(graph_summary, evidence_view.packet, as_of)
 
 class _DeepSeekGroundedOutput(BaseModel):
+    """Strict Meridian schema accepted from a live provider response."""
+
     model_config = ConfigDict(extra="forbid")
     status: str = Field(pattern=r"^(AVAILABLE|ABSTAIN)$")
     reason: str = Field(min_length=1, max_length=2000)
-    direction: str | None = None
+    direction: str | None = Field(default=None, pattern=r"^(BULLISH|BEARISH|NEUTRAL)$")
     conviction: Decimal | None = Field(default=None, ge=Decimal("0"), le=Decimal("1"))
-    thesis: str | None = None
+    thesis: str | None = Field(default=None, min_length=1, max_length=10000)
     risks: tuple[str, ...] = ()
     cited_evidence_ids: tuple[str, ...] = ()
 
 
+class LiveLLMFailure(Exception):
+    """A safe, typed failure reason emitted at the provider boundary."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
+
+
+def extract_canonical_assistant_payload(envelope: Mapping[str, Any]) -> str:
+    """Extract assistant content from supported OpenAI-compatible envelopes only."""
+    choices = envelope.get("choices")
+    if not isinstance(choices, list) or not choices:
+        raise LiveLLMFailure("PROVIDER_SCHEMA_MISMATCH")
+    first = choices[0]
+    if not isinstance(first, Mapping):
+        raise LiveLLMFailure("PROVIDER_SCHEMA_MISMATCH")
+    message = first.get("message")
+    if not isinstance(message, Mapping):
+        raise LiveLLMFailure("PROVIDER_SCHEMA_MISMATCH")
+    content = message.get("content")
+    if isinstance(content, str):
+        if not content.strip():
+            raise LiveLLMFailure("EMPTY_ASSISTANT_CONTENT")
+        return content
+    for key in ("parsed", "structured_output", "json"):
+        structured = message.get(key)
+        if isinstance(structured, Mapping):
+            return json.dumps(structured, sort_keys=True, separators=(",", ":"))
+    raise LiveLLMFailure("EMPTY_ASSISTANT_CONTENT")
+
+
+def extract_strict_json_payload(content: str) -> Mapping[str, Any]:
+    """Permit one outer JSON code fence; reject prose and inferred fields."""
+    candidate = content.strip()
+    match = re.fullmatch(r"```(?:json)?\s*\n?(.*?)\n?```", candidate, flags=re.DOTALL | re.IGNORECASE)
+    if match is not None:
+        candidate = match.group(1).strip()
+    try:
+        payload = json.loads(candidate)
+    except json.JSONDecodeError as error:
+        raise LiveLLMFailure("NON_JSON_MODEL_OUTPUT") from error
+    if not isinstance(payload, Mapping):
+        raise LiveLLMFailure("PROVIDER_SCHEMA_MISMATCH")
+    return payload
+
+
+def _default_deepseek_http_post(
+    url: str, headers: Mapping[str, str], body: bytes, timeout: int
+) -> tuple[int, bytes, Mapping[str, str]]:
+    request = Request(url, data=body, headers=dict(headers), method="POST")
+    try:
+        with urlopen(request, timeout=timeout) as response:  # noqa: S310 - fixed configured provider endpoint
+            return response.status, response.read(), dict(response.headers.items())
+    except HTTPError as error:
+        return error.code, error.read(), dict(error.headers.items()) if error.headers else {}
+    except URLError as error:
+        reason = getattr(error, "reason", None)
+        if isinstance(reason, TimeoutError):
+            raise TimeoutError from error
+        raise LiveLLMFailure("NETWORK_ERROR") from error
+
+
 class DeepSeekGroundedResearchNormalizer:
-    """Code-only DeepSeek adapter; disabled by default and never used in TEST."""
+    """Explicit LIVE_SHADOW-only DeepSeek adapter with a direct compatible transport.
+
+    The request is built exclusively from the sealed certified evidence packet. The
+    provider response is reduced to a strict JSON payload before any research signal
+    can be created; failures never manufacture a neutral signal.
+    """
 
     provider = "deepseek"
 
@@ -684,11 +762,62 @@ class DeepSeekGroundedResearchNormalizer:
         *,
         client_factory: Callable[..., Any] | None = None,
         clock: Callable[[], datetime] | None = None,
+        http_post: Callable[[str, Mapping[str, str], bytes, int], tuple[int, bytes, Mapping[str, str]]] | None = None,
     ) -> None:
         self.settings = settings
-        self.client_factory = client_factory
+        self.client_factory = client_factory  # retained only for source compatibility; never used for certified transport
         self.clock = clock or (lambda: datetime.now(UTC))
+        self.http_post = http_post or _default_deepseek_http_post
         self.model = settings.deep_model or settings.model
+
+    @staticmethod
+    def _prompt(request: GroundedResearchRequest) -> str:
+        evidence = [
+            {
+                "evidence_id": item.stable_id,
+                "source": item.source,
+                "provider": item.provider,
+                "available_at": item.available_at.isoformat() if item.available_at else None,
+                "evidence_type": item.evidence_type,
+                "title": item.title,
+                "summary": item.summary,
+            }
+            for item in request.evidence_packet.items
+        ]
+        return json.dumps(
+            {
+                "ticker": request.graph_summary.ticker,
+                "decision_as_of": request.as_of.isoformat(),
+                "research_profile": "FUNDAMENTAL_EVENT_RESEARCH",
+                "certified_evidence": evidence,
+                "output_schema": {
+                    "status": "AVAILABLE | ABSTAIN",
+                    "reason": "required bounded explanation",
+                    "direction": "BULLISH | BEARISH | NEUTRAL (AVAILABLE only)",
+                    "conviction": "decimal 0..1 (AVAILABLE only)",
+                    "thesis": "required bounded text (AVAILABLE only)",
+                    "risks": "list[str]",
+                    "cited_evidence_ids": "non-empty list of supplied IDs (AVAILABLE only)",
+                },
+                "instructions": "Return exactly one JSON object. Use only supplied evidence IDs. Do not provide target weights, shares, leverage, prices, orders, URLs, extra evidence, or hidden reasoning.",
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+            default=str,
+        )
+
+    def _failure(
+        self, ticker: str, as_of: datetime, code: str, diagnostics: list[str]
+    ) -> GroundedResearchOutcome:
+        status = GroundedResearchStatus.TIMEOUT if code == "TIMEOUT" else (
+            GroundedResearchStatus.UNAVAILABLE
+            if code in {"HTTP_AUTH_ERROR", "HTTP_RATE_LIMIT", "HTTP_SERVER_ERROR", "NETWORK_ERROR", "DNS_ERROR", "TLS_ERROR"}
+            else GroundedResearchStatus.INVALID_OUTPUT
+        )
+        return _grounded_outcome(
+            ticker=ticker, as_of=as_of, status=status, provider=self.provider,
+            model=self.model, warnings=(code,), error_code=code, diagnostics=tuple(diagnostics),
+        )
 
     def normalize(
         self,
@@ -696,15 +825,14 @@ class DeepSeekGroundedResearchNormalizer:
         evidence_packet: ResearchEvidencePacket,
         as_of: datetime,
     ) -> GroundedResearchOutcome:
+        diagnostics: list[str] = []
         if not self.settings.live_enabled:
             return _grounded_outcome(
-                ticker=graph_summary.ticker,
-                as_of=as_of,
+                ticker=graph_summary.ticker, as_of=as_of,
                 status=GroundedResearchStatus.LIVE_RESEARCH_DISABLED,
-                provider=self.provider,
-                model=self.model,
-                warnings=("DeepSeek grounded normalizer is disabled by policy.",),
-                error_code="LIVE_RESEARCH_DISABLED",
+                provider=self.provider, model=self.model,
+                warnings=("LIVE_RESEARCH_DISABLED",), error_code="LIVE_RESEARCH_DISABLED",
+                diagnostics=("LIVE_RESEARCH_DISABLED",),
             )
         if as_of.tzinfo is None or as_of.utcoffset() is None:
             raise ValueError("as_of must be timezone-aware")
@@ -712,156 +840,99 @@ class DeepSeekGroundedResearchNormalizer:
             request = GroundedResearchRequest(
                 graph_summary=graph_summary, evidence_packet=evidence_packet, as_of=as_of
             )
-        except ValueError as error:
-            return _grounded_outcome(
-                ticker=graph_summary.ticker,
-                as_of=as_of,
-                status=GroundedResearchStatus.INVALID_OUTPUT,
-                provider=self.provider,
-                model=self.model,
-                warnings=(str(error),),
-                error_code="INVALID_OUTPUT",
-            )
-        graph_summary = request.graph_summary
-        evidence_packet = request.evidence_packet
+        except ValueError:
+            return self._failure(graph_summary.ticker, as_of, "SCHEMA_VALIDATION_FAILURE", diagnostics)
         age = (self.clock() - as_of).total_seconds()
         if age < 0 or age > self.settings.live_as_of_tolerance_seconds:
             return _grounded_outcome(
-                ticker=graph_summary.ticker,
-                as_of=as_of,
+                ticker=graph_summary.ticker, as_of=as_of,
                 status=GroundedResearchStatus.HISTORICAL_LIVE_CALL_FORBIDDEN,
-                provider=self.provider,
-                model=self.model,
-                warnings=("Historical live grounding is forbidden.",),
-                error_code="HISTORICAL_LIVE_CALL_FORBIDDEN",
+                provider=self.provider, model=self.model,
+                warnings=("HISTORICAL_LIVE_CALL_FORBIDDEN",), error_code="HISTORICAL_LIVE_CALL_FORBIDDEN",
+                diagnostics=("REQUEST_REJECTED_HISTORICAL",),
             )
-        if not os.getenv("DEEPSEEK_API_KEY"):
+        api_key = os.getenv("DEEPSEEK_API_KEY")
+        if not api_key:
             return _grounded_outcome(
-                ticker=graph_summary.ticker,
-                as_of=as_of,
-                status=GroundedResearchStatus.UNAVAILABLE,
-                provider=self.provider,
-                model=self.model,
-                warnings=("DEEPSEEK_API_KEY is missing.",),
-                error_code="DEEPSEEK_API_KEY_MISSING",
+                ticker=graph_summary.ticker, as_of=as_of, status=GroundedResearchStatus.UNAVAILABLE,
+                provider=self.provider, model=self.model, warnings=("DEEPSEEK_API_KEY_MISSING",),
+                error_code="DEEPSEEK_API_KEY_MISSING", diagnostics=("REQUEST_PREPARED", "CLIENT_UNAVAILABLE"),
             )
         try:
-            factory = self.client_factory
-            if factory is None:
-                factory = importlib.import_module(
-                    "tradingagents.llm_clients"
-                ).create_llm_client
-            client = factory(
-                provider="deepseek",
-                model=self.model,
-                base_url=self.settings.endpoint or "https://api.deepseek.com",
-                timeout=self.settings.timeout_seconds,
-                max_retries=self.settings.llm_retry_budget,
+            prompt = self._prompt(request)
+            diagnostics.extend(("REQUEST_PREPARED", "CLIENT_CREATED", "HTTP_ATTEMPTED"))
+            body = json.dumps(
+                {"model": self.model, "messages": [{"role": "user", "content": prompt}], "temperature": 0},
+                separators=(",", ":"),
+            ).encode("utf-8")
+            endpoint = (self.settings.endpoint or "https://api.deepseek.com").rstrip() + "/chat/completions"
+            started = time.monotonic()
+            http_status, response_bytes, headers = self.http_post(
+                endpoint,
+                {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "Accept": "application/json"},
+                body,
+                self.settings.timeout_seconds,
             )
-            llm = client.get_llm()
-            structured = llm.with_structured_output(_DeepSeekGroundedOutput)
-            evidence = [
-                {
-                    "evidence_id": item.stable_id,
-                    "source": item.source,
-                    "provider": item.provider,
-                    "available_at": item.available_at.isoformat() if item.available_at else None,
-                    "evidence_type": item.evidence_type,
-                    "title": item.title,
-                    "summary": item.summary,
-                }
-                for item in evidence_packet.items
-            ]
-            prompt = json.dumps(
-                {
-                    "ticker": graph_summary.ticker,
-                    "as_of": as_of.isoformat(),
-                    "evidence_only": True,
-                    "evidence": evidence,
-                    "instructions": (
-                        "Return status AVAILABLE or ABSTAIN plus reason. For AVAILABLE return only direction, conviction, thesis, risks, "
-                        "cited_evidence_ids. Use only supplied evidence IDs. Do not invent URLs, "
-                        "timestamps, evidence, sizing, prices, orders, or chain-of-thought. "
-                        "Abstain by returning insufficient grounding when evidence is inadequate."
-                    ),
-                },
-                sort_keys=True,
-                default=str,
-            )
-            result = structured.invoke(prompt)
-            payload = result.model_dump() if isinstance(result, BaseModel) else result
-            if not isinstance(payload, Mapping):
-                raise ValueError("DeepSeek structured result is not a mapping")
+            latency_ms = int((time.monotonic() - started) * 1000)
+            status_class = f"HTTP_STATUS_CLASS_{http_status // 100}XX"
+            diagnostics.extend(("HTTP_COMPLETED", status_class, f"HTTP_STATUS_{http_status}", f"LATENCY_MS_{latency_ms}", f"RESPONSE_BYTES_{len(response_bytes)}"))
+            if http_status in {401, 403}:
+                raise LiveLLMFailure("HTTP_AUTH_ERROR")
+            if http_status == 429:
+                raise LiveLLMFailure("HTTP_RATE_LIMIT")
+            if 500 <= http_status <= 599:
+                raise LiveLLMFailure("HTTP_SERVER_ERROR")
+            if not 200 <= http_status <= 299:
+                raise LiveLLMFailure("HTTP_CLIENT_ERROR")
+            if not response_bytes:
+                raise LiveLLMFailure("EMPTY_RESPONSE")
+            diagnostics.extend(("RESPONSE_RECEIVED", "RESPONSE_BYTES_NONZERO"))
+            try:
+                envelope = json.loads(response_bytes.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as error:
+                raise LiveLLMFailure("PROVIDER_SCHEMA_MISMATCH") from error
+            if not isinstance(envelope, Mapping):
+                raise LiveLLMFailure("PROVIDER_SCHEMA_MISMATCH")
+            diagnostics.append("PROVIDER_ENVELOPE_PARSED")
+            content = extract_canonical_assistant_payload(envelope)
+            diagnostics.append("ASSISTANT_CONTENT_PRESENT")
+            payload = extract_strict_json_payload(content)
+            diagnostics.append("STRUCTURED_PAYLOAD_EXTRACTED")
             parsed = _DeepSeekGroundedOutput.model_validate(payload)
-            decision_status = parsed.status
-            reason = parsed.reason.strip()
-            if decision_status == "ABSTAIN":
+            diagnostics.append("MERIDIAN_SCHEMA_VALID")
+            if parsed.status == "ABSTAIN":
                 return _grounded_outcome(
-                    ticker=graph_summary.ticker,
-                    as_of=as_of,
-                    status=GroundedResearchStatus.INSUFFICIENT_GROUNDING,
-                    provider=self.provider,
-                    model=self.model,
-                    warnings=(reason or "DeepSeek abstained due to insufficient grounding.",),
-                    error_code="INSUFFICIENT_GROUNDING",
+                    ticker=graph_summary.ticker, as_of=as_of, status=GroundedResearchStatus.INSUFFICIENT_GROUNDING,
+                    provider=self.provider, model=self.model,
+                    warnings=(parsed.reason.strip(),), error_code="MODEL_ABSTAIN", diagnostics=tuple(diagnostics + ["MODEL_ABSTAIN"]),
+                    structured_payload=parsed.model_dump(mode="json"),
                 )
-            if decision_status != "AVAILABLE":
-                raise ValueError("structured grounding status must be AVAILABLE or ABSTAIN")
             allowed = {
-                key: value
-                for key, value in parsed.model_dump(exclude_none=True).items()
+                key: value for key, value in parsed.model_dump(exclude_none=True).items()
                 if key in {"direction", "conviction", "thesis", "risks", "cited_evidence_ids"}
             }
-            signal = GroundedResearchSignal.model_validate(
-                {
-                    **allowed,
-                    "ticker": graph_summary.ticker,
-                    "as_of": as_of,
-                    "status": GroundedResearchStatus.AVAILABLE,
-                }
-            )
-            EvidenceCitationValidator().validate(
-                evidence_packet, signal.cited_evidence_ids, as_of
-            )
+            signal = GroundedResearchSignal.model_validate({
+                **allowed, "ticker": graph_summary.ticker, "as_of": as_of,
+                "status": GroundedResearchStatus.AVAILABLE,
+            })
+            try:
+                EvidenceCitationValidator().validate(evidence_packet, signal.cited_evidence_ids, as_of)
+            except ValueError as error:
+                raise LiveLLMFailure("CITATION_VALIDATION_FAILURE") from error
+            diagnostics.extend(("CITATIONS_VALID", "GROUNDING_RESULT_CREATED"))
             return _grounded_outcome(
-                ticker=signal.ticker,
-                as_of=as_of,
-                status=GroundedResearchStatus.AVAILABLE,
-                provider=self.provider,
-                model=self.model,
-                signal=signal,
+                ticker=signal.ticker, as_of=as_of, status=GroundedResearchStatus.AVAILABLE,
+                provider=self.provider, model=self.model, signal=signal, diagnostics=tuple(diagnostics),
+                structured_payload=parsed.model_dump(mode="json"),
             )
-        except TimeoutError as error:
-            return _grounded_outcome(
-                ticker=graph_summary.ticker,
-                as_of=as_of,
-                status=GroundedResearchStatus.TIMEOUT,
-                provider=self.provider,
-                model=self.model,
-                warnings=(str(error),),
-                error_code="TIMEOUT",
-            )
-        except ValueError as error:
-            return _grounded_outcome(
-                ticker=graph_summary.ticker,
-                as_of=as_of,
-                status=GroundedResearchStatus.INVALID_OUTPUT,
-                provider=self.provider,
-                model=self.model,
-                warnings=(str(error),),
-                error_code="INVALID_OUTPUT",
-            )
-        except Exception as error:  # noqa: BLE001 - provider boundary
-            return _grounded_outcome(
-                ticker=graph_summary.ticker,
-                as_of=as_of,
-                status=GroundedResearchStatus.PROVIDER_ERROR,
-                provider=self.provider,
-                model=self.model,
-                warnings=(type(error).__name__,),
-                error_code="PROVIDER_ERROR",
-            )
-
+        except TimeoutError:
+            return self._failure(graph_summary.ticker, as_of, "TIMEOUT", diagnostics)
+        except LiveLLMFailure as error:
+            return self._failure(graph_summary.ticker, as_of, error.code, diagnostics)
+        except ValueError:
+            return self._failure(graph_summary.ticker, as_of, "SCHEMA_VALIDATION_FAILURE", diagnostics)
+        except Exception as error:  # noqa: BLE001 - isolated provider boundary
+            return self._failure(graph_summary.ticker, as_of, "UNKNOWN_FAILURE", diagnostics + [type(error).__name__])
 
 class GroundedResearchReplayStore:
     """Record/replay graph, packet, and grounded-signal artifacts separately."""

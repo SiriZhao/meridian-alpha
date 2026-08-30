@@ -1,4 +1,5 @@
 import hashlib
+import json
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -56,3 +57,29 @@ def test_distinct_certified_provider_emits_only_accession_certified_evidence() -
     assert len(items) == 1
     assert items[0].provider == "sec-edgar-accession-certified"
     assert items[0].point_in_time_status is EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT
+
+def test_historical_submissions_collection_resolves_exact_accession() -> None:
+    from meridian.sec_filing_metadata import SECSubmissionMetadataProvider
+
+    class Response:
+        def __init__(self, payload: dict[str, object]) -> None:
+            self.payload = payload
+        def read(self) -> bytes:
+            return json.dumps(self.payload).encode()
+
+    def opener(request, timeout: int):
+        _ = timeout
+        if request.full_url.endswith("CIK0000320193.json"):
+            return Response({"cik": "320193", "filings": {"recent": {"accessionNumber": []}, "files": [{"name": "CIK0000320193-submissions-001.json"}]}})
+        assert request.full_url.endswith("CIK0000320193-submissions-001.json")
+        return Response({
+            "accessionNumber": [ACC], "form": ["10-Q"], "filingDate": ["2026-08-30"],
+            "reportDate": ["2026-06-30"], "primaryDocument": ["q.htm"],
+            "acceptanceDateTime": ["2026-08-30T12:00:00.000Z"],
+        })
+
+    result = SECSubmissionMetadataProvider(opener=opener, clock=lambda: T).get_metadata("320193", ACC)
+    assert result is not None
+    assert result.accession_number == ACC
+    assert result.acceptance_datetime == datetime(2026, 8, 30, 12, 0, tzinfo=UTC)
+    assert result.source_uri.endswith("CIK0000320193-submissions-001.json")
