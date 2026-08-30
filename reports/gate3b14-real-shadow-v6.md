@@ -1,0 +1,1 @@
+# Gate 3B.14 real shadow V6`n`nSkipped fail-closed: no enriched certified fundamental evidence bundle was available. No new DeepSeek call, order, or execution action occurred.`n

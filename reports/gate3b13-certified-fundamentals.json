@@ -1,0 +1,1 @@
+{"schema_version":"1","tickers":{"AAPL":{"status":"NO_CERTIFIED_NUMERIC_FACTS","metrics":0},"NVDA":{"status":"NO_CERTIFIED_NUMERIC_FACTS","metrics":0},"MSFT":{"status":"NO_CERTIFIED_NUMERIC_FACTS","metrics":0}},"live_deepseek":"SKIPPED:ENRICHED_CERTIFIED_EVIDENCE_EMPTY","known_reason":"existing certified SEC evidence is metadata-only"}
