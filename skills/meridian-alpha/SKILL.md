@@ -86,3 +86,30 @@ safe profile, and return the Chinese daily report, evidence lineage, and target
 portfolio. Only a sealed `ManualReadinessCertificate` with all seven gates plus
 a matching `ExecutionQuoteCapabilityCertificate` can produce a
 `ManualOrderDraft`; every draft is `NOT_EXECUTED` and requires human review.
+
+## HOST_NATIVE mode and portable invocation
+
+Use `HOST_NATIVE` when the host can provide capabilities directly. Detect each
+capability rather than assuming it: accept only an authorized sanitized
+`HostAccountSnapshotEnvelope`, execute deterministic Meridian code only when
+the Python runtime and project core are actually available, and fail closed
+with `MERIDIAN_RUNTIME_UNAVAILABLE` otherwise. The portable
+`scripts/preflight.py` and `scripts/run_daily.py` use no shell-specific startup
+and delegate all financial calculations to the project-owned core. See
+[runtime-dependencies.md](references/runtime-dependencies.md).
+
+## Invocation triggers
+
+For requests such as “run Meridian”, “analyze my portfolio”, “today's Meridian
+report”, or “large-cap dip-buy analysis”, follow capability preflight →
+sanitized account truth → certified SEC/market data → deterministic core →
+certified research → Chinese report. For a real account request, never infer
+holdings from conversation history. If the runtime is unavailable, state
+`MERIDIAN_RUNTIME_UNAVAILABLE` and identify the missing capability; do not
+recreate investment calculations in prose.
+
+For a portable capability check, run `python scripts/preflight.py`. To request
+the safe core-delegating wrapper, run `python scripts/run_daily.py --profile
+TEST` (or `REPLAY` with a matching frozen input). The wrapper emits sanitized
+JSON followed by the Chinese mobile report; it never treats an unavailable
+runtime as completed analysis.

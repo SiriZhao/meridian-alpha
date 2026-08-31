@@ -17,7 +17,7 @@ publication is blocked because the active GitHub keyring token is invalid and
 | Tag | NOT CREATED |
 | Release | NOT CREATED |
 | Skill ZIP | `dist/meridian-alpha-skill-v1.zip` |
-| Skill SHA256 | 3bdcc9e6c648fe168512ee61eb7aa9f83d328c1ec2ecc75bb8463fa3d68f90b7 |
+| Skill SHA256 | bfabee756002259d623a9e0a07a5788b9b027b2a432ff881e5c1ed3a6d6c84c9 |
 | CI | `.github/workflows/ci.yml` added; offline-only checks |
 | Secret scan | Git history: 0 high-risk matches; current match is ignored `.env.local` only |
 | Mobile install guide | `docs/chatgpt-mobile-skill-install.md` |
@@ -37,6 +37,6 @@ credentials, absolute local paths, symlink escapes, or unexpected binaries.
 - Known P0: 0.
 - Known P1: real Host input, execution-quote certification, and observation period remain external blockers.
 
-No GitHub remote, push, tag, or pre-release was created. Re-run the release
+The Gate 6K portable Skill update supersedes the original ZIP checksum; no GitHub remote, push, tag, or pre-release was created. Re-run the release
 steps only after the user re-authenticates `gh` and `gh api user` returns the
 intended personal login; then verify the remote before publishing.
