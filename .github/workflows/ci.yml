@@ -1,0 +1,36 @@
+name: Meridian Alpha CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project
+        run: python -m pip install --upgrade pip && pip install -e . pytest ruff pyright
+      - name: Test
+        run: python -m pytest -q
+      - name: Ruff
+        run: python -m ruff check .
+      - name: Pyright
+        run: python -m pyright
+      - name: Validate Skill package
+        run: python skills/meridian-alpha/scripts/validate_package.py skills/meridian-alpha
+      - name: Scan high-risk credential patterns
+        shell: bash
+        run: |
+          set -eu
+          if rg -n --hidden -g '!.git/**' -g '!.venv/**' -g '!runs/**' -g '!var/**' -g '!*.lock' \
+            '(api[_-]?key[[:space:]]*[:=][[:space:]]*[A-Za-z0-9_-]{12,}|access[_-]?token[[:space:]]*[:=][[:space:]]*[A-Za-z0-9_-]{12,}|authorization[[:space:]]*[:=][[:space:]]*bearer[[:space:]]+[A-Za-z0-9._-]+|\bsk-[A-Za-z0-9]{12,})' .; then
+            echo "High-risk credential pattern detected"
+            exit 1
+          fi

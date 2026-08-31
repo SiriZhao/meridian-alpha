@@ -1,6 +1,6 @@
 ---
 name: meridian-alpha
-description: Safely validate a sanitized HostAccountSnapshotEnvelope and run read-only Meridian analysis without connecting to a broker or executing orders.
+description: Safely validate a sanitized HostAccountSnapshotEnvelope and run read-only US-equity Meridian decision support. Use for daily shadow analysis, certified SEC evidence review, Quant plus DeepSeek research, and manual-entry readiness checks without broker login or order execution.
 ---
 
 # Meridian Alpha Host workflow
@@ -14,9 +14,11 @@ account number.
 2. For local CLI review, run `meridian host-smoke <file>`; it performs schema,
    sensitive-key, freshness, identity, normalization, and shared-analysis
    checks without connecting to an account source.
-3. Call `validate_host_account_snapshot`.
-4. Call `run_host_daily_analysis` using the same envelope and current as-of
-   time.
+3. If the read-only MCP surface is available, call
+   `validate_host_account_snapshot` (or `validate_account_snapshot` for a
+   normalized snapshot).
+4. Call `run_host_daily_analysis` (or `run_daily_analysis`) using the same
+   envelope and current as-of time.
 5. Present the returned account state, evidence, target portfolio, risk,
    readiness, and blockers.
 6. Treat `ANALYSIS_ONLY` and `DRAFT` as non-enterable. Only
@@ -27,6 +29,16 @@ account number.
 Execution quotes are a separate certified capability. `meridian
 quote-preflight` reports candidate-provider health only; without a verified
 certificate, `QUOTE_READY` and manual entry remain blocked.
+
+## Capability detection
+
+At runtime distinguish `HOST_ACCOUNT_TOOL_AVAILABLE`,
+`PYTHON_RUNTIME_AVAILABLE`, `NETWORK_AVAILABLE`, `CERTIFIED_QUOTE_AVAILABLE`,
+and `LIVE_DEEPSEEK_AVAILABLE`. Never assume any capability exists. If a
+required capability is unavailable, fail closed with the exact blocker; do not
+fabricate prices, account state, evidence, or calculations. A GitHub checkout
+is not a runtime requirement for this Skill: use package-relative references
+and the Host-provided input contract.
 
 Read [workflow.md](references/workflow.md), [account-contract.md](references/account-contract.md),
 and [safety.md](references/safety.md).
@@ -46,8 +58,8 @@ never implies a fill. FinRL-X is an optional isolated allocator challenger only;
 ## Gate 6F manual-entry authority
 
 Never infer manual-entry readiness from `DailyDecision.overall_status` alone.
-Require a concrete READY `ManualReadinessCertificate` with all seven gates and
-a matching certified `ExecutionQuoteCapabilityCertificate`. The only
+Require a concrete READY `ManualReadinessCertificate` with all seven gates and a
+matching certified `ExecutionQuoteCapabilityCertificate`. The only
 production-shaped constructor is `build_manual_order_draft`; its result is
 `NOT_EXECUTED`. MarketSnapshot/research prices and valuation marks are
 analysis-only, and MCP must return a blocker when the sealed certificate or
@@ -64,4 +76,13 @@ draft only when a sealed `ManualReadinessCertificate` is `READY` and the exact
 explicit blockers. The read-only MCP surface is limited to account validation,
 daily analysis/reporting, evidence/research/portfolio inspection, manual-draft
 inspection, and provider health. There is no broker tool, `AUTO_EXECUTION`
-profile, Schwab authentication, or order operation.
+profile, broker login, Schwab authentication, order operation, or assumed fill.
+
+## Mobile/Host workflow
+
+Obtain an authorized sanitized Host snapshot when the Host exposes that
+capability; otherwise request the user to provide one. Validate it, run the
+safe profile, and return the Chinese daily report, evidence lineage, and target
+portfolio. Only a sealed `ManualReadinessCertificate` with all seven gates plus
+a matching `ExecutionQuoteCapabilityCertificate` can produce a
+`ManualOrderDraft`; every draft is `NOT_EXECUTED` and requires human review.

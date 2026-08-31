@@ -77,3 +77,23 @@ is the certified research lane. FinRL-X is optional and deferred (`MODEL_UNAVAIL
 is acceptable). A manual draft requires a READY seven-gate
 `ManualReadinessCertificate` and a certified `ExecutionQuote`; no broker or
 Schwab surface exists.
+
+## Meridian Alpha V1 release candidate
+
+V1 is code-feature complete for bounded US-equity shadow observation. The
+production path is certified SEC fundamentals plus Quant, certified DeepSeek
+research, deterministic AlphaFusion, allocation, risk, reconciliation, a
+shadow ledger, and a sealed manual-authority framework. TradingAgents remains
+qualitative context only; FinRL-X is deferred (`MODEL_UNAVAILABLE` is valid).
+
+Current external/observation blockers are an authorized real Host smoke, a
+certified read-only execution quote, and the minimum shadow observation period.
+No Schwab execution, broker login, broker writes, or real orders exist.
+
+### Install as Agent Skill
+
+Download and verify [`dist/meridian-alpha-skill-v1.zip`](dist/meridian-alpha-skill-v1.zip)
+with [`dist/meridian-alpha-skill-v1.sha256`](dist/meridian-alpha-skill-v1.sha256),
+then install it through the ChatGPT Skills UI where available. See
+[`docs/chatgpt-mobile-skill-install.md`](docs/chatgpt-mobile-skill-install.md).
+GitHub is distribution, not automatic ChatGPT installation.

@@ -19,3 +19,11 @@ htmlcov/
 artifacts/
 
 runs/
+venv/
+.mypy_cache/
+*.sqlite*
+credentials*
+secrets*
+tokens*
+logs/
+var/
