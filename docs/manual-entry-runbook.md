@@ -30,3 +30,13 @@ Legacy `MarketSnapshot` pricing and the compatibility helper in
 MCP ticket inspection applies the same certificate requirement. The returned
 draft is `NOT_EXECUTED`; no draft is ever applied to a portfolio. Only a later,
 new sanitized Host snapshot can prove a fill or other account change.
+
+## V1 authority freeze
+
+There is exactly one production-shaped manual-entry chain:
+
+`fresh Host truth + authoritative Security Master + current market/research + certified ExecutionQuote + risk + reconciliation -> ManualReadinessCertificate(READY) -> ManualOrderDraft(NOT_EXECUTED)`.
+
+A `MarketSnapshot`, research price, valuation mark, or diagnostic order draft
+cannot authorize manual entry. No draft changes cash or holdings; a later Host
+snapshot is the only fill evidence.

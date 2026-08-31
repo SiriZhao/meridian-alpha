@@ -66,3 +66,14 @@ replay/soak foundation are available. Reports always lead with `BLOCKED`,
 candidate is `SHADOW / NOT AUTHORIZED FOR ENTRY`: no real Host envelope or
 execution-quote certificate is present, FinRL-X is `MODEL_UNAVAILABLE`, and no
 broker or Schwab authentication/write surface exists.
+## V1 daily-shadow release (Gate 6H/6I)
+
+The supported user-facing command is `meridian daily`. It runs the shared
+sanitized analysis path and writes `runs/<date>/<run_id>/` artifacts plus
+append-only shadow ledgers. Profiles are `TEST`, `REPLAY`, `SHADOW_LIVE` (explicit
+opt-in), and `MANUAL_DECISION_SUPPORT`; there is no `AUTO_EXECUTION` profile.
+TradingAgents is qualitative context only, while DeepSeek `CertifiedEvidenceView`
+is the certified research lane. FinRL-X is optional and deferred (`MODEL_UNAVAILABLE`
+is acceptable). A manual draft requires a READY seven-gate
+`ManualReadinessCertificate` and a certified `ExecutionQuote`; no broker or
+Schwab surface exists.

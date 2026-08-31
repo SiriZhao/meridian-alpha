@@ -249,3 +249,16 @@ research/valuation types and cannot authorize manual pricing. `OrderPlanner`,
 that can satisfy the seven-gate `MANUAL_ENTRY_READY` transition, and MCP
 requires the persisted certificate plus sealed drafts. No draft mutates
 holdings or cash; reconciliation observes only a later Host snapshot.
+
+## Gate 6H/6I V1 freeze
+
+`meridian daily` is the one supported daily application path. Development gate
+scripts are diagnostic/test-only and delegate to project-owned orchestration;
+they do not reimplement alpha arithmetic. Daily packages are sanitized and
+append-only under `runs/<date>/<run_id>/`, with separate forward-outcome rows.
+
+TradingAgents remains a qualitative second opinion. The certified production
+research lane is the DeepSeek/`CertifiedEvidenceView` path. LLM output can
+modify research alpha only; deterministic code owns weights, quantity, risk,
+limit policy, and reconciliation. FinRL-X is deferred post-v1 and may remain
+`MODEL_UNAVAILABLE`.

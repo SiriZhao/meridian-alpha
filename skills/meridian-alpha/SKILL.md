@@ -53,3 +53,15 @@ production-shaped constructor is `build_manual_order_draft`; its result is
 analysis-only, and MCP must return a blocker when the sealed certificate or
 quote certificate is absent. A later sanitized Host snapshot, never a draft,
 proves an external fill.
+
+## V1 frozen daily workflow
+
+Use `meridian daily` as the only supported production-style command. Receive a
+sanitized Host snapshot, validate it, run the selected safe profile, and return
+the sanitized report, evidence lineage, and target portfolio. Return a manual
+draft only when a sealed `ManualReadinessCertificate` is `READY` and the exact
+`ExecutionQuote` is backed by a valid capability certificate. Otherwise return
+explicit blockers. The read-only MCP surface is limited to account validation,
+daily analysis/reporting, evidence/research/portfolio inspection, manual-draft
+inspection, and provider health. There is no broker tool, `AUTO_EXECUTION`
+profile, Schwab authentication, or order operation.

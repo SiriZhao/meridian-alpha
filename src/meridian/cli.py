@@ -10,14 +10,17 @@ from pathlib import Path
 
 from meridian.adapters.tradingagents import ResearchReplayStore, TradingAgentsResearchEngine
 from meridian.audit import AuditStore
+from meridian.authorization import EvidenceAuthorizationService
 from meridian.candidates import CandidateSelector
 from meridian.config import load_policies
+from meridian.daily_release import package_daily_run
 from meridian.evidence import (
     EvidencePacketBuilder,
     FakeFundamentalEvidenceProvider,
     FakeMacroEvidenceProvider,
     FakeMarketEvidenceProvider,
     FakeNewsEvidenceProvider,
+    ProviderCapabilities,
 )
 from meridian.execution_quote_providers import provider_preflight
 from meridian.host_account import (
@@ -26,13 +29,14 @@ from meridian.host_account import (
 )
 from meridian.host_readiness import build_host_smoke_report, write_host_smoke_report
 from meridian.identity_certification import load_verified_security_certificates
-from meridian.market import FakeMarketDataProvider
+from meridian.market import Bar, FakeMarketDataProvider
 from meridian.orchestrator import DailyAnalysisService, DailyOrchestrator
 from meridian.pipeline import (
     FakeGraphResearchProvider,
     ResearchPipelineMode,
     ResearchPipelineService,
 )
+from meridian.profiles import parse_profile
 from meridian.reporting import report_markdown, research_report_markdown
 from meridian.research import (
     FakeGroundedResearchNormalizer,
@@ -40,12 +44,17 @@ from meridian.research import (
     GroundedResearchReplayStore,
     GroundedResearchSignal,
     GroundedResearchStatus,
+    PointInTimeStatus,
+    ResearchEvidencePacket,
     ResearchMode,
+    ResearchOutcome,
+    ResearchStatus,
 )
 from meridian.schemas import (
     AccountSnapshot,
     AgentSignal,
     EvidenceItem,
+    EvidencePointInTimeStatus,
     FreshnessState,
     MarketSnapshot,
 )
@@ -54,6 +63,7 @@ from meridian.security_master import DEFAULT_SECURITY_MASTER
 
 def _fixture_market(as_of: datetime) -> FakeMarketDataProvider:
     quotes = {}
+    histories = {}
     for ticker, last in {"AAPL": "200", "MSFT": "300", "NVDA": "400", "SPY": "600"}.items():
         price = Decimal(last)
         quotes[ticker] = MarketSnapshot(
@@ -70,9 +80,98 @@ def _fixture_market(as_of: datetime) -> FakeMarketDataProvider:
             gap_percent=Decimal("0.005"),
             freshness_state=FreshnessState.VERIFIED,
         )
-    return FakeMarketDataProvider(quotes)
+        histories[ticker] = (
+            Bar(
+                timestamp=as_of.replace(hour=0, minute=0, second=0, microsecond=0),
+                open=price - 2,
+                high=price + 1,
+                low=price - 3,
+                close=price - 1,
+                volume=1_000_000,
+            ),
+            Bar(
+                timestamp=as_of,
+                open=price - 1,
+                high=price + 1,
+                low=price - 2,
+                close=price,
+                volume=1_000_000,
+            ),
+        )
+    return FakeMarketDataProvider(quotes, histories)
 
 
+
+class _CertifiedFixtureResearchEngine:
+    """Offline-only certified research fixture used by TEST/REPLAY daily runs."""
+
+    def __init__(self, signals: dict[str, AgentSignal]):
+        self.signals = signals
+
+    def analyze(self, ticker: str, as_of: datetime, market_context: dict[str, object]) -> ResearchOutcome:
+        _ = market_context
+        signal = self.signals.get(ticker)
+        if signal is None or signal.as_of != as_of:
+            raise ValueError("fixture signal timestamp does not match analysis date")
+        item = EvidenceItem(
+            evidence_id=f"fixture-sec-{ticker.lower()}-{as_of.date().isoformat()}",
+            ticker=ticker,
+            source="synthetic-sec-certification-fixture",
+            provider="sec-edgar-accession-certified",
+            observed_at=as_of,
+            available_at=as_of,
+            retrieved_at=as_of,
+            evidence_type="certified_fundamental",
+            summary="Bounded TEST fixture; not a live filing or investment recommendation.",
+            point_in_time_status=EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT,
+        )
+        packet = ResearchEvidencePacket(
+            packet_id=f"fixture-packet-{ticker.lower()}-{as_of.date().isoformat()}",
+            ticker=ticker,
+            as_of=as_of,
+            items=(item,),
+            point_in_time_status=EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT,
+        )
+        grounded = GroundedResearchSignal(
+            ticker=ticker,
+            as_of=as_of,
+            direction=signal.direction,
+            conviction=signal.conviction,
+            thesis=signal.thesis,
+            risks=signal.risks,
+            cited_evidence_ids=(item.stable_id,),
+            status=GroundedResearchStatus.AVAILABLE,
+        )
+        certified = EvidenceAuthorizationService().authorize(
+            grounded,
+            packet,
+            provider_registry={
+                "sec-edgar-accession-certified": ProviderCapabilities(
+                    provider_name="sec-edgar-accession-certified",
+                    supports_historical=True,
+                    supports_point_in_time=True,
+                    research_grade=True,
+                )
+            },
+        )
+        return ResearchOutcome(
+            ticker=ticker,
+            as_of=as_of,
+            status=ResearchStatus.AVAILABLE,
+            signal=certified.signal,
+            certified_signal=certified,
+            provider="sec-edgar-accession-certified",
+            framework="MeridianFixture",
+            framework_version="v1",
+            model_provider="fixture",
+            model_name="certified-fixture-v1",
+            started_at=as_of,
+            completed_at=as_of,
+            mode=ResearchMode.REPLAY,
+            point_in_time_status=PointInTimeStatus.HISTORICAL_REPLAY_UNSAFE,
+            warnings=("TEST_FIXTURE_ONLY",),
+            duration_seconds=Decimal("0"),
+        )
 def _fixture_signal(ticker: str, as_of: datetime) -> AgentSignal:
     return AgentSignal(
         ticker=ticker,
@@ -177,8 +276,8 @@ def main() -> None:
         help="Perform bounded read-only probes when local provider credentials exist",
     )
     daily = subparsers.add_parser("daily")
-    daily.add_argument("--account-fixture", required=True)
-    daily.add_argument("--date", required=True)
+    daily.add_argument("--account-fixture", default="schemas/examples/empty-50000.json", help="Sanitized AccountSnapshot JSON (safe fixture default)")
+    daily.add_argument("--date", help="Timezone-aware ISO analysis timestamp; defaults to the snapshot cutoff")
     daily.add_argument("--profile", choices=("TEST", "REPLAY", "SHADOW_LIVE", "MANUAL_DECISION_SUPPORT"), default="TEST")
     research = subparsers.add_parser("research")
     research.add_argument("ticker")
@@ -327,6 +426,29 @@ def main() -> None:
         )
         print(research_report_markdown(result))
         return
+    if args.command == "daily":
+        fixture_path = Path(args.account_fixture)
+        if not fixture_path.is_absolute():
+            fixture_path = root / fixture_path
+        try:
+            account = AccountSnapshot.model_validate_json(fixture_path.read_text(encoding="utf-8"))
+            as_of = _parse_date(args.date) if args.date else account.as_of
+            profile = parse_profile(args.profile)
+            signals = {ticker: _fixture_signal(ticker, as_of) for ticker in policies.universe.tickers}
+            decision = DailyAnalysisService(
+                DailyOrchestrator(policies, _fixture_market(as_of), _CertifiedFixtureResearchEngine(signals))
+            ).run(account, as_of)
+            packaged = package_daily_run(decision, account, profile=profile, root=root, policies=policies)
+            print(json.dumps({
+                "status": packaged["status"],
+                "run_id": packaged["run_id"],
+                "artifact_directory": packaged["artifact_directory"],
+                "authorization": packaged["authorization"],
+                "known_p0": packaged["known_p0"],
+            }, sort_keys=True, default=str))
+        except (OSError, ValueError) as error:
+            raise SystemExit(f"DAILY_REJECTED:{error}") from error
+        return
     store = AuditStore(root / "var" / "meridian.db")
     if args.command == "runs":
         if args.runs_command == "list":
@@ -380,10 +502,11 @@ def main() -> None:
             )
         )
         return
-    as_of = datetime.fromisoformat(args.date)
-    snapshot = AccountSnapshot.model_validate_json(
-        (root / args.account_fixture).read_text(encoding="utf-8")
-    )
+    as_of = _parse_date(args.date)
+    fixture_path = Path(args.account_fixture)
+    if not fixture_path.is_absolute():
+        fixture_path = root / fixture_path
+    snapshot = AccountSnapshot.model_validate_json(fixture_path.read_text(encoding="utf-8"))
     signals = {ticker: _fixture_signal(ticker, as_of) for ticker in policies.universe.tickers}
     decision = DailyAnalysisService(
         DailyOrchestrator(policies, _fixture_market(as_of), FakeResearchEngine(signals), store)

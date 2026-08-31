@@ -11,3 +11,12 @@ observation. Track quant-only versus quant-plus-certified-research attribution
 with the same allocator and risk engine. Keep dislocation attribution separate.
 No result is a causal claim from a small sample, and no recommendation implies a
 trade occurred.
+
+## V1 observation loop
+
+Run `meridian daily` once per trading session, retain the package manifest and
+provider-health report, and review the append-only ledgers. Join 1D/5D/20D
+outcomes only once available. Keep quant-only and quant-plus-certified-LLM
+counterfactuals on the same allocator/risk path; label small samples
+`INSUFFICIENT_SAMPLE`. The 200-cycle offline soak is cache-only and makes no
+network calls.

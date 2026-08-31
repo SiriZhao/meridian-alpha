@@ -198,6 +198,15 @@ def inspect_target_portfolio(run_id: str) -> dict[str, Any]:
 
 
 @mcp.tool(
+    title="Inspect portfolio target",
+    description="Return the deterministic target portfolio from a sanitized run summary.",
+    annotations=READ_ONLY,
+    structured_output=True,
+)
+def inspect_portfolio_target(run_id: str) -> dict[str, Any]:
+    """V1 name for target inspection; read-only alias of inspect_target_portfolio."""
+    return inspect_target_portfolio(run_id)
+@mcp.tool(
     title="Inspect manual draft",
     description="Return a manual draft only when deterministic readiness gates pass; never submits it.",
     annotations=READ_ONLY,

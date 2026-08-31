@@ -17,3 +17,5 @@ htmlcov/
 .pytest_tmp/
 
 artifacts/
+
+runs/

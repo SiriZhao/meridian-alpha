@@ -27,3 +27,11 @@ duplicate protection, market-hours gates, account/quantity mismatch, reject and
 partial-fill handling, cancel/replace, rate limits, disconnects, bounded retries,
 kill switch, manual override, and immutable audit records. None of these
 requirements authorizes implementation in Gate 6E.
+## Gate 6I prerequisite freeze
+
+This remains design-only: no Schwab authentication, account read, token
+handling, broker SDK, order write, cancellation, or execution code is present.
+A future broker phase cannot open until Gate 6F authority is stable, a real Host
+smoke and certified ExecutionQuote pass, 5–10 shadow sessions are reviewed, no
+P0 remains, manual v1 is stable, and the user explicitly authorizes a separate
+Gate 7.

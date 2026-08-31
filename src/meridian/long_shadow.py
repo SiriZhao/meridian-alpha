@@ -260,11 +260,20 @@ class ShadowPerformanceLedger:
         try:
             raw = json.loads(self.path.read_text(encoding="utf-8"))
             rows = raw["records"]
-            if raw.get("schema_version") != "gate6d-performance.v1" or not isinstance(rows, list):
+            declared = raw.get("content_hash")
+            if raw.get("schema_version") != "gate6d-performance.v1" or not isinstance(rows, list) or not isinstance(declared, str):
                 raise ValueError
             for item in rows:
                 row = ShadowPerformanceRecord.model_validate(item)
-                self.add(row)
+                key = (row.run_id, row.ticker, row.horizon)
+                existing = self._rows.get(key)
+                if existing is not None and existing != row:
+                    raise ValueError("SHADOW_PERFORMANCE_CORRUPT:contradictory-row")
+                self._rows[key] = row
+            canonical = [self._rows[key].model_dump(mode="json") for key in sorted(self._rows, key=str)]
+            actual = hashlib.sha256(_canonical(canonical).encode()).hexdigest()
+            if declared != actual:
+                raise ValueError("SHADOW_PERFORMANCE_CORRUPT:content-hash")
         except Exception as error:  # noqa: BLE001
             if isinstance(error, ValueError) and str(error).startswith("SHADOW_"):
                 raise
@@ -440,4 +449,3 @@ def derive_daily_health(
 def default_health_components() -> dict[str, str]:
     """Return an explicit, conservative health matrix for a shadow run."""
     return {name: ProviderHealthStatus.UNVERIFIED.value for name in DEFAULT_PROVIDER_HEALTH_NAMES}
-

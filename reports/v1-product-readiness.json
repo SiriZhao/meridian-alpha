@@ -1,0 +1,542 @@
+{
+  "adversarial_battery": {
+    "cases": [
+      "stale_host",
+      "future_host",
+      "partial_host",
+      "corrupt_security_artifact",
+      "market_outage",
+      "sec_outage",
+      "deepseek_timeout",
+      "deepseek_malformed",
+      "deepseek_fake_citation",
+      "quote_absent",
+      "quote_stale",
+      "quote_wrong_symbol",
+      "quote_wide",
+      "risk_block",
+      "reconciliation_mismatch",
+      "manual_certificate_missing",
+      "manual_certificate_tampered",
+      "provider_disagreement",
+      "replay_cache_corrupt"
+    ],
+    "network_calls": 0,
+    "note": "Covered by targeted safety tests and offline soak; no pass is claimed here.",
+    "status": "NOT_RUN_IN_RELEASE_SCRIPT"
+  },
+  "attribution": {
+    "note": "The daily package never fabricates quant/LLM counterfactuals from portfolio weights.",
+    "records": [
+      {
+        "alpha_difference": "UNAVAILABLE",
+        "causal_claim": "NOT_ESTABLISHED_SMALL_SAMPLE",
+        "quant_only_alpha": "UNAVAILABLE",
+        "quant_plus_certified_llm_alpha": "UNAVAILABLE",
+        "target_weight_difference": "UNAVAILABLE",
+        "ticker": "AAPL",
+        "turnover_difference": "UNAVAILABLE"
+      },
+      {
+        "alpha_difference": "UNAVAILABLE",
+        "causal_claim": "NOT_ESTABLISHED_SMALL_SAMPLE",
+        "quant_only_alpha": "UNAVAILABLE",
+        "quant_plus_certified_llm_alpha": "UNAVAILABLE",
+        "target_weight_difference": "UNAVAILABLE",
+        "ticker": "MSFT",
+        "turnover_difference": "UNAVAILABLE"
+      },
+      {
+        "alpha_difference": "UNAVAILABLE",
+        "causal_claim": "NOT_ESTABLISHED_SMALL_SAMPLE",
+        "quant_only_alpha": "UNAVAILABLE",
+        "quant_plus_certified_llm_alpha": "UNAVAILABLE",
+        "target_weight_difference": "UNAVAILABLE",
+        "ticker": "NVDA",
+        "turnover_difference": "UNAVAILABLE"
+      },
+      {
+        "alpha_difference": "UNAVAILABLE",
+        "causal_claim": "NOT_ESTABLISHED_SMALL_SAMPLE",
+        "quant_only_alpha": "UNAVAILABLE",
+        "quant_plus_certified_llm_alpha": "UNAVAILABLE",
+        "target_weight_difference": "UNAVAILABLE",
+        "ticker": "SPY",
+        "turnover_difference": "UNAVAILABLE"
+      }
+    ],
+    "status": "INSUFFICIENT_SAMPLE_NO_PRODUCTION_ALPHA_ROWS"
+  },
+  "auto_execution": false,
+  "code_blockers": [],
+  "daily_entrypoint": "meridian daily",
+  "daily_package": {
+    "artifact_directory": "runs\\2026-08-28\\run_2e66f0ed8d084cc88c084d6cfdbf447e",
+    "run_id": "run_2e66f0ed8d084cc88c084d6cfdbf447e",
+    "status": "ANALYSIS_ONLY"
+  },
+  "execution_quote_certified": false,
+  "external_blockers": [
+    "REAL_HOST_INPUT_REQUIRED",
+    "EXECUTION_QUOTE_CERTIFICATION_REQUIRED"
+  ],
+  "finrlx": {
+    "checked_at": "2026-08-31T13:03:53.098159Z",
+    "imported_execution_surface": false,
+    "isolated": true,
+    "license": "Apache-2.0",
+    "package": "finrl",
+    "runtime_available": false,
+    "status": "MODEL_UNAVAILABLE",
+    "upstream_commit": "e65d6f0483ead7d2ef4a5fc940cdf960392a25c1",
+    "version": "2.0.2",
+    "warnings": [
+      "MODEL_UNAVAILABLE:FinRL-X package/runtime is not installed in the isolated environment",
+      "No artifact or OOS validation was fabricated."
+    ]
+  },
+  "fundamental_coverage": {
+    "AAPL": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:aapl_bf69d7a942b3894146ecd08ccd7c88f1",
+        "GROSS_PROFIT:MULTIPLE_CONTEXTS:aapl_4fd7c61896facd42f48e03d5f756b3e9",
+        "NET_INCOME:MULTIPLE_CONTEXTS:aapl_aabca53c548fb39aa7f56c8c2864adee",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:aapl_fd4e66484229583be2aa5a8702c44979",
+        "REVENUE:MULTIPLE_CONTEXTS:aapl_a87958b68a0833e41587f6bd34687793"
+      ],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "GROSS_PROFIT",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 429,
+      "comparables": 12,
+      "derived": 16,
+      "latest_accepted_filing": "0000320193-26-000020",
+      "missing_metrics": [],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "GOOGL": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:googl_b1ff7c0123663db4d1338a38b054eefb",
+        "NET_INCOME:MULTIPLE_CONTEXTS:googl_f81fb21e8f1eaa4798a8934a804c3d3d",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:googl_a82718728f310a996bf7335da2bb9e85",
+        "REVENUE:MULTIPLE_CONTEXTS:googl_85cd8b6a97aece954e8937c0692dd381"
+      ],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 67,
+      "comparables": 11,
+      "derived": 14,
+      "latest_accepted_filing": "0001652044-26-000071",
+      "missing_metrics": [
+        "GROSS_PROFIT"
+      ],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "META": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:meta_476dc43368fa2bd1a6c7031f707e3e5a",
+        "NET_INCOME:MULTIPLE_CONTEXTS:meta_7110d9fdd72ee7e16a148153fb0461d8",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:meta_0c31e4738f239b30130b5730145feabf",
+        "REVENUE:MULTIPLE_CONTEXTS:meta_6ba7db908c4daff78b90afda82eb7ab0"
+      ],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 292,
+      "comparables": 11,
+      "derived": 14,
+      "latest_accepted_filing": "0001628280-26-050705",
+      "missing_metrics": [
+        "GROSS_PROFIT"
+      ],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "MSFT": {
+      "ambiguous_concepts": [],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "GROSS_PROFIT",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 436,
+      "comparables": 12,
+      "derived": 18,
+      "latest_accepted_filing": "0001193125-26-323660",
+      "missing_metrics": [],
+      "quality_score": 1.0,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "NVDA": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:nvda_d03d029cb0043cd90d15e1cd9ecacb33",
+        "GROSS_PROFIT:MULTIPLE_CONTEXTS:nvda_7de2f3e2e02e8770631a9f43397d1831",
+        "NET_INCOME:MULTIPLE_CONTEXTS:nvda_d9f13e48292da8eefbcc9defea42c37e",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:nvda_55939eaa5c77aec9e3cdcdc3b499c920",
+        "REVENUE:MULTIPLE_CONTEXTS:nvda_6dd4c4129c87b70f68f326da79f3660a"
+      ],
+      "canonical_metrics": [
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "GROSS_PROFIT",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 334,
+      "comparables": 11,
+      "derived": 14,
+      "latest_accepted_filing": "0001045810-26-000075",
+      "missing_metrics": [
+        "CAPEX"
+      ],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    }
+  },
+  "generated_at": "2026-08-31T13:03:53+00:00",
+  "git_head": "f676395f4ab927d2ddf7a67899919539e4360aa3",
+  "known_p0": 0,
+  "known_p1": [
+    "REAL_HOST_INPUT_REQUIRED",
+    "EXECUTION_QUOTE_CERTIFICATION_REQUIRED",
+    "MINIMUM_COMPLETED_SHADOW_SESSIONS_REQUIRED"
+  ],
+  "known_p2": [],
+  "manual_entry_ready": false,
+  "observation_blockers": [
+    "MINIMUM_COMPLETED_SHADOW_SESSIONS_REQUIRED"
+  ],
+  "production_alpha_path": "Quant -> CertifiedAgentSignal -> AlphaFusion -> allocator -> risk -> reconciliation",
+  "profiles": [
+    "TEST",
+    "REPLAY",
+    "SHADOW_LIVE",
+    "MANUAL_DECISION_SUPPORT"
+  ],
+  "provider_health": [
+    {
+      "auth_accepted": false,
+      "blocker_codes": [
+        "NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED"
+      ],
+      "certificate_eligible": false,
+      "checked_at": "2026-08-31T13:03:53.095635Z",
+      "configured": false,
+      "endpoint_reachable": false,
+      "feed_identified": false,
+      "licensing_posture_known": false,
+      "plan_feed_status_known": false,
+      "plan_or_feed": null,
+      "provider": "alpaca-market-data",
+      "quote_endpoint_available": false,
+      "quote_returned": false,
+      "reason": "NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED",
+      "session_semantics_known": false,
+      "status": "UNAVAILABLE",
+      "symbols_checked": [
+        "AAPL",
+        "NVDA",
+        "SPY"
+      ],
+      "timestamp_semantics_known": false
+    },
+    {
+      "auth_accepted": false,
+      "blocker_codes": [
+        "NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED"
+      ],
+      "certificate_eligible": false,
+      "checked_at": "2026-08-31T13:03:53.095635Z",
+      "configured": false,
+      "endpoint_reachable": false,
+      "feed_identified": false,
+      "licensing_posture_known": false,
+      "plan_feed_status_known": false,
+      "plan_or_feed": null,
+      "provider": "polygon-market-data",
+      "quote_endpoint_available": false,
+      "quote_returned": false,
+      "reason": "NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED",
+      "session_semantics_known": false,
+      "status": "UNAVAILABLE",
+      "symbols_checked": [
+        "AAPL",
+        "NVDA",
+        "SPY"
+      ],
+      "timestamp_semantics_known": false
+    }
+  ],
+  "readiness_matrix": {
+    "Account truth": {
+      "blocker": "real externally authorized Host snapshot",
+      "implemented": true,
+      "manual_ready_dependency": true,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": false,
+      "shadow_tested": true
+    },
+    "AlphaFusion/allocator/risk/reconciliation": {
+      "blocker": null,
+      "implemented": true,
+      "manual_ready_dependency": true,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": false,
+      "shadow_tested": true
+    },
+    "Certified SEC fundamentals": {
+      "blocker": null,
+      "implemented": true,
+      "manual_ready_dependency": true,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": true,
+      "shadow_tested": true
+    },
+    "DeepSeek certified research": {
+      "blocker": "research calls require explicit opt-in or exact replay",
+      "implemented": true,
+      "manual_ready_dependency": true,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": true,
+      "shadow_tested": true
+    },
+    "Dislocation shadow": {
+      "blocker": "observation only",
+      "implemented": true,
+      "manual_ready_dependency": false,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": false,
+      "shadow_tested": true
+    },
+    "ExecutionQuote boundary": {
+      "blocker": "provider capability certificate",
+      "implemented": true,
+      "manual_ready_dependency": true,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": false,
+      "shadow_tested": true
+    },
+    "FinRL-X": {
+      "blocker": "MODEL_UNAVAILABLE / optional post-v1",
+      "implemented": true,
+      "manual_ready_dependency": false,
+      "pit_safe": true,
+      "production_path": false,
+      "real_data": false,
+      "shadow_tested": false
+    },
+    "MCP/Skill/Chinese report": {
+      "blocker": null,
+      "implemented": true,
+      "manual_ready_dependency": false,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": false,
+      "shadow_tested": true
+    },
+    "Manual ticket boundary": {
+      "blocker": "Host + certified quote",
+      "implemented": true,
+      "manual_ready_dependency": true,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": false,
+      "shadow_tested": true
+    },
+    "Market/research data": {
+      "blocker": "execution-grade quote remains uncertified",
+      "implemented": true,
+      "manual_ready_dependency": true,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": true,
+      "shadow_tested": true
+    },
+    "Quant": {
+      "blocker": null,
+      "implemented": true,
+      "manual_ready_dependency": false,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": true,
+      "shadow_tested": true
+    },
+    "Replay/shadow ledger": {
+      "blocker": null,
+      "implemented": true,
+      "manual_ready_dependency": false,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": false,
+      "shadow_tested": true
+    },
+    "Security Master": {
+      "blocker": null,
+      "implemented": true,
+      "manual_ready_dependency": true,
+      "pit_safe": true,
+      "production_path": true,
+      "real_data": true,
+      "shadow_tested": true
+    }
+  },
+  "real_host_smoke": false,
+  "release_states": [
+    "V1_CODE_FEATURE_COMPLETE",
+    "V1_BLOCKED_ON_EXTERNAL_INPUT",
+    "V1_READY_FOR_SHADOW_OBSERVATION"
+  ],
+  "safety": {
+    "auto_execution": false,
+    "broker": "NONE",
+    "finrlx_promoted": false,
+    "real_orders": 0,
+    "schwab": "NOT CONNECTED"
+  },
+  "schema_version": "gate6i.v1",
+  "security": {
+    "artifact_valid": true,
+    "captured": 11,
+    "runtime_authoritative": 11
+  },
+  "shadow_ledger": {
+    "execution_assumption": "NEXT_SESSION_OPEN",
+    "outcomes_are_not_fills": true,
+    "performance_ledger_path": "var\\shadow\\shadow-performance-ledger.json",
+    "performance_pending_rows": 14,
+    "run_ledger_hash": "7d5604de97c4f45355b2a163e5c734636f285390de317a6dc6f604578222e713",
+    "run_ledger_path": "var\\shadow\\shadow-run-ledger.json",
+    "run_ledger_records": 2
+  },
+  "soak": {
+    "health": "GREEN",
+    "network_calls": 0,
+    "replay": {
+      "cases": [
+        "before_earnings_filing",
+        "after_earnings_filing",
+        "before_amendment",
+        "after_amendment",
+        "pre_market",
+        "regular_session",
+        "after_close",
+        "holiday",
+        "stale_account",
+        "partial_account",
+        "provider_outage"
+      ],
+      "failed": 0,
+      "network_calls": 0,
+      "notes": [
+        "Frozen/cache-only replay; no provider calls."
+      ],
+      "passed": 11
+    },
+    "soak": {
+      "cycles": 200,
+      "deterministic": true,
+      "failed": 0,
+      "network_calls": 0,
+      "passed": 4200,
+      "retries": 0,
+      "scenarios": {
+        "deepseek_abstain": "EXPLICIT_FAIL_CLOSED",
+        "deepseek_bearish_replay": "EXPLICIT_FAIL_CLOSED",
+        "deepseek_bullish_replay": "EXPLICIT_FAIL_CLOSED",
+        "deepseek_malformed": "EXPLICIT_FAIL_CLOSED",
+        "deepseek_neutral": "EXPLICIT_FAIL_CLOSED",
+        "deepseek_timeout": "EXPLICIT_FAIL_CLOSED",
+        "dislocation_disagreement": "EXPLICIT_FAIL_CLOSED",
+        "external_trade": "EXPLICIT_FAIL_CLOSED",
+        "finrlx_bad_output": "EXPLICIT_FAIL_CLOSED",
+        "finrlx_missing": "EXPLICIT_FAIL_CLOSED",
+        "future_filing": "EXPLICIT_FAIL_CLOSED",
+        "host_partial": "EXPLICIT_FAIL_CLOSED",
+        "host_stale": "EXPLICIT_FAIL_CLOSED",
+        "market_unavailable": "EXPLICIT_FAIL_CLOSED",
+        "partial_fill": "EXPLICIT_FAIL_CLOSED",
+        "quote_stale": "EXPLICIT_FAIL_CLOSED",
+        "quote_wide": "EXPLICIT_FAIL_CLOSED",
+        "restatement": "EXPLICIT_FAIL_CLOSED",
+        "sec_corrupted": "EXPLICIT_FAIL_CLOSED",
+        "sec_missing": "EXPLICIT_FAIL_CLOSED",
+        "unknown_security": "EXPLICIT_FAIL_CLOSED"
+      }
+    },
+    "status": "PASS"
+  },
+  "status": "V1_BLOCKED_ON_EXTERNAL_INPUT",
+  "system_health": {
+    "components": {
+      "account": "PASS",
+      "evidence": "AVAILABLE",
+      "identity": "UNVERIFIED",
+      "market": "VERIFIED",
+      "quote": "UNAVAILABLE",
+      "research": "AVAILABLE",
+      "risk": "BLOCKED"
+    },
+    "level": "RED",
+    "manual_entry_allowed": false,
+    "reasons": [
+      "identity:UNVERIFIED",
+      "quote:UNAVAILABLE",
+      "risk:BLOCKED"
+    ]
+  }
+}

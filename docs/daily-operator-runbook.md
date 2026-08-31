@@ -28,3 +28,17 @@ A `MarketSnapshot`, research price, valuation mark, or legacy `OrderDraft` can
 only produce analysis/diagnostic output. If any gate is FAIL or DEGRADED, show
 `BLOCKED` or `ANALYSIS_ONLY` and list the blocker. A `ManualOrderDraft` is
 always `NOT_EXECUTED`; never update the account or infer a fill from it.
+
+## V1 frozen daily operation
+
+Use the single supported command:
+
+```text
+meridian daily [--account-fixture <sanitized AccountSnapshot>] [--date <ISO>] [--profile TEST|REPLAY|SHADOW_LIVE|MANUAL_DECISION_SUPPORT]
+```
+
+The safe default is a local `TEST` fixture. `SHADOW_LIVE` is explicit opt-in;
+`MANUAL_DECISION_SUPPORT` is blocked until a real Host snapshot, authoritative
+identity, certified quote, risk, and reconciliation certificate are present.
+Each run writes a sanitized package under `runs/<date>/<run_id>/` and appends
+shadow ledgers. Never treat a target or draft as traded.

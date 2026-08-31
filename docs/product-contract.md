@@ -206,3 +206,14 @@ weights, cash, rounding, risk, and reconciliation remain deterministic. A
 manual draft never changes holdings or cash; only a later Host snapshot can
 establish an external fill. There is no automatic execution profile and no
 broker integration.
+
+## V1 feature freeze (Gate 6I)
+
+The supported production-style entrypoint is `meridian daily` with explicit
+`TEST`, `REPLAY`, `SHADOW_LIVE`, and `MANUAL_DECISION_SUPPORT` profiles. Core v1
+includes Host contracts, Security Master, PIT-certified SEC fundamentals,
+quant, DeepSeek certified research, AlphaFusion, deterministic allocation/risk,
+reconciliation, dislocation shadowing, replay, ledgers, MCP/Skill, and the
+Chinese daily report. FinRL-X is optional and deferred; TradingAgents is
+qualitative context only; unverified news/macro cannot enter certified
+research. There is no `AUTO_EXECUTION` profile or broker surface.
