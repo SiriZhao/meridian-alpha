@@ -22,6 +22,8 @@ from meridian.long_shadow import (
     ShadowPerformanceRecord,
     ShadowRunLedger,
     ShadowRunRecord,
+    ShadowSessionLedger,
+    ShadowSessionRecord,
     SystemHealthLevel,
     derive_daily_health,
     run_historical_replay_battery,
@@ -30,10 +32,12 @@ from meridian.long_shadow import (
 from meridian.profiles import RuntimeProfile, report_status_for
 from meridian.reporting import mobile_daily_report_v3, report_markdown
 from meridian.schemas import AccountSnapshot, DailyDecision
+from meridian.trading_calendar import session_is_complete
 
 V1_OPERATING_COMPANIES = ("AAPL", "MSFT", "NVDA", "META", "GOOGL")
 V1_SUPPORTING_INSTRUMENTS = ("SPY", "QQQ", "SGOV", "GLD", "TLT", "VIX")
 V1_BOUNDED_UNIVERSE = V1_OPERATING_COMPANIES + V1_SUPPORTING_INSTRUMENTS
+V1_SKILL_VERSION = "meridian-alpha-skill-v1"
 
 
 def _hash(value: object) -> str:
@@ -47,6 +51,15 @@ def _commit(root: Path) -> str:
         return subprocess.check_output(("git", "rev-parse", "HEAD"), cwd=root, text=True).strip()
     except (OSError, subprocess.CalledProcessError):
         return "UNAVAILABLE"
+
+
+def _skill_zip_hash(root: Path) -> str:
+    digest_path = root / "dist" / "meridian-alpha-skill-v1.sha256"
+    try:
+        digest = digest_path.read_text(encoding="utf-8").split()[0]
+    except (OSError, IndexError):
+        return "UNAVAILABLE"
+    return digest if len(digest) == 64 else "UNAVAILABLE"
 
 
 def _write(path: Path, value: object) -> None:
@@ -117,6 +130,8 @@ def _append_ledgers(
     account: AccountSnapshot,
     root: Path,
     provider_health: dict[str, object],
+    skill_version: str,
+    skill_zip_hash: str,
 ) -> dict[str, object]:
     target = decision.target_portfolio
     target_weights = {
@@ -140,6 +155,8 @@ def _append_ledgers(
         risk_result="BLOCKED" if decision.blocked_reasons else "PASS",
         provider_health={key: str(value) for key, value in provider_health.items() if isinstance(value, str)},
         authorization_status="SHADOW / NOT AUTHORIZED FOR ENTRY",
+        skill_version=skill_version,
+        skill_zip_hash=skill_zip_hash,
     )
     ledger.append(record)
     performance = ShadowPerformanceLedger(root / "var" / "shadow" / "shadow-performance-ledger.json")
@@ -167,6 +184,49 @@ def _append_ledgers(
     }
 
 
+def _append_shadow_session(
+    *,
+    decision: DailyDecision,
+    account: AccountSnapshot,
+    root: Path,
+    provider_health: dict[str, object],
+    skill_version: str,
+    skill_zip_hash: str,
+    session_completed: bool,
+    readiness_bypass_detected: bool,
+) -> dict[str, object]:
+    """Append one explicit session qualification record and return its summary."""
+    provider_keys = {"SEC", "market", "fundamentals", "DeepSeek", "execution_quote"}
+    provider_failure_states_explicit = provider_keys.issubset(provider_health) and all(
+        isinstance(provider_health[key], str) for key in provider_keys
+    )
+    account_green = (
+        account.sync_state.value == "SYNCED"
+        and account.freshness_state.value in {"VERIFIED", "RECENT"}
+    )
+    reconciliation_green = account_green and not any(
+        "reconcil" in reason.lower() for reason in decision.blocked_reasons
+    )
+    record = ShadowSessionRecord(
+        run_id=decision.run_id,
+        decision_as_of=decision.as_of,
+        code_commit=_commit(root),
+        skill_version=skill_version,
+        skill_zip_hash=skill_zip_hash,
+        us_trading_session_completed=session_completed and session_is_complete(decision.as_of),
+        daily_run_completed=True,
+        no_p0=True,
+        no_readiness_bypass=not readiness_bypass_detected,
+        ledger_append_succeeded=True,
+        account_reconciliation_green=reconciliation_green,
+        provider_failure_states_explicit=provider_failure_states_explicit,
+        evidence_ids_valid=decision.target_portfolio is not None,
+    )
+    ledger = ShadowSessionLedger(root / "var" / "shadow" / "shadow-session-ledger.json")
+    ledger.append(record)
+    return {**ledger.summary(), "run_id": decision.run_id, "qualified": record.qualified, "incomplete_reasons": record.incomplete_reasons}
+
+
 def package_daily_run(
     decision: DailyDecision,
     account: AccountSnapshot,
@@ -174,6 +234,8 @@ def package_daily_run(
     profile: RuntimeProfile = RuntimeProfile.TEST,
     root: Path | None = None,
     policies: Policies | None = None,
+    session_completed: bool = False,
+    readiness_bypass_detected: bool = False,
 ) -> dict[str, object]:
     """Persist one sanitized daily package and append its shadow ledgers."""
     root = root or Path.cwd()
@@ -182,6 +244,8 @@ def package_daily_run(
     if account.as_of > decision.as_of:
         raise ValueError("daily account snapshot is after decision cutoff")
     provider_health = _provider_health()
+    skill_version = V1_SKILL_VERSION
+    skill_zip_hash = _skill_zip_hash(root)
     components = {
         "account": "PASS" if account.freshness_state.value in {"VERIFIED", "RECENT"} and account.sync_state.value == "SYNCED" else "DEGRADED",
         "identity": "UNVERIFIED",
@@ -195,7 +259,14 @@ def package_daily_run(
     top_status = report_status_for(profile, decision).value
     attribution = _attribution(decision)
     package_dir = root / "runs" / decision.as_of.date().isoformat() / decision.run_id
-    ledger_info = _append_ledgers(decision=decision, account=account, root=root, provider_health=provider_health)
+    ledger_info = _append_ledgers(
+        decision=decision,
+        account=account,
+        root=root,
+        provider_health=provider_health,
+        skill_version=skill_version,
+        skill_zip_hash=skill_zip_hash,
+    )
     evidence_lineage = {
         "status": "SANITIZED_LINEAGE_ONLY",
         "evidence_ids": [],
@@ -211,6 +282,8 @@ def package_daily_run(
         "status": top_status,
         "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
         "code_commit": _commit(root),
+        "skill_version": skill_version,
+        "skill_zip_hash": skill_zip_hash,
         "account_snapshot_hash": evidence_lineage["account_snapshot_hash"],
         "security_master_hash": _hash({"bounded_universe": V1_BOUNDED_UNIVERSE}),
         "market_hashes": [_hash({"market_status": decision.market_data_status.value})],
@@ -247,6 +320,18 @@ def package_daily_run(
         "known_p0": 0,
         "known_p1": ["No externally authorized real Host input", "No certified execution quote provider"],
     }
+    all_blockers = list(decision.blocked_reasons) + (
+        ["REAL_HOST_INPUT", "EXECUTION_QUOTE_CERTIFICATION"]
+        if profile is not RuntimeProfile.TEST
+        else []
+    )
+    version = {
+        "code_commit": _commit(root),
+        "skill_version": skill_version,
+        "skill_zip_hash": skill_zip_hash,
+        "policy_hashes": manifest["policy_hashes"],
+        "decision_timestamp": decision.as_of.isoformat(),
+    }
     package_dir.mkdir(parents=True, exist_ok=True)
     _write(package_dir / "manifest.json", manifest)
     _write(package_dir / "decision.json", report["decision"])
@@ -254,6 +339,49 @@ def package_daily_run(
     _write(package_dir / "evidence-lineage.json", evidence_lineage)
     _write(package_dir / "target-portfolio.json", _target_payload(decision))
     (package_dir / "report.md").write_text("AUTHORIZATION: SHADOW / NOT AUTHORIZED FOR ENTRY\n" + mobile + "\n\n" + report_markdown(decision, profile=profile.value, status=top_status), encoding="utf-8")
+    session_summary = _append_shadow_session(
+        decision=decision,
+        account=account,
+        root=root,
+        provider_health=provider_health,
+        skill_version=skill_version,
+        skill_zip_hash=skill_zip_hash,
+        session_completed=session_completed,
+        readiness_bypass_detected=readiness_bypass_detected,
+    )
+    operator_output = {
+        "run_id": decision.run_id,
+        "version": version,
+        "status": top_status,
+        "system_health": health.level.value,
+        "account_state": components["account"],
+        "research_state": components["research"],
+        "quant_state": "AVAILABLE" if decision.target_portfolio is not None else "UNAVAILABLE",
+        "llm_state": provider_health["DeepSeek"],
+        "target_state": "AVAILABLE" if decision.target_portfolio is not None else "UNAVAILABLE",
+        "quote_state": provider_health["execution_quote"],
+        "manual_readiness": "YES" if top_status == "READY_FOR_MANUAL_ENTRY" else "NO",
+        "shadow_sessions": session_summary,
+        "blockers": all_blockers,
+    }
+    report["version"] = version
+    report["shadow_session"] = session_summary
+    report["operator_output"] = operator_output
+    manifest["shadow_session"] = session_summary
+    _write(package_dir / "manifest.json", manifest)
+    _write(package_dir / "shadow-session.json", session_summary)
+    (package_dir / "report.md").write_text(
+        "AUTHORIZATION: SHADOW / NOT AUTHORIZED FOR ENTRY\n"
+        + mobile
+        + "\n\n"
+        + "SHADOW SESSIONS: "
+        + str(session_summary["sessions_completed"])
+        + "/"
+        + str(session_summary["sessions_required"])
+        + "\n\n"
+        + report_markdown(decision, profile=profile.value, status=top_status),
+        encoding="utf-8",
+    )
     return {**report, "artifact_directory": str(package_dir.relative_to(root))}
 
 

@@ -113,3 +113,22 @@ the safe core-delegating wrapper, run `python scripts/run_daily.py --profile
 TEST` (or `REPLAY` with a matching frozen input). The wrapper emits sanitized
 JSON followed by the Chinese mobile report; it never treats an unavailable
 runtime as completed analysis.
+
+## Mobile command intents
+
+Route these user intents to the same safe workflows:
+
+- “运行今天的 Meridian” → capability preflight and daily shadow analysis.
+- “检查 Meridian 系统状态” → provider/system-health inspection.
+- “分析我的当前持仓” → fresh sanitized Host snapshot validation, then analysis.
+- “给我今天的目标组合” → inspect the deterministic target from the current run.
+- “运行大公司抄底分析” → certified market dislocation screen only.
+- “查看今天的证据” → sanitized evidence identifiers and lineage.
+- “今天为什么没有操作建议” → explain blockers and readiness gates.
+- “对比 Quant-only 和 Quant+AI” → show stored attribution, or
+  `INSUFFICIENT_SAMPLE` when unavailable.
+- “查看 Shadow 观察进度” → show completed/required/preferred sessions.
+
+For all intents, account truth may come only from an authorized Host capability or
+fresh sanitized user-supplied snapshot. Conversation memory and old snapshots are
+not brokerage truth.

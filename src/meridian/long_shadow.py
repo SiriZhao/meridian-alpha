@@ -84,6 +84,8 @@ class ShadowRunRecord(StableModel):
     risk_result: str = Field(min_length=1, max_length=256)
     provider_health: dict[str, str] = Field(default_factory=dict)
     authorization_status: str = "SHADOW / NOT AUTHORIZED FOR ENTRY"
+    skill_version: str = "UNAVAILABLE"
+    skill_zip_hash: str = "UNAVAILABLE"
     created_at: datetime | None = None
 
     @model_validator(mode="after")
@@ -152,7 +154,12 @@ class ShadowRunLedger:
             self._records.setdefault(record.run_id, record)
         canonical = [self._records[key].model_dump(mode="json") for key in sorted(self._records)]
         if declared != self._digest(canonical):
-            raise ValueError("SHADOW_LEDGER_CORRUPT:content-hash")
+            # Gate 6L identity fields are optional for legacy records. Accept
+            # only when the original raw rows still match their declared digest;
+            # the next append rewrites them with the new identity fields.
+            legacy_rows = sorted(rows, key=lambda item: str(item.get("run_id", "")))
+            if declared != self._digest(legacy_rows):
+                raise ValueError("SHADOW_LEDGER_CORRUPT:content-hash")
         self.content_hash = declared
 
     def append(self, record: ShadowRunRecord) -> ShadowRunRecord:
@@ -449,3 +456,142 @@ def derive_daily_health(
 def default_health_components() -> dict[str, str]:
     """Return an explicit, conservative health matrix for a shadow run."""
     return {name: ProviderHealthStatus.UNVERIFIED.value for name in DEFAULT_PROVIDER_HEALTH_NAMES}
+
+SHADOW_SESSIONS_REQUIRED = 5
+SHADOW_SESSIONS_PREFERRED = 10
+
+
+class ShadowSessionRecord(StableModel):
+    """One deterministic observation-session qualification decision."""
+
+    run_id: str = Field(min_length=1, max_length=160)
+    decision_as_of: datetime
+    code_commit: str = Field(min_length=1, max_length=128)
+    skill_version: str = Field(min_length=1, max_length=128)
+    skill_zip_hash: str = Field(min_length=1, max_length=128)
+    us_trading_session_completed: bool = False
+    daily_run_completed: bool = False
+    no_p0: bool = False
+    no_readiness_bypass: bool = False
+    ledger_append_succeeded: bool = False
+    account_reconciliation_green: bool = False
+    provider_failure_states_explicit: bool = False
+    evidence_ids_valid: bool = False
+    qualified: bool = False
+    incomplete_reasons: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def derive_qualification(self) -> ShadowSessionRecord:
+        checks = {
+            "US_TRADING_SESSION_NOT_COMPLETED": self.us_trading_session_completed,
+            "DAILY_RUN_NOT_COMPLETED": self.daily_run_completed,
+            "KNOWN_P0_PRESENT": self.no_p0,
+            "READINESS_BYPASS_DETECTED": self.no_readiness_bypass,
+            "LEDGER_APPEND_FAILED": self.ledger_append_succeeded,
+            "ACCOUNT_RECONCILIATION_NOT_GREEN": self.account_reconciliation_green,
+            "PROVIDER_FAILURE_STATE_NOT_EXPLICIT": self.provider_failure_states_explicit,
+            "EVIDENCE_IDS_INVALID": self.evidence_ids_valid,
+        }
+        reasons = tuple(reason for reason, passed in checks.items() if not passed)
+        object.__setattr__(self, "qualified", not reasons)
+        object.__setattr__(self, "incomplete_reasons", reasons)
+        return self
+
+
+    @property
+    def record_hash(self) -> str:
+        return hashlib.sha256(self.stable_json().encode()).hexdigest()
+
+class ShadowSessionLedger:
+    """Append-only ledger and counter for completed V1 shadow sessions."""
+
+    schema_version = "gate6l-shadow-sessions.v1"
+
+    def __init__(self, path: Path):
+        self.path = path
+        self._records: dict[str, ShadowSessionRecord] = {}
+        self.created_at = datetime.now(UTC)
+        self.content_hash: str | None = None
+        if path.is_file():
+            self._load()
+
+    @staticmethod
+    def _digest(records: Sequence[dict[str, Any]]) -> str:
+        return hashlib.sha256(_canonical(records).encode()).hexdigest()
+
+    def _load(self) -> None:
+        try:
+            raw = json.loads(self.path.read_text(encoding="utf-8"))
+            rows = raw["records"]
+            declared = raw["content_hash"]
+            if raw.get("schema_version") != self.schema_version or not isinstance(rows, list) or not isinstance(declared, str):
+                raise ValueError
+            for item in rows:
+                record = ShadowSessionRecord.model_validate(item)
+                old = self._records.get(record.run_id)
+                if old is not None and old.record_hash != record.record_hash:
+                    raise ValueError("SHADOW_SESSION_CORRUPT:contradictory-run")
+                self._records[record.run_id] = record
+            canonical = [self._records[key].model_dump(mode="json") for key in sorted(self._records)]
+            if declared != self._digest(canonical):
+                raise ValueError("SHADOW_SESSION_CORRUPT:content-hash")
+            self.content_hash = declared
+        except Exception as error:  # noqa: BLE001 - persisted data fails closed
+            if isinstance(error, ValueError) and str(error).startswith("SHADOW_SESSION_CORRUPT:"):
+                raise
+            raise ValueError("SHADOW_SESSION_CORRUPT:invalid-envelope") from error
+
+    def append(self, record: ShadowSessionRecord) -> ShadowSessionRecord:
+        existing = self._records.get(record.run_id)
+        if existing is not None:
+            if existing.record_hash != record.record_hash:
+                raise ValueError("SHADOW_SESSION_IMMUTABLE")
+            return existing
+        self._records[record.run_id] = record
+        self._persist()
+        return record
+
+    def _persist(self) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        rows = [self._records[key].model_dump(mode="json") for key in sorted(self._records)]
+        digest = self._digest(rows)
+        envelope = {
+            "schema_version": self.schema_version,
+            "created_at": self.created_at.isoformat(),
+            "records": rows,
+            "content_hash": digest,
+        }
+        temp = self.path.with_name(self.path.name + ".tmp")
+        try:
+            temp.write_text(_canonical(envelope), encoding="utf-8")
+            temp.replace(self.path)
+        except OSError as error:
+            raise ValueError("SHADOW_SESSION_CORRUPT:write-failed") from error
+        self.content_hash = digest
+
+    @property
+    def records(self) -> tuple[ShadowSessionRecord, ...]:
+        return tuple(self._records[key] for key in sorted(self._records))
+
+    @property
+    def completed_count(self) -> int:
+        return sum(1 for record in self.records if record.qualified)
+
+    @property
+    def acceptance_status(self) -> str:
+        if self.completed_count >= SHADOW_SESSIONS_PREFERRED:
+            return "PREFERRED_OBSERVATION_REACHED"
+        if self.completed_count >= SHADOW_SESSIONS_REQUIRED:
+            return "MINIMUM_OBSERVATION_REACHED"
+        return "OBSERVATION_IN_PROGRESS"
+
+    def summary(self) -> dict[str, object]:
+        return {
+            "sessions_completed": self.completed_count,
+            "sessions_required": SHADOW_SESSIONS_REQUIRED,
+            "sessions_preferred": SHADOW_SESSIONS_PREFERRED,
+            "acceptance_status": self.acceptance_status,
+            "performance_validated": False,
+            "records": len(self.records),
+            "ledger_hash": self.content_hash,
+        }

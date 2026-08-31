@@ -97,3 +97,28 @@ with [`dist/meridian-alpha-skill-v1.sha256`](dist/meridian-alpha-skill-v1.sha256
 then install it through the ChatGPT Skills UI where available. See
 [`docs/chatgpt-mobile-skill-install.md`](docs/chatgpt-mobile-skill-install.md).
 GitHub is distribution, not automatic ChatGPT installation.
+
+## V1 operations freeze
+
+`main` is the stable RC/current-source branch. Experimental work, including
+FinRL-X, belongs on feature branches and is not promoted directly into the V1
+shadow path. The supported daily workflow is `meridian daily` with an explicit
+safe profile; `SHADOW_LIVE` requires opt-in and `MANUAL_DECISION_SUPPORT`
+requires the sealed seven-gate authority. Current status is **V1 CODE: FEATURE
+COMPLETE** and **CURRENT: SHADOW OBSERVATION**. External blockers are an
+authorized Host smoke and a certified ExecutionQuote; broker is not connected.
+
+RC tags progress as `v1.0.0-rcN`. Stable `v1.0.0` is prohibited until real Host
+smoke, quote certification, the required observation period, no P0, and manual
+V1 review are all complete. FinRL-X is deferred and Schwab is future Gate 7
+only.
+
+## Daily V1 operations
+
+Use the mobile/Host handoff documents for repeatable operation:
+[host-to-skill-contract.md](docs/host-to-skill-contract.md),
+[quote-certification-user-checklist.md](docs/quote-certification-user-checklist.md),
+[real-host-smoke-checklist.md](docs/real-host-smoke-checklist.md), and
+[daily-shadow-checklist.md](docs/daily-shadow-checklist.md). The observation
+counter requires five completed sessions (ten preferred) and never treats that
+sample as performance validation.

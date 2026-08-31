@@ -279,6 +279,7 @@ def main() -> None:
     daily.add_argument("--account-fixture", default="schemas/examples/empty-50000.json", help="Sanitized AccountSnapshot JSON (safe fixture default)")
     daily.add_argument("--date", help="Timezone-aware ISO analysis timestamp; defaults to the snapshot cutoff")
     daily.add_argument("--profile", choices=("TEST", "REPLAY", "SHADOW_LIVE", "MANUAL_DECISION_SUPPORT"), default="TEST")
+    daily.add_argument("--session-completed", action="store_true", help="Mark the US trading session complete for observation counting")
     research = subparsers.add_parser("research")
     research.add_argument("ticker")
     research.add_argument("--date", required=True, help="Timezone-aware ISO analysis timestamp")
@@ -438,14 +439,23 @@ def main() -> None:
             decision = DailyAnalysisService(
                 DailyOrchestrator(policies, _fixture_market(as_of), _CertifiedFixtureResearchEngine(signals))
             ).run(account, as_of)
-            packaged = package_daily_run(decision, account, profile=profile, root=root, policies=policies)
-            print(json.dumps({
+            packaged = package_daily_run(
+                decision,
+                account,
+                profile=profile,
+                root=root,
+                policies=policies,
+                session_completed=args.session_completed,
+            )
+            output = {
                 "status": packaged["status"],
                 "run_id": packaged["run_id"],
                 "artifact_directory": packaged["artifact_directory"],
                 "authorization": packaged["authorization"],
                 "known_p0": packaged["known_p0"],
-            }, sort_keys=True, default=str))
+                "operator_output": packaged["operator_output"],
+            }
+            print(json.dumps(output, ensure_ascii=False, sort_keys=True, default=str))
         except (OSError, ValueError) as error:
             raise SystemExit(f"DAILY_REJECTED:{error}") from error
         return

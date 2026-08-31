@@ -23,6 +23,10 @@ jobs:
         run: python -m ruff check .
       - name: Pyright
         run: python -m pyright
+      - name: Manual authority negative tests
+        run: python -m pytest tests/test_gate6f_manual_authority.py -q
+      - name: Replay integrity tests
+        run: python -m pytest tests/test_gate5e_5f_integrity.py -q
       - name: Validate Skill package
         run: python skills/meridian-alpha/scripts/validate_package.py skills/meridian-alpha
       - name: Scan high-risk credential patterns

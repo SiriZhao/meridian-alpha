@@ -132,8 +132,9 @@ def main() -> int:
         return 0
     command = [
         sys.executable,
-        "-m",
-        "meridian.cli",
+        "-c",
+        "from meridian.cli import main; main()",
+        "meridian",
         "daily",
         "--profile",
         args.profile,
