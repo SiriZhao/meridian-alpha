@@ -100,6 +100,12 @@ does not expose Meridian conviction or provenance-bearing evidence. The
 deterministic core consumes only AVAILABLE outcomes with validated
 `AgentSignal` evidence. A provider failure never becomes a neutral signal.
 
+Gate 6A makes ownership explicit: TradingAgents graph output is qualitative
+second-opinion/context, while the production grounded research input is a
+sealed `CertifiedEvidenceView` consumed by DeepSeek. Only a
+`CertifiedAgentSignal` may reach Alpha Fusion; LLM output never owns sizing,
+quantity, cash, risk, or price.
+
 ## Intended future research pipeline
 
 ```text

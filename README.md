@@ -8,9 +8,11 @@ ticket**. It never submits, places, or executes brokerage orders.
 
 ## Status
 
-This repository currently contains the project constitution, architecture, and
-development toolchain only (Step 0). It does not contain brokerage integration,
-market-data adapters, research engines, allocation, or order-planning logic.
+The repository contains the Meridian decision-support core, bounded public-data
+shadow adapters, certified SEC fundamentals, and replay-safe research contracts.
+It still contains no brokerage integration, broker writes, real account, or
+order-submission surface. Gate 6A production shadow output remains explicitly
+`SHADOW / NOT AUTHORIZED FOR ENTRY`.
 
 ## Safety boundary
 

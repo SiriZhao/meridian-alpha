@@ -11,8 +11,8 @@ from decimal import Decimal
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-from meridian.alpha_fusion import MAX_BASE_RESEARCH_MODIFIER
-from meridian.authorization import EvidenceAuthorizationService
+from meridian.alpha_fusion import fuse_production_decision
+from meridian.authorization import CertifiedAgentSignal, EvidenceAuthorizationService
 from meridian.config import load_policies
 from meridian.dislocation import DislocationScreen, PriceDislocationSnapshot
 from meridian.evidence import ProviderCapabilities
@@ -184,6 +184,7 @@ def run_live_deepseek(snapshots: Mapping[str, object], now: datetime) -> dict[st
     capability = ProviderCapabilities(provider_name="sec-edgar-accession-certified", supports_historical=True, supports_point_in_time=True, research_grade=True)
     outcomes: list[dict[str, object]] = []
     certificates: list[dict[str, object]] = []
+    certificate_objects: list[CertifiedAgentSignal] = []
     for ticker in TICKERS:
         snapshot = snapshots.get(ticker)
         if snapshot is None:
@@ -200,6 +201,7 @@ def run_live_deepseek(snapshots: Mapping[str, object], now: datetime) -> dict[st
         if outcome.status is GroundedResearchStatus.AVAILABLE and outcome.signal is not None:
             try:
                 certificate = EvidenceAuthorizationService().authorize(outcome.signal, view.packet, provider_registry={capability.provider_name: capability})
+                certificate_objects.append(certificate)
                 certificates.append(_json(certificate.model_dump(mode="json")))
             except ValueError as error:
                 outcomes[-1]["authorization_error"] = str(error)
@@ -209,21 +211,28 @@ def run_live_deepseek(snapshots: Mapping[str, object], now: datetime) -> dict[st
         "outcomes": outcomes,
         "response_hashes": [hashlib.sha256(json.dumps(item, sort_keys=True, default=str).encode()).hexdigest() for item in outcomes],
         "certified_signals": certificates,
-        "alpha_effects": _alpha_effects(certificates),
+        "alpha_effects": _alpha_effects(certificate_objects),
         "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
     }
 
 
-def _alpha_effects(certificates: list[dict[str, object]]) -> dict[str, object]:
+def _alpha_effects(certificates: list[CertifiedAgentSignal]) -> dict[str, object]:
     effects: dict[str, object] = {}
     for certificate in certificates:
-        signal = certificate.get("signal", {})
-        direction = signal.get("direction", "NEUTRAL")
-        conviction = Decimal(str(signal.get("conviction", "0")))
-        evidence_count = len(signal.get("evidence", []))
-        sign = Decimal("1") if direction == "BULLISH" else Decimal("-1") if direction == "BEARISH" else Decimal("0")
-        modifier = max(-MAX_BASE_RESEARCH_MODIFIER, min(MAX_BASE_RESEARCH_MODIFIER, Decimal("0.55") * sign * conviction * min(Decimal("1"), Decimal(evidence_count) / Decimal("3"))))
-        effects[str(signal.get("ticker"))] = {"quant_alpha": "0", "direction": direction, "conviction": str(conviction), "base_research_modifier": str(modifier), "final_alpha": str(modifier), "combined_modifier": str(modifier)}
+        decision = fuse_production_decision(
+            certificate,
+            run_id="gate3b17-diagnostic-fusion",
+            quant_score=Decimal("0"),
+            policy_hash=hashlib.sha256(b"gate3b17-policy").hexdigest(),
+        )
+        effects[decision.ticker] = {
+            "quant_alpha": str(decision.quant_only_alpha),
+            "direction": decision.research_direction,
+            "conviction": str(decision.research_conviction),
+            "base_research_modifier": str(decision.research_modifier),
+            "final_alpha": str(decision.final_alpha),
+            "combined_modifier": str(decision.combined_research_modifier),
+        }
     return effects
 
 

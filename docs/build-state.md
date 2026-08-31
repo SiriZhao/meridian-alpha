@@ -1,5 +1,10 @@
 # Build state — Gate 2 (DeepSeek provider)
 
+> Historical Gate 2 notes below are retained for provenance. Current Gate 6A
+> status: TradingAgents is qualitative context only; DeepSeek grounded research
+> consumes certified evidence; production AlphaFusion, allocation, risk, and
+> reconciliation are shadow-only. No broker/Schwab surface exists.
+
 ## Gate 2.5 - Research boundary hardening
 
 - Successful TradingAgents graphs now produce a project-owned

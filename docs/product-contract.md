@@ -32,6 +32,16 @@ Deterministic, policy-controlled code alone determines target sizing, risk
 constraints, share quantities, and limit-price calculations. A human reviews
 and manually enters every real order.
 
+## Gate 6A production architecture
+
+The authoritative decision path is `real quant -> CertifiedEvidenceView ->
+DeepSeek grounded research -> EvidenceAuthorizationService ->
+CertifiedAgentSignal -> AlphaFusion -> deterministic allocator -> RiskEngine ->
+reconciliation`. TradingAgents is qualitative second-opinion/context only; it
+does not supply the production grounded signal. DeepSeek may affect research
+alpha only. Deterministic code owns weights, cash, risk, quantities, and prices.
+FinRL-X remains an optional isolated challenger and is not promoted.
+
 ## Privacy
 
 The default audit record is sanitized metadata, decision hashes, warnings,

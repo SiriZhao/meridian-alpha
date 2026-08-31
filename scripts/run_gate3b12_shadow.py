@@ -9,10 +9,8 @@ from pathlib import Path
 
 from meridian.allocation import DeterministicFallbackAllocator
 from meridian.alpha_fusion import (
-    MAX_COMBINED_RESEARCH_MODIFIER,
-    combine_research_modifiers,
     fuse,
-    research_modifier,
+    fuse_production_decision,
 )
 from meridian.config import RiskPolicy, load_policies
 from meridian.dislocation import DislocationScreen
@@ -55,9 +53,17 @@ def main() -> None:
     for outcome, certified in zip(live.outcomes, live.certified_signals, strict=True):
         quant = quant_by_ticker.get(certified.ticker, Decimal("0"))
         alpha = fuse(certified, quant)
-        base = research_modifier(certified)
-        dislocation = Decimal("0")
-        combined = combine_research_modifiers(base, dislocation)
+        decision = fuse_production_decision(
+            certified,
+            run_id="gate3b12-diagnostic-fusion",
+            quant_score=quant,
+            policy_hash=hashlib.sha256(b"gate3b12-policy").hexdigest(),
+            response_artifact_hash=None,
+            dislocation_modifier=Decimal("0"),
+        )
+        base = decision.research_modifier
+        dislocation = decision.dislocation_modifier
+        combined = decision.combined_research_modifier
         payload = outcome.structured_payload
         artifact = {
             "model": outcome.model,
@@ -86,7 +92,7 @@ def main() -> None:
             "base_research_modifier": str(base),
             "dislocation_modifier": str(dislocation),
             "combined_research_modifier": str(combined),
-            "combined_modifier_cap": str(MAX_COMBINED_RESEARCH_MODIFIER),
+            "combined_modifier_cap": "0.20",
             "risk_penalty": str(alpha.risk_penalty),
             "final_alpha": str(alpha.score),
             "certified_signal_id": certified.certificate_id,

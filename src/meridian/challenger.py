@@ -180,6 +180,7 @@ class CallableShadowRuntime:
     """
 
     name = "isolated-finrlx-shadow"
+    fixture_compatibility = True
 
     def __init__(
         self,
@@ -278,7 +279,6 @@ class FinRLXAllocatorChallenger:
                                    warnings=("MODEL_UNAVAILABLE:manifest-required",))
         if manifest.status not in {
             ModelArtifactStatus.OOS_VALIDATED_SHADOW,
-            ModelArtifactStatus.VALIDATED_SHADOW,
         }:
             return ChallengerResult(status=manifest.status, model_id=manifest.model_id,
                                    feature_snapshot_hash=feature_snapshot_hash,
@@ -307,12 +307,15 @@ class FinRLXAllocatorChallenger:
         manifest: ModelArtifactManifest | None,
     ) -> ChallengerResult:
         """Run an optional isolated runtime; default is fail-closed."""
-        if manifest is None or manifest.status not in {
-            ModelArtifactStatus.OOS_VALIDATED_SHADOW,
-            # Legacy fixtures may exercise the side-effect-free adapter, but
-            # this status is never considered OOS validation.
-            ModelArtifactStatus.VALIDATED_SHADOW,
-        }:
+        legacy_fixture = (
+            manifest is not None
+            and manifest.status is ModelArtifactStatus.VALIDATED_SHADOW
+            and getattr(self.runtime, "fixture_compatibility", False) is True
+        )
+        if manifest is None or (
+            manifest.status is not ModelArtifactStatus.OOS_VALIDATED_SHADOW
+            and not legacy_fixture
+        ):
             return ChallengerResult(
                 status=ModelArtifactStatus.MODEL_UNAVAILABLE,
                 feature_snapshot_hash=feature_snapshot.content_hash,

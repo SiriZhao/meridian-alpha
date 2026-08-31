@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from urllib.parse import urlparse
@@ -88,6 +88,73 @@ class IdentityCertificationResult(StableModel):
     status: SecurityCertificationStatus
     record: SecurityMasterRecord | None = None
     blockers: tuple[str, ...] = ()
+
+
+SECURITY_MASTER_BOUNDED_UNIVERSE = (
+    "AAPL", "MSFT", "NVDA", "META", "GOOGL", "SPY", "QQQ", "SGOV", "GLD", "TLT", "VIX",
+)
+
+
+class SecurityCertificationManifest(StableModel):
+    """Integrity envelope for a captured primary-source certificate set."""
+
+    schema_version: str = "1"
+    generated_at: datetime
+    capture_set_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    bounded_universe_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    bounded_universe: tuple[str, ...] = Field(min_length=1)
+    record_digests: dict[str, str] = Field(min_length=1)
+    source_content_hashes: dict[str, str] = Field(default_factory=dict)
+    certification_policy_version: str = Field(min_length=1, max_length=64)
+    manifest_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+    def digest_payload(self) -> dict[str, object]:
+        return self.model_dump(mode="json", exclude={"manifest_digest"})
+
+    @classmethod
+    def build(cls, document: dict[str, object], *, generated_at: datetime | None = None, policy_version: str = "gate6a.v1") -> SecurityCertificationManifest:
+        records = document.get("records")
+        if not isinstance(records, list):
+            raise ValueError("CERTIFICATE_ARTIFACT_INVALID:records")
+        by_symbol: dict[str, dict[str, object]] = {}
+        for item in records:
+            if not isinstance(item, dict):
+                raise ValueError("CERTIFICATE_ARTIFACT_INVALID:record")
+            identity = item.get("identity")
+            ticker = item.get("ticker")
+            if not isinstance(identity, dict) or not isinstance(ticker, str):
+                raise ValueError("CERTIFICATE_ARTIFACT_INVALID:identity")
+            by_symbol[ticker.upper()] = identity
+        universe = tuple(symbol for symbol in SECURITY_MASTER_BOUNDED_UNIVERSE if symbol in by_symbol)
+        digests = {
+            symbol: hashlib.sha256(json.dumps(by_symbol[symbol], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            for symbol in sorted(by_symbol)
+        }
+        capture_set_hash = hashlib.sha256("|".join(f"{symbol}:{digests[symbol]}" for symbol in sorted(digests)).encode()).hexdigest()
+        bounded_hash = hashlib.sha256("|".join(universe).encode()).hexdigest()
+        source_hashes: dict[str, str] = {}
+        for symbol in universe:
+            provenance = by_symbol[symbol].get("official_identity_provenance")
+            if isinstance(provenance, dict):
+                source_hashes[symbol] = str(provenance.get("source_hash", ""))
+        timestamp = generated_at or datetime.now(UTC)
+        draft = cls(
+            generated_at=timestamp,
+            capture_set_hash=capture_set_hash,
+            bounded_universe_hash=bounded_hash,
+            bounded_universe=universe,
+            record_digests=digests,
+            source_content_hashes=source_hashes,
+            certification_policy_version=policy_version,
+            manifest_digest="0" * 64,
+        )
+        digest = hashlib.sha256(json.dumps(draft.digest_payload(), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        return draft.model_copy(update={"manifest_digest": digest})
+
+    def verify(self) -> None:
+        expected = hashlib.sha256(json.dumps(self.digest_payload(), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        if expected != self.manifest_digest:
+            raise ValueError("CERTIFICATE_ARTIFACT_INVALID:manifest_digest")
 
 
 class SecurityMasterPromotionService:
@@ -214,20 +281,98 @@ def source_hash(payload: bytes | str) -> str:
 
 
 def load_certified_security_master(path: Path) -> SecurityMaster:
-    """Opt-in load of captured authoritative records; default fixtures stay unchanged."""
-    document = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(document, dict) or document.get("gate") != "4F":
-        raise ValueError("IDENTITY_CAPTURE_REPORT_INVALID")
-    records: list[SecurityMasterRecord] = []
-    for item in document.get("records", []):
-        if not isinstance(item, dict) or item.get("status") != SecurityCertificationStatus.AUTHORITATIVE_VERIFIED.value:
-            continue
-        identity = item.get("identity")
-        if not isinstance(identity, dict):
-            continue
-        record = SecurityMasterRecord.model_validate(identity)
-        if record.certification_status is SecurityCertificationStatus.AUTHORITATIVE_VERIFIED:
-            records.append(record)
-    if not records:
-        raise ValueError("IDENTITY_CAPTURE_REPORT_HAS_NO_CERTIFIED_RECORDS")
-    return SecurityMaster(tuple(records))
+    """Strict compatibility alias for the manifest-verifying loader."""
+    return load_verified_security_certificates(path)
+
+
+def write_security_certification_manifest(
+    path: Path, manifest_path: Path | None = None, *, policy_version: str = "gate6a.v1"
+) -> SecurityCertificationManifest:
+    """Create the sidecar manifest for a captured Gate 4F report."""
+
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(document, dict):
+            raise ValueError
+        manifest = SecurityCertificationManifest.build(document, policy_version=policy_version)
+        target = manifest_path or path.with_name(f"{path.stem}.manifest.json")
+        target.write_text(json.dumps(manifest.model_dump(mode="json"), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        return manifest
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
+        if isinstance(error, ValueError) and str(error).startswith("CERTIFICATE_ARTIFACT_INVALID"):
+            raise
+        raise ValueError("CERTIFICATE_ARTIFACT_INVALID:manifest_build") from error
+
+
+def load_verified_security_certificates(
+    path: Path, manifest_path: Path | None = None
+) -> SecurityMaster:
+    """Load a captured certificate set only after all digests and identities verify."""
+
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(document, dict) or document.get("gate") != "4F":
+            raise ValueError("CERTIFICATE_ARTIFACT_INVALID:document")
+        target = manifest_path or path.with_name(f"{path.stem}.manifest.json")
+        if target.exists():
+            manifest_raw = json.loads(target.read_text(encoding="utf-8"))
+        else:
+            manifest_raw = document.get("manifest")
+        if not isinstance(manifest_raw, dict):
+            raise ValueError("CERTIFICATE_ARTIFACT_INVALID:manifest_missing")
+        manifest = SecurityCertificationManifest.model_validate(manifest_raw)
+        manifest.verify()
+        if tuple(manifest.bounded_universe) != SECURITY_MASTER_BOUNDED_UNIVERSE:
+            raise ValueError("CERTIFICATE_ARTIFACT_INVALID:bounded_universe")
+        records_raw = document.get("records")
+        if not isinstance(records_raw, list):
+            raise ValueError("CERTIFICATE_ARTIFACT_INVALID:records")
+        by_symbol: dict[str, dict[str, object]] = {}
+        for item in records_raw:
+            if not isinstance(item, dict):
+                raise ValueError("CERTIFICATE_ARTIFACT_INVALID:record")
+            ticker = item.get("ticker")
+            identity = item.get("identity")
+            if not isinstance(ticker, str) or not isinstance(identity, dict):
+                raise ValueError("CERTIFICATE_ARTIFACT_INVALID:identity")
+            symbol = ticker.upper()
+            if symbol in by_symbol:
+                raise ValueError("CERTIFICATE_ARTIFACT_INVALID:duplicate_symbol")
+            by_symbol[symbol] = identity
+            expected_digest = manifest.record_digests.get(symbol)
+            actual_digest = hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            if expected_digest != actual_digest:
+                raise ValueError(f"CERTIFICATE_ARTIFACT_INVALID:record_digest:{symbol}")
+            if item.get("status") != SecurityCertificationStatus.AUTHORITATIVE_VERIFIED.value:
+                raise ValueError(f"CERTIFICATE_ARTIFACT_INVALID:status:{symbol}")
+            provenance = identity.get("official_identity_provenance")
+            if not isinstance(provenance, dict):
+                raise ValueError(f"CERTIFICATE_ARTIFACT_INVALID:provenance:{symbol}")
+            if item.get("source_hash") != provenance.get("source_hash"):
+                raise ValueError(f"CERTIFICATE_ARTIFACT_INVALID:source_hash:{symbol}")
+            if item.get("source_uri") != provenance.get("source_uri"):
+                raise ValueError(f"CERTIFICATE_ARTIFACT_INVALID:source_uri:{symbol}")
+            if manifest.source_content_hashes.get(symbol) != provenance.get("source_hash"):
+                raise ValueError(f"CERTIFICATE_ARTIFACT_INVALID:source_content_hash:{symbol}")
+            history = identity.get("identity_history")
+            if not isinstance(history, list) or not history:
+                raise ValueError(f"CERTIFICATE_ARTIFACT_INVALID:historical_interval:{symbol}")
+        if set(by_symbol) != set(SECURITY_MASTER_BOUNDED_UNIVERSE):
+            raise ValueError("CERTIFICATE_ARTIFACT_INVALID:universe_records")
+        recomputed_capture = hashlib.sha256("|".join(f"{symbol}:{manifest.record_digests[symbol]}" for symbol in sorted(manifest.record_digests)).encode()).hexdigest()
+        if recomputed_capture != manifest.capture_set_hash:
+            raise ValueError("CERTIFICATE_ARTIFACT_INVALID:capture_set_hash")
+        records = tuple(SecurityMasterRecord.model_validate(by_symbol[symbol]) for symbol in SECURITY_MASTER_BOUNDED_UNIVERSE)
+        if any(record.certification_status is not SecurityCertificationStatus.AUTHORITATIVE_VERIFIED for record in records):
+            raise ValueError("CERTIFICATE_ARTIFACT_INVALID:non_authoritative_record")
+        return SecurityMaster(records)
+    except ValueError:
+        raise
+    except (OSError, json.JSONDecodeError, TypeError) as error:
+        raise ValueError("CERTIFICATE_ARTIFACT_INVALID:read") from error
+
+
+# Explicit name used by production/shadow callers; the legacy loader remains
+# available for backwards-compatible Gate 4 tests but is not a certification
+# promotion path.
+load_verified_security_master = load_verified_security_certificates

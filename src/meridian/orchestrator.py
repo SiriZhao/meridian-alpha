@@ -7,7 +7,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 from meridian.allocation import allocate_with_fallback
-from meridian.alpha_fusion import fuse
+from meridian.alpha_fusion import fuse, fuse_production_decision
 from meridian.audit import AuditStore
 from meridian.config import Policies
 from meridian.market import MarketDataProvider, feature_set
@@ -19,9 +19,12 @@ from meridian.risk import RiskEngine
 from meridian.schemas import (
     AccountSnapshot,
     AccountSyncState,
+    AlphaScore,
     DailyDecision,
     FreshnessState,
+    ProductionAlphaDecision,
     RunStatus,
+    TargetPortfolio,
 )
 from meridian.security import DevelopmentSecurityMetadataRegistry
 from meridian.valuation import ValuedAccountState
@@ -463,3 +466,108 @@ class DailyAnalysisService:
                 overall_status=RunStatus.BLOCKED_STALE_MARKET,
             )
         return self.orchestrator.run(account_snapshot, run_date)
+
+
+class ProductionShadowResult:
+    """Production-path shadow output; no order or broker side effects."""
+
+    def __init__(
+        self,
+        *,
+        run_id: str,
+        decision_as_of: datetime,
+        alpha_decisions: tuple[ProductionAlphaDecision, ...],
+        alpha_scores: tuple[AlphaScore, ...],
+        target_before_risk: TargetPortfolio,
+        target_after_risk: TargetPortfolio,
+        risk_violations: tuple[str, ...],
+        reconciliation_status: RunStatus,
+        reconciliation_warnings: tuple[str, ...],
+    ) -> None:
+        self.run_id = run_id
+        self.decision_as_of = decision_as_of
+        self.alpha_decisions = alpha_decisions
+        self.alpha_scores = alpha_scores
+        self.target_before_risk = target_before_risk
+        self.target_after_risk = target_after_risk
+        self.risk_violations = risk_violations
+        self.reconciliation_status = reconciliation_status
+        self.reconciliation_warnings = reconciliation_warnings
+        self.authorization = "SHADOW / NOT AUTHORIZED FOR ENTRY"
+
+
+class ProductionShadowOrchestrator:
+    """One authoritative quant → AlphaFusion → allocation → risk → reconcile path."""
+
+    def run(
+        self,
+        *,
+        account_snapshot: AccountSnapshot,
+        run_id: str,
+        decision_as_of: datetime,
+        certified_signals: dict[str, object],
+        quant_scores: dict[str, Decimal],
+        policy_hash: str,
+        risk_policy,
+        allocation_policy,
+        market_state: dict[str, Decimal] | None = None,
+        quant_inputs: dict[str, object] | None = None,
+        response_hashes: dict[str, str] | None = None,
+        dislocation_modifiers: dict[str, Decimal] | None = None,
+        regime: str = "NORMAL",
+    ) -> ProductionShadowResult:
+        if decision_as_of.tzinfo is None or decision_as_of.utcoffset() is None:
+            raise ValueError("production decision_as_of must be timezone-aware")
+        if account_snapshot.as_of > decision_as_of:
+            raise ValueError("production account snapshot is after decision cutoff")
+        from meridian.authorization import CertifiedAgentSignal
+
+        alpha_decisions: list[ProductionAlphaDecision] = []
+        alpha_scores: list[AlphaScore] = []
+        dislocation_modifiers = dislocation_modifiers or {}
+        quant_inputs = quant_inputs or {}
+        response_hashes = response_hashes or {}
+        for ticker in sorted(certified_signals):
+            signal = certified_signals[ticker]
+            if not isinstance(signal, CertifiedAgentSignal):
+                raise TypeError("production path requires CertifiedAgentSignal objects")
+            quant = quant_scores.get(ticker)
+            if quant is None:
+                raise ValueError(f"missing real quant score: {ticker}")
+            decision = fuse_production_decision(
+                signal,
+                run_id=run_id,
+                quant_score=quant,
+                policy_hash=policy_hash,
+                quant_input=quant_inputs.get(ticker, {"ticker": ticker, "score": str(quant)}),
+                response_artifact_hash=response_hashes.get(ticker),
+                dislocation_modifier=dislocation_modifiers.get(ticker, Decimal("0")),
+            )
+            alpha_decisions.append(decision)
+            alpha_scores.append(
+                fuse(
+                    signal,
+                    quant,
+                    dislocation_modifier=dislocation_modifiers.get(ticker, Decimal("0")),
+                )
+            )
+        target = allocate_with_fallback(
+            alpha_scores,
+            market_state or {},
+            account_snapshot,
+            risk_policy,
+            allocation_policy,
+        )
+        risk = RiskEngine().approve(target, account_snapshot, regime, risk_policy)
+        reconciliation = ReconciliationEngine().reconcile(account_snapshot, risk.approved)
+        return ProductionShadowResult(
+            run_id=run_id,
+            decision_as_of=decision_as_of,
+            alpha_decisions=tuple(alpha_decisions),
+            alpha_scores=tuple(alpha_scores),
+            target_before_risk=target,
+            target_after_risk=risk.approved,
+            risk_violations=risk.violations,
+            reconciliation_status=reconciliation.status,
+            reconciliation_warnings=reconciliation.warnings,
+        )

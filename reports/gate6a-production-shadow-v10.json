@@ -1,0 +1,105 @@
+{
+  "account": "SYNTHETIC_HOST_STYLE",
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "content_hash": "f1d37a975e01cb3e4090c124816f834d5e71a69564a0714ca91a24c600070fe8",
+  "created_at": "2026-08-31T05:46:27.712426+00:00",
+  "decision_as_of": "2026-08-31T02:02:27.962965+00:00",
+  "errors": {
+    "MSFT": "NO_CERTIFIED_EVIDENCE"
+  },
+  "finrlx": {
+    "artifact": "MODEL_UNAVAILABLE",
+    "promoted": "NO",
+    "runtime": "MODEL_UNAVAILABLE"
+  },
+  "production_path": "AccountSnapshot -> certified evidence -> CertifiedAgentSignal -> AlphaFusion -> allocator -> risk -> reconciliation",
+  "quant_scores": {
+    "AAPL": "-0.01841591977111094265018527733",
+    "NVDA": "0.2775292342338071115420204368"
+  },
+  "reconciliation": {
+    "status": "DRAFT",
+    "warnings": []
+  },
+  "rows": [
+    {
+      "certified_evidence_count": 3,
+      "certified_signal_id": "cert_27b45788bf7458a94bc041db",
+      "combined_research_modifier": "0.18",
+      "dislocation_modifier": "0.00",
+      "evidence_ids": [
+        "aapl_fundamental_latest",
+        "aapl_fundamental_comparables",
+        "aapl_fundamental_derived"
+      ],
+      "final_alpha": "0.1717128361030000758074166252",
+      "llm_conviction": "0.82",
+      "llm_stance": "BULLISH",
+      "policy_hash": "b735d0dac518a20b5fd1483c1284c421114c88ad439f1f09c0d4392617474da3",
+      "production_research_modifier": "0.18",
+      "quant_input_hash": "fe3f7a136919313e6b1907e7df8560f884d4aba9ad2176fd999313729359429c",
+      "quant_only_alpha": "-0.008287163896999924192583374798",
+      "quant_score": "-0.01841591977111094265018527733",
+      "response_artifact_hash": "abe88e25f849c32fbb85b4d5bb1a0b23624c001b42e52b3d00ac7bf416b29649",
+      "status": "CERTIFIED_SHADOW",
+      "target_after_risk": "0.25",
+      "target_before_risk": "0.25",
+      "ticker": "AAPL"
+    },
+    {
+      "certified_evidence_count": 3,
+      "certified_signal_id": "cert_8c1391ea5c92f283585ec1da",
+      "combined_research_modifier": "0.18",
+      "dislocation_modifier": "0.00",
+      "evidence_ids": [
+        "nvda_fundamental_latest",
+        "nvda_fundamental_comparables",
+        "nvda_fundamental_derived"
+      ],
+      "final_alpha": "0.3048881554052132001939091966",
+      "llm_conviction": "0.95",
+      "llm_stance": "BULLISH",
+      "policy_hash": "b735d0dac518a20b5fd1483c1284c421114c88ad439f1f09c0d4392617474da3",
+      "production_research_modifier": "0.18",
+      "quant_input_hash": "7aed3a52bcb7c905dae80e384ca7de7865bdfa438cbe955c4e289e4b0fc194a2",
+      "quant_only_alpha": "0.1248881554052132001939091966",
+      "quant_score": "0.2775292342338071115420204368",
+      "response_artifact_hash": "c6a9be9307119a3ae1fdf78110d38dd52da1ff2f42e72ddff282aa123ab22a5a",
+      "status": "CERTIFIED_SHADOW",
+      "target_after_risk": "0.25",
+      "target_before_risk": "0.25",
+      "ticker": "NVDA"
+    },
+    {
+      "quant_score": "UNAVAILABLE",
+      "reason": "NO_CERTIFIED_EVIDENCE",
+      "status": "UNAVAILABLE",
+      "target_after_risk": "0",
+      "target_before_risk": "0",
+      "ticker": "MSFT"
+    }
+  ],
+  "run_id": "gate6a-production-shadow-v10",
+  "schema_version": "gate6a.v1",
+  "security": {
+    "artifact_valid": true,
+    "captured": 11,
+    "runtime_authoritative": 11
+  },
+  "target_after_risk": {
+    "AAPL": "0.25",
+    "NVDA": "0.25"
+  },
+  "target_before_risk": {
+    "AAPL": "0.25",
+    "NVDA": "0.25"
+  },
+  "warnings": [
+    "NO_BROKER",
+    "NO_SCHWAB",
+    "NO_REAL_ACCOUNT",
+    "NO_REAL_ORDERS",
+    "SHADOW_ONLY",
+    "MSFT_REPLAY_ABSTAIN"
+  ]
+}

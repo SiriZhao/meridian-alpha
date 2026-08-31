@@ -1,0 +1,47 @@
+{
+  "bounded_universe": [
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "META",
+    "GOOGL",
+    "SPY",
+    "QQQ",
+    "SGOV",
+    "GLD",
+    "TLT",
+    "VIX"
+  ],
+  "bounded_universe_hash": "36e71ea1b43769387900175b8c95e1d02fc7165d983d9623f9a3c22c8ff81af1",
+  "capture_set_hash": "292e12764e8b3fbcf92228c04e255d21aa1702dd0566df84d6fbc5a286a7dba3",
+  "certification_policy_version": "gate6a.v1",
+  "generated_at": "2026-08-31T05:34:21.990210Z",
+  "manifest_digest": "9ba6bc9c3cece0b2980988ed23905807754871188fd190662e7f28868fdcbfce",
+  "record_digests": {
+    "AAPL": "28dace0165044afbea74d260b93e3b9ea8a9134a7bf183e85e5394788e6cac45",
+    "GLD": "7ab03d2b83eb6dd9b36fd359063d8f2de484ad0541fab3af020d2b735eb15e5c",
+    "GOOGL": "81de4d2bd4b999c7641648a48e472906f754bdd8f281d80e2b6d7269e15993dd",
+    "META": "f469c93cb5ba8171126b0372a3d0ccf4ffe8792c540c164902932a586c8377f8",
+    "MSFT": "81d3c381dd536d797fbcc545347157dd8588777e1ba522cf094f8ee23de37ea5",
+    "NVDA": "b61007048b793e9179eea83bdade515a78bf6aacb0329ba755a9b64457c0c6e2",
+    "QQQ": "ea760178ea542df2465621d9626e9765e4cb4a503be0425afe8592f68b4f50e5",
+    "SGOV": "c93c8618a4f351a6595c4aca101af7839271afd48c351d7362e5d00596f81ca7",
+    "SPY": "570c3c1d3632de7806292aacaaa13304399f5207319681f6f20775639ecd2ac3",
+    "TLT": "4395c28fadc3960fb56872ce799cf3e7507e753654128f5894f1d55c842f42cc",
+    "VIX": "d211a03d38296c9c4a2fe744c115f660b014ffd3a4bc747f076bd2ad59ffc752"
+  },
+  "schema_version": "1",
+  "source_content_hashes": {
+    "AAPL": "2503475b32d84986bc12632a6430d620526d4fd08026014d0d5d64cb7ab602ab",
+    "GLD": "ba67be28322f22d8b6b3bf7ad112f4145210d4cbfa01d6105c66ac59e01479ae",
+    "GOOGL": "f252665a2a476f5091994e40c5770c3cad51acb7c430b475387af0ad9a13b99a",
+    "META": "2c11151eea83ce390d096daf3245c56c421ab3695af2cc6e1f59a218fbe6e645",
+    "MSFT": "ef3d1eed787e1d32831fbebbce56e7e151dd13dcc99cf727c427627625df9cfd",
+    "NVDA": "64a5368efdc842eb34e4391b008598f9e025f7b6c2f329921bd87198ca9d15c1",
+    "QQQ": "9ddd8efe04bbe139987356c3a5ca28a44611a24d30f5817d12717562772a0b5f",
+    "SGOV": "02d0615345790485aae8b92fef959c64a6d99f5fab4eddaf235676785889e0c3",
+    "SPY": "4589b2a723f1e4c345571cde7b16529ea49cb5396cc9af75de9cdfea9055e94a",
+    "TLT": "cdba40e970d15ef9bda2a4bb8e9f8f890007ff35206d9a61d0712c1766423c29",
+    "VIX": "ff339a3cdf825672e74e29595d6768688f0902d8737024554cb3889983b90380"
+  }
+}

@@ -48,10 +48,12 @@ class CanonicalMetricDefinition(StableModel):
     context_type: FundamentalContextType
     notes: str = ""
     version: str = "v1"
+    concept_precedence: tuple[str, ...] = ()
+    component_aggregation: str = Field(default="SINGLE", pattern=r"^(SINGLE|SUM_COMPONENTS)$")
 
 
 _DEFINITIONS = (
-    CanonicalMetricDefinition(canonical_metric=CanonicalMetric.REVENUE, raw_concepts=("Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax", "SalesRevenueNet"), expected_units=("USD",), context_type=FundamentalContextType.QUARTER, notes="Top-line revenue; quarter/YTD/annual contexts are kept distinct."),
+    CanonicalMetricDefinition(canonical_metric=CanonicalMetric.REVENUE, raw_concepts=("Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax", "SalesRevenueNet"), expected_units=("USD",), context_type=FundamentalContextType.QUARTER, notes="Top-line revenue; quarter/YTD/annual contexts are kept distinct.", concept_precedence=("RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet")),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.GROSS_PROFIT, raw_concepts=("GrossProfit",), expected_units=("USD",), context_type=FundamentalContextType.QUARTER),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.OPERATING_INCOME, raw_concepts=("OperatingIncomeLoss",), expected_units=("USD",), context_type=FundamentalContextType.QUARTER),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.NET_INCOME, raw_concepts=("NetIncomeLoss",), expected_units=("USD",), context_type=FundamentalContextType.QUARTER),
@@ -61,8 +63,8 @@ _DEFINITIONS = (
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.CASH_AND_EQUIVALENTS, raw_concepts=("CashAndCashEquivalentsAtCarryingValue",), expected_units=("USD",), context_type=FundamentalContextType.INSTANT),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.TOTAL_ASSETS, raw_concepts=("Assets",), expected_units=("USD",), context_type=FundamentalContextType.INSTANT),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.TOTAL_LIABILITIES, raw_concepts=("Liabilities",), expected_units=("USD",), context_type=FundamentalContextType.INSTANT),
-    CanonicalMetricDefinition(canonical_metric=CanonicalMetric.SHAREHOLDERS_EQUITY, raw_concepts=("StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"), expected_units=("USD",), context_type=FundamentalContextType.INSTANT),
-    CanonicalMetricDefinition(canonical_metric=CanonicalMetric.LONG_TERM_DEBT, raw_concepts=("LongTermDebtCurrent", "LongTermDebtNoncurrent", "LongTermDebtAndFinanceLeaseObligationsCurrent", "LongTermDebtAndFinanceLeaseObligationsNoncurrent"), expected_units=("USD",), context_type=FundamentalContextType.INSTANT),
+    CanonicalMetricDefinition(canonical_metric=CanonicalMetric.SHAREHOLDERS_EQUITY, raw_concepts=("StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"), expected_units=("USD",), context_type=FundamentalContextType.INSTANT, concept_precedence=("StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest")),
+    CanonicalMetricDefinition(canonical_metric=CanonicalMetric.LONG_TERM_DEBT, raw_concepts=("LongTermDebtCurrent", "LongTermDebtNoncurrent", "LongTermDebtAndFinanceLeaseObligationsCurrent", "LongTermDebtAndFinanceLeaseObligationsNoncurrent"), expected_units=("USD",), context_type=FundamentalContextType.INSTANT, notes="Use a reported total when present; otherwise sum current and non-current components for the same filing/context.", concept_precedence=("LongTermDebtAndFinanceLeaseObligationsCurrent", "LongTermDebtAndFinanceLeaseObligationsNoncurrent", "LongTermDebtCurrent", "LongTermDebtNoncurrent"), component_aggregation="SUM_COMPONENTS"),
 )
 
 CANONICAL_METRIC_REGISTRY: Mapping[tuple[str, str], CanonicalMetricDefinition] = {
@@ -232,6 +234,11 @@ class ComparableFundamentalSeries(StableModel):
     cutoff: datetime
     input_fact_ids: tuple[str, str]
     content_hash: str
+    available_at: datetime | None = None
+
+    @property
+    def comparison_available_at(self) -> datetime | None:
+        return self.available_at
 
 
 class DerivedFundamentalMetric(StableModel):
@@ -245,6 +252,11 @@ class DerivedFundamentalMetric(StableModel):
     period_end: datetime | None = None
     derivation_version: str = "v2"
     content_hash: str
+    available_at: datetime | None = None
+
+    @property
+    def derived_available_at(self) -> datetime | None:
+        return self.available_at
 
 
 class CertifiedFundamentalSnapshot(StableModel):
@@ -324,8 +336,9 @@ def _derived(
     *,
     period_start: datetime | None = None,
     period_end: datetime | None = None,
+    available_at: datetime | None = None,
 ) -> DerivedFundamentalMetric:
-    raw = f"{metric}|{value}|{ids}|{formula}|{cutoff.isoformat()}|{period_start}|{period_end}|v2"
+    raw = f"{metric}|{value}|{ids}|{formula}|{cutoff.isoformat()}|{period_start}|{period_end}|{available_at}|v2"
     return DerivedFundamentalMetric(
         metric=metric,
         value=value,
@@ -335,6 +348,7 @@ def _derived(
         derived_at=cutoff,
         period_start=period_start,
         period_end=period_end,
+        available_at=available_at,
         content_hash=hashlib.sha256(raw.encode()).hexdigest(),
     )
 
@@ -394,12 +408,58 @@ def build_snapshot(
                 key=lambda item: (item.period_end, context_rank[_fact_context(item)], item.available_at),
                 reverse=True,
             )
+        definition = next(
+            (canonical_definition(item.taxonomy, item.raw_concept or item.concept) for item in candidates
+             if canonical_definition(item.taxonomy, item.raw_concept or item.concept) is not None),
+            None,
+        )
+        # For balance-sheet debt, current and non-current components are
+        # additive when they describe the same instant.  A reported combined
+        # concept remains preferred and is never summed with its components.
+        if definition is not None and definition.component_aggregation == "SUM_COMPONENTS":
+            top_period = candidates[0].period_end
+            top_context = _fact_context(candidates[0])
+            same_context = [item for item in candidates if item.period_end == top_period and _fact_context(item) is top_context]
+            component_names = {item.raw_concept or item.concept for item in same_context}
+            has_reported_total = any("AndFinanceLeaseObligations" in name and not name.endswith(("Current", "Noncurrent")) for name in component_names)
+            debt_components = [item for item in same_context if (item.raw_concept or item.concept).endswith(("Current", "Noncurrent"))]
+            if len(debt_components) >= 2 and not has_reported_total and sum(1 for item in debt_components if item.period_start is None) == len(debt_components):
+                seed = debt_components[0]
+                value = sum((item.value for item in debt_components), Decimal("0"))
+                digest = hashlib.sha256("|".join(sorted(item.fact_id for item in debt_components)).encode()).hexdigest()
+                selected[metric] = seed.model_copy(update={
+                    "fact_id": f"{seed.ticker.lower()}_{metric.value.lower()}_components_{digest[:16]}",
+                    "concept": "LongTermDebtComponents",
+                    "raw_concept": "LongTermDebtComponents",
+                    "value": value,
+                    "source_hash": digest,
+                })
+                for duplicate in candidates:
+                    if duplicate.fact_id not in {item.fact_id for item in debt_components}:
+                        non_comparable.append(f"{duplicate.fact_id}:NON_COMPARABLE_CONTEXT")
+                continue
+        if definition is not None and definition.concept_precedence:
+            precedence = {name: index for index, name in enumerate(definition.concept_precedence)}
+            candidates = sorted(candidates, key=lambda item: precedence.get(item.raw_concept or item.concept, len(precedence)))
         selected[metric] = candidates[0]
+        top = selected[metric]
+        top_concept = top.raw_concept or top.concept
         for duplicate in candidates[1:]:
-            if duplicate.period_end == selected[metric].period_end and _fact_context(duplicate) is not _fact_context(selected[metric]):
+            duplicate_concept = duplicate.raw_concept or duplicate.concept
+            if duplicate.period_end == top.period_end and _fact_context(duplicate) is not _fact_context(top):
                 ambiguous.append(f"{metric.value}:MULTIPLE_CONTEXTS:{duplicate.fact_id}")
+            elif duplicate.period_end == top.period_end and _fact_context(duplicate) is _fact_context(top) and duplicate_concept != top_concept:
+                # Distinct concepts for one canonical value are only accepted
+                # when the registry's explicit precedence resolves them. If
+                # they tie or no registry exists, keep the metric out.
+                if definition is None or not definition.concept_precedence:
+                    ambiguous.append(f"{metric.value}:AMBIGUOUS_CANONICAL_MAPPING")
             elif duplicate.unit != selected[metric].unit or not contexts_compatible(duplicate, selected[metric]):
                 non_comparable.append(f"{duplicate.fact_id}:NON_COMPARABLE_CONTEXT")
+        if any(flag.startswith(f"{metric.value}:AMBIGUOUS_CANONICAL_MAPPING") for flag in ambiguous):
+            # Do not expose a guessed current fact when the registry cannot
+            # resolve a same-period concept collision.
+            selected.pop(metric, None)
 
     selected_values = tuple(selected.values())
     comparable: list[CertifiedFundamentalFact] = []
@@ -427,6 +487,7 @@ def build_snapshot(
                 cutoff=cutoff,
                 input_fact_ids=(current.fact_id, prior.fact_id),
                 content_hash=hashlib.sha256(raw.encode()).hexdigest(),
+                available_at=max(current.available_at, prior.available_at),
             )
         )
 
@@ -441,6 +502,7 @@ def build_snapshot(
                     f"({item.current_fact_id} - {item.prior_fact_id}) / abs({item.prior_fact_id})",
                     cutoff,
                     period_end=item.current_period_end,
+                    available_at=item.available_at,
                 )
             )
 
@@ -469,6 +531,7 @@ def build_snapshot(
                         f"{fact.fact_id} / {revenue.fact_id}",
                         cutoff,
                         period_end=fact.period_end,
+                        available_at=max(fact.available_at, revenue.available_at),
                     )
                 )
     if ocf and capex and _periods_compatible(ocf, capex):
@@ -482,6 +545,7 @@ def build_snapshot(
                 cutoff,
                 period_start=ocf.period_start,
                 period_end=ocf.period_end,
+                available_at=max(ocf.available_at, capex.available_at),
             )
         )
         if revenue and revenue.value != 0 and _periods_compatible(ocf, revenue):
@@ -493,6 +557,7 @@ def build_snapshot(
                     "(OPERATING_CASH_FLOW - CAPEX) / REVENUE",
                     cutoff,
                     period_end=ocf.period_end,
+                    available_at=max(ocf.available_at, capex.available_at, revenue.available_at),
                 )
             )
 
@@ -577,12 +642,17 @@ def snapshot_to_evidence_items(snapshot: CertifiedFundamentalSnapshot) -> tuple[
     }
     encoded = json.dumps(base, sort_keys=True, separators=(",", ":"))
     observed_at = snapshot.latest_accepted_at or snapshot.decision_as_of
+    availability_inputs = [fact.available_at for fact in snapshot.facts]
+    availability_inputs.extend(fact.available_at for fact in snapshot.comparable_facts)
+    availability_inputs.extend(item.available_at for item in snapshot.comparable_series if item.available_at is not None)
+    availability_inputs.extend(item.available_at for item in snapshot.derived if item.available_at is not None)
+    bundle_available_at = max(availability_inputs, default=snapshot.decision_as_of)
     common = dict(
         ticker=snapshot.ticker,
         provider="sec-edgar-accession-certified",
         source="SEC:EDGAR_ACCEPTANCE_METADATA",
         observed_at=observed_at,
-        available_at=observed_at,
+        available_at=bundle_available_at,
         retrieved_at=snapshot.decision_as_of,
         point_in_time_status=EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT,
     )

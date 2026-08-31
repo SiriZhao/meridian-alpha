@@ -318,5 +318,33 @@ class AlphaScore(StableModel):
     model_source: str
 
 
+class ProductionAlphaDecision(StableModel):
+    """Lineage-complete result emitted by the authoritative AlphaFusion path."""
+
+    ticker: str = Field(pattern=r"^[A-Z][A-Z0-9.\-]{0,14}$")
+    run_id: str = Field(min_length=1, max_length=128)
+    decision_as_of: datetime
+    quant_score: Decimal = Field(ge=-1, le=1)
+    quant_only_alpha: Decimal = Field(ge=-1, le=1)
+    quant_input_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    certified_signal_id: str = Field(min_length=1, max_length=256)
+    research_direction: str = Field(pattern=r"^(BULLISH|BEARISH|NEUTRAL)$")
+    research_conviction: Decimal = Field(ge=0, le=1)
+    research_modifier: Decimal = Field(ge=-1, le=1)
+    dislocation_modifier: Decimal = Field(ge=-1, le=1)
+    combined_research_modifier: Decimal = Field(ge=-1, le=1)
+    risk_penalty: Decimal = Field(ge=0, le=1)
+    final_alpha: Decimal = Field(ge=-1, le=1)
+    policy_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    evidence_ids: tuple[str, ...] = ()
+    response_artifact_hash: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+
+    @model_validator(mode="after")
+    def validate_bounds(self) -> ProductionAlphaDecision:
+        if self.combined_research_modifier != self.research_modifier + self.dislocation_modifier:
+            raise ValueError("combined research modifier must equal its components")
+        return self
+
+
 def as_decimal(value: Any) -> Decimal:
     return Decimal(str(value))
