@@ -136,7 +136,7 @@ class OrderPlanner:
                     current_weight=delta.actual_weight,
                     estimated_notional=qty * price,
                     time_in_force=policy.time_in_force,
-                    status=RunStatus.READY_FOR_MANUAL_ENTRY,
+                    status=RunStatus.DRAFT,
                     reason="Deterministic reduction to approved target.",
                 )
             )
@@ -171,7 +171,7 @@ class OrderPlanner:
                     current_weight=delta.actual_weight,
                     estimated_notional=notional,
                     time_in_force=policy.time_in_force,
-                    status=RunStatus.READY_FOR_MANUAL_ENTRY,
+                    status=RunStatus.DRAFT,
                     reason="Deterministic purchase sized at worst-case limit; sell proceeds not assumed.",
                 )
             )
@@ -233,7 +233,7 @@ def attach_limit_prices(
                     "max_acceptable_buy_price": result.max_acceptable_buy_price,
                     "min_acceptable_sell_price": result.min_acceptable_sell_price,
                     "reason": f"{draft.reason} {result.reason}",
-                    "status": result.status,
+                    "status": RunStatus.DRAFT,
                 }
             )
             unit = (

@@ -11,6 +11,7 @@ from typing import Any
 from pydantic import Field
 
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
+from meridian.manual_authority import ManualReadinessCertificate, ManualReadinessStatus
 from meridian.schemas import AccountSnapshot, AccountSyncState, FreshnessState, StableModel
 from meridian.security_master import DEFAULT_SECURITY_MASTER, SecurityMaster
 
@@ -72,6 +73,7 @@ def evaluate_host_readiness(
     quote_ready: bool = False,
     risk_ready: bool = False,
     reconciliation_ready: bool | None = None,
+    manual_readiness_certificate: object | None = None,
 ) -> tuple[ReadinessGateResult, ...]:
     """Evaluate all gates without changing or persisting account state."""
     if snapshot is None:
@@ -95,8 +97,27 @@ def evaluate_host_readiness(
     recon_value = reconciliation_ready if reconciliation_ready is not None else account.status is ReadinessStatus.PASS
     gates.append(_bool_gate("RECONCILIATION_READY", recon_value, "Current account truth has not been reconciled"))
     required = {item.gate: item.status for item in gates}
-    manual = all(required.get(name) is ReadinessStatus.PASS for name in ("ACCOUNT_READY", "SECURITY_READY", "QUOTE_READY", "RISK_READY", "RECONCILIATION_READY"))
-    gates.append(_bool_gate("MANUAL_ENTRY_READY", manual, "All account, identity, quote, risk, and reconciliation gates must pass"))
+    certificate_ready = (
+        isinstance(manual_readiness_certificate, ManualReadinessCertificate)
+        and manual_readiness_certificate.status is ManualReadinessStatus.READY
+        and all(manual_readiness_certificate.gates.values())
+    )
+    manual = (
+        all(
+            required.get(name) is ReadinessStatus.PASS
+            for name in (
+                "ACCOUNT_READY",
+                "SECURITY_READY",
+                "MARKET_READY",
+                "RESEARCH_READY",
+                "QUOTE_READY",
+                "RISK_READY",
+                "RECONCILIATION_READY",
+            )
+        )
+        and certificate_ready
+    )
+    gates.append(_bool_gate("MANUAL_ENTRY_READY", manual, "All seven readiness gates must pass and a READY ManualReadinessCertificate is required"))
     return tuple(gates)
 
 
@@ -129,6 +150,7 @@ def build_host_smoke_report(
     quote_ready: bool = False,
     risk_ready: bool = False,
     reconciliation_ready: bool | None = None,
+    manual_readiness_certificate: object | None = None,
 ) -> HostReadinessReport:
     if envelope is None:
         gates = evaluate_host_readiness(None)
@@ -152,6 +174,7 @@ def build_host_smoke_report(
         quote_ready=quote_ready,
         risk_ready=risk_ready,
         reconciliation_ready=reconciliation_ready,
+        manual_readiness_certificate=manual_readiness_certificate,
     )
     manual_pass = any(item.gate == "MANUAL_ENTRY_READY" and item.status is ReadinessStatus.PASS for item in gates)
     status = "READY_FOR_MANUAL_ENTRY" if externally_authorized and manual_pass else "READY_FOR_SUPERVISED_HOST_INPUT"

@@ -52,7 +52,7 @@ numbers, secrets, or tokens.
 
 - `NO_CAPITAL`: account fact is valid but deployable capital is zero; no orders.
 - `ANALYSIS_ONLY` / `DRAFT`: analysis may be useful but cannot be entered.
-- `READY_FOR_MANUAL_ENTRY`: all required gates passed; still not executed.
+- `READY_FOR_MANUAL_ENTRY`: only a READY `ManualReadinessCertificate` with all seven gates and a certified `ExecutionQuote`; still not executed.
 - `BLOCKED_*` / `FAILED`: fail closed; no executable ticket.
 
 ## Gate 1.5 status semantics
@@ -182,3 +182,27 @@ cutoff and are never interpreted as fills. `TEST`, `REPLAY`, `SHADOW_LIVE`, and
 `MANUAL_DECISION_SUPPORT` are the only profiles; `AUTO_EXECUTION` is not a
 valid profile. The release candidate remains shadow-only until an externally
 authorized Host input and a certified execution quote are both supplied.
+
+## Gate 6F manual-entry authority
+
+`READY_FOR_MANUAL_ENTRY` is not a property that a `MarketSnapshot`, research
+price, valuation mark, or legacy `OrderDraft` can grant. The sole production
+transition is:
+
+```text
+fresh sanitized HostAccountSnapshotEnvelope
+  + authoritative Security Master manifest
+  + current market/research/risk/reconciliation state
+  + certified ExecutionQuote and capability certificate
+  -> ManualReadinessCertificate (READY, all seven gates PASS)
+  -> ManualOrderDraft (NOT_EXECUTED)
+```
+
+`ManualReadinessCertificate` is immutable, provenance-bound, and fail-closed.
+MCP and reporting surfaces must require that certificate and a sealed manual
+draft; otherwise they return a blocker or diagnostic draft. `ExecutionQuote`
+is the only permitted input to deterministic manual limit pricing. Quantities,
+weights, cash, rounding, risk, and reconciliation remain deterministic. A
+manual draft never changes holdings or cash; only a later Host snapshot can
+establish an external fill. There is no automatic execution profile and no
+broker integration.

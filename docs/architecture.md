@@ -23,7 +23,7 @@ Meridian Core
   |--> Limit price engine          (deterministic prices)
         |
         v
-Manual Order Ticket (human enters it at Schwab)
+Manual Order Ticket (human reviews and enters it through an authorized workflow)
 ```
 
 ## Boundary rules
@@ -62,8 +62,9 @@ artifact; neither may determine executable quantities or prices.
 4. Allocate targets, then apply deterministic risk constraints.
 5. Reconcile only against the new account snapshot.
 6. Produce deterministic order drafts and conservative limit prices.
-7. Emit `READY_FOR_MANUAL_ENTRY` only if every required gate passes; otherwise
-   fail closed as analysis-only, draft, or blocked.
+7. Emit `READY_FOR_MANUAL_ENTRY` only from a READY `ManualReadinessCertificate`
+   with all seven gates and a certified `ExecutionQuote`; otherwise fail closed
+   as analysis-only, draft, or blocked.
 
 No stage may use data after the declared analysis time.
 
@@ -227,3 +228,24 @@ budget. It does not invoke live TradingAgents or DeepSeek and cannot issue a
 CertifiedAgentSignal or manual-entry authorization. Multi-provider evidence is
 authorized per cited item through a capability registry, and mixed packet PIT
 states never self-upgrade.
+
+## Gate 6F manual decision-support authority
+
+There is exactly one manual-entry authority:
+
+```text
+HostAccountSnapshotEnvelope -> normalized AccountSnapshot
+  + authoritative SecurityMaster artifact
+  + current market/research/risk/reconciliation gates
+  + certified ExecutionQuote + capability certificate
+  -> ManualReadinessCertificate
+  -> build_manual_order_draft -> ManualOrderDraft(NOT_EXECUTED)
+```
+
+`MarketSnapshot`, `ResearchMarketPrice`, and `ValuationMark` are disjoint
+research/valuation types and cannot authorize manual pricing. `OrderPlanner`,
+`attach_limit_prices`, and the legacy compatibility helper emit only
+`DRAFT`/diagnostic output. `ManualReadinessCertificate` is the only authority
+that can satisfy the seven-gate `MANUAL_ENTRY_READY` transition, and MCP
+requires the persisted certificate plus sealed drafts. No draft mutates
+holdings or cash; reconciliation observes only a later Host snapshot.

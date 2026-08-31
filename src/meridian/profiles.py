@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from meridian.manual_authority import ManualReadinessCertificate, ManualReadinessStatus
 from meridian.schemas import DailyDecision, RunStatus, StableModel
 
 
@@ -29,9 +30,16 @@ def parse_profile(value: str) -> RuntimeProfile:
         raise ValueError("PROFILE_UNSUPPORTED_OR_AUTO_EXECUTION_FORBIDDEN") from error
 
 
-def report_status_for(profile: RuntimeProfile, decision: DailyDecision | None = None) -> ReportStatus:
+def report_status_for(profile: RuntimeProfile, decision: DailyDecision | None = None, readiness_certificate: object | None = None) -> ReportStatus:
     if profile is RuntimeProfile.MANUAL_DECISION_SUPPORT:
-        if decision is not None and decision.overall_status is RunStatus.READY_FOR_MANUAL_ENTRY:
+        if (
+            isinstance(readiness_certificate, ManualReadinessCertificate)
+            and readiness_certificate.status is ManualReadinessStatus.READY
+            and all(readiness_certificate.gates.values())
+            and decision is not None
+            and decision.overall_status is RunStatus.READY_FOR_MANUAL_ENTRY
+            and not decision.blocked_reasons
+        ):
             return ReportStatus.READY_FOR_MANUAL_ENTRY
         return ReportStatus.BLOCKED
     if profile is RuntimeProfile.SHADOW_LIVE:

@@ -341,18 +341,13 @@ class DailyOrchestrator:
             warnings.append("NAV discrepancy exceeds configured tolerance.")
         if not projection.valid:
             blocked.extend(projection.violations)
+        # MarketSnapshot-based OrderDrafts are diagnostic only.  Manual-entry
+        # readiness is issued exclusively by ManualReadinessCertificate and
+        # the sealed manual_authority path, never by this legacy orchestrator.
         status = (
-            RunStatus.READY_FOR_MANUAL_ENTRY
-            if account_snapshot.sync_state is AccountSyncState.SYNCED
-            and priced
-            and projection.valid
-            and not valued.discrepancy_exceeds_tolerance
-            and all(o.status is RunStatus.READY_FOR_MANUAL_ENTRY for o in priced)
-            else (
-                RunStatus.NO_ACTION
-                if not priced and not blocked and not valued.discrepancy_exceeds_tolerance
-                else RunStatus.DRAFT
-            )
+            RunStatus.NO_ACTION
+            if not priced and not blocked and not valued.discrepancy_exceeds_tolerance
+            else RunStatus.DRAFT
         )
         decision = DailyDecision(
             run_id=run_id,

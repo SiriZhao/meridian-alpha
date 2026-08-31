@@ -231,6 +231,7 @@ def get_order_ticket(run_id: str) -> dict[str, Any]:
     if not isinstance(run, dict):
         raise RuntimeError("Invalid sanitized audit record")
     status = str(run["overall_status"])
+    certificate = result.get("manual_readiness_certificate")
     if status != RunStatus.READY_FOR_MANUAL_ENTRY:
         return {
             "found": True,
@@ -238,7 +239,22 @@ def get_order_ticket(run_id: str) -> dict[str, Any]:
             "status": status,
             "reason": "DRAFT — DO NOT ENTER",
         }
-    return {"found": True, "ticket_available": True, "status": status, "orders": result["orders"]}
+    if not isinstance(certificate, dict) or str(certificate.get("status")) != "READY":
+        return {"found": True, "ticket_available": False, "status": status, "reason": "BLOCKED_MANUAL_READINESS_CERTIFICATE_REQUIRED"}
+    orders = result.get("orders")
+    if not isinstance(orders, list) or not orders or any(
+        not isinstance(order, dict)
+        or str(order.get("status")) != "NOT_EXECUTED"
+        or not order.get("quote_certificate_id")
+        for order in orders
+    ):
+        return {
+            "found": True,
+            "ticket_available": False,
+            "status": status,
+            "reason": "BLOCKED_MANUAL_ORDER_DRAFT_NOT_SEALED",
+        }
+    return {"found": True, "ticket_available": True, "status": status, "orders": orders, "manual_readiness_certificate": certificate}
 
 
 @mcp.tool(

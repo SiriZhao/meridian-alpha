@@ -6,6 +6,7 @@ from datetime import datetime
 
 from meridian.config import Policies
 from meridian.long_shadow import DailySystemHealth, derive_daily_health
+from meridian.manual_authority import ManualReadinessCertificate, ManualReadinessStatus
 from meridian.orchestrator import DailyAnalysisService, DailyOrchestrator
 from meridian.profiles import (
     DailyApplicationEnvelope,
@@ -26,11 +27,13 @@ class DailyApplicationResult:
         decision: DailyDecision,
         health: DailySystemHealth,
         blockers: tuple[str, ...] = (),
+        manual_readiness_certificate: ManualReadinessCertificate | None = None,
     ) -> None:
         self.profile = profile
         self.decision = decision
         self.health = health
-        self.status = report_status_for(profile, decision)
+        self.manual_readiness_certificate = manual_readiness_certificate
+        self.status = report_status_for(profile, decision, self.manual_readiness_certificate)
         self.blockers = blockers
 
     @property
@@ -51,10 +54,17 @@ def run_daily_application(
     policies: Policies | None = None,
     orchestrator: DailyOrchestrator | None = None,
     quote_ready: bool = False,
+    manual_readiness_certificate: ManualReadinessCertificate | None = None,
 ) -> DailyApplicationResult:
     """Run the shared analysis path under an explicit non-execution profile."""
     if profile is RuntimeProfile.MANUAL_DECISION_SUPPORT and not quote_ready:
         blockers = ("QUOTE_READY requires a certified execution quote.",)
+    elif profile is RuntimeProfile.MANUAL_DECISION_SUPPORT and not (
+        isinstance(manual_readiness_certificate, ManualReadinessCertificate)
+        and manual_readiness_certificate.status is ManualReadinessStatus.READY
+        and all(manual_readiness_certificate.gates.values())
+    ):
+        blockers = ("MANUAL_READINESS_CERTIFICATE_REQUIRED",)
     else:
         blockers = ()
     decision = DailyAnalysisService(orchestrator, policies).run(account_snapshot, run_date)
@@ -67,7 +77,7 @@ def run_daily_application(
         "reconciliation": "PASS" if not decision.blocked_reasons else "UNVERIFIED",
     }
     health = derive_daily_health(components, manual_gates_pass=not blockers)
-    return DailyApplicationResult(profile=profile, decision=decision, health=health, blockers=blockers)
+    return DailyApplicationResult(profile=profile, decision=decision, health=health, blockers=blockers, manual_readiness_certificate=manual_readiness_certificate)
 
 
 def top_level_status(result: DailyApplicationResult) -> str:

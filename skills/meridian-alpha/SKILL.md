@@ -42,3 +42,14 @@ pass. There is no `AUTO_EXECUTION` profile. Every report begins with one of
 The long-shadow ledger separates recommendation, target, and later outcome. It
 never implies a fill. FinRL-X is an optional isolated allocator challenger only;
 `MODEL_UNAVAILABLE` is the correct status without a real OOS-validated artifact.
+
+## Gate 6F manual-entry authority
+
+Never infer manual-entry readiness from `DailyDecision.overall_status` alone.
+Require a concrete READY `ManualReadinessCertificate` with all seven gates and
+a matching certified `ExecutionQuoteCapabilityCertificate`. The only
+production-shaped constructor is `build_manual_order_draft`; its result is
+`NOT_EXECUTED`. MarketSnapshot/research prices and valuation marks are
+analysis-only, and MCP must return a blocker when the sealed certificate or
+quote certificate is absent. A later sanitized Host snapshot, never a draft,
+proves an external fill.

@@ -15,3 +15,16 @@
 
 There is no automatic execution profile. A later host snapshot is the only proof
 of an external trade, fill, deposit, withdrawal, or corporate action.
+
+## Gate 6F authority check
+
+Before showing anything that resembles a manual ticket, confirm that the same
+run has a READY `ManualReadinessCertificate` with all seven gates:
+`ACCOUNT_READY`, `SECURITY_READY`, `MARKET_READY`, `RESEARCH_READY`,
+`QUOTE_READY`, `RISK_READY`, and `RECONCILIATION_READY`. The certificate must
+reference the exact certified `ExecutionQuote` capability certificate.
+
+A `MarketSnapshot`, research price, valuation mark, or legacy `OrderDraft` can
+only produce analysis/diagnostic output. If any gate is FAIL or DEGRADED, show
+`BLOCKED` or `ANALYSIS_ONLY` and list the blocker. A `ManualOrderDraft` is
+always `NOT_EXECUTED`; never update the account or infer a fill from it.

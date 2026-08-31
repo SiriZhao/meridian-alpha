@@ -8,6 +8,8 @@ There are no trade, account, or broker methods here.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from collections.abc import Mapping
 from datetime import datetime
 from decimal import ROUND_DOWN, Decimal
@@ -69,6 +71,14 @@ class ExecutionQuoteCapabilityCertificate(StableModel):
     source_uri: str | None = Field(default=None, max_length=2000)
     certified_at: datetime | None = None
     execution_quote_grade: bool = False
+    certificate_id: str = "UNSPECIFIED"
+    feed: str = "UNVERIFIED"
+    plan: str = "UNVERIFIED"
+    valid_from: datetime | None = None
+    valid_to: datetime | None = None
+    symbol_scope: tuple[str, ...] = ()
+    currency_scope: tuple[str, ...] = ()
+    capability_hash: str | None = None
 
     @model_validator(mode="after")
     def enforce_grade(self) -> ExecutionQuoteCapabilityCertificate:
@@ -95,6 +105,14 @@ class ExecutionQuoteCapabilityCertificate(StableModel):
         return self.execution_quote_grade
 
 
+    @property
+    def computed_capability_hash(self) -> str:
+        """Digest of declared capabilities, excluding the self-reported hash."""
+        payload = self.model_dump(mode="json", exclude={"capability_hash"})
+        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
 class ExecutionQuote(StableModel):
     """A current, identity-bound quote suitable for deterministic ticket pricing."""
 
@@ -111,6 +129,10 @@ class ExecutionQuote(StableModel):
     available_at: datetime | None = None
     extended_hours: bool = False
     certificate_id: str = Field(min_length=1, max_length=128)
+    # Optional feed/plan binding lets a certificate prove the exact stream
+    # used for this observation while preserving provider-neutral fixtures.
+    feed: str | None = Field(default=None, max_length=128)
+    plan: str | None = Field(default=None, max_length=128)
 
     @model_validator(mode="after")
     def validate_quote(self) -> ExecutionQuote:
@@ -272,7 +294,7 @@ class ManualLimitPricePolicy:
         return units * tick_size
 
 
-class ManualOrderDraft(StableModel):
+class DiagnosticManualOrderDraft(StableModel):
     """A human-facing draft, explicitly not an execution request."""
 
     symbol: str
@@ -287,6 +309,11 @@ class ManualOrderDraft(StableModel):
     status: str = "NOT_EXECUTED"
 
 
+# Compatibility alias for diagnostic callers.  Production-shaped drafts live
+# exclusively in meridian.manual_authority.build_manual_order_draft.
+ManualOrderDraft = DiagnosticManualOrderDraft
+
+
 def create_manual_order_draft(
     quote: ExecutionQuote,
     *,
@@ -298,24 +325,17 @@ def create_manual_order_draft(
     tick_size: Decimal = Decimal("0.01"),
     reason: str = "Deterministic draft for human review.",
     risk_checks: tuple[str, ...] = (),
-) -> ManualOrderDraft:
-    """Create a draft only when all deterministic manual-entry gates pass."""
-    required = ("ACCOUNT_READY", "SECURITY_READY", "QUOTE_READY", "RISK_READY", "RECONCILIATION_READY")
+) -> DiagnosticManualOrderDraft:
+    """Reject the legacy helper; use the sealed authority instead."""
+    _ = (quote, side, quantity, time_in_force_recommendation, aggressiveness, tick_size, reason, risk_checks)
+    required = (
+        "ACCOUNT_READY", "SECURITY_READY", "MARKET_READY", "RESEARCH_READY",
+        "QUOTE_READY", "RISK_READY", "RECONCILIATION_READY",
+    )
     missing = tuple(name for name in required if readiness.get(name) != "PASS")
     if missing:
         raise ValueError(f"MANUAL_ENTRY_BLOCKED:{','.join(missing)}")
-    limit = ManualLimitPricePolicy.calculate(quote, side, aggressiveness=aggressiveness, tick_size=tick_size)
-    return ManualOrderDraft(
-        symbol=quote.symbol,
-        side=side,
-        quantity=quantity,
-        limit=limit,
-        time_in_force_recommendation=time_in_force_recommendation,
-        quote_timestamp=quote.timestamp,
-        quote_provider=quote.provider,
-        reason=reason,
-        risk_checks=risk_checks,
-    )
+    raise ValueError("MANUAL_ENTRY_BLOCKED:SEALED_MANUAL_READINESS_CERTIFICATE_REQUIRED")
 
 
 class StaticReadOnlyExecutionQuoteProvider:

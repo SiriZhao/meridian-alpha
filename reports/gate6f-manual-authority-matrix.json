@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "artifact": "gate6f-manual-authority-matrix",
+  "generated_at": "2026-08-31T14:30:00+00:00",
+  "git_head": "4a93d14d53970436e5ac491858733030421bed0b",
+  "status": "CONVERGED_WITH_MANUAL_ENTRY_BLOCKED_UNTIL_REAL_GATES_PASS",
+  "manual_entry_ready": false,
+  "authority": "meridian.manual_authority.ManualReadinessAuthority",
+  "required_gates": [
+    "ACCOUNT_READY",
+    "SECURITY_READY",
+    "MARKET_READY",
+    "RESEARCH_READY",
+    "QUOTE_READY",
+    "RISK_READY",
+    "RECONCILIATION_READY"
+  ],
+  "gate_permutations": {
+    "all_seven_pass": "READY_only_when_certificate_and_quote_are_valid",
+    "single_fail_each": "BLOCKED",
+    "single_degraded_each": "BLOCKED",
+    "multiple_failures": "BLOCKED"
+  },
+  "writers": [
+    {
+      "file": "src/meridian/manual_authority.py",
+      "symbol": "build_manual_order_draft",
+      "can_emit_production_manual_draft": true,
+      "input_quote": "ExecutionQuote",
+      "authorization": "READY ManualReadinessCertificate + matching ExecutionQuoteCapabilityCertificate",
+      "safe": true
+    },
+    {
+      "file": "src/meridian/orders.py",
+      "symbol": "OrderPlanner.plan",
+      "can_emit_production_manual_draft": false,
+      "input_quote": "MarketSnapshot",
+      "authorization": "none; diagnostic OrderDraft only",
+      "safe": true
+    },
+    {
+      "file": "src/meridian/orders.py",
+      "symbol": "attach_limit_prices",
+      "can_emit_production_manual_draft": false,
+      "input_quote": "MarketSnapshot",
+      "authorization": "none; forces DRAFT status",
+      "safe": true
+    },
+    {
+      "file": "src/meridian/execution_quotes.py",
+      "symbol": "create_manual_order_draft",
+      "can_emit_production_manual_draft": false,
+      "input_quote": "ExecutionQuote without sealed authority",
+      "authorization": "always blocks; compatibility diagnostic helper",
+      "safe": true
+    },
+    {
+      "file": "src/meridian/mcp_server.py",
+      "symbol": "get_order_ticket",
+      "can_emit_production_manual_draft": false,
+      "input_quote": "persisted sealed draft only",
+      "authorization": "READY certificate + NOT_EXECUTED drafts + quote certificate",
+      "safe": true
+    }
+  ],
+  "quote_certificate_checks": [
+    "provider/feed/plan identity",
+    "symbol and currency scope",
+    "capability content hash",
+    "validity interval",
+    "session and extended-hours semantics",
+    "timezone-aware timestamp and freshness",
+    "positive non-inverted bid/ask/last",
+    "deterministic spread policy"
+  ],
+  "assumed_fill_firewall": "ManualOrderDraft is NOT_EXECUTED and cannot mutate holdings or cash; only a later Host snapshot establishes fills.",
+  "tests": {
+    "gate6f_targeted": 20,
+    "full_pytest": 262,
+    "ruff": "PASS",
+    "pyright": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "known_p0": 0,
+  "known_p1": 0
+}
