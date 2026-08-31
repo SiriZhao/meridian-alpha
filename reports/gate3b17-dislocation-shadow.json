@@ -1,0 +1,58 @@
+{
+  "assessments": [],
+  "candidate_screen": "DETERMINISTIC_ONLY; Yahoo historical data may screen candidates but cannot become certified evidence",
+  "certified_evidence_required": true,
+  "combined_modifier_cap": "ENFORCED_BY_ALPHA_FUSION",
+  "content_hash": "2b9de3516683b5b68aebfe8fe5f994ca4add4658cfaa606b55ddef07daf4923a",
+  "created_at": "2026-08-31T02:33:53.479525+00:00",
+  "market_snapshots": {
+    "candidates": [],
+    "failures": [],
+    "snapshots": [
+      {
+        "as_of": "2026-08-31T02:33:53.479525Z",
+        "current_price": "314.5799865722656",
+        "drawdown": "-0.0749823600530557970995152665",
+        "market_relative_move": null,
+        "realized_volatility": "0.01802919794845489304383250028",
+        "relative_drawdown": null,
+        "source_hashes": [
+          "bbbf818ae8fcd881e92788a06dbec66a573d6a03f4e3eab30dd5314f0337e7be"
+        ],
+        "ticker": "AAPL",
+        "trend_state": "RECENT_REVERSAL"
+      },
+      {
+        "as_of": "2026-08-31T02:33:53.479525Z",
+        "current_price": "217.5500030517578",
+        "drawdown": "-0.0457495958910633453169253353",
+        "market_relative_move": null,
+        "realized_volatility": "0.02750271629911558466267442678",
+        "relative_drawdown": null,
+        "source_hashes": [
+          "67e9100e3949e65d50acf937a1e87636667236b57492c755c5467a16350098d7"
+        ],
+        "ticker": "NVDA",
+        "trend_state": "RECENT_REVERSAL"
+      },
+      {
+        "as_of": "2026-08-31T02:33:53.479525Z",
+        "current_price": "505.05999755859375",
+        "drawdown": "-0.0019760502802520284245377105",
+        "market_relative_move": null,
+        "realized_volatility": "0.02899053742485277031298832360",
+        "relative_drawdown": null,
+        "source_hashes": [
+          "4894488749ba4e3bd19c2656e6c1f7313214c8178a2a56a71043641990a2fff5"
+        ],
+        "ticker": "MSFT",
+        "trend_state": "RECENT_REVERSAL"
+      }
+    ],
+    "source": "Yahoo historical shadow; not certified evidence",
+    "status": "COMPLETED"
+  },
+  "raw_evidence_bypass": "REJECTED",
+  "schema_version": "gate3b17.v1",
+  "status": "SHADOW / NOT AUTHORIZED FOR ENTRY"
+}

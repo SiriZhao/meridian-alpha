@@ -781,6 +781,7 @@ class DeepSeekGroundedResearchNormalizer:
                 "evidence_type": item.evidence_type,
                 "title": item.title,
                 "summary": item.summary,
+                "structured_payload": item.structured_payload,
             }
             for item in request.evidence_packet.items
         ]

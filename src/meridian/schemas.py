@@ -156,6 +156,7 @@ class EvidenceItem(StableModel):
     content_hash: str | None = Field(default=None, max_length=128)
     evidence_type: str = Field(min_length=1, max_length=128)
     summary: str | None = Field(default=None, max_length=5000)
+    structured_payload: dict[str, Any] | None = None
     point_in_time_status: EvidencePointInTimeStatus = EvidencePointInTimeStatus.UNVERIFIED
 
     @model_validator(mode="after")

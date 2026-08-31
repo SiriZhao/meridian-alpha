@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 from typing import Any
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from meridian.research import CertifiedEvidenceView
 from meridian.schemas import StableModel
@@ -16,6 +17,52 @@ class DislocationStatus(StrEnum):
     AVAILABLE = "AVAILABLE"
     ABSTAIN = "ABSTAIN"
     INSUFFICIENT_GROUNDING = "INSUFFICIENT_GROUNDING"
+
+
+class PriceDislocationSnapshot(StableModel):
+    """Market-only dislocation facts kept separate from business quality."""
+
+    ticker: str = Field(pattern=r"^[A-Z][A-Z0-9.\-]{0,14}$")
+    as_of: datetime
+    current_price: Decimal | None = None
+    drawdown: Decimal = Field(ge=-1, le=0)
+    trend_state: str = "UNKNOWN"
+    realized_volatility: Decimal = Field(ge=0, le=10)
+    relative_drawdown: Decimal | None = Field(default=None, ge=-1, le=1)
+    market_relative_move: Decimal | None = Field(default=None, ge=-1, le=1)
+    source_hashes: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_cutoff(self) -> PriceDislocationSnapshot:
+        if self.as_of.tzinfo is None or self.as_of.utcoffset() is None:
+            raise ValueError("price dislocation as_of must be timezone-aware")
+        return self
+
+
+class FundamentalQualitySnapshot(StableModel):
+    """Certified fundamental trajectory facts used after deterministic screening."""
+
+    ticker: str = Field(pattern=r"^[A-Z][A-Z0-9.\-]{0,14}$")
+    as_of: datetime
+    revenue_yoy: Decimal | None = None
+    gross_profit_yoy: Decimal | None = None
+    operating_income_yoy: Decimal | None = None
+    net_income_yoy: Decimal | None = None
+    diluted_eps_yoy: Decimal | None = None
+    gross_margin: Decimal | None = None
+    operating_margin: Decimal | None = None
+    net_margin: Decimal | None = None
+    free_cash_flow: Decimal | None = None
+    cash: Decimal | None = None
+    debt: Decimal | None = None
+    certified_evidence_ids: tuple[str, ...] = ()
+    input_fact_ids: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_cutoff(self) -> FundamentalQualitySnapshot:
+        if self.as_of.tzinfo is None or self.as_of.utcoffset() is None:
+            raise ValueError("fundamental quality as_of must be timezone-aware")
+        return self
 
 
 class DislocationCandidate(StableModel):

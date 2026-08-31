@@ -16,6 +16,8 @@ from meridian.dislocation import (
     DislocationAssessment,
     DislocationScreen,
     DislocationStatus,
+    FundamentalQualitySnapshot,
+    PriceDislocationSnapshot,
     bounded_modifier,
     certify_dislocation_assessment,
 )
@@ -249,3 +251,9 @@ def test_raw_dislocation_assessment_cannot_authorize_modifier() -> None:
         stance="BULLISH", dislocation_conviction=Decimal("1"), cited_evidence_ids=("not-enough",))
     with pytest.raises(TypeError, match="CertifiedDislocationAssessment"):
         bounded_modifier(raw)  # type: ignore[arg-type]
+
+
+def test_dislocation_price_and_quality_snapshots_are_separate() -> None:
+    price = PriceDislocationSnapshot(ticker="AAPL", as_of=T, drawdown=Decimal("-0.2"), realized_volatility=Decimal("0.3"))
+    quality = FundamentalQualitySnapshot(ticker="AAPL", as_of=T, revenue_yoy=Decimal("0.1"), input_fact_ids=("fact-1",))
+    assert price.drawdown < 0 and quality.revenue_yoy == Decimal("0.1")
