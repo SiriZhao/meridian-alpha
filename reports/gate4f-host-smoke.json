@@ -1,17 +1,17 @@
 {
-  "as_of": null,
-  "coverage": null,
-  "currency": null,
+  "as_of": "2026-08-30T14:30:00Z",
+  "coverage": "COMPLETE",
+  "currency": "USD",
   "gates": [
     {
       "gate": "ACCOUNT_READY",
-      "reason": "No sanitized Host snapshot supplied",
+      "reason": "Host snapshot is stale or unknown",
       "status": "FAIL"
     },
     {
       "gate": "SECURITY_READY",
       "reason": "Authoritative Security Master certification is required",
-      "status": "FAIL"
+      "status": "PASS"
     },
     {
       "gate": "MARKET_READY",
@@ -45,14 +45,14 @@
     }
   ],
   "position_count": 0,
-  "provenance_digest": null,
-  "real_host_input": false,
-  "retrieved_at": null,
+  "provenance_digest": "02200d161efea1d9a2d34c32172be80dffd025df27afbf7a954fc8195946e7ba",
+  "real_host_input": true,
+  "retrieved_at": "2026-08-30T14:30:05Z",
   "schema_version": "1",
-  "snapshot_id": null,
-  "source_name": null,
+  "snapshot_id": "finance-host-complete-example",
+  "source_name": "sanitized-host",
   "status": "READY_FOR_SUPERVISED_HOST_INPUT",
   "warnings": [
-    "No externally authorized sanitized Host input was supplied."
+    "EXAMPLE_ONLY"
   ]
 }

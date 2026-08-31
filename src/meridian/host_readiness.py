@@ -12,6 +12,7 @@ from pydantic import Field
 
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.schemas import AccountSnapshot, AccountSyncState, FreshnessState, StableModel
+from meridian.security_master import DEFAULT_SECURITY_MASTER, SecurityMaster
 
 
 class ReadinessStatus(StrEnum):
@@ -118,6 +119,8 @@ def host_provenance_summary(envelope: HostAccountSnapshotEnvelope) -> dict[str, 
 def build_host_smoke_report(
     envelope: HostAccountSnapshotEnvelope | None,
     *,
+    security_master: SecurityMaster = DEFAULT_SECURITY_MASTER,
+    externally_authorized: bool = False,
     trusted_now: datetime | None = None,
     replay: bool = False,
     security_ready: bool = False,
@@ -135,7 +138,12 @@ def build_host_smoke_report(
             warnings=("No externally authorized sanitized Host input was supplied.",),
             gates=gates,
         )
-    snapshot = normalize_host_snapshot(envelope, trusted_now=trusted_now, replay=replay)
+    snapshot = normalize_host_snapshot(
+        envelope,
+        security_master=security_master,
+        trusted_now=trusted_now,
+        replay=replay,
+    )
     gates = evaluate_host_readiness(
         snapshot,
         security_ready=security_ready,
@@ -145,10 +153,12 @@ def build_host_smoke_report(
         risk_ready=risk_ready,
         reconciliation_ready=reconciliation_ready,
     )
-    status = "READY_FOR_MANUAL_ENTRY" if any(item.gate == "MANUAL_ENTRY_READY" and item.status is ReadinessStatus.PASS for item in gates) else "READY_FOR_SUPERVISED_HOST_INPUT"
+    manual_pass = any(item.gate == "MANUAL_ENTRY_READY" and item.status is ReadinessStatus.PASS for item in gates)
+    status = "READY_FOR_MANUAL_ENTRY" if externally_authorized and manual_pass else "READY_FOR_SUPERVISED_HOST_INPUT"
+    real_host_input = bool(externally_authorized)
     return HostReadinessReport(
         status=status,
-        real_host_input=True,
+        real_host_input=real_host_input,
         snapshot_id=envelope.snapshot_id,
         source_name=envelope.source_name,
         as_of=envelope.as_of,

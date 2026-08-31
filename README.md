@@ -11,8 +11,9 @@ ticket**. It never submits, places, or executes brokerage orders.
 The repository contains the Meridian decision-support core, bounded public-data
 shadow adapters, certified SEC fundamentals, and replay-safe research contracts.
 It still contains no brokerage integration, broker writes, real account, or
-order-submission surface. Gate 6A production shadow output remains explicitly
-`SHADOW / NOT AUTHORIZED FOR ENTRY`.
+order-submission surface. Gate 6B/6C shadow output remains explicitly
+`SHADOW / NOT AUTHORIZED FOR ENTRY`; no production execution quote is
+certified.
 
 ## Safety boundary
 
@@ -36,6 +37,11 @@ uv run pyright
 See [architecture.md](docs/architecture.md),
 [product-contract.md](docs/product-contract.md), and
 [build-state.md](docs/build-state.md).
+
+The supervised Host contract can be checked with
+`meridian host-smoke <sanitized-envelope.json>`. Candidate quote configuration
+is inspected with `meridian quote-preflight`; this command never prints
+credentials and does not certify a provider by connectivity alone.
 
 ## Upstream research integrations
 

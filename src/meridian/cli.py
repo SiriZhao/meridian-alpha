@@ -19,11 +19,13 @@ from meridian.evidence import (
     FakeMarketEvidenceProvider,
     FakeNewsEvidenceProvider,
 )
+from meridian.execution_quote_providers import provider_preflight
 from meridian.host_account import (
     HostAccountSnapshotEnvelope,
     normalize_host_snapshot,
 )
 from meridian.host_readiness import build_host_smoke_report, write_host_smoke_report
+from meridian.identity_certification import load_verified_security_certificates
 from meridian.market import FakeMarketDataProvider
 from meridian.orchestrator import DailyAnalysisService, DailyOrchestrator
 from meridian.pipeline import (
@@ -47,6 +49,7 @@ from meridian.schemas import (
     FreshnessState,
     MarketSnapshot,
 )
+from meridian.security_master import DEFAULT_SECURITY_MASTER
 
 
 def _fixture_market(as_of: datetime) -> FakeMarketDataProvider:
@@ -164,6 +167,15 @@ def main() -> None:
     host_smoke.add_argument(
         "snapshot", help="Path to a sanitized HostAccountSnapshotEnvelope JSON file"
     )
+    quote_preflight = subparsers.add_parser(
+        "quote-preflight",
+        help="Show sanitized read-only Alpaca/Polygon quote configuration diagnostics",
+    )
+    quote_preflight.add_argument(
+        "--probe",
+        action="store_true",
+        help="Perform bounded read-only probes when local provider credentials exist",
+    )
     daily = subparsers.add_parser("daily")
     daily.add_argument("--account-fixture", required=True)
     daily.add_argument("--date", required=True)
@@ -204,16 +216,31 @@ def main() -> None:
     args = parser.parse_args()
     root = Path.cwd()
     policies = load_policies(root / "policies")
+    if args.command == "quote-preflight":
+        _load_local_env(root)
+        results = provider_preflight(probe=args.probe)
+        print(json.dumps({"providers": [item.model_dump(mode="json") for item in results]}, sort_keys=True))
+        return
     if args.command == "host-smoke":
         try:
+            security_path = root / "reports" / "gate4f-security-master.json"
+            security_master = (
+                load_verified_security_certificates(security_path)
+                if security_path.exists()
+                else DEFAULT_SECURITY_MASTER
+            )
             envelope = HostAccountSnapshotEnvelope.model_validate_json(
                 Path(args.snapshot).read_text(encoding="utf-8")
             )
-            snapshot = normalize_host_snapshot(envelope)
+            snapshot = normalize_host_snapshot(envelope, security_master=security_master)
             decision = DailyAnalysisService(None, policies).run(
                 snapshot, datetime.now(snapshot.as_of.tzinfo)
             )
-            readiness = build_host_smoke_report(envelope)
+            readiness = build_host_smoke_report(
+                envelope,
+                security_master=security_master,
+                security_ready=security_master.authoritative_count() == 11,
+            )
             report_json = root / "reports" / "gate4f-host-smoke.json"
             report_markdown_path = root / "reports" / "gate4f-host-smoke.md"
             write_host_smoke_report(readiness, report_json, report_markdown_path)

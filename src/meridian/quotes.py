@@ -488,3 +488,10 @@ from meridian.execution_quotes import (  # noqa: E402,F401
 )
 
 ExecutionQuoteCertificate = ExecutionQuoteCapabilityCertificate
+
+# Optional read-only candidate adapters are re-exported for integration
+# discoverability; importing them never configures credentials or networking.
+from meridian.execution_quote_providers import (  # noqa: E402,F401
+    AlpacaExecutionQuoteProvider,
+    PolygonExecutionQuoteProvider,
+)

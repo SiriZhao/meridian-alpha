@@ -1,0 +1,338 @@
+{
+  "allocator": {
+    "name": "deterministic_alpha_volatility_fallback",
+    "target_after_risk": {
+      "AAPL": "0.25",
+      "NVDA": "0.25"
+    },
+    "target_before_risk": {
+      "AAPL": "0.25",
+      "NVDA": "0.25"
+    }
+  },
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "content_hash": "06e6fca02164fee578ee5af795f5df67b1baeb5a7d4d226a8b6eecb989601e9a",
+  "coverage": {
+    "AAPL": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:aapl_bf69d7a942b3894146ecd08ccd7c88f1",
+        "GROSS_PROFIT:MULTIPLE_CONTEXTS:aapl_4fd7c61896facd42f48e03d5f756b3e9",
+        "NET_INCOME:MULTIPLE_CONTEXTS:aapl_aabca53c548fb39aa7f56c8c2864adee",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:aapl_fd4e66484229583be2aa5a8702c44979",
+        "REVENUE:MULTIPLE_CONTEXTS:aapl_a87958b68a0833e41587f6bd34687793"
+      ],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "GROSS_PROFIT",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 429,
+      "comparables": 12,
+      "derived": 16,
+      "latest_accepted_filing": "0000320193-26-000020",
+      "missing_metrics": [],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "GOOGL": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:googl_b1ff7c0123663db4d1338a38b054eefb",
+        "NET_INCOME:MULTIPLE_CONTEXTS:googl_f81fb21e8f1eaa4798a8934a804c3d3d",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:googl_a82718728f310a996bf7335da2bb9e85",
+        "REVENUE:MULTIPLE_CONTEXTS:googl_85cd8b6a97aece954e8937c0692dd381"
+      ],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 67,
+      "comparables": 11,
+      "derived": 14,
+      "latest_accepted_filing": "0001652044-26-000071",
+      "missing_metrics": [
+        "GROSS_PROFIT"
+      ],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "META": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:meta_476dc43368fa2bd1a6c7031f707e3e5a",
+        "NET_INCOME:MULTIPLE_CONTEXTS:meta_7110d9fdd72ee7e16a148153fb0461d8",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:meta_0c31e4738f239b30130b5730145feabf",
+        "REVENUE:MULTIPLE_CONTEXTS:meta_6ba7db908c4daff78b90afda82eb7ab0"
+      ],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 292,
+      "comparables": 11,
+      "derived": 14,
+      "latest_accepted_filing": "0001628280-26-050705",
+      "missing_metrics": [
+        "GROSS_PROFIT"
+      ],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "MSFT": {
+      "ambiguous_concepts": [],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "GROSS_PROFIT",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 436,
+      "comparables": 12,
+      "derived": 18,
+      "latest_accepted_filing": "0001193125-26-323660",
+      "missing_metrics": [],
+      "quality_score": 1.0,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "NVDA": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:nvda_d03d029cb0043cd90d15e1cd9ecacb33",
+        "GROSS_PROFIT:MULTIPLE_CONTEXTS:nvda_7de2f3e2e02e8770631a9f43397d1831",
+        "NET_INCOME:MULTIPLE_CONTEXTS:nvda_d9f13e48292da8eefbcc9defea42c37e",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:nvda_55939eaa5c77aec9e3cdcdc3b499c920",
+        "REVENUE:MULTIPLE_CONTEXTS:nvda_6dd4c4129c87b70f68f326da79f3660a"
+      ],
+      "canonical_metrics": [
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "GROSS_PROFIT",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 334,
+      "comparables": 11,
+      "derived": 14,
+      "latest_accepted_filing": "0001045810-26-000075",
+      "missing_metrics": [
+        "CAPEX"
+      ],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    }
+  },
+  "created_at": "2026-08-31T05:55:26.464210+00:00",
+  "decision_as_of": "2026-08-31T02:02:27.962965+00:00",
+  "directional_diversity": {
+    "abstain_count": 3,
+    "note": "Natural output; no rescaling or forced diversity.",
+    "observed": [
+      "BULLISH"
+    ]
+  },
+  "dislocation": {
+    "candidates": [
+      {
+        "drawdown": "-0.1617619326996270206174166618",
+        "momentum_reversal": "0.046296388444929104248642812",
+        "quant_alpha": "0",
+        "realized_volatility": "0.02775526238116584261571435150",
+        "reasons": [
+          "DRAWDOWN_THRESHOLD",
+          "MOMENTUM_REVERSAL"
+        ],
+        "ticker": "META"
+      }
+    ],
+    "failures": [],
+    "snapshots": [
+      {
+        "as_of": "2026-08-31T05:55:26.464210Z",
+        "current_price": "314.5799865722656",
+        "drawdown": "-0.0749823600530557970995152665",
+        "market_relative_move": null,
+        "realized_volatility": "0.01802919794845489304383250028",
+        "relative_drawdown": null,
+        "source_hashes": [
+          "bbbf818ae8fcd881e92788a06dbec66a573d6a03f4e3eab30dd5314f0337e7be"
+        ],
+        "ticker": "AAPL",
+        "trend_state": "RECENT_REVERSAL"
+      },
+      {
+        "as_of": "2026-08-31T05:55:26.464210Z",
+        "current_price": "505.05999755859375",
+        "drawdown": "-0.0019760502802520284245377105",
+        "market_relative_move": null,
+        "realized_volatility": "0.02899053742485277031298832360",
+        "relative_drawdown": null,
+        "source_hashes": [
+          "4894488749ba4e3bd19c2656e6c1f7313214c8178a2a56a71043641990a2fff5"
+        ],
+        "ticker": "MSFT",
+        "trend_state": "RECENT_REVERSAL"
+      },
+      {
+        "as_of": "2026-08-31T05:55:26.464210Z",
+        "current_price": "227.97999572753906",
+        "drawdown": "0",
+        "market_relative_move": null,
+        "realized_volatility": "0.02670105829099958644764656465",
+        "relative_drawdown": null,
+        "source_hashes": [
+          "672e02b7736067558de615be2d81cf8704478d5b5616365d34ff817efab6fa58"
+        ],
+        "ticker": "NVDA",
+        "trend_state": "RECENT_REVERSAL"
+      },
+      {
+        "as_of": "2026-08-31T05:55:26.464210Z",
+        "current_price": "571.0999755859375",
+        "drawdown": "-0.1617619326996270206174166618",
+        "market_relative_move": null,
+        "realized_volatility": "0.02775526238116584261571435150",
+        "relative_drawdown": null,
+        "source_hashes": [
+          "0de0438b0caecf23778c0af84cfa2b2464b3ae3733d13884a90a39b3427b640f"
+        ],
+        "ticker": "META",
+        "trend_state": "RECENT_REVERSAL"
+      },
+      {
+        "as_of": "2026-08-31T05:55:26.464210Z",
+        "current_price": "340.6499938964844",
+        "drawdown": "-0.0979743164252290975790335778",
+        "market_relative_move": null,
+        "realized_volatility": "0.02408559958562477124688003121",
+        "relative_drawdown": null,
+        "source_hashes": [
+          "6d55c175d38545393f998b16279de801a49a8b392ee26a5dc396d214cf881ec2"
+        ],
+        "ticker": "GOOGL",
+        "trend_state": "DOWN"
+      }
+    ],
+    "source": "Yahoo historical shadow; not certified evidence",
+    "status": "COMPLETED"
+  },
+  "llm": {
+    "certified_signals": 2,
+    "live_calls": 0,
+    "mode": "FROZEN_REPLAY_ONLY"
+  },
+  "reconciliation": {
+    "status": "DRAFT",
+    "warnings": []
+  },
+  "rows": [
+    {
+      "allocation_effect": "TARGET_PORTFOLIO",
+      "certified_evidence_count": 3,
+      "combined_alpha": "0.1717128361030000758074166252",
+      "evidence_ids": [
+        "aapl_fundamental_latest",
+        "aapl_fundamental_comparables",
+        "aapl_fundamental_derived"
+      ],
+      "llm_conviction": "0.82",
+      "llm_direction": "BULLISH",
+      "policy_hash": "b735d0dac518a20b5fd1483c1284c421114c88ad439f1f09c0d4392617474da3",
+      "quant_input_hash": "9259cef219dd1be003ba436b2196d07f956398a19b32ae6149442e33cd47ac30",
+      "quant_only_alpha": "-0.008287163896999924192583374798",
+      "quant_score": "-0.01841591977111094265018527733",
+      "research_modifier": "0.18",
+      "research_status": "REPLAY_AVAILABLE",
+      "response_artifact_hash": "abe88e25f849c32fbb85b4d5bb1a0b23624c001b42e52b3d00ac7bf416b29649",
+      "ticker": "AAPL"
+    },
+    {
+      "quant_score": "UNAVAILABLE",
+      "research_status": "NO_CERTIFIED_EVIDENCE",
+      "status": "NO_CERTIFIED_SIGNAL",
+      "ticker": "MSFT"
+    },
+    {
+      "allocation_effect": "TARGET_PORTFOLIO",
+      "certified_evidence_count": 3,
+      "combined_alpha": "0.3048881554052132001939091966",
+      "evidence_ids": [
+        "nvda_fundamental_latest",
+        "nvda_fundamental_comparables",
+        "nvda_fundamental_derived"
+      ],
+      "llm_conviction": "0.95",
+      "llm_direction": "BULLISH",
+      "policy_hash": "b735d0dac518a20b5fd1483c1284c421114c88ad439f1f09c0d4392617474da3",
+      "quant_input_hash": "2752b587454237e9a12f13743eb5ff11161e4c5ea79dc12e1c0af316f2381e2e",
+      "quant_only_alpha": "0.1248881554052132001939091966",
+      "quant_score": "0.2775292342338071115420204368",
+      "research_modifier": "0.18",
+      "research_status": "REPLAY_AVAILABLE",
+      "response_artifact_hash": "c6a9be9307119a3ae1fdf78110d38dd52da1ff2f42e72ddff282aa123ab22a5a",
+      "ticker": "NVDA"
+    },
+    {
+      "quant_score": "UNAVAILABLE",
+      "research_status": "ABSTAIN",
+      "status": "NO_CERTIFIED_SIGNAL",
+      "ticker": "META"
+    },
+    {
+      "quant_score": "UNAVAILABLE",
+      "research_status": "ABSTAIN",
+      "status": "NO_CERTIFIED_SIGNAL",
+      "ticker": "GOOGL"
+    }
+  ],
+  "schema_version": "gate6b.v1",
+  "security": {
+    "artifact_valid": true,
+    "runtime_authoritative": 11
+  },
+  "warnings": [
+    "SHADOW / NOT AUTHORIZED FOR ENTRY",
+    "NO_BROKER",
+    "NO_SCHWAB",
+    "NO_REAL_ACCOUNT",
+    "NO_REAL_ORDERS",
+    "NEWS_MACRO_EXCLUDED_FROM_CERTIFIED_GROUNDING"
+  ]
+}

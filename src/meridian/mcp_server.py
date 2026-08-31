@@ -18,6 +18,7 @@ from starlette.routing import Route
 
 from meridian.audit import AuditStore
 from meridian.config import load_policies
+from meridian.execution_quote_providers import provider_preflight
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.host_readiness import evaluate_host_readiness
 from meridian.orchestrator import DailyAnalysisService
@@ -128,6 +129,9 @@ def get_provider_health() -> dict[str, Any]:
             name: certificate.model_dump(mode="json")
             for name, certificate in provider_certification_map().items()
         },
+        "candidate_preflight": [
+            item.model_dump(mode="json") for item in provider_preflight(probe=False)
+        ],
         "execution_quote_authority": False,
     }
 
@@ -142,6 +146,75 @@ def get_run(run_id: str) -> dict[str, Any]:
     if result is None:
         return {"found": False, "run_id": run_id}
     return {"found": True, "result": result}
+
+
+@mcp.tool(
+    title="Get daily report",
+    description="Return the sanitized report for one completed Meridian analysis run.",
+    annotations=READ_ONLY,
+    structured_output=True,
+)
+def get_daily_report(run_id: str) -> dict[str, Any]:
+    return get_run(run_id)
+
+
+@mcp.tool(
+    title="Inspect evidence",
+    description="Inspect only evidence identifiers retained in a sanitized run summary; no raw provider payloads are returned.",
+    annotations=READ_ONLY,
+    structured_output=True,
+)
+def inspect_evidence(run_id: str) -> dict[str, Any]:
+    result = STORE.get_decision_summary(run_id)
+    if result is None:
+        return {"found": False, "run_id": run_id, "evidence_ids": []}
+    return {"found": True, "run_id": run_id, "evidence_ids": [], "reason": "Raw evidence is not persisted in the default audit store."}
+
+
+@mcp.tool(
+    title="Inspect research",
+    description="Inspect the sanitized research availability posture for a run without returning transcripts or credentials.",
+    annotations=READ_ONLY,
+    structured_output=True,
+)
+def inspect_research(run_id: str) -> dict[str, Any]:
+    result = STORE.get_decision_summary(run_id)
+    if result is None:
+        return {"found": False, "run_id": run_id}
+    return {"found": True, "run_id": run_id, "status": "SANITIZED_AUDIT_ONLY", "transcript_available": False}
+
+
+@mcp.tool(
+    title="Inspect target portfolio",
+    description="Return deterministic target weights from a sanitized run summary.",
+    annotations=READ_ONLY,
+    structured_output=True,
+)
+def inspect_target_portfolio(run_id: str) -> dict[str, Any]:
+    result = STORE.get_decision_summary(run_id)
+    if result is None:
+        return {"found": False, "run_id": run_id, "target": []}
+    return {"found": True, "run_id": run_id, "target": result.get("recommendations", [])}
+
+
+@mcp.tool(
+    title="Inspect manual draft",
+    description="Return a manual draft only when deterministic readiness gates pass; never submits it.",
+    annotations=READ_ONLY,
+    structured_output=True,
+)
+def inspect_manual_draft(run_id: str) -> dict[str, Any]:
+    return get_order_ticket(run_id)
+
+
+@mcp.tool(
+    title="Provider health",
+    description="Alias for the read-only provider capability and health report.",
+    annotations=READ_ONLY,
+    structured_output=True,
+)
+def provider_health() -> dict[str, Any]:
+    return get_provider_health()
 
 
 @mcp.tool(

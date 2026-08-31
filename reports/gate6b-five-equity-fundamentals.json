@@ -1,0 +1,153 @@
+{
+  "coverage": {
+    "AAPL": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:aapl_bf69d7a942b3894146ecd08ccd7c88f1",
+        "GROSS_PROFIT:MULTIPLE_CONTEXTS:aapl_4fd7c61896facd42f48e03d5f756b3e9",
+        "NET_INCOME:MULTIPLE_CONTEXTS:aapl_aabca53c548fb39aa7f56c8c2864adee",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:aapl_fd4e66484229583be2aa5a8702c44979",
+        "REVENUE:MULTIPLE_CONTEXTS:aapl_a87958b68a0833e41587f6bd34687793"
+      ],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "GROSS_PROFIT",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 429,
+      "comparables": 12,
+      "derived": 16,
+      "latest_accepted_filing": "0000320193-26-000020",
+      "missing_metrics": [],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "GOOGL": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:googl_b1ff7c0123663db4d1338a38b054eefb",
+        "NET_INCOME:MULTIPLE_CONTEXTS:googl_f81fb21e8f1eaa4798a8934a804c3d3d",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:googl_a82718728f310a996bf7335da2bb9e85",
+        "REVENUE:MULTIPLE_CONTEXTS:googl_85cd8b6a97aece954e8937c0692dd381"
+      ],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 67,
+      "comparables": 11,
+      "derived": 14,
+      "latest_accepted_filing": "0001652044-26-000071",
+      "missing_metrics": [
+        "GROSS_PROFIT"
+      ],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "META": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:meta_476dc43368fa2bd1a6c7031f707e3e5a",
+        "NET_INCOME:MULTIPLE_CONTEXTS:meta_7110d9fdd72ee7e16a148153fb0461d8",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:meta_0c31e4738f239b30130b5730145feabf",
+        "REVENUE:MULTIPLE_CONTEXTS:meta_6ba7db908c4daff78b90afda82eb7ab0"
+      ],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 292,
+      "comparables": 11,
+      "derived": 14,
+      "latest_accepted_filing": "0001628280-26-050705",
+      "missing_metrics": [
+        "GROSS_PROFIT"
+      ],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "MSFT": {
+      "ambiguous_concepts": [],
+      "canonical_metrics": [
+        "CAPEX",
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "GROSS_PROFIT",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 436,
+      "comparables": 12,
+      "derived": 18,
+      "latest_accepted_filing": "0001193125-26-323660",
+      "missing_metrics": [],
+      "quality_score": 1.0,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    },
+    "NVDA": {
+      "ambiguous_concepts": [
+        "DILUTED_EPS:MULTIPLE_CONTEXTS:nvda_d03d029cb0043cd90d15e1cd9ecacb33",
+        "GROSS_PROFIT:MULTIPLE_CONTEXTS:nvda_7de2f3e2e02e8770631a9f43397d1831",
+        "NET_INCOME:MULTIPLE_CONTEXTS:nvda_d9f13e48292da8eefbcc9defea42c37e",
+        "OPERATING_INCOME:MULTIPLE_CONTEXTS:nvda_55939eaa5c77aec9e3cdcdc3b499c920",
+        "REVENUE:MULTIPLE_CONTEXTS:nvda_6dd4c4129c87b70f68f326da79f3660a"
+      ],
+      "canonical_metrics": [
+        "CASH_AND_EQUIVALENTS",
+        "DILUTED_EPS",
+        "GROSS_PROFIT",
+        "LONG_TERM_DEBT",
+        "NET_INCOME",
+        "OPERATING_CASH_FLOW",
+        "OPERATING_INCOME",
+        "REVENUE",
+        "SHAREHOLDERS_EQUITY",
+        "TOTAL_ASSETS",
+        "TOTAL_LIABILITIES"
+      ],
+      "certified_facts": 334,
+      "comparables": 11,
+      "derived": 14,
+      "latest_accepted_filing": "0001045810-26-000075",
+      "missing_metrics": [
+        "CAPEX"
+      ],
+      "quality_score": 0.8,
+      "restatement_status": "PIT_VERSIONED_BY_ACCESSION"
+    }
+  },
+  "created_at": "2026-08-31T05:55:26.464210+00:00",
+  "decision_as_of": "2026-08-31T05:55:26.464210+00:00",
+  "schema_version": "gate6b.fundamentals.v1",
+  "source_report_hash": "b64c1e76016a976a0b5dbc8974ad5db11770755cf457d68b72e192748eea2438"
+}

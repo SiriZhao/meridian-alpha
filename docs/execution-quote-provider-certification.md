@@ -2,7 +2,8 @@
 
 Status: **TO_BE_SELECTED**. No provider is execution-certified in this
 checkpoint. Meridian did not connect Schwab, a broker, an account, or an order
-surface.
+surface. Gate 6C adds read-only candidate adapters and `meridian
+quote-preflight`; a reachable endpoint is still insufficient for certification.
 
 ## Candidate review
 
@@ -11,6 +12,12 @@ surface.
 | Polygon.io Stocks WebSocket/REST | Quote and trade endpoints document bid/ask fields for supported feeds | Exchange/event timestamps and regular versus extended session must be proven in the selected plan | US stocks/ETFs; VIX/index coverage is separate and unproven | API key and plan limits required; no key configured | Plan terms and redistribution/manual-ticket use require contract review | Candidate only |
 | Alpaca Market Data API | Latest quote exposes bid/ask/last for supported symbols | Quote timestamps and feed/session semantics are documented per feed but require account-plan verification | US equities/ETFs; VIX/index posture not proven | API credentials and subscription/limits required | Terms and permitted manual-ticket use require review | Candidate only |
 | Yahoo chart | Last/regular-market price only in Meridian's adapter; no dependable bid/ask | Delay, exchange timestamp, and after-hours semantics are not certified | Research shadow only | Public endpoint/rate limits and terms are unverified | Not suitable for manual ticket pricing | **Rejected** |
+
+The provider-neutral `ExecutionQuoteProvider` boundary has two optional,
+read-only candidate adapters: `AlpacaExecutionQuoteProvider` and
+`PolygonExecutionQuoteProvider`. They require local credentials to make a
+bounded probe, never expose those credentials in output, and advertise
+`execution_quote_grade=false` until the selected plan/feed is reviewed.
 
 ## Certification gate
 

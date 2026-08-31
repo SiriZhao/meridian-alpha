@@ -11,15 +11,22 @@ invoke a particular brokerage, finance SDK, bank SDK, login, credential, or
 account number.
 
 1. Sanitize current facts into `HostAccountSnapshotEnvelope`.
-2. Call `validate_host_account_snapshot`.
-3. Call `run_host_daily_analysis` using the same envelope and current as-of
+2. For local CLI review, run `meridian host-smoke <file>`; it performs schema,
+   sensitive-key, freshness, identity, normalization, and shared-analysis
+   checks without connecting to an account source.
+3. Call `validate_host_account_snapshot`.
+4. Call `run_host_daily_analysis` using the same envelope and current as-of
    time.
-4. Present the returned account state, evidence, target portfolio, risk,
+5. Present the returned account state, evidence, target portfolio, risk,
    readiness, and blockers.
-5. Treat `ANALYSIS_ONLY` and `DRAFT` as non-enterable. Only
+6. Treat `ANALYSIS_ONLY` and `DRAFT` as non-enterable. Only
    `READY_FOR_MANUAL_ENTRY` is a manual-entry candidate, never an execution.
-6. Never say `已执行` or that an order filled until a newer host snapshot proves
+7. Never say `已执行` or that an order filled until a newer host snapshot proves
    the changed cash/holding state.
+
+Execution quotes are a separate certified capability. `meridian
+quote-preflight` reports candidate-provider health only; without a verified
+certificate, `QUOTE_READY` and manual entry remain blocked.
 
 Read [workflow.md](references/workflow.md), [account-contract.md](references/account-contract.md),
 and [safety.md](references/safety.md).

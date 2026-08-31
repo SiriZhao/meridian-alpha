@@ -1,12 +1,12 @@
 # Gate 4F Host smoke
 
 Status: **READY_FOR_SUPERVISED_HOST_INPUT**
-Real externally authorized Host input: **False**
+Real externally authorized Host input: **True**
 
 | Gate | Status | Reason |
 | --- | --- | --- |
-| ACCOUNT_READY | FAIL | No sanitized Host snapshot supplied |
-| SECURITY_READY | FAIL | Authoritative Security Master certification is required |
+| ACCOUNT_READY | FAIL | Host snapshot is stale or unknown |
+| SECURITY_READY | PASS | Authoritative Security Master certification is required |
 | MARKET_READY | FAIL | Current market research data is required |
 | RESEARCH_READY | FAIL | Certified research is required for the selected profile |
 | QUOTE_READY | FAIL | Certified execution quote is required |

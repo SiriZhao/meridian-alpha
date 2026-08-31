@@ -102,11 +102,16 @@ def _json(value: object) -> object:
     return json.loads(json.dumps(value, default=str))
 
 
-def build_real_fundamentals(now: datetime) -> tuple[dict[str, object], dict[str, object]]:
+def build_real_fundamentals(
+    now: datetime, tickers: tuple[str, ...] = TICKERS
+) -> tuple[dict[str, object], dict[str, object]]:
     metadata = BatchSubmissionsMetadata(now=now)
     all_reports: dict[str, object] = {}
     snapshots: dict[str, object] = {}
-    for ticker in TICKERS:
+    bounded_tickers = tuple(dict.fromkeys(ticker.upper() for ticker in tickers))
+    if not set(bounded_tickers).issubset(set(TICKERS) | {"META", "GOOGL"}):
+        raise ValueError("TICKER_OUTSIDE_BOUNDED_UNIVERSE")
+    for ticker in bounded_tickers:
         provider = SECCompanyFactsNumericProvider(clock=lambda now=now: now)
         try:
             observations = provider.get_observations(ticker)
@@ -142,7 +147,7 @@ def build_real_fundamentals(now: datetime) -> tuple[dict[str, object], dict[str,
         "schema_version": "gate3b16.v1",
         "created_at": now.isoformat(),
         "decision_as_of": now.isoformat(),
-        "network_budget": {"companyfacts_fetches": len(TICKERS), "submissions_fetches": metadata.fetch_count, "max_recent_accessions_per_ticker": 12},
+        "network_budget": {"companyfacts_fetches": len(bounded_tickers), "submissions_fetches": metadata.fetch_count, "max_recent_accessions_per_ticker": 12},
         "provider": "sec-edgar-companyfacts-numeric + SEC:EDGAR_ACCEPTANCE_METADATA",
         "tickers": all_reports,
     }
@@ -236,12 +241,17 @@ def _alpha_effects(certificates: list[CertifiedAgentSignal]) -> dict[str, object
     return effects
 
 
-def build_dislocation_screen(now: datetime) -> dict[str, object]:
+def build_dislocation_screen(
+    now: datetime, tickers: tuple[str, ...] = TICKERS
+) -> dict[str, object]:
     provider = YahooChartHistoricalProvider(DEFAULT_SECURITY_MASTER)
     features: dict[str, dict[str, Decimal]] = {}
     snapshots: list[dict[str, object]] = []
     failures: list[dict[str, str]] = []
-    for ticker in TICKERS:
+    bounded_tickers = tuple(dict.fromkeys(ticker.upper() for ticker in tickers))
+    if not set(bounded_tickers).issubset(set(TICKERS) | {"META", "GOOGL"}):
+        raise ValueError("TICKER_OUTSIDE_BOUNDED_UNIVERSE")
+    for ticker in bounded_tickers:
         try:
             series = provider.get_series(ticker, now.date() - timedelta(days=60), now.date(), as_of=now)
             closes = [bar.close for bar in series.bars]

@@ -158,3 +158,18 @@ Manual-ticket pricing requires a provider capability certificate proving bid,
 ask, last, timestamp/session, freshness, identity, licensing, and rate-limit
 semantics. Yahoo remains last-only research data and `TO_BE_SELECTED` providers
 cannot authorize a manual ticket. A draft is always `NOT_EXECUTED`.
+
+## Gate 6B/6C release-candidate posture
+
+The five-equity shadow path (AAPL, MSFT, NVDA, META, GOOGL) uses real
+accession-linked, acceptance-time SEC fundamentals and the same production
+AlphaFusion/allocator/risk/reconciliation path. A synthetic Host-style account
+and frozen or explicitly opted-in certified research remain shadow-only.
+
+`meridian host-smoke <file>` accepts only a sanitized
+`HostAccountSnapshotEnvelope`; fixture inputs are never labeled as externally
+authorized Host data. `meridian quote-preflight` reports read-only Alpaca and
+Polygon candidate health without printing credentials. Candidate connectivity
+does not certify execution semantics. Until a provider certificate and real
+Host input are both present, `QUOTE_READY` and `MANUAL_ENTRY_READY` remain
+blocked, and no order surface exists.

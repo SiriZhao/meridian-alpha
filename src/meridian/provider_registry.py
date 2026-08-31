@@ -105,6 +105,21 @@ _PROVIDER_RECORDS = (
         current_certification="TO_BE_SELECTED",
         failure_behavior="No configured adapter; candidate cannot authorize a manual ticket",
     ),
+    ProviderCertificationRecord(
+        provider_name="alpaca-market-data",
+        domain="execution_quote_candidate",
+        network_capable=True,
+        supports_live=True,
+        supports_bid=True,
+        supports_ask=True,
+        supports_last=True,
+        timestamp_semantics="Documented quote/trade timestamps require supervised plan/feed verification",
+        provenance_semantics="Candidate only; canonical symbol and retrieval lineage are validated per observation",
+        authentication="API key and secret required; no key is printed or persisted",
+        rate_limit="Plan-dependent; not verified",
+        current_certification="TO_BE_SELECTED",
+        failure_behavior="No configured adapter; candidate cannot authorize a manual ticket",
+    ),
 )
 
 

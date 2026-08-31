@@ -1,0 +1,109 @@
+{
+  "execution_quote": {
+    "certificate": false,
+    "manual_ticket_fixture": "TEST_ONLY",
+    "provider": "TO_BE_SELECTED",
+    "real_quote_smoke": false,
+    "reason": "No capability-certified provider configuration is present."
+  },
+  "generated_at": "2026-08-31T06:41:27.273130+00:00",
+  "host": {
+    "manual_entry_ready": false,
+    "real_host_input": false,
+    "reason": "Fixtures are synthetic; no externally authorized real Host envelope was supplied.",
+    "scenarios": [
+      {
+        "reason": "SYNCED",
+        "scenario": "complete",
+        "status": "PASS"
+      },
+      {
+        "reason": "PARTIAL",
+        "scenario": "partial",
+        "status": "PASS"
+      },
+      {
+        "reason": "PARTIAL",
+        "scenario": "stale",
+        "status": "PASS"
+      },
+      {
+        "reason": "HOST_ACCOUNT_AS_OF_IN_FUTURE",
+        "scenario": "future",
+        "status": "PASS"
+      },
+      {
+        "reason": "DUPLICATE_SNAPSHOT_ID_CONTENT_CONFLICT",
+        "scenario": "duplicate",
+        "status": "PASS"
+      },
+      {
+        "reason": "reconciliation fixture parsed",
+        "scenario": "external_trade",
+        "status": "PASS"
+      },
+      {
+        "reason": "reconciliation fixture parsed",
+        "scenario": "partial_fill",
+        "status": "PASS"
+      }
+    ],
+    "status": "READY_FOR_SUPERVISED_HOST_INPUT"
+  },
+  "known_p0": 0,
+  "known_p1": [
+    "No externally authorized real Host envelope supplied",
+    "Execution quote provider remains TO_BE_SELECTED"
+  ],
+  "manual_entry": {
+    "authorization": "NOT_AUTHORIZED_FOR_ENTRY",
+    "status": "NO"
+  },
+  "providers": [
+    {
+      "certificate_eligible": false,
+      "checked_at": "2026-08-31T06:41:27.276128Z",
+      "configured": false,
+      "endpoint_reachable": false,
+      "plan_or_feed": null,
+      "provider": "alpaca-market-data",
+      "quote_returned": false,
+      "reason": "NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED",
+      "status": "UNAVAILABLE",
+      "symbols_checked": [
+        "AAPL",
+        "NVDA",
+        "SPY"
+      ]
+    },
+    {
+      "certificate_eligible": false,
+      "checked_at": "2026-08-31T06:41:27.276128Z",
+      "configured": false,
+      "endpoint_reachable": false,
+      "plan_or_feed": null,
+      "provider": "polygon-market-data",
+      "quote_returned": false,
+      "reason": "NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED",
+      "status": "UNAVAILABLE",
+      "symbols_checked": [
+        "AAPL",
+        "NVDA",
+        "SPY"
+      ]
+    }
+  ],
+  "safety": {
+    "automatic_execution": false,
+    "broker": "NONE",
+    "real_account": "NOT_CONNECTED",
+    "real_orders": 0,
+    "schwab": "NOT_CONNECTED"
+  },
+  "schema_version": "gate6c.v1",
+  "security_master": {
+    "artifact_valid": true,
+    "captured": 11,
+    "runtime_authoritative": 11
+  }
+}
