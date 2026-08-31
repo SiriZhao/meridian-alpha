@@ -128,3 +128,23 @@ run, but remain `UNVERIFIED`/non-executable until provider capability and
 point-in-time certification pass. Quotes are last-only where bid/ask is absent;
 adjusted or stale data cannot authorize execution. The shadow account is
 synthetic and output remains `SHADOW / NOT AUTHORIZED FOR ENTRY`.
+
+## Gate 4F/4G identity and quote semantics
+
+Legal security identity is promoted only from a hashed HTTPS primary source
+(SEC for issuers, official sponsor/exchange documentation for ETFs, and Cboe
+for VIX), with an explicit historical effective interval. Provider symbol
+mappings are separate and cannot promote identity. The development fixture
+registry remains non-authoritative until a caller explicitly loads a captured
+certificate set.
+
+Host input is accepted only as a sanitized `HostAccountSnapshotEnvelope`; the
+shared normalization path rejects sensitive keys and emits explicit account,
+security, market, research, quote, risk, reconciliation, and manual-entry
+gates. No supplied Host envelope means `READY_FOR_SUPERVISED_HOST_INPUT`.
+
+`ExecutionQuote` is a distinct type from research prices and valuation marks.
+Manual-ticket pricing requires a provider capability certificate proving bid,
+ask, last, timestamp/session, freshness, identity, licensing, and rate-limit
+semantics. Yahoo remains last-only research data and `TO_BE_SELECTED` providers
+cannot authorize a manual ticket. A draft is always `NOT_EXECUTED`.

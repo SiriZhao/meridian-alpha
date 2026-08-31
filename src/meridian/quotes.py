@@ -468,3 +468,23 @@ class YahooChartQuoteProvider:
             source="yahoo-chart-public",
             as_of=as_of,
         )
+
+
+# Gate 4G keeps execution quotes in a separate module/type hierarchy. These
+# aliases are convenience imports only; Yahoo/Stooq observations remain
+# research-shadow and cannot be converted implicitly.
+from meridian.execution_quotes import (  # noqa: E402,F401
+    ExecutionQuote,
+    ExecutionQuoteCapabilityCertificate,
+    ExecutionQuoteProvider,
+    ExecutionQuoteStatus,
+    ExecutionQuoteValidation,
+    ExecutionQuoteValidator,
+    ExecutionSession,
+    ManualLimitPricePolicy,
+    ManualOrderDraft,
+    ResearchMarketPrice,
+    ValuationMark,
+)
+
+ExecutionQuoteCertificate = ExecutionQuoteCapabilityCertificate

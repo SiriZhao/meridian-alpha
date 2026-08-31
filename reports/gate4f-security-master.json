@@ -1,0 +1,684 @@
+{
+  "authoritative_count": 11,
+  "bounded_universe": [
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "META",
+    "GOOGL",
+    "SPY",
+    "QQQ",
+    "SGOV",
+    "GLD",
+    "TLT",
+    "VIX"
+  ],
+  "created_at": "2026-08-31T03:13:26.892852+00:00",
+  "development_fixture_authoritative_count": 0,
+  "gate": "4F",
+  "historical_identity_posture": "current-source interval only; earlier intervals remain blocked unless separately evidenced",
+  "records": [
+    {
+      "blockers": [],
+      "cik": "0000320193",
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "EQUITY",
+        "canonical_asset_id": "US-EQ-AAPL",
+        "canonical_symbol": "AAPL",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": "0000320193",
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [
+          {
+            "identifier": "AAPL",
+            "observed_at": "2026-01-01T00:00:00Z",
+            "retrieved_at": null,
+            "source": "meridian-fixture"
+          }
+        ],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:14.696349Z",
+            "effective_to": null,
+            "exchange": "NASDAQ",
+            "identifier": "AAPL",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:14.696349Z",
+            "source": "SEC submissions company metadata",
+            "source_hash": "2503475b32d84986bc12632a6430d620526d4fd08026014d0d5d64cb7ab602ab",
+            "source_uri": "https://data.sec.gov/submissions/CIK0000320193.json"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:14.696349Z",
+        "legal_name": "Apple Inc.",
+        "official_identity_provenance": {
+          "canonical_symbol": "AAPL",
+          "certification_at": "2026-08-31T03:13:14.696349Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:14.696349Z",
+          "effective_to": null,
+          "exchange": "NASDAQ",
+          "identity_type": "SEC",
+          "legal_name": "Apple Inc.",
+          "retrieved_at": "2026-08-31T03:13:14.696349Z",
+          "source_hash": "2503475b32d84986bc12632a6430d620526d4fd08026014d0d5d64cb7ab602ab",
+          "source_name": "SEC submissions company metadata",
+          "source_uri": "https://data.sec.gov/submissions/CIK0000320193.json"
+        },
+        "primary_exchange": "NASDAQ",
+        "provider_symbols": {
+          "stooq": "aapl.us",
+          "yahoo": "AAPL"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "US_EQUITY"
+      },
+      "legal_name": "Apple Inc.",
+      "retrieved_at": "2026-08-31T03:13:14.696349+00:00",
+      "source_hash": "2503475b32d84986bc12632a6430d620526d4fd08026014d0d5d64cb7ab602ab",
+      "source_uri": "https://data.sec.gov/submissions/CIK0000320193.json",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "AAPL"
+    },
+    {
+      "blockers": [],
+      "cik": "0000789019",
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "EQUITY",
+        "canonical_asset_id": "US-EQ-MSFT",
+        "canonical_symbol": "MSFT",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": "0000789019",
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:15.667714Z",
+            "effective_to": null,
+            "exchange": "NASDAQ",
+            "identifier": "MSFT",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:15.667714Z",
+            "source": "SEC submissions company metadata",
+            "source_hash": "ef3d1eed787e1d32831fbebbce56e7e151dd13dcc99cf727c427627625df9cfd",
+            "source_uri": "https://data.sec.gov/submissions/CIK0000789019.json"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:15.667714Z",
+        "legal_name": "MICROSOFT CORP",
+        "official_identity_provenance": {
+          "canonical_symbol": "MSFT",
+          "certification_at": "2026-08-31T03:13:15.667714Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:15.667714Z",
+          "effective_to": null,
+          "exchange": "NASDAQ",
+          "identity_type": "SEC",
+          "legal_name": "MICROSOFT CORP",
+          "retrieved_at": "2026-08-31T03:13:15.667714Z",
+          "source_hash": "ef3d1eed787e1d32831fbebbce56e7e151dd13dcc99cf727c427627625df9cfd",
+          "source_name": "SEC submissions company metadata",
+          "source_uri": "https://data.sec.gov/submissions/CIK0000789019.json"
+        },
+        "primary_exchange": "NASDAQ",
+        "provider_symbols": {
+          "stooq": "msft.us",
+          "yahoo": "MSFT"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "US_EQUITY"
+      },
+      "legal_name": "MICROSOFT CORP",
+      "retrieved_at": "2026-08-31T03:13:15.667714+00:00",
+      "source_hash": "ef3d1eed787e1d32831fbebbce56e7e151dd13dcc99cf727c427627625df9cfd",
+      "source_uri": "https://data.sec.gov/submissions/CIK0000789019.json",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "MSFT"
+    },
+    {
+      "blockers": [],
+      "cik": "0001045810",
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "EQUITY",
+        "canonical_asset_id": "US-EQ-NVDA",
+        "canonical_symbol": "NVDA",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": "0001045810",
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:16.320006Z",
+            "effective_to": null,
+            "exchange": "NASDAQ",
+            "identifier": "NVDA",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:16.320006Z",
+            "source": "SEC submissions company metadata",
+            "source_hash": "64a5368efdc842eb34e4391b008598f9e025f7b6c2f329921bd87198ca9d15c1",
+            "source_uri": "https://data.sec.gov/submissions/CIK0001045810.json"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:16.320006Z",
+        "legal_name": "NVIDIA CORP",
+        "official_identity_provenance": {
+          "canonical_symbol": "NVDA",
+          "certification_at": "2026-08-31T03:13:16.320006Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:16.320006Z",
+          "effective_to": null,
+          "exchange": "NASDAQ",
+          "identity_type": "SEC",
+          "legal_name": "NVIDIA CORP",
+          "retrieved_at": "2026-08-31T03:13:16.320006Z",
+          "source_hash": "64a5368efdc842eb34e4391b008598f9e025f7b6c2f329921bd87198ca9d15c1",
+          "source_name": "SEC submissions company metadata",
+          "source_uri": "https://data.sec.gov/submissions/CIK0001045810.json"
+        },
+        "primary_exchange": "NASDAQ",
+        "provider_symbols": {
+          "stooq": "nvda.us",
+          "yahoo": "NVDA"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "US_EQUITY"
+      },
+      "legal_name": "NVIDIA CORP",
+      "retrieved_at": "2026-08-31T03:13:16.320006+00:00",
+      "source_hash": "64a5368efdc842eb34e4391b008598f9e025f7b6c2f329921bd87198ca9d15c1",
+      "source_uri": "https://data.sec.gov/submissions/CIK0001045810.json",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "NVDA"
+    },
+    {
+      "blockers": [],
+      "cik": "0001326801",
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "EQUITY",
+        "canonical_asset_id": "US-EQ-META",
+        "canonical_symbol": "META",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": "0001326801",
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:16.985255Z",
+            "effective_to": null,
+            "exchange": "NASDAQ",
+            "identifier": "META",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:16.985255Z",
+            "source": "SEC submissions company metadata",
+            "source_hash": "2c11151eea83ce390d096daf3245c56c421ab3695af2cc6e1f59a218fbe6e645",
+            "source_uri": "https://data.sec.gov/submissions/CIK0001326801.json"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:16.985255Z",
+        "legal_name": "Meta Platforms, Inc.",
+        "official_identity_provenance": {
+          "canonical_symbol": "META",
+          "certification_at": "2026-08-31T03:13:16.985255Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:16.985255Z",
+          "effective_to": null,
+          "exchange": "NASDAQ",
+          "identity_type": "SEC",
+          "legal_name": "Meta Platforms, Inc.",
+          "retrieved_at": "2026-08-31T03:13:16.985255Z",
+          "source_hash": "2c11151eea83ce390d096daf3245c56c421ab3695af2cc6e1f59a218fbe6e645",
+          "source_name": "SEC submissions company metadata",
+          "source_uri": "https://data.sec.gov/submissions/CIK0001326801.json"
+        },
+        "primary_exchange": "NASDAQ",
+        "provider_symbols": {
+          "stooq": "meta.us",
+          "yahoo": "META"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "US_EQUITY"
+      },
+      "legal_name": "Meta Platforms, Inc.",
+      "retrieved_at": "2026-08-31T03:13:16.985255+00:00",
+      "source_hash": "2c11151eea83ce390d096daf3245c56c421ab3695af2cc6e1f59a218fbe6e645",
+      "source_uri": "https://data.sec.gov/submissions/CIK0001326801.json",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "META"
+    },
+    {
+      "blockers": [],
+      "cik": "0001652044",
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "EQUITY",
+        "canonical_asset_id": "US-EQ-GOOGL",
+        "canonical_symbol": "GOOGL",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": "0001652044",
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:17.617390Z",
+            "effective_to": null,
+            "exchange": "NASDAQ",
+            "identifier": "GOOGL",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:17.617390Z",
+            "source": "SEC submissions company metadata",
+            "source_hash": "f252665a2a476f5091994e40c5770c3cad51acb7c430b475387af0ad9a13b99a",
+            "source_uri": "https://data.sec.gov/submissions/CIK0001652044.json"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:17.617390Z",
+        "legal_name": "Alphabet Inc.",
+        "official_identity_provenance": {
+          "canonical_symbol": "GOOGL",
+          "certification_at": "2026-08-31T03:13:17.617390Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:17.617390Z",
+          "effective_to": null,
+          "exchange": "NASDAQ",
+          "identity_type": "SEC",
+          "legal_name": "Alphabet Inc.",
+          "retrieved_at": "2026-08-31T03:13:17.617390Z",
+          "source_hash": "f252665a2a476f5091994e40c5770c3cad51acb7c430b475387af0ad9a13b99a",
+          "source_name": "SEC submissions company metadata",
+          "source_uri": "https://data.sec.gov/submissions/CIK0001652044.json"
+        },
+        "primary_exchange": "NASDAQ",
+        "provider_symbols": {
+          "stooq": "googl.us",
+          "yahoo": "GOOGL"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "US_EQUITY"
+      },
+      "legal_name": "Alphabet Inc.",
+      "retrieved_at": "2026-08-31T03:13:17.617390+00:00",
+      "source_hash": "f252665a2a476f5091994e40c5770c3cad51acb7c430b475387af0ad9a13b99a",
+      "source_uri": "https://data.sec.gov/submissions/CIK0001652044.json",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "GOOGL"
+    },
+    {
+      "blockers": [],
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "ETF",
+        "canonical_asset_id": "US-ETF-SPY",
+        "canonical_symbol": "SPY",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": null,
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:19.189546Z",
+            "effective_to": null,
+            "exchange": "NYSEARCA",
+            "identifier": "SPY",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:19.189546Z",
+            "source": "SPDR S&P 500 ETF Trust official sponsor",
+            "source_hash": "4589b2a723f1e4c345571cde7b16529ea49cb5396cc9af75de9cdfea9055e94a",
+            "source_uri": "https://www.ssga.com/us/en/individual/etfs/funds/spdr-sp-500-etf-trust-spy"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:19.189546Z",
+        "legal_name": "SPDR S&P 500 ETF Trust",
+        "official_identity_provenance": {
+          "canonical_symbol": "SPY",
+          "certification_at": "2026-08-31T03:13:19.189546Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:19.189546Z",
+          "effective_to": null,
+          "exchange": "NYSEARCA",
+          "identity_type": "ETF_SPONSOR",
+          "legal_name": "SPDR S&P 500 ETF Trust",
+          "retrieved_at": "2026-08-31T03:13:19.189546Z",
+          "source_hash": "4589b2a723f1e4c345571cde7b16529ea49cb5396cc9af75de9cdfea9055e94a",
+          "source_name": "SPDR S&P 500 ETF Trust official sponsor",
+          "source_uri": "https://www.ssga.com/us/en/individual/etfs/funds/spdr-sp-500-etf-trust-spy"
+        },
+        "primary_exchange": "NYSEARCA",
+        "provider_symbols": {
+          "stooq": "spy.us",
+          "yahoo": "SPY"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "US_EQUITY"
+      },
+      "legal_name": "SPDR S&P 500 ETF Trust",
+      "retrieved_at": "2026-08-31T03:13:19.189546+00:00",
+      "source_hash": "4589b2a723f1e4c345571cde7b16529ea49cb5396cc9af75de9cdfea9055e94a",
+      "source_uri": "https://www.ssga.com/us/en/individual/etfs/funds/spdr-sp-500-etf-trust-spy",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "SPY"
+    },
+    {
+      "blockers": [],
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "ETF",
+        "canonical_asset_id": "US-ETF-QQQ",
+        "canonical_symbol": "QQQ",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": null,
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:19.793458Z",
+            "effective_to": null,
+            "exchange": "NASDAQ",
+            "identifier": "QQQ",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:19.793458Z",
+            "source": "Invesco QQQ Trust official sponsor",
+            "source_hash": "9ddd8efe04bbe139987356c3a5ca28a44611a24d30f5817d12717562772a0b5f",
+            "source_uri": "https://www.invesco.com/qqq-etf/en/about.html"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:19.793458Z",
+        "legal_name": "Invesco QQQ Trust",
+        "official_identity_provenance": {
+          "canonical_symbol": "QQQ",
+          "certification_at": "2026-08-31T03:13:19.793458Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:19.793458Z",
+          "effective_to": null,
+          "exchange": "NASDAQ",
+          "identity_type": "ETF_SPONSOR",
+          "legal_name": "Invesco QQQ Trust",
+          "retrieved_at": "2026-08-31T03:13:19.793458Z",
+          "source_hash": "9ddd8efe04bbe139987356c3a5ca28a44611a24d30f5817d12717562772a0b5f",
+          "source_name": "Invesco QQQ Trust official sponsor",
+          "source_uri": "https://www.invesco.com/qqq-etf/en/about.html"
+        },
+        "primary_exchange": "NASDAQ",
+        "provider_symbols": {
+          "stooq": "qqq.us",
+          "yahoo": "QQQ"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "US_EQUITY"
+      },
+      "legal_name": "Invesco QQQ Trust",
+      "retrieved_at": "2026-08-31T03:13:19.793458+00:00",
+      "source_hash": "9ddd8efe04bbe139987356c3a5ca28a44611a24d30f5817d12717562772a0b5f",
+      "source_uri": "https://www.invesco.com/qqq-etf/en/about.html",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "QQQ"
+    },
+    {
+      "blockers": [],
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "ETF",
+        "canonical_asset_id": "US-ETF-SGOV",
+        "canonical_symbol": "SGOV",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": null,
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:21.368620Z",
+            "effective_to": null,
+            "exchange": "NYSEARCA",
+            "identifier": "SGOV",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:21.368620Z",
+            "source": "iShares 0-3 Month Treasury Bond ETF official sponsor",
+            "source_hash": "02d0615345790485aae8b92fef959c64a6d99f5fab4eddaf235676785889e0c3",
+            "source_uri": "https://www.ishares.com/us/products/314116/ishares-0-3-month-treasury-bond-etf"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:21.368620Z",
+        "legal_name": "iShares 0-3 Month Treasury Bond ETF",
+        "official_identity_provenance": {
+          "canonical_symbol": "SGOV",
+          "certification_at": "2026-08-31T03:13:21.368620Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:21.368620Z",
+          "effective_to": null,
+          "exchange": "NYSEARCA",
+          "identity_type": "ETF_SPONSOR",
+          "legal_name": "iShares 0-3 Month Treasury Bond ETF",
+          "retrieved_at": "2026-08-31T03:13:21.368620Z",
+          "source_hash": "02d0615345790485aae8b92fef959c64a6d99f5fab4eddaf235676785889e0c3",
+          "source_name": "iShares 0-3 Month Treasury Bond ETF official sponsor",
+          "source_uri": "https://www.ishares.com/us/products/314116/ishares-0-3-month-treasury-bond-etf"
+        },
+        "primary_exchange": "NYSEARCA",
+        "provider_symbols": {
+          "stooq": "sgov.us",
+          "yahoo": "SGOV"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "US_EQUITY"
+      },
+      "legal_name": "iShares 0-3 Month Treasury Bond ETF",
+      "retrieved_at": "2026-08-31T03:13:21.368620+00:00",
+      "source_hash": "02d0615345790485aae8b92fef959c64a6d99f5fab4eddaf235676785889e0c3",
+      "source_uri": "https://www.ishares.com/us/products/314116/ishares-0-3-month-treasury-bond-etf",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "SGOV"
+    },
+    {
+      "blockers": [],
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "ETF",
+        "canonical_asset_id": "US-ETF-GLD",
+        "canonical_symbol": "GLD",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": null,
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:22.149276Z",
+            "effective_to": null,
+            "exchange": "NYSEARCA",
+            "identifier": "GLD",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:22.149276Z",
+            "source": "SPDR Gold Shares official sponsor",
+            "source_hash": "ba67be28322f22d8b6b3bf7ad112f4145210d4cbfa01d6105c66ac59e01479ae",
+            "source_uri": "https://www.ssga.com/us/en/individual/etfs/funds/spdr-gold-shares-gld"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:22.149276Z",
+        "legal_name": "SPDR Gold Shares",
+        "official_identity_provenance": {
+          "canonical_symbol": "GLD",
+          "certification_at": "2026-08-31T03:13:22.149276Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:22.149276Z",
+          "effective_to": null,
+          "exchange": "NYSEARCA",
+          "identity_type": "ETF_SPONSOR",
+          "legal_name": "SPDR Gold Shares",
+          "retrieved_at": "2026-08-31T03:13:22.149276Z",
+          "source_hash": "ba67be28322f22d8b6b3bf7ad112f4145210d4cbfa01d6105c66ac59e01479ae",
+          "source_name": "SPDR Gold Shares official sponsor",
+          "source_uri": "https://www.ssga.com/us/en/individual/etfs/funds/spdr-gold-shares-gld"
+        },
+        "primary_exchange": "NYSEARCA",
+        "provider_symbols": {
+          "stooq": "gld.us",
+          "yahoo": "GLD"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "US_EQUITY"
+      },
+      "legal_name": "SPDR Gold Shares",
+      "retrieved_at": "2026-08-31T03:13:22.149276+00:00",
+      "source_hash": "ba67be28322f22d8b6b3bf7ad112f4145210d4cbfa01d6105c66ac59e01479ae",
+      "source_uri": "https://www.ssga.com/us/en/individual/etfs/funds/spdr-gold-shares-gld",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "GLD"
+    },
+    {
+      "blockers": [],
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "ETF",
+        "canonical_asset_id": "US-ETF-TLT",
+        "canonical_symbol": "TLT",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": null,
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:23.548950Z",
+            "effective_to": null,
+            "exchange": "NASDAQ",
+            "identifier": "TLT",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:23.548950Z",
+            "source": "iShares 20+ Year Treasury Bond ETF official sponsor",
+            "source_hash": "cdba40e970d15ef9bda2a4bb8e9f8f890007ff35206d9a61d0712c1766423c29",
+            "source_uri": "https://www.ishares.com/us/products/239454/ishares-20-year-treasury-bond-etf"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:23.548950Z",
+        "legal_name": "iShares 20+ Year Treasury Bond ETF",
+        "official_identity_provenance": {
+          "canonical_symbol": "TLT",
+          "certification_at": "2026-08-31T03:13:23.548950Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:23.548950Z",
+          "effective_to": null,
+          "exchange": "NASDAQ",
+          "identity_type": "ETF_SPONSOR",
+          "legal_name": "iShares 20+ Year Treasury Bond ETF",
+          "retrieved_at": "2026-08-31T03:13:23.548950Z",
+          "source_hash": "cdba40e970d15ef9bda2a4bb8e9f8f890007ff35206d9a61d0712c1766423c29",
+          "source_name": "iShares 20+ Year Treasury Bond ETF official sponsor",
+          "source_uri": "https://www.ishares.com/us/products/239454/ishares-20-year-treasury-bond-etf"
+        },
+        "primary_exchange": "NASDAQ",
+        "provider_symbols": {
+          "stooq": "tlt.us",
+          "yahoo": "TLT"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "US_EQUITY"
+      },
+      "legal_name": "iShares 20+ Year Treasury Bond ETF",
+      "retrieved_at": "2026-08-31T03:13:23.548950+00:00",
+      "source_hash": "cdba40e970d15ef9bda2a4bb8e9f8f890007ff35206d9a61d0712c1766423c29",
+      "source_uri": "https://www.ishares.com/us/products/239454/ishares-20-year-treasury-bond-etf",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "TLT"
+    },
+    {
+      "blockers": [],
+      "identity": {
+        "active_from": null,
+        "active_to": null,
+        "asset_type": "INDEX",
+        "canonical_asset_id": "US-INDEX-VIX",
+        "canonical_symbol": "VIX",
+        "certification_status": "AUTHORITATIVE_VERIFIED",
+        "cik": null,
+        "country": "US",
+        "currency": "USD",
+        "identifier_provenance": [],
+        "identity_history": [
+          {
+            "delisting_state": "ACTIVE",
+            "effective_from": "2026-08-31T03:13:26.882667Z",
+            "effective_to": null,
+            "exchange": "CBOE",
+            "identifier": "VIX",
+            "identifier_type": "CANONICAL_SYMBOL",
+            "retrieved_at": "2026-08-31T03:13:26.882667Z",
+            "source": "Cboe official VIX documentation",
+            "source_hash": "ff339a3cdf825672e74e29595d6768688f0902d8737024554cb3889983b90380",
+            "source_uri": "https://www.cboe.com/tradable_products/vix/"
+          }
+        ],
+        "last_verified_at": "2026-08-31T03:13:26.882667Z",
+        "legal_name": "Cboe Volatility Index",
+        "official_identity_provenance": {
+          "canonical_symbol": "VIX",
+          "certification_at": "2026-08-31T03:13:26.882667Z",
+          "currency": "USD",
+          "effective_from": "2026-08-31T03:13:26.882667Z",
+          "effective_to": null,
+          "exchange": "CBOE",
+          "identity_type": "CBOE",
+          "legal_name": "Cboe Volatility Index",
+          "retrieved_at": "2026-08-31T03:13:26.882667Z",
+          "source_hash": "ff339a3cdf825672e74e29595d6768688f0902d8737024554cb3889983b90380",
+          "source_name": "Cboe official VIX documentation",
+          "source_uri": "https://www.cboe.com/tradable_products/vix/"
+        },
+        "primary_exchange": "CBOE",
+        "provider_symbols": {
+          "stooq": "^vix",
+          "yahoo": "^VIX"
+        },
+        "symbol_provenance": [],
+        "timezone": "America/New_York",
+        "trading_calendar": "CBOE_VIX"
+      },
+      "legal_name": "Cboe Volatility Index",
+      "retrieved_at": "2026-08-31T03:13:26.882667+00:00",
+      "source_hash": "ff339a3cdf825672e74e29595d6768688f0902d8737024554cb3889983b90380",
+      "source_uri": "https://www.cboe.com/tradable_products/vix/",
+      "status": "AUTHORITATIVE_VERIFIED",
+      "ticker": "VIX"
+    }
+  ],
+  "schema_version": "1"
+}

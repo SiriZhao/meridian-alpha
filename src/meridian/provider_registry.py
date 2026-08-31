@@ -90,6 +90,21 @@ _PROVIDER_RECORDS = (
         current_certification="DIAGNOSTIC_ONLY",
         failure_behavior="HTTP/malformed response fails closed",
     ),
+    ProviderCertificationRecord(
+        provider_name="polygon-read-only-candidate",
+        domain="execution_quote_candidate",
+        network_capable=True,
+        supports_live=True,
+        supports_bid=True,
+        supports_ask=True,
+        supports_last=True,
+        timestamp_semantics="Documented endpoint fields require supervised plan/feed verification",
+        provenance_semantics="Candidate only; symbol, exchange event, and retrieval lineage must be certified per observation",
+        authentication="API key required; no key configured",
+        rate_limit="Plan-dependent; not verified",
+        current_certification="TO_BE_SELECTED",
+        failure_behavior="No configured adapter; candidate cannot authorize a manual ticket",
+    ),
 )
 
 

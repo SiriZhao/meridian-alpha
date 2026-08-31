@@ -23,6 +23,7 @@ from meridian.host_account import (
     HostAccountSnapshotEnvelope,
     normalize_host_snapshot,
 )
+from meridian.host_readiness import build_host_smoke_report, write_host_smoke_report
 from meridian.market import FakeMarketDataProvider
 from meridian.orchestrator import DailyAnalysisService, DailyOrchestrator
 from meridian.pipeline import (
@@ -212,22 +213,17 @@ def main() -> None:
             decision = DailyAnalysisService(None, policies).run(
                 snapshot, datetime.now(snapshot.as_of.tzinfo)
             )
-            account_ready = (
-                snapshot.freshness_state in {FreshnessState.VERIFIED, FreshnessState.RECENT}
-                and snapshot.sync_state.value == "SYNCED"
-            )
+            readiness = build_host_smoke_report(envelope)
+            report_json = root / "reports" / "gate4f-host-smoke.json"
+            report_markdown_path = root / "reports" / "gate4f-host-smoke.md"
+            write_host_smoke_report(readiness, report_json, report_markdown_path)
             output = {
                 "validation": "VALID",
-                "ACCOUNT_READY": account_ready,
-                "SECURITY_READY": True,
-                "MARKET_READY": False,
-                "RESEARCH_READY": "ANALYSIS_ONLY",
-                "QUOTE_READY": False,
-                "RISK_READY": True,
-                "RECONCILIATION_READY": account_ready,
-                "MANUAL_ENTRY_READY": False,
-                "status": "READY_FOR_SUPERVISED_HOST_INPUT" if account_ready else "ANALYSIS_ONLY",
-                "blockers": ["EXECUTION_QUOTE_AUTHORITY_UNAVAILABLE"],
+                "gates": [gate.model_dump(mode="json") for gate in readiness.gates],
+                "status": readiness.status,
+                "report_json": str(report_json),
+                "report_markdown": str(report_markdown_path),
+                "blockers": [gate.reason for gate in readiness.gates if gate.status.value == "FAIL"],
                 "decision": decision.model_dump(mode="json"),
             }
             print(json.dumps(output, default=str))

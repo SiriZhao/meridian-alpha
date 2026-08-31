@@ -19,6 +19,7 @@ from starlette.routing import Route
 from meridian.audit import AuditStore
 from meridian.config import load_policies
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
+from meridian.host_readiness import evaluate_host_readiness
 from meridian.orchestrator import DailyAnalysisService
 from meridian.provider_registry import provider_certification_map
 from meridian.schemas import AccountSnapshot, AccountSyncState, FreshnessState, RunStatus
@@ -87,13 +88,17 @@ def run_daily_analysis(account_snapshot: AccountSnapshot, run_date: datetime) ->
 )
 def validate_host_account_snapshot(envelope: HostAccountSnapshotEnvelope) -> dict[str, Any]:
     snapshot = normalize_host_snapshot(envelope)
+    gates = evaluate_host_readiness(snapshot)
     return {
         "valid": True,
         "snapshot_id": snapshot.snapshot_id,
         "coverage_status": envelope.coverage_status,
         "sync_state": snapshot.sync_state,
         "freshness_state": snapshot.freshness_state,
-        "manual_entry_eligible": False,
+        "gates": [gate.model_dump(mode="json") for gate in gates],
+        "manual_entry_eligible": any(
+            gate.gate == "MANUAL_ENTRY_READY" and gate.status.value == "PASS" for gate in gates
+        ),
         "readiness_blocker": "EXECUTION_QUOTE_AUTHORITY_UNAVAILABLE",
     }
 

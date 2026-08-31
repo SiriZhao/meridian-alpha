@@ -51,6 +51,17 @@ class SymbolProvenance(StableModel):
     retrieved_at: datetime | None = None
 
 
+class ProviderSymbolMapping(StableModel):
+    """Provider lookup identity; it is not legal-security provenance."""
+
+    provider: str = Field(min_length=1, max_length=128)
+    provider_symbol: str = Field(min_length=1, max_length=128)
+    source: str = Field(min_length=1, max_length=256)
+    source_uri: str | None = Field(default=None, max_length=2000)
+    observed_at: datetime
+    retrieved_at: datetime | None = None
+
+
 class OfficialIdentityProvenance(StableModel):
     """Review-safe record of a primary-source identity verification."""
 
@@ -59,7 +70,24 @@ class OfficialIdentityProvenance(StableModel):
     retrieved_at: datetime
     source_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
     certification_at: datetime
+    identity_type: str = Field(default="LEGAL_IDENTITY", max_length=64)
+    canonical_symbol: str | None = Field(default=None, max_length=16)
+    legal_name: str | None = Field(default=None, max_length=256)
+    exchange: str | None = Field(default=None, max_length=64)
+    currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
+    effective_from: datetime | None = None
+    effective_to: datetime | None = None
 
+    @model_validator(mode="after")
+    def validate_provenance(self) -> OfficialIdentityProvenance:
+        if self.certification_at < self.retrieved_at:
+            raise ValueError("certification_at must not precede retrieved_at")
+        if self.effective_from and self.effective_to and self.effective_to < self.effective_from:
+            raise ValueError("identity effective_to must not precede effective_from")
+        parsed = __import__("urllib.parse", fromlist=["urlparse"]).urlparse(self.source_uri)
+        if parsed.scheme != "https" or not parsed.netloc:
+            raise ValueError("official identity source must be an HTTPS URI")
+        return self
 
 class SecurityIdentityHistory(StableModel):
     """Time-bounded symbol/identifier continuity for historical replay."""
@@ -403,5 +431,26 @@ class SecurityMaster:
     def all_records(self) -> tuple[SecurityMasterRecord, ...]:
         return tuple(self._records[key] for key in sorted(self._records))
 
+    def authoritative_count(self) -> int:
+        return sum(
+            record.certification_status is SecurityCertificationStatus.AUTHORITATIVE_VERIFIED
+            for record in self._records.values()
+        )
+
+    def promote_authoritative(self, request: object):
+        """Explicitly apply a validated primary-source identity request."""
+        from meridian.identity_certification import (
+            IdentityCertificationRequest,
+            SecurityMasterPromotionService,
+        )
+
+        if not isinstance(request, IdentityCertificationRequest):
+            raise TypeError("promote_authoritative requires IdentityCertificationRequest")
+        return SecurityMasterPromotionService().promote_into(self, request)
+
 
 DEFAULT_SECURITY_MASTER = SecurityMaster()
+
+# Explicit noun used by integration callers; the canonical record remains the
+# single source of legal identity and does not include provider credentials.
+CanonicalSecurityIdentity = SecurityMasterRecord

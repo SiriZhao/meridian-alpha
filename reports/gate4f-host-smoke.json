@@ -1,0 +1,58 @@
+{
+  "as_of": null,
+  "coverage": null,
+  "currency": null,
+  "gates": [
+    {
+      "gate": "ACCOUNT_READY",
+      "reason": "No sanitized Host snapshot supplied",
+      "status": "FAIL"
+    },
+    {
+      "gate": "SECURITY_READY",
+      "reason": "Authoritative Security Master certification is required",
+      "status": "FAIL"
+    },
+    {
+      "gate": "MARKET_READY",
+      "reason": "Current market research data is required",
+      "status": "FAIL"
+    },
+    {
+      "gate": "RESEARCH_READY",
+      "reason": "Certified research is required for the selected profile",
+      "status": "FAIL"
+    },
+    {
+      "gate": "QUOTE_READY",
+      "reason": "Certified execution quote is required",
+      "status": "FAIL"
+    },
+    {
+      "gate": "RISK_READY",
+      "reason": "Deterministic risk checks have not passed",
+      "status": "FAIL"
+    },
+    {
+      "gate": "RECONCILIATION_READY",
+      "reason": "Current account truth has not been reconciled",
+      "status": "FAIL"
+    },
+    {
+      "gate": "MANUAL_ENTRY_READY",
+      "reason": "All account, identity, quote, risk, and reconciliation gates must pass",
+      "status": "FAIL"
+    }
+  ],
+  "position_count": 0,
+  "provenance_digest": null,
+  "real_host_input": false,
+  "retrieved_at": null,
+  "schema_version": "1",
+  "snapshot_id": null,
+  "source_name": null,
+  "status": "READY_FOR_SUPERVISED_HOST_INPUT",
+  "warnings": [
+    "No externally authorized sanitized Host input was supplied."
+  ]
+}

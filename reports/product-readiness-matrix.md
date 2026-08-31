@@ -1,4 +1,4 @@
-# Product readiness matrix — Gate 5B/5C/5D
+# Product readiness matrix — Gate 4F/4G (plus prior Gate 5B/5C/5D)
 
 `IMPLEMENTED` describes a Meridian contract or adapter boundary; `REAL` and
 `PIT CERTIFIED` describe observed evidence, not intent. No row authorizes a
@@ -7,9 +7,9 @@ broker action.
 | Capability | IMPLEMENTED | REAL | PIT CERTIFIED | SHADOW | EXECUTABLE | TESTED | BLOCKER |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Account truth | Yes | No | N/A | Yes | No | Yes | No real Host envelope; supervised input pending |
-| Security identity | Yes | Partial | No | Yes | No | Yes | 0/11 authoritative provenance records |
+| Security identity | Yes | Yes (11 bounded primary-source captures) | Current-source interval only | Yes | No | Yes | Development fixture remains 0/11; historical intervals before capture are blocked |
 | Market research data | Yes | Yes | No | Yes | No | Yes | Yahoo remains research-shadow only |
-| Execution quote | Contract | No | No | Yes | No | Yes | TO_BE_SELECTED; no certified bid/ask authority |
+| Execution quote | Contract | No | No | Yes | No | Yes | TO_BE_SELECTED; Yahoo rejected; no certified bid/ask authority or adapter config |
 | Historical OHLCV | Yes | Yes | No | Yes | No | Yes | provider availability/PIT certification |
 | Corporate actions | Contract | No | No | Yes | No | Yes | source certification pending |
 | Fundamentals | Yes | Yes | Yes | Yes | No | Yes | bounded SEC AAPL/NVDA/MSFT coverage |
@@ -25,6 +25,6 @@ broker action.
 | FinRL-X challenger | Yes | No | No | Yes | No | Yes | MODEL_UNAVAILABLE; no validated artifact/runtime |
 | Risk | Yes | No | N/A | Yes | No | Yes | manual quote authority absent |
 | Reconciliation | Yes | No | N/A | Yes | No | Yes | requires next fresh account snapshot |
-| Manual ticket | Contract | No | N/A | Yes | No | Yes | quote authority and supervised account absent |
-| Host/MCP | Yes | No | N/A | Yes | No | Yes | sanitized supervised input only |
+| Manual ticket | Contract | No | N/A | Yes | No | Yes | Quote authority and supervised account absent; deterministic draft remains NOT_EXECUTED |
+| Host/MCP | Yes | No | N/A | Yes | No | Yes | Explicit gates implemented; no externally authorized sanitized Host input supplied |
 | Broker | No | No | N/A | No | No | Yes | intentionally absent |

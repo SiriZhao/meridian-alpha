@@ -1,0 +1,34 @@
+{
+  "schema_version": "1",
+  "gate": "4F/4G",
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "known_p0": [],
+  "security_master": {
+    "bounded_primary_source_captures": 11,
+    "bounded_universe": 11,
+    "runtime_fixture_authoritative": 0,
+    "historical_posture": "current-source interval only"
+  },
+  "host": {
+    "contract": "IMPLEMENTED",
+    "real_supervised_input": false,
+    "status": "READY_FOR_SUPERVISED_HOST_INPUT",
+    "manual_entry_ready": false
+  },
+  "execution_quote": {
+    "provider": "TO_BE_SELECTED",
+    "yahoo_execution_grade": false,
+    "certificate": false,
+    "real_quote_smoke": "NOT_RUN_NO_CERTIFIED_PROVIDER",
+    "manual_entry_ready": false
+  },
+  "broker": "NONE",
+  "schwab": "NOT_CONNECTED",
+  "real_account": "NOT_CONNECTED",
+  "real_orders": 0,
+  "release_labels": [
+    "AUTHORITATIVE_SECURITY_MASTER_READY",
+    "READY_FOR_SUPERVISED_HOST_INPUT",
+    "READY_FOR_LONGER_SHADOW_OBSERVATION"
+  ]
+}
