@@ -588,9 +588,13 @@ class ShadowSessionLedger:
     def summary(self) -> dict[str, object]:
         return {
             "sessions_completed": self.completed_count,
+            "SHADOW_SESSIONS_COMPLETED": self.completed_count,
+            "SHADOW_SESSIONS_REQUIRED": SHADOW_SESSIONS_REQUIRED,
+            "SHADOW_SESSIONS_PREFERRED": SHADOW_SESSIONS_PREFERRED,
             "sessions_required": SHADOW_SESSIONS_REQUIRED,
             "sessions_preferred": SHADOW_SESSIONS_PREFERRED,
             "acceptance_status": self.acceptance_status,
+            "SHADOW_ACCEPTANCE_STATUS": self.acceptance_status,
             "performance_validated": False,
             "records": len(self.records),
             "ledger_hash": self.content_hash,
