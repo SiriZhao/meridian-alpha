@@ -18,7 +18,13 @@ from urllib.request import Request, urlopen
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from meridian.schemas import AgentSignal, EvidenceItem, EvidencePointInTimeStatus, StableModel
+from meridian.schemas import (
+    AgentSignal,
+    AlphaScore,
+    EvidenceItem,
+    EvidencePointInTimeStatus,
+    StableModel,
+)
 
 
 class ResearchStatus(StrEnum):
@@ -1009,6 +1015,63 @@ class GroundedResearchReplayStore:
 
     def load_signal(self, ticker: str, as_of: datetime) -> GroundedResearchSignal:
         return self._load("grounded", ticker, as_of, GroundedResearchSignal)  # type: ignore[return-value]
+
+
+def replay_grounded_research(
+    response: Mapping[str, Any],
+    packet: ResearchEvidencePacket,
+    *,
+    expected_response_hash: str,
+    provider_registry: Mapping[str, Any],
+    technical_score: Decimal = Decimal("0"),
+    decision_as_of: datetime | None = None,
+) -> tuple[GroundedResearchSignal, CertifiedAgentSignal, AlphaScore]:
+    """Rebuild the certified research/alpha chain from a frozen response.
+
+    This is intentionally a pure replay helper: it validates the exact
+    sanitized response and certified citations, then invokes only Meridian's
+    deterministic authorization and fusion code.  No live model/provider call
+    is reachable from this function.
+    """
+
+    from meridian.alpha_fusion import fuse
+    from meridian.authorization import EvidenceAuthorizationService
+    from meridian.reproducibility import validate_frozen_llm_response
+
+    cutoff = decision_as_of or packet.as_of
+    validated = validate_frozen_llm_response(
+        response,
+        expected_hash=expected_response_hash,
+        decision_as_of=cutoff,
+        allowed_evidence_ids={item.stable_id for item in packet.items},
+        schema_version=str(response.get("schema_version", "1")),
+    )
+    citations = tuple(validated.get("cited_evidence_ids", validated.get("evidence_ids", ())))
+    direction = validated.get("direction")
+    thesis = validated.get("thesis")
+    risks = validated.get("risks", ())
+    if not isinstance(direction, str) or not direction.strip():
+        raise ValueError("LLM_REPLAY_DIRECTION_INVALID")
+    if not isinstance(thesis, str) or not thesis.strip():
+        raise ValueError("LLM_REPLAY_THESIS_INVALID")
+    if not isinstance(risks, (list, tuple)) or any(not isinstance(item, str) for item in risks):
+        raise ValueError("LLM_REPLAY_RISKS_INVALID")
+    signal = GroundedResearchSignal(
+        ticker=packet.ticker,
+        as_of=cutoff,
+        direction=direction.upper(),
+        conviction=Decimal(str(validated.get("conviction", validated.get("research_conviction", "0")))),
+        thesis=thesis,
+        risks=tuple(risks),
+        cited_evidence_ids=citations,
+        status=GroundedResearchStatus.AVAILABLE,
+    )
+    certified = EvidenceAuthorizationService().authorize(
+        signal,
+        packet,
+        provider_registry=provider_registry,
+    )
+    return signal, certified, fuse(certified, technical_score)
 
 
 class ResearchEngine(Protocol):

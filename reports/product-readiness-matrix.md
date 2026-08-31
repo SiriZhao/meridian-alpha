@@ -1,4 +1,4 @@
-# Product readiness matrix — Gate 4F/4G (plus prior Gate 5B/5C/5D)
+# Product readiness matrix — Gate 5E/5F (plus prior gates)
 
 `IMPLEMENTED` describes a Meridian contract or adapter boundary; `REAL` and
 `PIT CERTIFIED` describe observed evidence, not intent. No row authorizes a
@@ -22,9 +22,10 @@ broker action.
 | Dislocation | Yes | No | Requires certified view | Yes | No | Yes | no eligible certified candidate in last run |
 | Quant | Yes | Mixed | N/A | Yes | No | Yes | shadow analysis only |
 | Deterministic allocator | Yes | Yes | N/A | Yes | No | Yes | execution quote/account gates |
-| FinRL-X challenger | Yes | No | No | Yes | No | Yes | MODEL_UNAVAILABLE; no validated artifact/runtime |
+| FinRL-X challenger | Yes | No | No | Yes | No | Yes | MODEL_UNAVAILABLE; no OOS-validated artifact/runtime; promotion remains NO |
 | Risk | Yes | No | N/A | Yes | No | Yes | manual quote authority absent |
 | Reconciliation | Yes | No | N/A | Yes | No | Yes | requires next fresh account snapshot |
 | Manual ticket | Contract | No | N/A | Yes | No | Yes | Quote authority and supervised account absent; deterministic draft remains NOT_EXECUTED |
 | Host/MCP | Yes | No | N/A | Yes | No | Yes | Explicit gates implemented; no externally authorized sanitized Host input supplied |
 | Broker | No | No | N/A | No | No | Yes | intentionally absent |
+| Replay integrity | Yes | Yes (local cache/replay artifacts) | N/A | Yes | No | Yes | none; live provider health remains explicit |

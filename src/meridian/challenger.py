@@ -21,7 +21,13 @@ FeatureSnapshot = FrozenFeature
 
 class ModelArtifactStatus(StrEnum):
     MODEL_UNAVAILABLE = "MODEL_UNAVAILABLE"
+    MODEL_INVALID = "MODEL_INVALID"
     DEVELOPMENT_MODEL = "DEVELOPMENT_MODEL"
+    ARTIFACT_VALIDATED = "ARTIFACT_VALIDATED"
+    OOS_VALIDATED_SHADOW = "OOS_VALIDATED_SHADOW"
+    PROMOTION_ELIGIBLE = "PROMOTION_ELIGIBLE"
+    # Kept as a compatibility value for pre-5F fixtures.  It is deliberately
+    # never treated as OOS validation or promotion eligibility.
     VALIDATED_SHADOW = "VALIDATED_SHADOW"
 
 
@@ -48,10 +54,20 @@ class ModelArtifactManifest(StableModel):
     transaction_cost_assumption: Decimal = Field(ge=0, le=1)
     benchmark: str = Field(min_length=1, max_length=64)
     oos_period: str = Field(min_length=1, max_length=128)
-    oos_metrics: dict[str, Decimal] = Field(min_length=1)
+    oos_metrics: dict[str, Decimal | str] = Field(min_length=1)
     walk_forward_status: str = Field(min_length=1, max_length=128)
+    validation_period: str = Field(default="not_run", min_length=1, max_length=128)
+    walk_forward_result: dict[str, Decimal | str] = Field(default_factory=dict)
     provenance: str = Field(min_length=1, max_length=1024)
     status: ModelArtifactStatus = ModelArtifactStatus.DEVELOPMENT_MODEL
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_canonical_artifact_hash(cls, data):
+        if isinstance(data, dict) and "model_hash" not in data and "artifact_hash" in data:
+            data = dict(data)
+            data["model_hash"] = data.pop("artifact_hash")
+        return data
 
     @model_validator(mode="after")
     def validate_cutoffs(self):
@@ -59,7 +75,41 @@ class ModelArtifactManifest(StableModel):
             raise ValueError("invalid model training chronology")
         if self.information_cutoff > self.training_end:
             raise ValueError("information cutoff cannot follow training end")
+        if self.status is ModelArtifactStatus.OOS_VALIDATED_SHADOW:
+            fields: tuple[tuple[str, object], ...] = (
+                ("framework_version", self.framework_version),
+                ("framework_commit", self.framework_commit),
+                ("training_code_commit", self.training_code_commit),
+                ("training_period", f"{self.training_start.isoformat()}/{self.training_end.isoformat()}"),
+                ("validation_period", self.validation_period),
+                ("oos_period", self.oos_period),
+                ("benchmark", self.benchmark),
+                ("feature_schema", self.feature_schema),
+                ("normalization", self.normalization_state_hash),
+                ("objective", self.target_objective),
+                ("action_space", self.action_space),
+                ("walk_forward_status", self.walk_forward_status),
+            )
+            placeholders = {"", "unavailable", "not_run", "none", "unknown", "n/a"}
+            for name, value in fields:
+                if str(value).strip().casefold() in placeholders:
+                    raise ValueError(f"OOS_VALIDATION_MISSING:{name}")
+            if not self.oos_metrics or not self.walk_forward_result:
+                raise ValueError("OOS_VALIDATION_MISSING:metrics-or-walk-forward")
+            for label, values in (("oos_metrics", self.oos_metrics), ("walk_forward_result", self.walk_forward_result)):
+                if any(str(value).strip().casefold() in placeholders for value in values.values()):
+                    raise ValueError(f"OOS_VALIDATION_MISSING:{label}")
         return self
+
+    @property
+    def artifact_hash(self) -> str:
+        """Canonical name used by the 5F contract (``model_hash`` is legacy)."""
+
+        return self.model_hash
+
+    @property
+    def oos_validated(self) -> bool:
+        return self.status is ModelArtifactStatus.OOS_VALIDATED_SHADOW
 
 
 class ChallengerResult(StableModel):
@@ -226,14 +276,18 @@ class FinRLXAllocatorChallenger:
             return ChallengerResult(status=ModelArtifactStatus.MODEL_UNAVAILABLE,
                                    feature_snapshot_hash=feature_snapshot_hash,
                                    warnings=("MODEL_UNAVAILABLE:manifest-required",))
-        if manifest.status is not ModelArtifactStatus.VALIDATED_SHADOW:
+        if manifest.status not in {
+            ModelArtifactStatus.OOS_VALIDATED_SHADOW,
+            ModelArtifactStatus.VALIDATED_SHADOW,
+        }:
             return ChallengerResult(status=manifest.status, model_id=manifest.model_id,
                                    feature_snapshot_hash=feature_snapshot_hash,
                                    warnings=("NON_PRODUCTION_NOT_PROMOTION_ELIGIBLE",))
         artifact_error, digest = _artifact_status(manifest)
         if artifact_error is not None:
             return ChallengerResult(
-                status=ModelArtifactStatus.MODEL_UNAVAILABLE,
+                status=(ModelArtifactStatus.MODEL_INVALID
+                        if manifest.oos_validated else ModelArtifactStatus.MODEL_UNAVAILABLE),
                 model_id=manifest.model_id,
                 feature_snapshot_hash=feature_snapshot_hash,
                 artifact_hash=digest,
@@ -253,7 +307,12 @@ class FinRLXAllocatorChallenger:
         manifest: ModelArtifactManifest | None,
     ) -> ChallengerResult:
         """Run an optional isolated runtime; default is fail-closed."""
-        if manifest is None or manifest.status is not ModelArtifactStatus.VALIDATED_SHADOW:
+        if manifest is None or manifest.status not in {
+            ModelArtifactStatus.OOS_VALIDATED_SHADOW,
+            # Legacy fixtures may exercise the side-effect-free adapter, but
+            # this status is never considered OOS validation.
+            ModelArtifactStatus.VALIDATED_SHADOW,
+        }:
             return ChallengerResult(
                 status=ModelArtifactStatus.MODEL_UNAVAILABLE,
                 feature_snapshot_hash=feature_snapshot.content_hash,
@@ -269,7 +328,8 @@ class FinRLXAllocatorChallenger:
         artifact_error, digest = _artifact_status(manifest)
         if artifact_error is not None:
             return ChallengerResult(
-                status=ModelArtifactStatus.MODEL_UNAVAILABLE,
+                status=(ModelArtifactStatus.MODEL_INVALID
+                        if manifest.oos_validated else ModelArtifactStatus.MODEL_UNAVAILABLE),
                 model_id=manifest.model_id,
                 feature_snapshot_hash=feature_snapshot.content_hash,
                 artifact_hash=digest,
@@ -332,13 +392,13 @@ def _artifact_status(manifest: ModelArtifactManifest) -> tuple[str | None, str |
     """Validate artifact presence and bytes immediately before any inference."""
     path = Path(manifest.artifact_path)
     if not path.is_file():
-        return "MODEL_UNAVAILABLE:artifact-not-present", None
+        return "MODEL_INVALID:artifact-not-present", None
     try:
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
     except OSError:
-        return "MODEL_UNAVAILABLE:artifact-read-failed", None
+        return "MODEL_INVALID:artifact-read-failed", None
     if digest != manifest.model_hash:
-        return "MODEL_UNAVAILABLE:artifact-hash-mismatch", digest
+        return "MODEL_INVALID:artifact-hash-mismatch", digest
     return None, digest
 
 

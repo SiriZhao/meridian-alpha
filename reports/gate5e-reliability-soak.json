@@ -1,0 +1,47 @@
+{
+  "schema_version": "gate5e.v1",
+  "mode": "OFFLINE_REPLAY",
+  "cycles": 8,
+  "network_calls": 0,
+  "retries": 0,
+  "cache_hit_rate": "1.0 (deterministic fixture)",
+  "provider_call_budget": {"DeepSeek": 0, "SEC": 0, "market": 0, "quote": 0, "TradingAgents": 0},
+  "scenarios": {
+    "sec_missing": "EXPLICIT_FAIL_CLOSED",
+    "sec_corrupted": "EXPLICIT_FAIL_CLOSED",
+    "market_unavailable": "EXPLICIT_FAIL_CLOSED",
+    "deepseek_timeout": "EXPLICIT_FAIL_CLOSED",
+    "deepseek_malformed": "EXPLICIT_FAIL_CLOSED",
+    "deepseek_abstain": "EXPLICIT_FAIL_CLOSED",
+    "deepseek_neutral": "EXPLICIT_REPLAY_OUTCOME",
+    "deepseek_bullish_replay": "EXPLICIT_REPLAY_OUTCOME",
+    "deepseek_bearish_replay": "EXPLICIT_REPLAY_OUTCOME",
+    "quote_stale": "EXPLICIT_FAIL_CLOSED",
+    "quote_wide": "EXPLICIT_FAIL_CLOSED",
+    "host_stale": "EXPLICIT_FAIL_CLOSED",
+    "host_partial": "EXPLICIT_DEGRADED",
+    "unknown_security": "EXPLICIT_FAIL_CLOSED",
+    "external_trade": "EXPLICIT_RECONCILIATION_REQUIRED",
+    "partial_fill": "EXPLICIT_RECONCILIATION_REQUIRED",
+    "finrlx_missing": "MODEL_UNAVAILABLE",
+    "finrlx_bad_output": "EXPLICIT_FAIL_CLOSED",
+    "dislocation_disagreement": "EXPLICIT_DIAGNOSTIC_ONLY",
+    "future_filing": "EXPLICIT_PIT_REJECTED",
+    "restatement": "EXPLICIT_VERSIONED_LINEAGE"
+  },
+  "latency_ms": {
+    "SEC": null,
+    "market": null,
+    "DeepSeek": null,
+    "evidence_build": "offline fixture; not measured",
+    "fundamental_build": "offline fixture; not measured",
+    "full_daily_run": "offline fixture; not measured"
+  },
+  "deterministic": true,
+  "known_p0": [],
+  "known_p1": [
+    "FinRL-X runtime/artifact unavailable",
+    "execution quote authority TO_BE_SELECTED",
+    "no real sanitized Host envelope supplied"
+  ]
+}

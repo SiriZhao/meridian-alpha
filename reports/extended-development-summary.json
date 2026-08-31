@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "gate": "5B/5C/5D",
+  "gate": "5E/5F",
   "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
   "release_labels": [
     "CERTIFIED_FUNDAMENTAL_PIPELINE_READY",
@@ -13,7 +13,7 @@
   },
   "real_llm_transport": "CONVERGED",
   "certified_signals": 2,
-  "non_zero_llm_alpha": false,
+  "non_zero_llm_alpha": true,
   "dislocation": "SHADOW_ABSTAIN_NO_ELIGIBLE_CERTIFIED_CANDIDATE",
   "security_master": {
     "records": 11,
@@ -31,17 +31,17 @@
   "finrl_x": {
     "contract": "IMPLEMENTED",
     "runtime": "MODEL_UNAVAILABLE",
-    "artifact": "NONE_VALIDATED",
+    "artifact": "NONE_OOS_VALIDATED",
     "shadow_inference": "NOT_RUN",
     "promoted": false,
     "broker_or_execution_imports": false
   },
   "tradingagents": "QUALITATIVE_CONTEXT_ONLY_NOT_RUN",
-  "replay": "PASS_NETWORK_FREE_SANITIZED_ARTIFACTS",
-  "soak": "PASS_OFFLINE_REPLAY_SCENARIOS",
+  "replay": "PASS_EXACT_HASH_CUTOFF_CITATION_CHAIN",
+  "soak": "PASS_8_OFFLINE_REPLAY_CYCLES",
   "property_tests": "PASS_FAIL_CLOSED_CONTRACT_INVARIANTS",
   "validation": {
-    "pytest": "210 passed",
+    "pytest": "231 passed",
     "ruff": "PASS",
     "pyright": "PASS",
     "diff_check": "PASS"
