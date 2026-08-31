@@ -1,0 +1,25 @@
+{
+  "blockers": [
+    "BLOCKED_REAL_HOST_INPUT",
+    "BLOCKED_EXECUTION_QUOTE_CERTIFICATION"
+  ],
+  "fixture_e2e": {
+    "draft_status": "NOT_EXECUTED",
+    "manual_entry_ready": false,
+    "not_executed": true,
+    "quote_provider": "fixture-read-only",
+    "status": "TEST_FIXTURE"
+  },
+  "manual_entry_ready": false,
+  "manual_readiness_certificate": "NOT_ISSUED",
+  "required_gates": [
+    "ACCOUNT_READY",
+    "SECURITY_READY",
+    "MARKET_READY",
+    "RESEARCH_READY",
+    "QUOTE_READY",
+    "RISK_READY",
+    "RECONCILIATION_READY"
+  ],
+  "status": "BLOCKED_REAL_HOST_INPUT"
+}

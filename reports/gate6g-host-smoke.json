@@ -1,0 +1,51 @@
+{
+  "fixture_scenarios": [
+    {
+      "reason": "SYNCED",
+      "scenario": "complete",
+      "status": "PASS"
+    },
+    {
+      "reason": "PARTIAL",
+      "scenario": "partial",
+      "status": "PASS"
+    },
+    {
+      "reason": "PARTIAL",
+      "scenario": "stale",
+      "status": "PASS"
+    },
+    {
+      "reason": "HOST_ACCOUNT_AS_OF_IN_FUTURE",
+      "scenario": "future",
+      "status": "PASS"
+    },
+    {
+      "reason": "REGISTERED,DUPLICATE_IDEMPOTENT",
+      "scenario": "duplicate_identical",
+      "status": "PASS"
+    },
+    {
+      "reason": "SNAPSHOT_ID_CONFLICT:DUPLICATE_SNAPSHOT_ID_CONTENT_CONFLICT",
+      "scenario": "duplicate_conflict",
+      "status": "PASS"
+    },
+    {
+      "reason": "sanitized reconciliation fixture",
+      "scenario": "external_trade",
+      "status": "PASS"
+    },
+    {
+      "reason": "sanitized reconciliation fixture",
+      "scenario": "partial_fill",
+      "status": "PASS"
+    }
+  ],
+  "real_input_present": false,
+  "real_smoke_complete": false,
+  "smoke": {
+    "present": false,
+    "reason": "No explicitly supplied externally authorized sanitized Host envelope.",
+    "status": "READY_FOR_SUPERVISED_HOST_INPUT"
+  }
+}

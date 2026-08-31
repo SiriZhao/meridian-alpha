@@ -19,7 +19,7 @@ from typing import Any, Protocol
 from pydantic import Field, model_validator
 
 from meridian.schemas import Side, StableModel
-from meridian.security_master import SecurityMaster
+from meridian.security_master import AssetType, SecurityMaster
 
 
 class ExecutionQuoteStatus(StrEnum):
@@ -37,6 +37,7 @@ class ExecutionQuoteStatus(StrEnum):
     EXTENDED_HOURS_UNSUPPORTED = "EXTENDED_HOURS_UNSUPPORTED"
     PROVIDER_UNAVAILABLE = "PROVIDER_UNAVAILABLE"
     UNVERIFIED_PROVIDER = "UNVERIFIED_PROVIDER"
+    UNSUPPORTED_ASSET_CLASS = "UNSUPPORTED_ASSET_CLASS"
 
 
 class ExecutionSession(StrEnum):
@@ -223,6 +224,14 @@ class ExecutionQuoteValidator:
                 return ExecutionQuoteValidation(valid=False, status=ExecutionQuoteStatus.WRONG_TICKER, reason="quote ticker does not match canonical security")
             if str(data.get("currency", "")).upper() != security.currency:
                 return ExecutionQuoteValidation(valid=False, status=ExecutionQuoteStatus.WRONG_CURRENCY, reason="quote currency does not match security")
+            if str(data.get("provider", "")) != certificate.provider:
+                return ExecutionQuoteValidation(valid=False, status=ExecutionQuoteStatus.UNVERIFIED_PROVIDER, reason="quote provider does not match capability certificate")
+            if security.asset_type is AssetType.EQUITY and not certificate.supports_stocks:
+                return ExecutionQuoteValidation(valid=False, status=ExecutionQuoteStatus.UNSUPPORTED_ASSET_CLASS, reason="provider has no certified equity coverage")
+            if security.asset_type is AssetType.ETF and not certificate.supports_etfs:
+                return ExecutionQuoteValidation(valid=False, status=ExecutionQuoteStatus.UNSUPPORTED_ASSET_CLASS, reason="provider has no certified ETF coverage")
+            if security.asset_type is AssetType.INDEX and not certificate.supports_indices:
+                return ExecutionQuoteValidation(valid=False, status=ExecutionQuoteStatus.UNSUPPORTED_ASSET_CLASS, reason="provider has no certified index coverage")
             expected_provider_symbol = security.provider_symbols.get(certificate.provider, security.canonical_symbol)
             if str(data.get("provider_symbol", "")) != expected_provider_symbol:
                 return ExecutionQuoteValidation(valid=False, status=ExecutionQuoteStatus.WRONG_TICKER, reason="provider symbol does not match certified mapping")
@@ -233,7 +242,16 @@ class ExecutionQuoteValidator:
             quote = ExecutionQuote.model_validate({**data, "symbol": requested, "currency": security.currency})
         except ValueError as error:
             message = str(error)
-            status = ExecutionQuoteStatus.INVERTED if "must not exceed" in message else ExecutionQuoteStatus.NON_POSITIVE if "greater than 0" in message else ExecutionQuoteStatus.UNKNOWN_SESSION if "session" in message else ExecutionQuoteStatus.PROVIDER_UNAVAILABLE
+            if "future of retrieval" in message or "after retrieval" in message:
+                status = ExecutionQuoteStatus.FUTURE
+            elif "must not exceed" in message:
+                status = ExecutionQuoteStatus.INVERTED
+            elif "greater than 0" in message:
+                status = ExecutionQuoteStatus.NON_POSITIVE
+            elif "session" in message:
+                status = ExecutionQuoteStatus.UNKNOWN_SESSION
+            else:
+                status = ExecutionQuoteStatus.PROVIDER_UNAVAILABLE
             return ExecutionQuoteValidation(valid=False, status=status, reason=message)
         age = (now - quote.timestamp).total_seconds()
         if age < 0:

@@ -41,3 +41,22 @@ read-only adapter was connected, no quote capability certificate was issued,
 and `MANUAL_ENTRY_READY = NO` remains the only valid status. Yahoo remains a
 `ResearchMarketPrice` source and cannot be converted into an
 `ExecutionQuote`.
+
+## Gate 6G supervised review (2026-08-31)
+
+The provider-neutral preflight was run in configuration-only mode for the
+bounded read-only candidates. No local Alpaca or Polygon credentials were
+configured, so no network probe was attempted and no capability certificate
+was issued. The adapter source documentation remains the following official
+references (reviewed 2026-08-31):
+
+- Alpaca latest stock quotes/trades: <https://docs.alpaca.markets/reference/stocklatestquotes-1>
+- Polygon v3 stock quotes: <https://polygon.io/docs/stocks/get_v3_quotes__stockticker>
+
+For both candidates, the selected plan/feed, real-time or delay entitlement,
+exchange-event timestamp semantics, session/halt behavior, rate limits, and
+licensing/manual-ticket posture remain **UNVERIFIED** until an authorized plan
+review and bounded read-only probe establish them. Missing licensing terms are
+not inferred. VIX/index coverage is separate and is not covered by an
+AAPL/NVDA/SPY equity/ETF result. `execution_quote_grade` therefore remains
+false and manual-entry readiness remains blocked.

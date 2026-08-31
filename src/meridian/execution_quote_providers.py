@@ -52,6 +52,14 @@ class QuotePreflightResult(StableModel):
     reason: str = Field(min_length=1, max_length=512)
     checked_at: datetime
     symbols_checked: tuple[str, ...] = ()
+    auth_accepted: bool = False
+    quote_endpoint_available: bool = False
+    feed_identified: bool = False
+    plan_feed_status_known: bool = False
+    timestamp_semantics_known: bool = False
+    session_semantics_known: bool = False
+    licensing_posture_known: bool = False
+    blocker_codes: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def classify(self) -> QuotePreflightResult:
@@ -63,6 +71,25 @@ class QuotePreflightResult(StableModel):
             value = self.Status.AVAILABLE
         else:
             value = self.Status.UNVERIFIED
+        if self.configured and self.endpoint_reachable and self.quote_returned:
+            object.__setattr__(self, "auth_accepted", True)
+            object.__setattr__(self, "quote_endpoint_available", True)
+        if self.plan_or_feed and "UNVERIFIED" not in self.plan_or_feed.upper():
+            object.__setattr__(self, "feed_identified", True)
+            object.__setattr__(self, "plan_feed_status_known", True)
+        codes = list(self.blocker_codes)
+        if not codes:
+            if not self.configured:
+                codes.append("NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED")
+            elif self.reason.startswith("PROBE_NOT_REQUESTED"):
+                codes.append("PROBE_NOT_REQUESTED")
+            elif not self.endpoint_reachable:
+                codes.append("PROVIDER_ENDPOINT_UNAVAILABLE")
+            elif not self.quote_returned:
+                codes.append("QUOTE_ENDPOINT_UNAVAILABLE")
+            elif not self.certificate_eligible:
+                codes.append("EXECUTION_QUOTE_SEMANTICS_UNVERIFIED")
+        object.__setattr__(self, "blocker_codes", tuple(dict.fromkeys(codes)))
         object.__setattr__(self, "status", value)
         return self
 
@@ -201,6 +228,8 @@ class _CandidateBase:
             retrieved_at=retrieved,
             available_at=observed,
             extended_hours=extended,
+            feed=self.feed_name,
+            plan=self.feed_name,
             certificate_id=certificate_id,
         )
 

@@ -1,0 +1,62 @@
+{
+  "certificate_issued": false,
+  "configured_provider_count": 0,
+  "live_probe_performed": false,
+  "live_probe_requested": false,
+  "providers": [
+    {
+      "auth_accepted": false,
+      "blocker_codes": [
+        "NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED"
+      ],
+      "certificate_eligible": false,
+      "checked_at": "2026-08-31T11:59:34.277223Z",
+      "configured": false,
+      "endpoint_reachable": false,
+      "feed_identified": false,
+      "licensing_posture_known": false,
+      "plan_feed_status_known": false,
+      "plan_or_feed": null,
+      "provider": "alpaca-market-data",
+      "quote_endpoint_available": false,
+      "quote_returned": false,
+      "reason": "NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED",
+      "session_semantics_known": false,
+      "status": "UNAVAILABLE",
+      "symbols_checked": [
+        "AAPL",
+        "NVDA",
+        "SPY"
+      ],
+      "timestamp_semantics_known": false
+    },
+    {
+      "auth_accepted": false,
+      "blocker_codes": [
+        "NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED"
+      ],
+      "certificate_eligible": false,
+      "checked_at": "2026-08-31T11:59:34.277223Z",
+      "configured": false,
+      "endpoint_reachable": false,
+      "feed_identified": false,
+      "licensing_posture_known": false,
+      "plan_feed_status_known": false,
+      "plan_or_feed": null,
+      "provider": "polygon-market-data",
+      "quote_endpoint_available": false,
+      "quote_returned": false,
+      "reason": "NO_LOCAL_PROVIDER_CREDENTIAL_CONFIGURED",
+      "session_semantics_known": false,
+      "status": "UNAVAILABLE",
+      "symbols_checked": [
+        "AAPL",
+        "NVDA",
+        "SPY"
+      ],
+      "timestamp_semantics_known": false
+    }
+  ],
+  "reason": "No candidate provider has proven timestamp/session/freshness/licensing semantics; execution_quote_grade remains false.",
+  "status": "BLOCKED_EXECUTION_QUOTE_CERTIFICATION"
+}

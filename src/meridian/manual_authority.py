@@ -24,6 +24,7 @@ from meridian.execution_quotes import (
     ManualLimitPricePolicy,
 )
 from meridian.schemas import Side, StableModel
+from meridian.security_master import DEFAULT_SECURITY_MASTER, AssetType
 
 
 class ManualReadinessStatus(StrEnum):
@@ -200,6 +201,23 @@ def _certificate_is_usable(
         return False, "QUOTE_SPREAD_POLICY_INVALID"
     if not certificate.execution_quote_grade:
         return False, "BLOCKED_QUOTE_NOT_CERTIFIED"
+    try:
+        security = DEFAULT_SECURITY_MASTER.resolve(quote.symbol)
+    except ValueError:
+        return False, "QUOTE_SECURITY_IDENTITY_UNAVAILABLE"
+    if security.canonical_symbol != quote.symbol:
+        return False, "QUOTE_WRONG_CANONICAL_SYMBOL"
+    if quote.currency != security.currency:
+        return False, "QUOTE_CURRENCY_SECURITY_MISMATCH"
+    expected_provider_symbol = security.provider_symbols.get(certificate.provider, security.canonical_symbol)
+    if quote.provider_symbol != expected_provider_symbol:
+        return False, "QUOTE_PROVIDER_SYMBOL_MISMATCH"
+    if security.asset_type is AssetType.EQUITY and not certificate.supports_stocks:
+        return False, "BLOCKED_UNSUPPORTED_ASSET_CLASS"
+    if security.asset_type is AssetType.ETF and not certificate.supports_etfs:
+        return False, "BLOCKED_UNSUPPORTED_ASSET_CLASS"
+    if security.asset_type is AssetType.INDEX and not certificate.supports_indices:
+        return False, "BLOCKED_UNSUPPORTED_ASSET_CLASS"
     if not (certificate.bid and certificate.ask and certificate.last and certificate.timestamp_semantics_verified):
         return False, "BLOCKED_QUOTE_CAPABILITY_INCOMPLETE"
     if certificate.provider != quote.provider:

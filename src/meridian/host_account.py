@@ -1,14 +1,16 @@
 """Provider-independent, sanitized Host account boundary.
 
 This module accepts facts supplied by a Host but contains no connector, broker,
-or finance SDK.  It never stores account identifiers, credentials, or a raw
+or finance SDK. It never stores account identifiers, credentials, or a raw
 connector response.
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
 import re
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
@@ -25,14 +27,23 @@ from meridian.schemas import (
 from meridian.security_master import DEFAULT_SECURITY_MASTER, SecurityMaster
 
 _SENSITIVE_HOST_PATTERN = re.compile(
-    r"(?i)(api[_-]?key|access[_-]?token|authorization|password|credential|brokerage[_-]?login|account[_-]?(number|id))"
+    r"(?i)(api[_-]?key|token|authorization|password|secret|credential|connector[_-]?payload|raw[_-]?(response|connector[_-]?data)|brokerage[_-]?login|account[_-]?(number|id))"
 )
 
 
 def _reject_sensitive_host_text(value: object) -> None:
-    if isinstance(value, str) and _SENSITIVE_HOST_PATTERN.search(value):
-        raise ValueError("HOST_SENSITIVE_FIELD_REJECTED")
-    if isinstance(value, (tuple, list)):
+    """Reject sensitive names/values recursively without echoing matches."""
+    if isinstance(value, str):
+        if _SENSITIVE_HOST_PATTERN.search(value):
+            raise ValueError("HOST_SENSITIVE_FIELD_REJECTED")
+        return
+    if isinstance(value, Mapping):
+        for key, nested in value.items():
+            if _SENSITIVE_HOST_PATTERN.search(str(key)):
+                raise ValueError("HOST_SENSITIVE_FIELD_REJECTED")
+            _reject_sensitive_host_text(nested)
+        return
+    if isinstance(value, (tuple, list, set, frozenset)):
         for item in value:
             _reject_sensitive_host_text(item)
 
@@ -79,24 +90,12 @@ class HostAccountSnapshotEnvelope(StableModel):
     @model_validator(mode="before")
     @classmethod
     def reject_sensitive_keys(cls, value: object) -> object:
-        if not isinstance(value, dict):
-            return value
-        rejected = {
-            "account_number",
-            "account_id",
-            "token",
-            "access_token",
-            "refresh_token",
-            "password",
-            "credential",
-            "raw_connector_payload",
-        }
-        if any(str(key).lower() in rejected for key in value):
-            raise ValueError("HOST_SENSITIVE_FIELD_REJECTED")
+        if isinstance(value, Mapping):
+            _reject_sensitive_host_text(value)
         return value
 
     @model_validator(mode="after")
-    def validate_envelope(self):
+    def validate_envelope(self) -> HostAccountSnapshotEnvelope:
         _reject_sensitive_host_text(
             (self.source_kind, self.source_name, self.pending_or_unknown_state, self.warnings)
         )
@@ -106,18 +105,51 @@ class HostAccountSnapshotEnvelope(StableModel):
             raise ValueError("total_equity must be at least cash")
         if len({position.ticker for position in self.positions}) != len(self.positions):
             raise ValueError("positions must not contain duplicate tickers")
+        expected_digest = self.expected_provenance_digest
         if self.provenance_digest is None:
-            payload = self.model_dump(mode="json", exclude={"provenance_digest"})
-            object.__setattr__(
-                self,
-                "provenance_digest",
-                hashlib.sha256(str(sorted(payload.items())).encode()).hexdigest(),
-            )
+            object.__setattr__(self, "provenance_digest", expected_digest)
+        elif self.provenance_digest != expected_digest:
+            raise ValueError("HOST_PROVENANCE_DIGEST_MISMATCH")
         return self
+
+    @property
+    def expected_provenance_digest(self) -> str:
+        payload = self.model_dump(mode="json", exclude={"provenance_digest"})
+        return hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
 
     @property
     def content_hash(self) -> str:
         return hashlib.sha256(self.stable_json().encode()).hexdigest()
+
+
+def validate_host_envelope(
+    envelope: HostAccountSnapshotEnvelope,
+    *,
+    trusted_now: datetime | None = None,
+    replay: bool = False,
+) -> HostAccountSnapshotEnvelope:
+    """Validate sanitized Host provenance and system-owned temporal bounds.
+
+    A caller may inject a clock only for an explicitly marked replay. The
+    envelope itself cannot assert freshness, and this function never returns
+    or logs sensitive fields.
+    """
+    if not isinstance(envelope, HostAccountSnapshotEnvelope):
+        raise TypeError("HOST_ENVELOPE_TYPE_REQUIRED")
+    if trusted_now is not None and not replay:
+        raise ValueError("trusted_now injection is allowed only for REPLAY")
+    reference = trusted_now if replay and trusted_now is not None else datetime.now(UTC)
+    if reference.tzinfo is None or reference.utcoffset() is None:
+        raise ValueError("trusted current time must be timezone-aware")
+    if envelope.provenance_digest != envelope.expected_provenance_digest:
+        raise ValueError("HOST_PROVENANCE_DIGEST_MISMATCH")
+    if envelope.as_of > reference:
+        raise ValueError("HOST_ACCOUNT_AS_OF_IN_FUTURE")
+    if envelope.retrieved_at > reference:
+        raise ValueError("HOST_ACCOUNT_RETRIEVED_AT_IN_FUTURE")
+    return envelope
 
 
 class HostSnapshotRegistry:
@@ -126,11 +158,14 @@ class HostSnapshotRegistry:
     def __init__(self) -> None:
         self._hashes: dict[str, str] = {}
 
-    def register(self, envelope: HostAccountSnapshotEnvelope) -> None:
+    def register(self, envelope: HostAccountSnapshotEnvelope) -> str:
         previous = self._hashes.get(envelope.snapshot_id)
         if previous is not None and previous != envelope.content_hash:
-            raise ValueError("DUPLICATE_SNAPSHOT_ID_CONTENT_CONFLICT")
+            raise ValueError("SNAPSHOT_ID_CONFLICT:DUPLICATE_SNAPSHOT_ID_CONTENT_CONFLICT")
+        if previous is not None:
+            return "DUPLICATE_IDEMPOTENT"
         self._hashes[envelope.snapshot_id] = envelope.content_hash
+        return "REGISTERED"
 
 
 def normalize_host_snapshot(
@@ -144,16 +179,9 @@ def normalize_host_snapshot(
     max_retrieved_skew_seconds: int = 30,
 ) -> AccountSnapshot:
     """Validate host facts with a system clock; only REPLAY can inject time."""
-
-    if trusted_now is not None and not replay:
-        raise ValueError("trusted_now injection is allowed only for REPLAY")
-    reference = trusted_now if replay else datetime.now(UTC)
-    if reference is None or reference.tzinfo is None or reference.utcoffset() is None:
-        raise ValueError("trusted current time must be timezone-aware")
-    if envelope.as_of > reference:
-        raise ValueError("HOST_ACCOUNT_AS_OF_IN_FUTURE")
-    if (envelope.retrieved_at - reference).total_seconds() > max_retrieved_skew_seconds:
-        raise ValueError("HOST_ACCOUNT_RETRIEVED_AT_IN_FUTURE")
+    _ = max_retrieved_skew_seconds
+    validate_host_envelope(envelope, trusted_now=trusted_now, replay=replay)
+    reference = trusted_now if replay and trusted_now is not None else datetime.now(UTC)
     if registry is not None:
         registry.register(envelope)
     if envelope.coverage_status is HostCoverageStatus.CONFLICTING:
@@ -172,7 +200,6 @@ def normalize_host_snapshot(
             raise ValueError("HOST_ACCOUNT_CURRENCY_MISMATCH")
         if position.market_value is None:
             raise ValueError("HOST_POSITION_MARKET_VALUE_REQUIRED")
-
         holdings.append(
             Holding(
                 ticker=record.canonical_symbol,
