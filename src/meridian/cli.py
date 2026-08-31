@@ -179,6 +179,7 @@ def main() -> None:
     daily = subparsers.add_parser("daily")
     daily.add_argument("--account-fixture", required=True)
     daily.add_argument("--date", required=True)
+    daily.add_argument("--profile", choices=("TEST", "REPLAY", "SHADOW_LIVE", "MANUAL_DECISION_SUPPORT"), default="TEST")
     research = subparsers.add_parser("research")
     research.add_argument("ticker")
     research.add_argument("--date", required=True, help="Timezone-aware ISO analysis timestamp")
@@ -387,4 +388,4 @@ def main() -> None:
     decision = DailyAnalysisService(
         DailyOrchestrator(policies, _fixture_market(as_of), FakeResearchEngine(signals), store)
     ).run(snapshot, as_of)
-    print(report_markdown(decision))
+    print(report_markdown(decision, profile=args.profile))

@@ -1,0 +1,26 @@
+{
+  "schema_version": "gate6e-release-candidate.v1",
+  "manual_entry": "NO",
+  "known_p2": [],
+  "runtime_authoritative": "11/11",
+  "ruff": "PASS",
+  "finrlx_artifact": "NONE",
+  "host_smoke": "NOT_RUN",
+  "finrlx_runtime": "MODEL_UNAVAILABLE",
+  "security_capture": "11/11",
+  "schwab": "NOT_CONNECTED",
+  "execution_quote": "TO_BE_SELECTED",
+  "status": "SHADOW",
+  "pytest": "242 passed",
+  "real_orders": 0,
+  "finrlx_oos": "NOT_RUN",
+  "pyright": "PASS",
+  "finrlx_promoted": "NO",
+  "known_p1": [
+    "real Host input absent",
+    "execution quote certificate absent",
+    "FinRL-X runtime/artifact unavailable"
+  ],
+  "known_p0": 0,
+  "broker": "NONE"
+}

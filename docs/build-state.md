@@ -211,3 +211,15 @@ NOT CERTIFIED: authoritative Security Master provenance, Yahoo delay/PIT and
 licensing semantics, SEC filing acceptance-time PIT, news publication/availability,
 and macro vintage semantics. No live DeepSeek/TradingAgents, broker, Schwab,
 account or FinRL-X integration is enabled.
+
+## Gate 6D/6E current state
+
+Implemented/tested: append-only sanitized shadow and outcome ledgers, replay
+battery, bounded 100-cycle offline soak, typed provider health, deterministic
+system health, explicit non-execution profiles, Chinese mobile report V3,
+operator runbooks, and future-only broker boundary design.
+
+Current blockers are honest: no real Host smoke, no execution quote certificate,
+and no isolated FinRL-X runtime or OOS-validated artifact. Production remains
+on the deterministic allocator; no automatic promotion, broker write, Schwab
+authentication, or real order exists.

@@ -56,3 +56,13 @@ copied here.
 Meridian Alpha is a research and decision-support system, not investment,
 legal, tax, or trading advice. Outputs remain drafts for user review and manual
 entry.
+
+## Gate 6D/6E release-candidate posture
+
+The current application has explicit `TEST`, `REPLAY`, `SHADOW_LIVE`, and
+`MANUAL_DECISION_SUPPORT` profiles. The durable long-shadow ledger and offline
+replay/soak foundation are available. Reports always lead with `BLOCKED`,
+`ANALYSIS_ONLY`, `SHADOW`, or `READY_FOR_MANUAL_ENTRY`. The current release
+candidate is `SHADOW / NOT AUTHORIZED FOR ENTRY`: no real Host envelope or
+execution-quote certificate is present, FinRL-X is `MODEL_UNAVAILABLE`, and no
+broker or Schwab authentication/write surface exists.

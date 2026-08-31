@@ -54,3 +54,9 @@ Provider health exposes `AVAILABLE`, `DEGRADED`, `STALE`, `UNAVAILABLE`, and
 
 Performance for unavailable providers is intentionally reported as
 `NOT_MEASURED_OFFLINE`; no retry storm or external call occurred in this pass.
+## Gate 6D long-shadow extension
+
+The Gate 6D extension uses the same fail-closed cache checks in an append-only
+sanitized shadow ledger. Decision lineage is separate from recommendation,
+target, and later forward outcome. Outcomes are joined only once their
+availability timestamp is reached and are never treated as fills.

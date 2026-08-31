@@ -1,3 +1,4 @@
+# pyright: reportRedeclaration=false
 """Shared Markdown and JSON reporting for manual review."""
 
 from __future__ import annotations
@@ -154,3 +155,42 @@ def mobile_daily_summary(decision: DailyDecision) -> dict[str, object]:
         "当前阻塞项": list(decision.blocked_reasons),
         "执行状态": "未执行；仅后续新账户快照可证明成交",
     }
+
+def mobile_daily_report_v3(decision: DailyDecision, *, profile: str = "SHADOW_LIVE", blockers: tuple[str, ...] = ()) -> str:
+    """Concise mobile Chinese daily report with one explicit top-level status."""
+    from meridian.profiles import RuntimeProfile, report_status_for
+    try:
+        selected = RuntimeProfile(profile.upper())
+    except ValueError:
+        selected = RuntimeProfile.SHADOW_LIVE
+    status = report_status_for(selected, decision).value
+    holdings = ", ".join(
+        f"{position.ticker} {position.target_weight:.1%}"
+        for position in (decision.target_portfolio.positions if decision.target_portfolio else ())
+    ) or "现金为主"
+    lines = [
+        f"【今日状态】{status}",
+        f"【账户】同步={decision.account_sync_state.value}；新鲜度={decision.account_snapshot_status.value}",
+        f"【市场】regime={decision.regime}；新鲜度={decision.market_data_status.value}",
+        "【Quant】确定性量化结果；目标权重由系统计算。",
+        "【AI基本面】仅展示已认证证据支持的方向与置信度。",
+        "【抄底观察】仅影子研究，不代表交易。",
+        f"【组合】{holdings}；现金={decision.target_portfolio.cash_weight:.1%}" if decision.target_portfolio else "【组合】未生成目标组合",
+        "【操作草稿】未执行；没有经认证报价时不可生成手动入口草稿。",
+        f"【风险/阻塞】{'; '.join((*decision.blocked_reasons, *blockers)) or '无额外阻塞'}",
+    ]
+    return "\n".join(lines)
+
+
+_previous_report_markdown = report_markdown
+
+
+def report_markdown(decision: DailyDecision, *, profile: str = "TEST", status: str | None = None) -> str:
+    """Render the legacy report with a mandatory leading release status."""
+    from meridian.profiles import RuntimeProfile, report_status_for
+    try:
+        selected = RuntimeProfile(profile.upper())
+    except ValueError:
+        selected = RuntimeProfile.TEST
+    top = status or report_status_for(selected, decision).value
+    return f"STATUS: **{top}**\n" + _previous_report_markdown(decision)

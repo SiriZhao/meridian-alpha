@@ -1,0 +1,156 @@
+{
+  "auto_execution_profile": false,
+  "finrlx": {
+    "checked_at": "2026-08-31T07:14:27.870761Z",
+    "imported_execution_surface": false,
+    "isolated": true,
+    "license": "Apache-2.0",
+    "package": "finrl",
+    "runtime_available": false,
+    "status": "MODEL_UNAVAILABLE",
+    "upstream_commit": "e65d6f0483ead7d2ef4a5fc940cdf960392a25c1",
+    "version": "2.0.2",
+    "warnings": [
+      "MODEL_UNAVAILABLE:FinRL-X package/runtime is not installed in the isolated environment",
+      "No artifact or OOS validation was fabricated."
+    ]
+  },
+  "generated_at": "2026-08-31T07:14:27.870761+00:00",
+  "known_p0": 0,
+  "known_p1": [
+    "No real Host envelope supplied",
+    "No execution quote certificate",
+    "FinRL-X runtime/artifact unavailable"
+  ],
+  "known_p2": [],
+  "manual_entry_ready": false,
+  "product_readiness_matrix": {
+    "Account truth": {
+      "BLOCKER": "real sanitized Host input required",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": false,
+      "REAL": false,
+      "SHADOW": true,
+      "TESTED": true
+    },
+    "Broker": {
+      "BLOCKER": "permanent product boundary",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": false,
+      "PIT_CERTIFIED": false,
+      "REAL": false,
+      "SHADOW": false,
+      "TESTED": true
+    },
+    "Dislocation": {
+      "BLOCKER": "bounded shadow analysis",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": true,
+      "REAL": false,
+      "SHADOW": true,
+      "TESTED": true
+    },
+    "FinRL-X": {
+      "BLOCKER": "MODEL_UNAVAILABLE",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": false,
+      "REAL": false,
+      "SHADOW": false,
+      "TESTED": true
+    },
+    "Fundamentals": {
+      "BLOCKER": "none for covered issuers",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": true,
+      "REAL": true,
+      "SHADOW": true,
+      "TESTED": true
+    },
+    "Host": {
+      "BLOCKER": "no externally authorized envelope",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": false,
+      "REAL": false,
+      "SHADOW": true,
+      "TESTED": true
+    },
+    "LLM": {
+      "BLOCKER": "research alpha only",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": true,
+      "REAL": true,
+      "SHADOW": true,
+      "TESTED": true
+    },
+    "Manual ticket": {
+      "BLOCKER": "Host and quote gates",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": false,
+      "REAL": false,
+      "SHADOW": true,
+      "TESTED": true
+    },
+    "Market": {
+      "BLOCKER": "execution-grade provider not certified",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": false,
+      "REAL": true,
+      "SHADOW": true,
+      "TESTED": true
+    },
+    "Quote": {
+      "BLOCKER": "TO_BE_SELECTED/certificate absent",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": false,
+      "REAL": false,
+      "SHADOW": false,
+      "TESTED": true
+    },
+    "Replay": {
+      "BLOCKER": "none",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": true,
+      "REAL": false,
+      "SHADOW": true,
+      "TESTED": true
+    },
+    "Security identity": {
+      "BLOCKER": "historical intervals remain bounded",
+      "EXECUTABLE": false,
+      "IMPLEMENTED": true,
+      "PIT_CERTIFIED": false,
+      "REAL": true,
+      "SHADOW": true,
+      "TESTED": true
+    }
+  },
+  "profiles": [
+    "TEST",
+    "REPLAY",
+    "SHADOW_LIVE",
+    "MANUAL_DECISION_SUPPORT"
+  ],
+  "quote_certified": false,
+  "quote_provider": "TO_BE_SELECTED",
+  "real_host_input": false,
+  "safety": {
+    "automatic_model_promotion": false,
+    "broker": "NONE",
+    "real_orders": 0,
+    "schwab": "NOT CONNECTED"
+  },
+  "schema_version": "gate6e.v1",
+  "security_capture": 11,
+  "security_runtime_authoritative": 11,
+  "status": "SHADOW"
+}

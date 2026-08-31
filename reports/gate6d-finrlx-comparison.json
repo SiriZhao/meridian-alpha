@@ -1,0 +1,161 @@
+{
+  "authorization": "SHADOW / NOT AUTHORIZED FOR ENTRY",
+  "dislocation_attribution": {
+    "assessments": [],
+    "status": "NO_CERTIFIED_DISLOCATION_ASSESSMENTS_IN_LEDGER"
+  },
+  "finrlx": {
+    "checked_at": "2026-08-31T07:19:40.075868Z",
+    "imported_execution_surface": false,
+    "isolated": true,
+    "license": "Apache-2.0",
+    "package": "finrl",
+    "runtime_available": false,
+    "status": "MODEL_UNAVAILABLE",
+    "upstream_commit": "e65d6f0483ead7d2ef4a5fc940cdf960392a25c1",
+    "version": "2.0.2",
+    "warnings": [
+      "MODEL_UNAVAILABLE:FinRL-X package/runtime is not installed in the isolated environment",
+      "No artifact or OOS validation was fabricated."
+    ]
+  },
+  "forward_outcomes": {
+    "horizons": [
+      "1D",
+      "5D",
+      "20D",
+      "60D"
+    ],
+    "joined": 0,
+    "note": "Future outcomes are joined only after availability; no future data entered the decision record."
+  },
+  "health": {
+    "components": {
+      "account": "SHADOW",
+      "evidence": "AVAILABLE",
+      "identity": "AVAILABLE",
+      "market": "SHADOW",
+      "quote": "UNVERIFIED",
+      "research": "REPLAY",
+      "risk": "PASS"
+    },
+    "level": "YELLOW",
+    "manual_entry_allowed": false,
+    "reasons": [
+      "quote:UNVERIFIED"
+    ]
+  },
+  "historical_replay": {
+    "cases": [
+      "before_earnings_filing",
+      "after_earnings_filing",
+      "before_amendment",
+      "after_amendment",
+      "pre_market",
+      "regular_session",
+      "after_close",
+      "holiday",
+      "stale_account",
+      "partial_account",
+      "provider_outage"
+    ],
+    "failed": 0,
+    "network_calls": 0,
+    "notes": [
+      "Frozen/cache-only replay; no provider calls."
+    ],
+    "passed": 11
+  },
+  "known_p0": 0,
+  "known_p1": [],
+  "ledger": {
+    "content_hash": "1c670e668244dc984868cf4f03c428ee214d0b7ff0ef949fbb7bca87d8881319",
+    "path": "var\\shadow\\shadow-run-ledger.json",
+    "records": 1
+  },
+  "llm_attribution": [
+    {
+      "alpha_delta": "0.1800000000000000000000000000",
+      "causal_claim": "NOT_ESTABLISHED_SMALL_SAMPLE",
+      "combined_alpha": "0.1717128361030000758074166252",
+      "future_outcome_delta": null,
+      "quant_only_alpha": "-0.008287163896999924192583374798",
+      "target_weight_delta_l1": "0.00",
+      "ticker": "AAPL",
+      "turnover_delta": null
+    },
+    {
+      "alpha_delta": "0.1800000000000000000000000000",
+      "causal_claim": "NOT_ESTABLISHED_SMALL_SAMPLE",
+      "combined_alpha": "0.3048881554052132001939091966",
+      "future_outcome_delta": null,
+      "quant_only_alpha": "0.1248881554052132001939091966",
+      "target_weight_delta_l1": "0.00",
+      "ticker": "NVDA",
+      "turnover_delta": null
+    }
+  ],
+  "performance": {
+    "execution_assumption": "NEXT_SESSION_OPEN",
+    "outcomes_are_not_fills": true,
+    "path": "var\\shadow\\shadow-performance-ledger.json",
+    "pending_rows": 2
+  },
+  "performance_budget": {
+    "budget": {
+      "daily_runtime_ms": 120000,
+      "deepseek_calls": 5,
+      "market_fetch_ms": 30000,
+      "retries": 2,
+      "sec_build_ms": 60000
+    },
+    "measured": {
+      "daily_runtime_ms": 0,
+      "deepseek_calls": 0,
+      "market_fetch_ms": 0,
+      "retries": 0,
+      "sec_build_ms": 0
+    },
+    "measurement_mode": "OFFLINE_REPLAY; external provider latencies not measured",
+    "warnings": []
+  },
+  "safety": [
+    "NO_BROKER",
+    "NO_REAL_ORDERS",
+    "NO_SCHWAB_AUTHENTICATION",
+    "NO_AUTOMATIC_MODEL_PROMOTION"
+  ],
+  "schema_version": "gate6d.v1",
+  "soak": {
+    "cycles": 100,
+    "deterministic": true,
+    "failed": 0,
+    "network_calls": 0,
+    "passed": 2100,
+    "retries": 0,
+    "scenarios": {
+      "deepseek_abstain": "EXPLICIT_FAIL_CLOSED",
+      "deepseek_bearish_replay": "EXPLICIT_FAIL_CLOSED",
+      "deepseek_bullish_replay": "EXPLICIT_FAIL_CLOSED",
+      "deepseek_malformed": "EXPLICIT_FAIL_CLOSED",
+      "deepseek_neutral": "EXPLICIT_FAIL_CLOSED",
+      "deepseek_timeout": "EXPLICIT_FAIL_CLOSED",
+      "dislocation_disagreement": "EXPLICIT_FAIL_CLOSED",
+      "external_trade": "EXPLICIT_FAIL_CLOSED",
+      "finrlx_bad_output": "EXPLICIT_FAIL_CLOSED",
+      "finrlx_missing": "EXPLICIT_FAIL_CLOSED",
+      "future_filing": "EXPLICIT_FAIL_CLOSED",
+      "host_partial": "EXPLICIT_FAIL_CLOSED",
+      "host_stale": "EXPLICIT_FAIL_CLOSED",
+      "market_unavailable": "EXPLICIT_FAIL_CLOSED",
+      "partial_fill": "EXPLICIT_FAIL_CLOSED",
+      "quote_stale": "EXPLICIT_FAIL_CLOSED",
+      "quote_wide": "EXPLICIT_FAIL_CLOSED",
+      "restatement": "EXPLICIT_FAIL_CLOSED",
+      "sec_corrupted": "EXPLICIT_FAIL_CLOSED",
+      "sec_missing": "EXPLICIT_FAIL_CLOSED",
+      "unknown_security": "EXPLICIT_FAIL_CLOSED"
+    }
+  },
+  "status": "SHADOW"
+}

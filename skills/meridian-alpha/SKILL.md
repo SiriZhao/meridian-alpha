@@ -30,3 +30,15 @@ certificate, `QUOTE_READY` and manual entry remain blocked.
 
 Read [workflow.md](references/workflow.md), [account-contract.md](references/account-contract.md),
 and [safety.md](references/safety.md).
+
+## Gate 6D/6E operator profiles
+
+Use `TEST` for fixtures, `REPLAY` for frozen artifacts, `SHADOW_LIVE` only with
+explicit bounded live research opt-in, and `MANUAL_DECISION_SUPPORT` only after
+real Host/account, authoritative identity, quote, risk, and reconciliation gates
+pass. There is no `AUTO_EXECUTION` profile. Every report begins with one of
+`BLOCKED`, `ANALYSIS_ONLY`, `SHADOW`, or `READY_FOR_MANUAL_ENTRY`.
+
+The long-shadow ledger separates recommendation, target, and later outcome. It
+never implies a fill. FinRL-X is an optional isolated allocator challenger only;
+`MODEL_UNAVAILABLE` is the correct status without a real OOS-validated artifact.

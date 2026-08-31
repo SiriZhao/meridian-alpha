@@ -173,3 +173,12 @@ Polygon candidate health without printing credentials. Candidate connectivity
 does not certify execution semantics. Until a provider certificate and real
 Host input are both present, `QUOTE_READY` and `MANUAL_ENTRY_READY` remain
 blocked, and no order surface exists.
+
+## Gate 6D/6E long-shadow and release profiles
+
+Long-shadow decisions are recorded in an append-only sanitized ledger with
+lineage hashes. Forward outcomes are joined only after their availability
+cutoff and are never interpreted as fills. `TEST`, `REPLAY`, `SHADOW_LIVE`, and
+`MANUAL_DECISION_SUPPORT` are the only profiles; `AUTO_EXECUTION` is not a
+valid profile. The release candidate remains shadow-only until an externally
+authorized Host input and a certified execution quote are both supplied.
