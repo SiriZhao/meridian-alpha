@@ -134,7 +134,6 @@ def main() -> int:
         sys.executable,
         "-c",
         "from meridian.cli import main; main()",
-        "meridian",
         "daily",
         "--profile",
         args.profile,
