@@ -13,12 +13,15 @@ if ($MeridianArgs.Length -gt 0 -and $MeridianArgs[0] -eq 'data-status') {
     & $python -m meridian.operational_cli @($MeridianArgs | Select-Object -Skip 1)
     exit $LASTEXITCODE
 }
+if ($MeridianArgs.Length -gt 0 -and $MeridianArgs[0] -in @('snapshot', 'daily')) {
+    & $python -m meridian.daily_cli @MeridianArgs
+    exit $LASTEXITCODE
+}
 
 & $python -m meridian.runtime_diagnostics doctor --json
 if ($LASTEXITCODE -ne 0) {
     Write-Error 'Meridian preflight failed. Resolve the sanitized doctor report before running a stateful command.'
     exit $LASTEXITCODE
 }
-
 & $python -c 'from meridian.cli import main; main()' @MeridianArgs
 exit $LASTEXITCODE

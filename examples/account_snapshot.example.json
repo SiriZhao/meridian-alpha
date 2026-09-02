@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "snapshot_id": "example-sanitized-account-20260902",
+  "source_kind": "manual_export",
+  "source_name": "example-only",
+  "as_of": "2026-09-02T12:00:00+00:00",
+  "retrieved_at": "2026-09-02T12:00:05+00:00",
+  "coverage_status": "COMPLETE",
+  "base_currency": "USD",
+  "cash": "5000.00",
+  "total_equity": "10000.00",
+  "positions": [{"ticker": "AAPL", "quantity": "10", "market_value": "2500.00", "cost_basis": "2000.00", "currency": "USD"}],
+  "warnings": ["EXAMPLE_ONLY"]
+}

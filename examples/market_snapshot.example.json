@@ -1,0 +1,3 @@
+{
+  "quotes": [{"ticker": "AAPL", "timestamp": "2026-09-02T12:00:00+00:00", "last": "250", "bid": "249.90", "ask": "250.10", "previous_close": "245", "volume": 1000000, "atr14": "4", "vwap": "249.95", "daily_return": "0.02", "gap_percent": "0.01", "freshness_state": "STALE"}]
+}
