@@ -19,7 +19,7 @@ from meridian.daily_closure import (
 from meridian.forward_evidence import ForwardLedger
 from meridian.intelligence import ResearchPacket
 from meridian.intelligence_tools import dip_scout
-from meridian.operational_data import data_status
+from meridian.operational_market_snapshot import OperationalMarketSnapshotService
 from meridian.runtime import RuntimePaths, policy_directory
 from meridian.runtime_diagnostics import report as doctor_report
 
@@ -58,15 +58,27 @@ class MeridianApplicationService:
         account = load_snapshot(path)
         return {"valid": True, "snapshot_id": account.snapshot_id, "as_of": account.as_of.isoformat(), "freshness": account.freshness_state.value, "sync": account.sync_state.value, "sanitized": True}
 
-    def daily(self, snapshot_path: Path, market_fixture: Path | None) -> dict[str, object]:
+    def daily(self, snapshot_path: Path, market_fixture: Path | None = None) -> dict[str, object]:
         account = load_snapshot(snapshot_path)
-        quotes = load_market_fixture(market_fixture) if market_fixture else {}
-        result = DailyClosureService(load_policies(policy_directory())).run(account, quotes, cutoff=datetime.now(account.as_of.tzinfo))
+        policies = load_policies(policy_directory())
+        cutoff = datetime.now(account.as_of.tzinfo)
+        if market_fixture:
+            quotes = load_market_fixture(market_fixture)
+            provenance: dict[str, object] = {"data_mode": "FIXTURE", "information_cutoff": cutoff.isoformat(), "provider_health": {ticker: {"primary": "FIXTURE", "secondary": "NOT_USED"} for ticker in quotes}, "cache": {}, "provider_conflicts": {}, "symbols_missing": {}}
+        else:
+            symbols = set(policies.universe.tickers) | {holding.ticker for holding in account.holdings}
+            operational = OperationalMarketSnapshotService.from_runtime(self.paths).build(symbols, analysis_time=cutoff)
+            quotes = operational.quotes if not operational.missing_symbols else {}
+            provenance = {"data_mode": operational.data_mode, "market_snapshot_hash": operational.snapshot_hash, "information_cutoff": operational.information_cutoff.isoformat(), "provider_health": operational.provider_health, "cache": operational.cache, "provider_conflicts": operational.conflicts, "symbols_missing": operational.missing_symbols, "research_pit": "BLOCKED"}
+        result = DailyClosureService(policies).run(account, quotes, cutoff=cutoff)
+        result.report.update(provenance)
         persisted = persist_report(result, self.paths)
         return {**persisted.report, "report_json": str(persisted.report_json), "report_markdown": str(persisted.report_markdown)}
 
     def data_status(self) -> dict[str, object]:
-        return data_status()
+        policies = load_policies(policy_directory())
+        snapshot = OperationalMarketSnapshotService.from_runtime(self.paths).build(policies.universe.tickers, analysis_time=datetime.now().astimezone())
+        return snapshot.data_status()
 
     def dip_scout(self, packet_path: Path) -> dict[str, object]:
         return dip_scout(ResearchPacket.model_validate_json(packet_path.read_text(encoding="utf-8")))
