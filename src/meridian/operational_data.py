@@ -1,0 +1,235 @@
+"""Bounded operational market-data plane, separate from PIT certification.
+
+Operational observations support today's non-executable analysis context only.
+They are never evidence of certified historical research or execution quotes.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from collections.abc import Mapping
+from dataclasses import asdict, dataclass
+from datetime import date, datetime
+from decimal import Decimal
+from enum import StrEnum
+from pathlib import Path
+from typing import Protocol
+
+from meridian.quotes import (
+    QuoteObservation,
+    QuoteProviderError,
+    QuoteProviderMalformed,
+    QuoteProviderTimeout,
+)
+from meridian.trading_calendar import latest_completed_session
+
+
+class OperationalReadiness(StrEnum):
+    OPERATIONAL_READY = "OPERATIONAL_READY"
+    OPERATIONAL_DEGRADED = "OPERATIONAL_DEGRADED"
+    RESEARCH_PARTIAL = "RESEARCH_PARTIAL"
+    RESEARCH_BLOCKED = "RESEARCH_BLOCKED"
+    CERTIFIED = "CERTIFIED"
+
+
+class OperationalProviderStatus(StrEnum):
+    OK = "OK"
+    DEGRADED = "DEGRADED"
+    UNAVAILABLE = "UNAVAILABLE"
+    STALE = "STALE"
+    INVALID_RESPONSE = "INVALID_RESPONSE"
+
+
+@dataclass(frozen=True)
+class FreshnessPolicy:
+    quote_max_age_seconds: int = 900
+    daily_bar_max_age_sessions: int = 1
+    account_max_age_seconds: int = 900
+    research_max_age_seconds: int = 86_400
+    event_max_age_seconds: int = 86_400
+
+    def __post_init__(self) -> None:
+        if any(value < 0 for value in asdict(self).values()):
+            raise ValueError("freshness thresholds must be non-negative")
+
+    def quote_status(self, observation: OperationalQuote, *, as_of: datetime) -> OperationalProviderStatus:
+        _aware(as_of, "as_of")
+        if observation.timestamp > as_of or observation.received_at > as_of:
+            return OperationalProviderStatus.INVALID_RESPONSE
+        return OperationalProviderStatus.OK if (as_of - observation.timestamp).total_seconds() <= self.quote_max_age_seconds else OperationalProviderStatus.STALE
+
+    def daily_bar_is_current(self, bar_session: date, *, as_of: datetime) -> bool:
+        completed = latest_completed_session(as_of)
+        return (completed - bar_session).days <= self.daily_bar_max_age_sessions
+
+
+@dataclass(frozen=True)
+class OperationalQuote:
+    symbol: str
+    price: Decimal
+    timestamp: datetime
+    received_at: datetime
+    provider: str
+    source_type: str
+    currency: str
+    session: str
+    quality: OperationalProviderStatus = OperationalProviderStatus.OK
+    provenance: Mapping[str, str] | None = None
+
+    def __post_init__(self) -> None:
+        if not self.symbol or self.price <= 0 or not self.price.is_finite():
+            raise ValueError("operational quote requires a positive symbol and price")
+        _aware(self.timestamp, "timestamp")
+        _aware(self.received_at, "received_at")
+        if self.timestamp > self.received_at:
+            raise ValueError("operational quote timestamp is after received_at")
+        if len(self.currency) != 3:
+            raise ValueError("operational quote currency must be ISO-4217")
+
+    @property
+    def content_hash(self) -> str:
+        return hashlib.sha256(json.dumps(asdict(self), default=str, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+    @classmethod
+    def from_shadow_quote(cls, quote: QuoteObservation) -> OperationalQuote:
+        if quote.last is None:
+            raise ValueError("operational quote requires provider last price")
+        return cls(symbol=quote.canonical_symbol, price=quote.last, timestamp=quote.observed_at, received_at=quote.retrieved_at, provider=quote.provider, source_type="PUBLIC_SHADOW_LAST", currency=quote.currency, session=quote.market_status.value, quality=OperationalProviderStatus.OK, provenance={"provider_symbol": quote.provider_symbol, "source": quote.source, "shadow_only": "true"})
+
+
+def _aware(value: datetime, name: str) -> None:
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError(f"{name} must be timezone-aware")
+
+
+class OperationalQuoteProvider(Protocol):
+    provider_name: str
+
+    def get_quote(self, symbol: str, *, as_of: datetime | None = None) -> QuoteObservation: ...
+
+
+@dataclass(frozen=True)
+class ProviderResult:
+    provider: str
+    status: OperationalProviderStatus
+    detail: str
+    quote: OperationalQuote | None = None
+
+
+@dataclass(frozen=True)
+class OperationalSnapshot:
+    analysis_time: datetime
+    information_cutoff: datetime
+    primary: ProviderResult
+    secondary: ProviderResult
+    selected: OperationalQuote | None
+    readiness: OperationalReadiness
+    research_readiness: OperationalReadiness
+    conflict_percent: Decimal | None
+    cache_hit: bool
+
+    def __post_init__(self) -> None:
+        _aware(self.analysis_time, "analysis_time")
+        _aware(self.information_cutoff, "information_cutoff")
+        if self.information_cutoff > self.analysis_time:
+            raise ValueError("information cutoff is after analysis time")
+        if self.selected is not None and self.selected.timestamp > self.information_cutoff:
+            raise ValueError("operational snapshot contains future data")
+
+
+class OperationalCache:
+    """Atomic, provenance-preserving cache that quarantines corrupt inputs."""
+
+    schema_version = "operational-quote.v1"
+
+    def __init__(self, directory: Path) -> None:
+        self.directory = directory
+
+    def _path(self, symbol: str, provider: str) -> Path:
+        safe = "".join(char for char in f"{provider}-{symbol}" if char.isalnum() or char in "-_")
+        return self.directory / f"{safe}.json"
+
+    def load(self, symbol: str, provider: str) -> OperationalQuote | None:
+        path = self._path(symbol, provider)
+        if not path.is_file():
+            return None
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(raw, dict) or raw.get("schema_version") != self.schema_version:
+                raise ValueError("invalid cache envelope")
+            body = raw.get("quote")
+            declared = raw.get("content_hash")
+            if not isinstance(body, dict) or not isinstance(declared, str):
+                raise ValueError("invalid cache fields")
+            actual = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            if actual != declared:
+                raise ValueError("cache hash mismatch")
+            return OperationalQuote(symbol=str(body["symbol"]), price=Decimal(str(body["price"])), timestamp=datetime.fromisoformat(str(body["timestamp"])), received_at=datetime.fromisoformat(str(body["received_at"])), provider=str(body["provider"]), source_type=str(body["source_type"]), currency=str(body["currency"]), session=str(body["session"]), quality=OperationalProviderStatus(str(body["quality"])), provenance=body.get("provenance"))
+        except (OSError, ValueError, KeyError, json.JSONDecodeError):
+            try:
+                path.replace(path.with_suffix(path.suffix + ".corrupt"))
+            except OSError:
+                pass
+            return None
+
+    def store(self, quote: OperationalQuote) -> None:
+        self.directory.mkdir(parents=True, exist_ok=True)
+        path = self._path(quote.symbol, quote.provider)
+        body = asdict(quote)
+        body["price"] = str(quote.price)
+        body["timestamp"] = quote.timestamp.isoformat()
+        body["received_at"] = quote.received_at.isoformat()
+        body["quality"] = quote.quality.value
+        payload = {"schema_version": self.schema_version, "quote": body, "content_hash": hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()}
+        temporary = path.with_suffix(".tmp")
+        temporary.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":")), encoding="utf-8")
+        temporary.replace(path)
+
+
+class OperationalRefreshService:
+    """One bounded refresh boundary; downstream code receives only its snapshot."""
+
+    def __init__(self, primary: OperationalQuoteProvider, secondary: OperationalQuoteProvider, *, policy: FreshnessPolicy | None = None, cache: OperationalCache | None = None, discrepancy_tolerance_percent: Decimal = Decimal("0.02")) -> None:
+        if discrepancy_tolerance_percent < 0:
+            raise ValueError("discrepancy tolerance must be non-negative")
+        self.primary, self.secondary, self.policy, self.cache, self.discrepancy_tolerance_percent = primary, secondary, policy or FreshnessPolicy(), cache, discrepancy_tolerance_percent
+
+    def refresh(self, symbol: str, *, analysis_time: datetime) -> OperationalSnapshot:
+        _aware(analysis_time, "analysis_time")
+        primary = self._fetch(self.primary, symbol, analysis_time)
+        secondary = self._fetch(self.secondary, symbol, analysis_time)
+        selected = primary.quote if primary.status is OperationalProviderStatus.OK else secondary.quote if secondary.status is OperationalProviderStatus.OK else None
+        cache_hit = False
+        if selected is None and self.cache is not None:
+            cached = self.cache.load(symbol, self.primary.provider_name) or self.cache.load(symbol, self.secondary.provider_name)
+            if cached is not None:
+                selected, cache_hit = cached, True
+        if selected is not None and self.cache is not None and not cache_hit:
+            self.cache.store(selected)
+        conflict = None
+        if primary.quote is not None and secondary.quote is not None:
+            conflict = abs(primary.quote.price - secondary.quote.price) / primary.quote.price
+        conflict_block = conflict is not None and conflict > self.discrepancy_tolerance_percent
+        readiness = OperationalReadiness.OPERATIONAL_READY if selected is not None and self.policy.quote_status(selected, as_of=analysis_time) is OperationalProviderStatus.OK and not conflict_block else OperationalReadiness.OPERATIONAL_DEGRADED
+        return OperationalSnapshot(analysis_time=analysis_time, information_cutoff=analysis_time, primary=primary, secondary=secondary, selected=selected, readiness=readiness, research_readiness=OperationalReadiness.RESEARCH_BLOCKED, conflict_percent=conflict, cache_hit=cache_hit)
+
+    def _fetch(self, provider: OperationalQuoteProvider, symbol: str, as_of: datetime) -> ProviderResult:
+        try:
+            quote = OperationalQuote.from_shadow_quote(provider.get_quote(symbol, as_of=as_of))
+            return ProviderResult(provider.provider_name, self.policy.quote_status(quote, as_of=as_of), "public operational observation; not PIT certified", quote)
+        except QuoteProviderTimeout:
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "timeout")
+        except (QuoteProviderMalformed, ValueError):
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.INVALID_RESPONSE, "invalid_response")
+        except QuoteProviderError:
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "provider_error")
+        except OSError:
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "network_unavailable")
+
+
+def data_status(snapshot: OperationalSnapshot | None = None) -> dict[str, object]:
+    """Human and machine readable separation of today's data from research PIT."""
+    if snapshot is None:
+        return {"market_calendar": "OK", "primary_price": "UNAVAILABLE", "secondary_price": "UNAVAILABLE", "latest_quote": "UNAVAILABLE", "latest_daily_bar": "UNKNOWN", "account_snapshot": "EXTERNAL_INPUT_REQUIRED", "sec_pit_research": "PARTIAL", "historical_universe": "BLOCKED", "operational": OperationalReadiness.OPERATIONAL_DEGRADED.value, "research": OperationalReadiness.RESEARCH_BLOCKED.value, "certification": "OPERATIONAL_DATA_IS_NOT_CERTIFIED_RESEARCH"}
+    return {"market_calendar": "OK", "primary_price": snapshot.primary.status.value, "secondary_price": snapshot.secondary.status.value, "latest_quote": "FRESH" if snapshot.readiness is OperationalReadiness.OPERATIONAL_READY else "STALE_OR_UNAVAILABLE", "latest_daily_bar": "UNKNOWN", "account_snapshot": "EXTERNAL_INPUT_REQUIRED", "sec_pit_research": "PARTIAL", "historical_universe": "BLOCKED", "operational": snapshot.readiness.value, "research": snapshot.research_readiness.value, "provider_conflict_percent": str(snapshot.conflict_percent) if snapshot.conflict_percent is not None else None, "information_cutoff": snapshot.information_cutoff.isoformat(), "cache_hit": snapshot.cache_hit, "certification": "OPERATIONAL_DATA_IS_NOT_CERTIFIED_RESEARCH"}
