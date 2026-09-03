@@ -18,11 +18,14 @@ dev = [
 ]
 
 [project.scripts]
-meridian = "meridian.cli:main"
+meridian = "meridian.application_cli:main"
 
 [build-system]
 requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/meridian"]
