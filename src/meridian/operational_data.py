@@ -9,8 +9,8 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Mapping
-from dataclasses import asdict, dataclass
-from datetime import date, datetime
+from dataclasses import asdict, dataclass, replace
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from enum import StrEnum
 from pathlib import Path
@@ -195,10 +195,14 @@ class OperationalRefreshService:
             raise ValueError("discrepancy tolerance must be non-negative")
         self.primary, self.secondary, self.policy, self.cache, self.discrepancy_tolerance_percent = primary, secondary, policy or FreshnessPolicy(), cache, discrepancy_tolerance_percent
 
-    def refresh(self, symbol: str, *, analysis_time: datetime) -> OperationalSnapshot:
+    def refresh(self, symbol: str, *, analysis_time: datetime, live: bool = False) -> OperationalSnapshot:
         _aware(analysis_time, "analysis_time")
-        primary = self._fetch(self.primary, symbol, analysis_time)
-        secondary = self._fetch(self.secondary, symbol, analysis_time)
+        primary = self._fetch(self.primary, symbol, analysis_time, live=live)
+        secondary = self._fetch(self.secondary, symbol, analysis_time, live=live)
+        if live:
+            analysis_time = datetime.now(UTC)
+            primary = replace(primary, status=self.policy.quote_status(primary.quote, as_of=analysis_time)) if primary.quote is not None else primary
+            secondary = replace(secondary, status=self.policy.quote_status(secondary.quote, as_of=analysis_time)) if secondary.quote is not None else secondary
         selected = primary.quote if primary.status is OperationalProviderStatus.OK else secondary.quote if secondary.status is OperationalProviderStatus.OK else None
         cache_hit = False
         if selected is None and self.cache is not None:
@@ -214,9 +218,9 @@ class OperationalRefreshService:
         readiness = OperationalReadiness.OPERATIONAL_READY if selected is not None and self.policy.quote_status(selected, as_of=analysis_time) is OperationalProviderStatus.OK and not conflict_block else OperationalReadiness.OPERATIONAL_DEGRADED
         return OperationalSnapshot(analysis_time=analysis_time, information_cutoff=analysis_time, primary=primary, secondary=secondary, selected=selected, readiness=readiness, research_readiness=OperationalReadiness.RESEARCH_BLOCKED, conflict_percent=conflict, cache_hit=cache_hit)
 
-    def _fetch(self, provider: OperationalQuoteProvider, symbol: str, as_of: datetime) -> ProviderResult:
+    def _fetch(self, provider: OperationalQuoteProvider, symbol: str, as_of: datetime, *, live: bool = False) -> ProviderResult:
         try:
-            quote = OperationalQuote.from_shadow_quote(provider.get_quote(symbol, as_of=as_of))
+            quote = OperationalQuote.from_shadow_quote(provider.get_quote(symbol, as_of=None if live else as_of))
             return ProviderResult(provider.provider_name, self.policy.quote_status(quote, as_of=as_of), "public operational observation; not PIT certified", quote)
         except QuoteProviderTimeout:
             return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "timeout")

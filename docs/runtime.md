@@ -1,26 +1,25 @@
-# Runtime directories and local diagnostics
+# Runtime operations
 
-Meridian keeps mutable state outside the installed package. On Windows the
-default home is `%LOCALAPPDATA%\MeridianAlpha`; set an absolute
-`MERIDIAN_HOME` to override it (tests should set it to a temporary directory).
+Canonical CLI: `meridian` or `python -m meridian`. Windows launcher:
+`scripts/run_meridian.ps1`. See README for the supported arguments.
 
-The runtime layout is `data/`, `db/`, `cache/`, `reports/`, `logs/`, `runs/`,
-`audit/`, and `config/`. The canonical SQLite location is
-`db/meridian.sqlite3`. A missing database is reported as `PENDING`; Meridian
-must not silently create an alternate database in the working directory.
+Runtime home: absolute MERIDIAN_HOME, otherwise LOCALAPPDATA/MeridianAlpha on
+Windows. DB, reports, logs, cache and audit state all use RuntimePaths.
+The installed wheel includes policies and does not require a writable checkout.
 
-Run the bounded, local-only diagnostic before stateful work:
+Doctor probes real directory creation/read/write/delete, Python/dependencies,
+config, timezone and SQLite schema/integrity. Optional adapter presence is
+UNKNOWN provider availability, never a successful live probe.
 
-```powershell
-.\.venv\Scripts\python.exe -m meridian.runtime_diagnostics doctor --json
-.\scripts\run_meridian.ps1 doctor --json
-```
+Fresh DB is PENDING in doctor; daily applies the existing SQLite v1 migration.
+Init is idempotent. A newer schema is rejected. Migration and audit connections
+are explicitly closed, including on failure. No Alembic or external DB exists.
 
-The report is machine-readable and never performs network probes. It reports
-secret state only as `configured=true|false`. A database marked `PENDING`
-requires explicit initialization by the existing audit migration path; a
-`FAILED` migration/database state blocks readiness and must not be ignored.
+Each daily invocation logs startup, DB/preflight, market retrieval, analysis,
+run ID and output paths. Account/credential contents are never logged.
+Errors return a category, code, next action and log directory. Preserve user DB
+and reports when troubleshooting; there is no destructive automatic recovery.
 
-`scripts/run_meridian.ps1` is a thin Windows launcher. It runs the diagnostic,
-propagates its exit code, then delegates to the established CLI; it contains no
-business or brokerage logic.
+Live public retrieval closes the analysis cutoff after reception. Replay keeps
+a fixed cutoff and rejects observations received afterward. Public inputs are
+not certified execution quotes. Closed-market stale quotes remain blocked.

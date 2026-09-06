@@ -3,25 +3,14 @@ param(
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$MeridianArgs
 )
-
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $root '.venv\Scripts\python.exe'
-if (-not (Test-Path -LiteralPath $python)) { $python = 'python' }
-
-if ($MeridianArgs.Length -gt 0 -and $MeridianArgs[0] -eq 'data-status') {
-    & $python -m meridian.operational_cli @($MeridianArgs | Select-Object -Skip 1)
-    exit $LASTEXITCODE
+if (-not (Test-Path -LiteralPath $python)) {
+    Write-Host 'MERIDIAN_PYTHON_MISSING: Install Python 3.12 and run uv sync --group dev in the project directory.'
+    exit 3
 }
-if ($MeridianArgs.Length -gt 0 -and $MeridianArgs[0] -in @('snapshot', 'daily')) {
-    & $python -m meridian.daily_cli @MeridianArgs
-    exit $LASTEXITCODE
-}
-
-& $python -m meridian.runtime_diagnostics doctor --json
-if ($LASTEXITCODE -ne 0) {
-    Write-Error 'Meridian preflight failed. Resolve the sanitized doctor report before running a stateful command.'
-    exit $LASTEXITCODE
-}
-& $python -c 'from meridian.cli import main; main()' @MeridianArgs
+$env:PYTHONUTF8 = '1'
+if (-not $MeridianArgs) { $MeridianArgs = @('doctor') }
+& $python -m meridian @MeridianArgs
 exit $LASTEXITCODE

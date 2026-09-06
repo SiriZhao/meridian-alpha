@@ -1,134 +1,39 @@
 ---
 name: meridian-alpha
-description: Safely validate a sanitized HostAccountSnapshotEnvelope and run read-only US-equity Meridian decision support. Use for daily shadow analysis, certified SEC evidence review, Quant plus DeepSeek research, and manual-entry readiness checks without broker login or order execution.
+description: Run Meridian daily portfolio decision support through its installed canonical CLI, diagnose runtime failures, and present sanitized research-only results without broker execution.
 ---
 
-# Meridian Alpha Host workflow
+# Meridian daily operation
 
-When a user asks to run Meridian, the Host—not Meridian Python—may obtain
-current facts from an authorized account source. Never name, configure, or
-invoke a particular brokerage, finance SDK, bank SDK, login, credential, or
-account number.
+Use the installed `meridian` command (equivalently `python -m meridian`). On
+this Windows checkout the stable launcher is `scripts/run_meridian.ps1`.
+Do not call legacy internal CLI modules or the old scripts in this Skill.
 
-1. Sanitize current facts into `HostAccountSnapshotEnvelope`.
-2. For local CLI review, run `meridian host-smoke <file>`; it performs schema,
-   sensitive-key, freshness, identity, normalization, and shared-analysis
-   checks without connecting to an account source.
-3. If the read-only MCP surface is available, call
-   `validate_host_account_snapshot` (or `validate_account_snapshot` for a
-   normalized snapshot).
-4. Call `run_host_daily_analysis` (or `run_daily_analysis`) using the same
-   envelope and current as-of time.
-5. Present the returned account state, evidence, target portfolio, risk,
-   readiness, and blockers.
-6. Treat `ANALYSIS_ONLY` and `DRAFT` as non-enterable. Only
-   `READY_FOR_MANUAL_ENTRY` is a manual-entry candidate, never an execution.
-7. Never say `已执行` or that an order filled until a newer host snapshot proves
-   the changed cash/holding state.
+1. Run `meridian doctor --json`. If the only degraded check is a missing DB,
+   daily initializes it safely. For FAIL, resolve the reported runtime issue.
+2. Obtain a newly supplied sanitized `HostAccountSnapshotEnvelope`; see
+   [account-contract.md](references/account-contract.md). Never infer current
+   cash, holdings or fills from conversation history or earlier recommendations.
+3. Run `meridian daily --snapshot <absolute-sanitized-envelope.json> --json`.
+   It performs initialization/preflight, public market retrieval, deterministic
+   analysis, audit persistence and report generation. No real snapshot: request
+   one; never substitute a synthetic account for a real daily request.
+4. Read the JSON result and its `output_files`. Present runtime/data/portfolio/
+   research/quant/risk/recommendation status, warnings, errors and report paths.
+   A blocked investment recommendation is distinct from a runtime failure.
 
-Execution quotes are a separate certified capability. `meridian
-quote-preflight` reports candidate-provider health only; without a verified
-certificate, `QUOTE_READY` and manual entry remain blocked.
+For regression only, add `--market-fixture <absolute-synthetic-market.json>`
+with a synthetic account. Label results FIXTURE; never claim live verification.
+The current canonical path reports LLM research NOT_RUN. Do not call it a full
+certified research run. Old `--profile`, `--date`, and `--account-fixture`
+arguments are not supported by this CLI.
 
-## Capability detection
+All current outputs are research-only and NOT_AUTHORIZED_FOR_MANUAL_ENTRY.
+DRAFT is not a sealed ManualReadinessCertificate. A manual-entry candidate
+requires all seven authority gates and a matching certified ExecutionQuote;
+never derive that authority from a successful process exit or report status.
+No broker login, write, execution, or assumed fills. Do not read or print
+credentials or raw account identifiers. See [safety.md](references/safety.md).
 
-At runtime distinguish `HOST_ACCOUNT_TOOL_AVAILABLE`,
-`PYTHON_RUNTIME_AVAILABLE`, `NETWORK_AVAILABLE`, `CERTIFIED_QUOTE_AVAILABLE`,
-and `LIVE_DEEPSEEK_AVAILABLE`. Never assume any capability exists. If a
-required capability is unavailable, fail closed with the exact blocker; do not
-fabricate prices, account state, evidence, or calculations. A GitHub checkout
-is not a runtime requirement for this Skill: use package-relative references
-and the Host-provided input contract.
-
-Read [workflow.md](references/workflow.md), [account-contract.md](references/account-contract.md),
-and [safety.md](references/safety.md).
-
-## Gate 6D/6E operator profiles
-
-Use `TEST` for fixtures, `REPLAY` for frozen artifacts, `SHADOW_LIVE` only with
-explicit bounded live research opt-in, and `MANUAL_DECISION_SUPPORT` only after
-real Host/account, authoritative identity, quote, risk, and reconciliation gates
-pass. There is no `AUTO_EXECUTION` profile. Every report begins with one of
-`BLOCKED`, `ANALYSIS_ONLY`, `SHADOW`, or `READY_FOR_MANUAL_ENTRY`.
-
-The long-shadow ledger separates recommendation, target, and later outcome. It
-never implies a fill. FinRL-X is an optional isolated allocator challenger only;
-`MODEL_UNAVAILABLE` is the correct status without a real OOS-validated artifact.
-
-## Gate 6F manual-entry authority
-
-Never infer manual-entry readiness from `DailyDecision.overall_status` alone.
-Require a concrete READY `ManualReadinessCertificate` with all seven gates and a
-matching certified `ExecutionQuoteCapabilityCertificate`. The only
-production-shaped constructor is `build_manual_order_draft`; its result is
-`NOT_EXECUTED`. MarketSnapshot/research prices and valuation marks are
-analysis-only, and MCP must return a blocker when the sealed certificate or
-quote certificate is absent. A later sanitized Host snapshot, never a draft,
-proves an external fill.
-
-## V1 frozen daily workflow
-
-Use `meridian daily` as the only supported production-style command. Receive a
-sanitized Host snapshot, validate it, run the selected safe profile, and return
-the sanitized report, evidence lineage, and target portfolio. Return a manual
-draft only when a sealed `ManualReadinessCertificate` is `READY` and the exact
-`ExecutionQuote` is backed by a valid capability certificate. Otherwise return
-explicit blockers. The read-only MCP surface is limited to account validation,
-daily analysis/reporting, evidence/research/portfolio inspection, manual-draft
-inspection, and provider health. There is no broker tool, `AUTO_EXECUTION`
-profile, broker login, Schwab authentication, order operation, or assumed fill.
-
-## Mobile/Host workflow
-
-Obtain an authorized sanitized Host snapshot when the Host exposes that
-capability; otherwise request the user to provide one. Validate it, run the
-safe profile, and return the Chinese daily report, evidence lineage, and target
-portfolio. Only a sealed `ManualReadinessCertificate` with all seven gates plus
-a matching `ExecutionQuoteCapabilityCertificate` can produce a
-`ManualOrderDraft`; every draft is `NOT_EXECUTED` and requires human review.
-
-## HOST_NATIVE mode and portable invocation
-
-Use `HOST_NATIVE` when the host can provide capabilities directly. Detect each
-capability rather than assuming it: accept only an authorized sanitized
-`HostAccountSnapshotEnvelope`, execute deterministic Meridian code only when
-the Python runtime and project core are actually available, and fail closed
-with `MERIDIAN_RUNTIME_UNAVAILABLE` otherwise. The portable
-`scripts/preflight.py` and `scripts/run_daily.py` use no shell-specific startup
-and delegate all financial calculations to the project-owned core. See
-[runtime-dependencies.md](references/runtime-dependencies.md).
-
-## Invocation triggers
-
-For requests such as “run Meridian”, “analyze my portfolio”, “today's Meridian
-report”, or “large-cap dip-buy analysis”, follow capability preflight →
-sanitized account truth → certified SEC/market data → deterministic core →
-certified research → Chinese report. For a real account request, never infer
-holdings from conversation history. If the runtime is unavailable, state
-`MERIDIAN_RUNTIME_UNAVAILABLE` and identify the missing capability; do not
-recreate investment calculations in prose.
-
-For a portable capability check, run `python scripts/preflight.py`. To request
-the safe core-delegating wrapper, run `python scripts/run_daily.py --profile
-TEST` (or `REPLAY` with a matching frozen input). The wrapper emits sanitized
-JSON followed by the Chinese mobile report; it never treats an unavailable
-runtime as completed analysis.
-
-## Mobile command intents
-
-Route these user intents to the same safe workflows:
-
-- “运行今天的 Meridian” → capability preflight and daily shadow analysis.
-- “检查 Meridian 系统状态” → provider/system-health inspection.
-- “分析我的当前持仓” → fresh sanitized Host snapshot validation, then analysis.
-- “给我今天的目标组合” → inspect the deterministic target from the current run.
-- “运行大公司抄底分析” → certified market dislocation screen only.
-- “查看今天的证据” → sanitized evidence identifiers and lineage.
-- “今天为什么没有操作建议” → explain blockers and readiness gates.
-- “对比 Quant-only 和 Quant+AI” → show stored attribution, or
-  `INSUFFICIENT_SAMPLE` when unavailable.
-- “查看 Shadow 观察进度” → show completed/required/preferred sessions.
-
-For all intents, account truth may come only from an authorized Host capability or
-fresh sanitized user-supplied snapshot. Conversation memory and old snapshots are
-not brokerage truth.
+If the installed Python/package is missing, report MERIDIAN_RUNTIME_UNAVAILABLE
+with the missing capability. Do not reproduce financial calculations in prose.

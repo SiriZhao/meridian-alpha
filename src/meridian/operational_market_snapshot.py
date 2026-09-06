@@ -12,7 +12,7 @@ import hashlib
 import json
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Protocol
 
@@ -145,7 +145,7 @@ class OperationalMarketSnapshotService:
         return cls(refresh, historical, policy=policy)
 
     def build(
-        self, symbols: Iterable[str], *, analysis_time: datetime
+        self, symbols: Iterable[str], *, analysis_time: datetime, live: bool = False
     ) -> OperationalMarketSnapshot:
         if analysis_time.tzinfo is None or analysis_time.utcoffset() is None:
             raise ValueError("ANALYSIS_TIME_TIMEZONE_REQUIRED")
@@ -156,7 +156,9 @@ class OperationalMarketSnapshotService:
         conflicts: dict[str, str] = {}
         missing: dict[str, str] = {}
         for symbol in requested:
-            refresh = self.refresh.refresh(symbol, analysis_time=analysis_time)
+            refresh = self.refresh.refresh(symbol, analysis_time=analysis_time, live=True) if live else self.refresh.refresh(symbol, analysis_time=analysis_time)
+            if live:
+                analysis_time = refresh.analysis_time
             health[symbol] = {
                 "primary": refresh.primary.status.value,
                 "secondary": refresh.secondary.status.value,
@@ -182,6 +184,8 @@ class OperationalMarketSnapshotService:
                 quotes[symbol] = self._market_snapshot(symbol, refresh, analysis_time)
             except (HistoricalProviderError, OSError, ValueError) as error:
                 missing[symbol] = self._historical_code(error)
+        if live:
+            analysis_time = datetime.now(UTC)
         return OperationalMarketSnapshot(
             analysis_time=analysis_time,
             information_cutoff=analysis_time,
@@ -251,6 +255,8 @@ class OperationalMarketSnapshotService:
             or refresh.secondary.status is OperationalProviderStatus.INVALID_RESPONSE
         ):
             return "INVALID_RESPONSE"
+        if refresh.primary.status is OperationalProviderStatus.STALE or refresh.secondary.status is OperationalProviderStatus.STALE:
+            return "MARKET_DATA_STALE"
         if "timeout" in details:
             return "NETWORK_TIMEOUT"
         return "PRIMARY_PROVIDER_UNAVAILABLE_AND_SECONDARY_PROVIDER_UNAVAILABLE"

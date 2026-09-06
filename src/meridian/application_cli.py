@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import sqlite3
 from pathlib import Path
 
 from meridian.application import MeridianApplicationService
+from meridian.runtime import RuntimePathError
 
 
 def main() -> int:
@@ -18,8 +20,9 @@ def main() -> int:
     parser.add_argument("--market-fixture")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
-    service = MeridianApplicationService()
+    service = None
     try:
+        service = MeridianApplicationService()
         if args.command == "version":
             payload = service.version()
         elif args.command == "paths":
@@ -40,9 +43,27 @@ def main() -> int:
             payload = service.dip_scout(Path(args.file))
         else:
             raise ValueError("invalid command arguments")
-    except (OSError, ValueError, json.JSONDecodeError) as error:
-        print(json.dumps({"status": "FAILED", "error": type(error).__name__, "message": "Input or runtime state was rejected; no order was created."}, sort_keys=True))
+    except (OSError, ValueError, RuntimePathError, sqlite3.Error) as error:
+        if isinstance(error, RuntimePathError):
+            code, category, message = "MERIDIAN_RUNTIME_UNAVAILABLE", "USER_FIXABLE", str(error)
+        elif isinstance(error, OSError):
+            code, category, message = "MERIDIAN_FILESYSTEM_ERROR", "USER_FIXABLE", "Check the indicated path, permissions and file locks; choose a writable MERIDIAN_HOME."
+        elif isinstance(error, sqlite3.Error):
+            code, category, message = "MERIDIAN_DATABASE_ERROR", "USER_FIXABLE", "Run doctor; check database permissions, locks and schema. Preserve the database."
+        else:
+            code, category, message = "MERIDIAN_INPUT_INVALID", "DATA_QUALITY", "Supply a valid sanitized HostAccountSnapshotEnvelope and market fixture; run snapshot validate first."
+        payload = {"status": "FAILED", "runtime_status": "FAILED", "error_code": code, "category": category, "message": message, "path": str(getattr(error, "filename", None) or ""), "logs_path": str(service.paths.logs) if service else None, "automatic_recovery": "No destructive recovery attempted"}
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
         return 3
-    print(json.dumps(payload, ensure_ascii=False, default=str, sort_keys=True))
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, default=str, sort_keys=True))
+    else:
+        print("MERIDIAN ALPHA")
+        print("Status: " + str(payload.get("status", "PASS")))
+        print(json.dumps(payload, ensure_ascii=False, default=str, indent=2, sort_keys=True))
     status = str(payload.get("status", "PASS"))
-    return 0 if status in {"PASS", "INIT_COMPLETE", "INIT_ALREADY_COMPLETE", "NO_ACTION", "DRAFT"} else 2 if status in {"DEGRADED", "BLOCKED_STALE_ACCOUNT", "BLOCKED_STALE_MARKET", "INSUFFICIENT_FORWARD_EVIDENCE"} else 3
+    return 0 if status in {"PASS", "INIT_COMPLETE", "INIT_ALREADY_COMPLETE", "NO_ACTION", "NO_CAPITAL", "DRAFT"} else 2 if status in {"DEGRADED", "BLOCKED_STALE_ACCOUNT", "BLOCKED_STALE_MARKET", "INSUFFICIENT_FORWARD_EVIDENCE"} else 3
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

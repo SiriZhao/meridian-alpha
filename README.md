@@ -1,124 +1,79 @@
 # Meridian Alpha
 
-`meridian` is an AI-assisted, long-only portfolio decision system for US equities.
+US-equity portfolio decision support. All current outputs are research-only;
+there is no broker execution and a DRAFT is not authorization to enter an order.
 
-It turns a newly supplied, normalized brokerage `AccountSnapshot` and verified
-market data into a deterministic target portfolio and **manual limit-order
-ticket**. It never submits, places, or executes brokerage orders.
+## Install (Windows PowerShell)
 
-## Status
-
-The repository contains the Meridian decision-support core, bounded public-data
-shadow adapters, certified SEC fundamentals, and replay-safe research contracts.
-It still contains no brokerage integration, broker writes, real account, or
-order-submission surface. Gate 6B/6C shadow output remains explicitly
-`SHADOW / NOT AUTHORIZED FOR ENTRY`; no production execution quote is
-certified.
-
-## Safety boundary
-
-- The current account snapshot is the sole truth for holdings and cash.
-- Recommendations are never treated as fills.
-- Stale or unverifiable account/market data must block executable output.
-- Human approval and manual entry are required for every real order.
-- No broker credentials, API keys, or account numbers belong in this repository.
-
-## Development
-
-Python 3.12 is the supported runtime.
+Use Python 3.12 and uv. From this checkout:
 
 ```powershell
-uv sync --group dev
-uv run pytest
-uv run ruff check .
-uv run pyright
+uv sync --group dev --inexact
 ```
 
-See [architecture.md](docs/architecture.md),
-[product-contract.md](docs/product-contract.md), and
-[build-state.md](docs/build-state.md).
+`--inexact` preserves already installed optional research packages. If uv is not
+on PATH but the existing environment is present, use `.\.venv\Scripts\uv.exe`.
 
-The supervised Host contract can be checked with
-`meridian host-smoke <sanitized-envelope.json>`. Candidate quote configuration
-is inspected with `meridian quote-preflight`; this command never prints
-credentials and does not certify a provider by connectivity alone.
+## Configure
 
-## Upstream research integrations
+Runtime defaults to `%LOCALAPPDATA%\MeridianAlpha`, independent of the working
+folder. Optionally set `MERIDIAN_HOME` to an absolute writable user directory.
+Policies come from the checkout (or the installed wheel); `MERIDIAN_POLICY_DIR`
+selects an explicit policy directory. Do not put credentials or raw account
+identifiers in configuration or input files.
 
-TradingAgents and FinRL-X will be optional adapters, pinned by commit and
-isolated from the domain core. See the compatibility record in
-[build-state.md](docs/build-state.md). Their Apache-2.0 licenses are compatible
-with this repository's planned dependency strategy; no upstream source code is
-copied here.
+## Doctor
 
-## Non-advice notice
+```powershell
+.\scripts\run_meridian.ps1 doctor --json
+```
 
-Meridian Alpha is a research and decision-support system, not investment,
-legal, tax, or trading advice. Outputs remain drafts for user review and manual
-entry.
+A missing database is PENDING, and daily initializes it automatically. Other
+FAIL checks require correction before analysis. `meridian init --json` is also
+available for explicit, idempotent database initialization.
 
-## Gate 6D/6E release-candidate posture
+## Run
 
-The current application has explicit `TEST`, `REPLAY`, `SHADOW_LIVE`, and
-`MANUAL_DECISION_SUPPORT` profiles. The durable long-shadow ledger and offline
-replay/soak foundation are available. Reports always lead with `BLOCKED`,
-`ANALYSIS_ONLY`, `SHADOW`, or `READY_FOR_MANUAL_ENTRY`. The current release
-candidate is `SHADOW / NOT AUTHORIZED FOR ENTRY`: no real Host envelope or
-execution-quote certificate is present, FinRL-X is `MODEL_UNAVAILABLE`, and no
-broker or Schwab authentication/write surface exists.
-## V1 daily-shadow release (Gate 6H/6I)
+Supply a fresh sanitized HostAccountSnapshotEnvelope from your authorized source:
 
-The supported user-facing command is `meridian daily`. It runs the shared
-sanitized analysis path and writes `runs/<date>/<run_id>/` artifacts plus
-append-only shadow ledgers. Profiles are `TEST`, `REPLAY`, `SHADOW_LIVE` (explicit
-opt-in), and `MANUAL_DECISION_SUPPORT`; there is no `AUTO_EXECUTION` profile.
-TradingAgents is qualitative context only, while DeepSeek `CertifiedEvidenceView`
-is the certified research lane. FinRL-X is optional and deferred (`MODEL_UNAVAILABLE`
-is acceptable). A manual draft requires a READY seven-gate
-`ManualReadinessCertificate` and a certified `ExecutionQuote`; no broker or
-Schwab surface exists.
+```powershell
+.\scripts\run_meridian.ps1 daily --snapshot "C:\Inputs\today.json" --json
+```
 
-## Meridian Alpha V1 release candidate
+The launcher delegates to `python -m meridian`; installed `meridian` uses the
+same CLI. It runs DB initialization, doctor, public market retrieval,
+deterministic portfolio/risk analysis, audit persistence, and reports. JSON
+includes component statuses, warnings/errors, and `output_files`. Reports and
+logs are under the runtime home. No raw snapshot is saved by default.
 
-V1 is code-feature complete for bounded US-equity shadow observation. The
-production path is certified SEC fundamentals plus Quant, certified DeepSeek
-research, deterministic AlphaFusion, allocation, risk, reconciliation, a
-shadow ledger, and a sealed manual-authority framework. TradingAgents remains
-qualitative context only; FinRL-X is deferred (`MODEL_UNAVAILABLE` is valid).
+The canonical operational path currently reports `research_status=NOT_RUN`:
+LLM/certified research is not integrated into this path. Missing/stale market
+inputs block recommendations while still producing a diagnostic report.
+No real account snapshot means no real portfolio validation.
 
-Current external/observation blockers are an authorized real Host smoke, a
-certified read-only execution quote, and the minimum shadow observation period.
-No Schwab execution, broker login, broker writes, or real orders exist.
+For synthetic regression only, add `--market-fixture <synthetic-market.json>`
+with a synthetic account. Fixture success is not production verification.
+Old `--profile`, `--date`, and `--account-fixture` commands are historical.
 
-### Install as Agent Skill
+## Common errors
 
-Download and verify [`dist/meridian-alpha-skill-v1.zip`](dist/meridian-alpha-skill-v1.zip)
-with [`dist/meridian-alpha-skill-v1.sha256`](dist/meridian-alpha-skill-v1.sha256),
-then install it through the ChatGPT Skills UI where available. See
-[`docs/chatgpt-mobile-skill-install.md`](docs/chatgpt-mobile-skill-install.md).
-GitHub is distribution, not automatic ChatGPT installation.
+- Missing Python: install Python 3.12 and sync dependencies.
+- Runtime path failure: set an absolute writable `MERIDIAN_HOME`; rerun doctor.
+- Database failure: inspect permissions, locks and schema; preserve the DB.
+- Invalid input: use the Host envelope contract and `meridian snapshot validate <file> --json`.
+- Market data stale/unavailable: inspect `symbols_missing` and provider health;
+  never replace missing quotes with invented prices.
 
-## V1 operations freeze
+Exit codes: 0 completed operational result, 2 degraded/blocked input, 3 failure.
+A zero exit code never grants manual-entry authority. Use the PowerShell terminal
+so diagnostics remain visible; the launcher preserves the process exit code.
 
-`main` is the stable RC/current-source branch. Experimental work, including
-FinRL-X, belongs on feature branches and is not promoted directly into the V1
-shadow path. The supported daily workflow is `meridian daily` with an explicit
-safe profile; `SHADOW_LIVE` requires opt-in and `MANUAL_DECISION_SUPPORT`
-requires the sealed seven-gate authority. Current status is **V1 CODE: FEATURE
-COMPLETE** and **CURRENT: SHADOW OBSERVATION**. External blockers are an
-authorized Host smoke and a certified ExecutionQuote; broker is not connected.
+## Maintenance
 
-RC tags progress as `v1.0.0-rcN`. Stable `v1.0.0` is prohibited until real Host
-smoke, quote certification, the required observation period, no P0, and manual
-V1 review are all complete. FinRL-X is deferred and Schwab is future Gate 7
-only.
+Core regression: `uv run --no-sync pytest`, `uv run --no-sync ruff check .`,
+`uv run --no-sync pyright`. The subprocess E2E creates a fresh runtime outside
+the checkout, runs twice, checks SQLite integrity and persisted reports.
 
-## Daily V1 operations
-
-Use the mobile/Host handoff documents for repeatable operation:
-[host-to-skill-contract.md](docs/host-to-skill-contract.md),
-[quote-certification-user-checklist.md](docs/quote-certification-user-checklist.md),
-[real-host-smoke-checklist.md](docs/real-host-smoke-checklist.md), and
-[daily-shadow-checklist.md](docs/daily-shadow-checklist.md). The observation
-counter requires five completed sessions (ten preferred) and never treats that
-sample as performance validation.
+See [runtime baseline](docs/runtime-baseline.md), [maintenance backlog](MAINTENANCE.md)
+and [runtime details](docs/runtime.md). Historical Gate/ROUND documents remain
+for audit only and are not the daily operating instructions.

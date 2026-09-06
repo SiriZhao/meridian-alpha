@@ -94,7 +94,7 @@ class DailyClosureService:
         if not selected:
             blockers.append("REQUIRED_OPERATIONAL_MARKET_DATA_UNAVAILABLE")
         for ticker, quote in selected.items():
-            if quote.timestamp > cutoff or quote.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT}:
+            if quote.timestamp > cutoff or (cutoff - quote.timestamp).total_seconds() > 900 or quote.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT}:
                 blockers.append(f"{ticker}:MARKET_STALE_OR_AFTER_CUTOFF")
         return tuple(blockers)
 
@@ -113,7 +113,7 @@ def persist_report(result: DailyClosureResult, paths: RuntimePaths) -> DailyClos
     temporary.write_text(json.dumps(result.report, ensure_ascii=False, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
     temporary.replace(json_path)
     order_lines = [f"- {order.side.value} {order.quantity} {order.ticker} @ {order.preferred_limit} — {order.reason}" for order in result.decision.orders] or ["- No order draft."]
-    text = "\n".join(("# Meridian daily manual-decision report", "", f"Run ID: `{result.decision.run_id}`", f"Status: **{result.decision.overall_status.value}**", "", "EXECUTION = MANUAL", "BROKER SUBMISSION = DISABLED", "", "## Blockers", *[f"- {item}" for item in result.decision.blocked_reasons or ("None",)], "", "## Manual order draft", *order_lines)) + "\n"
+    text = "\n".join(("# Meridian daily manual-decision report", "", f"Run ID: `{result.decision.run_id}`", f"Status: **{result.decision.overall_status.value}**", "", "EXECUTION = MANUAL", "BROKER SUBMISSION = DISABLED", "", "## Blockers", *[f"- {item}" for item in result.decision.blocked_reasons or ("None",)], "", "## Research-only draft — NOT AUTHORIZED FOR MANUAL ENTRY", *order_lines)) + "\n"
     temporary_md = markdown_path.with_suffix(".tmp")
     temporary_md.write_text(text, encoding="utf-8")
     temporary_md.replace(markdown_path)

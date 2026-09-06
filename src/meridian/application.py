@@ -4,10 +4,15 @@ from __future__ import annotations
 
 import importlib.metadata
 import json
+import logging
 import sqlite3
 import sys
+from contextlib import closing
 from datetime import datetime
 from pathlib import Path
+from time import monotonic
+from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 from meridian.audit import SCHEMA_VERSION, AuditStore
 from meridian.config import load_policies
@@ -54,7 +59,7 @@ class MeridianApplicationService:
         existed = self.paths.db.exists()
         try:
             AuditStore(self.paths.db).migrate()
-            with sqlite3.connect(f"file:{self.paths.db}?mode=rw", uri=True) as connection:
+            with closing(sqlite3.connect(self.paths.db.resolve().as_uri() + "?mode=rw", uri=True)) as connection:
                 version = connection.execute(
                     "SELECT MAX(version) FROM schema_migrations"
                 ).fetchone()[0]
@@ -65,6 +70,9 @@ class MeridianApplicationService:
                 "db_path": str(self.paths.db),
                 "schema_version": None,
                 "warnings": [type(error).__name__],
+                "error_code": "MERIDIAN_DATABASE_INIT_FAILED",
+                "category": "USER_FIXABLE",
+                "next_step": "Check database permissions, locks and schema with doctor; preserve the existing database.",
             }
         return {
             "status": "INIT_ALREADY_COMPLETE" if existed else "INIT_COMPLETE",
@@ -87,9 +95,40 @@ class MeridianApplicationService:
         }
 
     def daily(self, snapshot_path: Path, market_fixture: Path | None = None) -> dict[str, object]:
+        self.paths.ensure_directories()
+        invocation = uuid4().hex
+        log_path = self.paths.logs / ("daily-" + invocation + ".log")
+        logger = logging.getLogger("meridian.daily." + invocation)
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+        handler = logging.FileHandler(log_path, encoding="utf-8")
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        logger.addHandler(handler)
+        logger.info("START invocation=%s config=%s", invocation, policy_directory())
+        try:
+            return self._daily(snapshot_path, market_fixture, logger, log_path)
+        except (OSError, ValueError, sqlite3.Error):
+            logger.error("Daily failed; run doctor and validate input. Exception details omitted to protect account data.")
+            raise
+        finally:
+            logger.info("END invocation=%s", invocation)
+            logger.removeHandler(handler)
+            handler.close()
+
+    def _daily(self, snapshot_path: Path, market_fixture: Path | None, logger: logging.Logger, log_path: Path) -> dict[str, object]:
+        started = monotonic()
+        logger.info("Database initialization and preflight started")
+        initialized = self.init()
+        if initialized["status"] == "INIT_FAILED":
+            return initialized
+        preflight = self.doctor()
+        if preflight["status"] == "FAIL":
+            return {"status": "FAILED", "error_code": "MERIDIAN_PREFLIGHT_FAILED", "diagnostics": preflight}
+        logger.info("Database status=%s", initialized["status"])
         account = load_snapshot(snapshot_path)
         policies = load_policies(policy_directory())
         cutoff = datetime.now(account.as_of.tzinfo)
+        logger.info("Market retrieval started; mode=%s", "FIXTURE" if market_fixture else "OPERATIONAL_PUBLIC")
         if market_fixture:
             quotes = load_market_fixture(market_fixture)
             provenance: dict[str, object] = {
@@ -107,8 +146,9 @@ class MeridianApplicationService:
                 holding.ticker for holding in account.holdings
             }
             operational = OperationalMarketSnapshotService.from_runtime(self.paths).build(
-                symbols, analysis_time=cutoff
+                symbols, analysis_time=cutoff, live=True
             )
+            cutoff = operational.information_cutoff
             quotes = operational.quotes if not operational.missing_symbols else {}
             provenance = {
                 "data_mode": operational.data_mode,
@@ -120,8 +160,31 @@ class MeridianApplicationService:
                 "symbols_missing": operational.missing_symbols,
                 "research_pit": "BLOCKED",
             }
+        logger.info("Market retrieval complete; deterministic analysis started")
         result = DailyClosureService(policies).run(account, quotes, cutoff=cutoff)
         result.report.update(provenance)
+        analysis_ok = result.report["status"] in {"DRAFT", "NO_ACTION", "NO_CAPITAL"}
+        directory = self.paths.reports / result.decision.as_of.date().isoformat() / result.decision.run_id
+        result.report.update({
+            "timestamp": cutoff.isoformat(),
+            "trading_date": cutoff.astimezone(ZoneInfo("America/New_York")).date().isoformat(),
+            "runtime_status": "PASS",
+            "database_status": "PASS",
+            "data_status": "PASS" if quotes and not any("MARKET" in reason for reason in result.decision.blocked_reasons) else "FAILED",
+            "portfolio_status": account.freshness_state.value,
+            "research_status": "NOT_RUN",
+            "quant_status": "PASS" if result.decision.target_portfolio is not None else "NOT_RUN",
+            "risk_status": "PASS" if result.decision.target_portfolio is not None and analysis_ok else "NOT_RUN",
+            "recommendation_status": "RESEARCH_ONLY" if analysis_ok else "BLOCKED",
+            "warnings": ["LLM_RESEARCH_NOT_CONNECTED_TO_CANONICAL_DAILY", "NOT_AUTHORIZED_FOR_MANUAL_ENTRY"],
+            "errors": list(result.decision.blocked_reasons),
+            "output_files": {"report_json": str(directory / "daily.json"), "report_markdown": str(directory / "daily.md"), "log": str(log_path)},
+            "elapsed_seconds": round(monotonic() - started, 3),
+        })
+        AuditStore(self.paths.db).write_decision(result.decision)
+        logger.info("run_id=%s data_mode=%s elapsed_seconds=%s", result.decision.run_id, provenance["data_mode"], result.report["elapsed_seconds"])
+        logger.warning("Research NOT_RUN; outputs are research-only, no manual-entry authority")
+        logger.info("status=%s provider_health=%s report=%s", result.report["status"], provenance["provider_health"], directory)
         persisted = persist_report(result, self.paths)
         return {
             **persisted.report,
@@ -132,9 +195,9 @@ class MeridianApplicationService:
     def data_status(self) -> dict[str, object]:
         policies = load_policies(policy_directory())
         snapshot = OperationalMarketSnapshotService.from_runtime(self.paths).build(
-            policies.universe.tickers, analysis_time=datetime.now().astimezone()
+            policies.universe.tickers, analysis_time=datetime.now().astimezone(), live=True
         )
-        return snapshot.data_status()
+        return {**snapshot.data_status(), "status": "PASS" if not snapshot.missing_symbols else "DEGRADED"}
 
     def dip_scout(self, packet_path: Path) -> dict[str, object]:
         return dip_scout(
