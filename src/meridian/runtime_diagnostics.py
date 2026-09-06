@@ -14,6 +14,8 @@ import json
 import os
 import sqlite3
 import sys
+import tempfile
+from contextlib import closing
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from time import monotonic
@@ -31,19 +33,23 @@ class Check:
 
 
 def _writable(path: Path) -> None:
-    probe = path / ".meridian-write-probe"
-    probe.write_text("", encoding="utf-8")
-    probe.unlink()
+    with tempfile.TemporaryFile(dir=path) as probe:
+        probe.write(b"meridian")
+        probe.seek(0)
+        if probe.read() != b"meridian":
+            raise OSError("runtime probe readback failed")
 
 
 def _database(path: Path) -> dict[str, object]:
     if not path.exists():
         return {"status": "DEGRADED", "detail": "database_not_initialized", "schema_version": None, "migration_status": "PENDING"}
     try:
-        with sqlite3.connect(f"file:{path}?mode=rw", uri=True) as connection:
+        with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=rw", uri=True)) as connection:
             quick = connection.execute("PRAGMA quick_check").fetchone()
             table = connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'").fetchone()
             version = connection.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0] if table else None
+        if version is not None and version > 1:
+            return {"status": "FAIL", "detail": "MERIDIAN_DATABASE_NEWER_SCHEMA: upgrade Meridian; preserve DB", "schema_version": version, "migration_status": "FAILED"}
         healthy = quick == ("ok",) and version == 1
         return {"status": "PASS" if healthy else "DEGRADED", "detail": "healthy" if healthy else "migration_required", "schema_version": version, "migration_status": "CURRENT" if version == 1 else "PENDING"}
     except sqlite3.DatabaseError:
@@ -58,7 +64,7 @@ def _attempt(name: str, callback: object, *, optional: bool = False) -> Check:
             callback()
         return Check(name, "PASS", "available")
     except Exception as error:  # noqa: BLE001 - doctor must never traceback
-        return Check(name, "WARN" if optional else "FAIL", type(error).__name__)
+        return Check(name, "WARN" if optional else "FAIL", type(error).__name__ + "; inspect the corresponding path/config in this report and rerun doctor")
 
 
 def report(paths: RuntimePaths | None = None) -> dict[str, object]:
@@ -73,8 +79,8 @@ def report(paths: RuntimePaths | None = None) -> dict[str, object]:
         paths.ensure_directories()
         checks.append(Check("runtime_directories", "PASS", str(paths.home)))
         checks.extend(_attempt(f"runtime_write:{name}", lambda path=path: _writable(path)) for name, path in paths.directories().items())
-    except Exception as error:  # noqa: BLE001
-        checks.append(Check("runtime_directories", "FAIL", type(error).__name__))
+    except Exception:  # noqa: BLE001
+        checks.append(Check("runtime_directories", "FAIL", f"{paths.home}: create failed; set MERIDIAN_HOME to an absolute writable user directory"))
     checks.append(_attempt("sqlite", lambda: sqlite3.connect(":memory:").close()))
     database = _database(paths.db)
     checks.extend((Check("database", str(database["status"]), str(database["detail"])), Check("migration", str(database["migration_status"]), str(database["schema_version"]))))
@@ -85,11 +91,11 @@ def report(paths: RuntimePaths | None = None) -> dict[str, object]:
         checks.append(_attempt(f"dependency:{package}", lambda package=package: importlib.metadata.version(package)))
     for module in ("meridian.adapters.tradingagents", "meridian.finrlx_runtime", "meridian.mcp_server"):
         installed = importlib.util.find_spec(module) is not None
-        checks.append(Check(f"optional:{module.rsplit('.', 1)[-1]}", "PASS" if installed else "WARN", "installed" if installed else "not installed"))
+        checks.append(Check(f"optional:{module.rsplit('.', 1)[-1]}", "UNKNOWN", "adapter present; provider not probed" if installed else "not installed"))
     secret_names = ("DEEPSEEK_API_KEY", "ALPACA_API_KEY", "POLYGON_API_KEY", "MERIDIAN_MCP_BEARER_TOKEN")
     checks.append(Check("secrets", "PASS", "configured=" + str(any(bool(os.environ.get(name)) for name in secret_names)).lower()))
     statuses = {check.status for check in checks}
-    return {"schema_version": "meridian-doctor.v1", "status": "FAIL" if "FAIL" in statuses else "DEGRADED" if "WARN" in statuses or "DEGRADED" in statuses else "PASS", "checks": [asdict(check) for check in checks], "paths": paths.as_dict(), "database": database, "project_version": _version(), "elapsed_ms": round((monotonic() - started) * 1000, 1), "network_accessed": False}
+    return {"schema_version": "meridian-doctor.v1", "status": "FAIL" if "FAIL" in statuses else "DEGRADED" if "WARN" in statuses or "DEGRADED" in statuses else "PASS", "checks": [asdict(check) for check in checks], "paths": {**paths.as_dict(), "database": str(paths.db), "policies": str(policy_directory())}, "python_executable": sys.executable, "virtual_environment": sys.prefix != sys.base_prefix, "database": database, "project_version": _version(), "elapsed_ms": round((monotonic() - started) * 1000, 1), "network_accessed": False}
 
 
 def _version() -> str:

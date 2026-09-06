@@ -91,7 +91,7 @@ class RuntimePaths:
             for path in self.directories().values():
                 path.mkdir(parents=True, exist_ok=True)
         except OSError as error:
-            raise RuntimePathError(f"RUNTIME_DIRECTORY_UNAVAILABLE:{type(error).__name__}") from error
+            raise RuntimePathError(f"MERIDIAN_RUNTIME_DIR_NOT_WRITABLE: {path}; directory creation failed; set MERIDIAN_HOME to an absolute writable user directory and rerun doctor") from error
 
     def as_dict(self) -> dict[str, str]:
         return {"home": str(self.home), **{name: str(path) for name, path in self.directories().items()}}
@@ -109,5 +109,7 @@ def policy_directory() -> Path:
     override = os.environ.get("MERIDIAN_POLICY_DIR")
     if override:
         return Path(override).expanduser()
-    root = project_root()
-    return root / "policies"
+    root = Path(__file__).resolve().parents[2]
+    if (root / "policies").is_dir():
+        return root / "policies"
+    return Path(__file__).parent / "policies"

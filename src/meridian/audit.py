@@ -6,6 +6,7 @@ import hashlib
 import json
 import sqlite3
 from collections.abc import Sequence
+from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -35,13 +36,20 @@ class AuditStore:
     def connect(self) -> sqlite3.Connection:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         connection = sqlite3.connect(self.path)
+        connection.execute("PRAGMA foreign_keys = ON")
         connection.row_factory = sqlite3.Row
         return connection
 
     def migrate(self) -> None:
-        with self.connect() as connection:
+        with closing(self.connect()) as connection, connection:
+            table = connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'").fetchone()
+            if table:
+                version = connection.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0]
+                if version is not None and version > SCHEMA_VERSION:
+                    raise sqlite3.DatabaseError("MERIDIAN_DATABASE_NEWER_SCHEMA: upgrade Meridian before opening this database")
             connection.executescript(
                 """
+                BEGIN IMMEDIATE;
                 CREATE TABLE IF NOT EXISTS schema_migrations (
                     version INTEGER PRIMARY KEY
                 );
@@ -90,6 +98,7 @@ class AuditStore:
                     PRIMARY KEY (run_id, provider, model_name)
                 );
                 INSERT OR IGNORE INTO schema_migrations(version) VALUES (1);
+                COMMIT;
                 """
             )
 
@@ -101,7 +110,7 @@ class AuditStore:
         """Write once or accept only the byte-equivalent decision for a run id."""
         digest = self.decision_hash(decision)
         self.migrate()
-        with self.connect() as connection:
+        with closing(self.connect()) as connection, connection:
             existing = connection.execute(
                 "SELECT decision_hash FROM runs WHERE run_id = ?", (decision.run_id,)
             ).fetchone()
@@ -165,7 +174,7 @@ class AuditStore:
     def write_research_outcomes(self, run_id: str, outcomes: Sequence[object]) -> None:
         """Persist only safe model metadata and status; never transcripts or secrets."""
         self.migrate()
-        with self.connect() as connection:
+        with closing(self.connect()) as connection, connection:
             if (
                 connection.execute("SELECT 1 FROM runs WHERE run_id = ?", (run_id,)).fetchone()
                 is None
@@ -212,7 +221,7 @@ class AuditStore:
     def write_research_pipeline(self, run_id: str, result: Any) -> None:
         """Persist only bounded pipeline metadata; never evidence prose or credentials."""
         self.migrate()
-        with self.connect() as connection:
+        with closing(self.connect()) as connection, connection:
             if (
                 connection.execute("SELECT 1 FROM runs WHERE run_id = ?", (run_id,)).fetchone()
                 is None
@@ -278,7 +287,7 @@ class AuditStore:
 
     def list_runs(self) -> list[StoredRun]:
         self.migrate()
-        with self.connect() as connection:
+        with closing(self.connect()) as connection, connection:
             return [
                 StoredRun(**dict(row))
                 for row in connection.execute("SELECT * FROM runs ORDER BY created_at DESC")
@@ -286,7 +295,7 @@ class AuditStore:
 
     def get_decision_summary(self, run_id: str) -> dict[str, object] | None:
         self.migrate()
-        with self.connect() as connection:
+        with closing(self.connect()) as connection, connection:
             run = connection.execute("SELECT * FROM runs WHERE run_id = ?", (run_id,)).fetchone()
             if run is None:
                 return None

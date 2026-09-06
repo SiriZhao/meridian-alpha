@@ -5,6 +5,7 @@ description = "AI-assisted, deterministic portfolio decision support for manual 
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+  "tzdata>=2025.1",
   "pydantic>=2.10,<3",
   "PyYAML>=6.0,<7",
   "mcp[cli]>=1.24,<2",
@@ -30,8 +31,12 @@ allow-direct-references = true
 [tool.hatch.build.targets.wheel]
 packages = ["src/meridian"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"policies" = "meridian/policies"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-ra --strict-markers --basetemp=.pytest_tmp"
 
 [tool.ruff]
