@@ -11,6 +11,9 @@
   "total_equity": "0.00",
   "positions": [],
   "warnings": [
-    "TEMPLATE_ONLY_REPLACE_ALL_VALUES"
+    "TEMPLATE_ONLY",
+    "NOT_REAL_ACCOUNT",
+    "NOT_ACCEPTANCE_EVIDENCE",
+    "REPLACE_ALL_VALUES"
   ]
 }

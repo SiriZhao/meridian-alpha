@@ -74,3 +74,12 @@ history, and supply a new snapshot for a subsequent daily run.
 
 [Phase 1 acceptance](controlled-improvement-phase1-acceptance.md) distinguishes
 verified regression behavior from blocked real Host/research acceptance.
+## Live production acceptance
+
+Use the bounded acceptance command during a NYSE regular session only when you have a newly exported sanitized Host envelope:
+
+```powershell
+& ".\scripts\run_production_acceptance.ps1" -Snapshot "C:\Inputs\today.json"
+```
+
+It records doctor, safe pending migration, snapshot validation, canonical market probes, policy state and—only if input and session qualify—canonical daily. When the market is closed, it writes `OPEN_SESSION_ACCEPTANCE_NOT_AVAILABLE`, does not wait, and does not call daily or LLM research. It never enables research, reads a credential, changes portfolio policy or submits an order. See [live acceptance](controlled-improvement-phase1-live-acceptance.md).
