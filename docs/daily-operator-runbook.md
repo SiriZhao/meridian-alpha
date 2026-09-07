@@ -45,3 +45,32 @@ retry. INVALID_RESPONSE is never converted into a neutral or prior-day signal.
 A missing snapshot prevents the stage entirely. No automatic cached research is used.
 Public advisory success is AVAILABLE, while certified research/manual gates remain
 unmet. See [Batch 2 architecture](adr/ADR-010-canonical-advisory-research.md).
+
+
+## Failure recovery and acceptance
+
+From any working directory, invoke the launcher by its absolute path:
+
+```powershell
+& "E:\CSDIY\Vibe Coding Project\meridian-alpha\scripts\run_meridian.ps1" doctor --json
+& "E:\CSDIY\Vibe Coding Project\meridian-alpha\scripts\run_meridian.ps1" daily --snapshot "C:\Inputs\today.json" --json
+```
+
+`--snapshot`, `--market-fixture` (regression only), and `--json` are current parser
+options; no `--profile` option exists. A process exit of 0 can still carry BLOCKED
+recommendation readiness. Read the JSON before presenting a result.
+
+If the checkout virtual environment is missing, the launcher returns
+MERIDIAN_PYTHON_MISSING with exit 3 (structured for --json). Restore Python 3.12
+and dependencies with `uv sync --inexact --group dev`; do not use system Python
+3.14 or exact synchronization as a substitute. Doctor rechecks the restored path.
+
+MERIDIAN_REPORT_WRITE_FAILED retains the analysis run_id and appends a linked
+failure receipt where the DB remains writable. `partial_output_files` are incomplete
+artifacts, not completed reports; `output_files` only lists usable diagnostic logs.
+Do not trust a partial JSON reporting the earlier analysis outcome as successful
+report persistence. Inspect free space, permissions and file locks, preserve audit
+history, and supply a new snapshot for a subsequent daily run.
+
+[Phase 1 acceptance](controlled-improvement-phase1-acceptance.md) distinguishes
+verified regression behavior from blocked real Host/research acceptance.

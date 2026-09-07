@@ -1,0 +1,442 @@
+{
+  "phase": "Controlled Improvement Phase 1 / Batch 3",
+  "acceptance_status": "BLOCKED",
+  "recorded_at": "2026-09-07T17:02:05.306272+00:00",
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "branch": "astra/controlled-improvement-batch3",
+    "commit": "b92a31401d87869e7fd4da277b214cf48e77f47b"
+  },
+  "git": {
+    "branch": "astra/controlled-improvement-batch3",
+    "starting_commit": "b92a314",
+    "ending_implementation_commit": "30e5a333e3b1b86f2850e9b69def61a97d52d8a6",
+    "commits": [
+      "935433a",
+      "30e5a33"
+    ],
+    "probe_parent_commit": "b92a31401d87869e7fd4da277b214cf48e77f47b",
+    "probe_worktree_had_uncommitted_hardening": true,
+    "wheel_matches_all_source_python": true,
+    "pushed": false
+  },
+  "baseline": {
+    "historical_batch2": "354 passed",
+    "resume": "7 failed / 367 passed; 6 unfinished-test import errors, 1 optional-installation-dependent routing test",
+    "final": "375 passed in 38.36s; ruff PASS; pyright zero errors/warnings",
+    "checks": [
+      {
+        "command": [
+          "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\uv.exe",
+          "run",
+          "--no-sync",
+          "pytest",
+          "-q"
+        ],
+        "exit_code": 0,
+        "seconds": 39.843,
+        "stdout": "........................................................................ [ 19%]\n........................................................................ [ 38%]\n........................................................................ [ 57%]\n........................................................................ [ 76%]\n........................................................................ [ 96%]\n...............                                                          [100%]\n375 passed in 38.36s\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\uv.exe",
+          "run",
+          "--no-sync",
+          "ruff",
+          "check",
+          "."
+        ],
+        "exit_code": 0,
+        "seconds": 0.125,
+        "stdout": "All checks passed!\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\uv.exe",
+          "run",
+          "--no-sync",
+          "pyright"
+        ],
+        "exit_code": 0,
+        "seconds": 6.485,
+        "stdout": "0 errors, 0 warnings, 0 informations\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\python.exe",
+          "-m",
+          "pip",
+          "check"
+        ],
+        "exit_code": 0,
+        "seconds": 1.031,
+        "stdout": "No broken requirements found.\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\python.exe",
+          "-m",
+          "pip",
+          "--python",
+          "artifacts/batch3/installed-resume/Scripts/python.exe",
+          "check"
+        ],
+        "exit_code": 0,
+        "seconds": 1.875,
+        "stdout": "No broken requirements found.\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "environment_drift": "Project .venv absent on resume; restored Python 3.12.10 venv and locked dev dependencies via uv sync --inexact --group dev; system Python 3.14 not used.",
+  "runtime": {
+    "powershell": "5.1.26100.9278",
+    "database": {
+      "runs": 3,
+      "readiness_records": 3,
+      "integrity": "ok"
+    },
+    "installed_resources": {
+      "package": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume\\Lib\\site-packages\\meridian\\__init__.py",
+      "policies": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume\\Lib\\site-packages\\meridian\\policies"
+    },
+    "wheel_sha256": "9851b842f15d043efa389ce2dded639fad94179799b99ff20402f578e28d6b39"
+  },
+  "account": {
+    "kind": "REGRESSION_ONLY",
+    "real_status": "BLOCKED_MISSING_REAL_HOST_SNAPSHOT",
+    "provenance": "Fixture is not authenticated Host evidence"
+  },
+  "market": {
+    "status": "BLOCKED",
+    "quote_certification": "BLOCKED",
+    "probes": [
+      {
+        "symbol": "AAPL",
+        "lane": "primary",
+        "provider": "yahoo",
+        "request_time": "2026-09-07T16:57:27.657528+00:00",
+        "provider_timestamp": "2026-09-04T20:00:01+00:00",
+        "received_at": "2026-09-07T16:57:28.565689+00:00",
+        "completed_at": "2026-09-07T16:57:28.566480+00:00",
+        "age_seconds": 248253.012356,
+        "status": "STALE",
+        "error_category": "DATA_QUALITY",
+        "latency_seconds": 0.908952
+      },
+      {
+        "symbol": "AAPL",
+        "lane": "secondary",
+        "provider": "stooq-public",
+        "request_time": "2026-09-07T16:57:28.566480+00:00",
+        "provider_timestamp": null,
+        "received_at": null,
+        "completed_at": "2026-09-07T16:57:29.401241+00:00",
+        "age_seconds": null,
+        "status": "UNAVAILABLE",
+        "error_category": "PROVIDER_FAILURE",
+        "latency_seconds": 0.834761
+      },
+      {
+        "symbol": "MSFT",
+        "lane": "primary",
+        "provider": "yahoo",
+        "request_time": "2026-09-07T16:57:29.401838+00:00",
+        "provider_timestamp": "2026-09-04T20:00:01+00:00",
+        "received_at": "2026-09-07T16:57:30.225697+00:00",
+        "completed_at": "2026-09-07T16:57:30.225697+00:00",
+        "age_seconds": 248253.012356,
+        "status": "STALE",
+        "error_category": "DATA_QUALITY",
+        "latency_seconds": 0.823859
+      },
+      {
+        "symbol": "MSFT",
+        "lane": "secondary",
+        "provider": "stooq-public",
+        "request_time": "2026-09-07T16:57:30.225697+00:00",
+        "provider_timestamp": null,
+        "received_at": null,
+        "completed_at": "2026-09-07T16:57:31.066740+00:00",
+        "age_seconds": null,
+        "status": "UNAVAILABLE",
+        "error_category": "PROVIDER_FAILURE",
+        "latency_seconds": 0.841043
+      },
+      {
+        "symbol": "NVDA",
+        "lane": "primary",
+        "provider": "yahoo",
+        "request_time": "2026-09-07T16:57:31.067297+00:00",
+        "provider_timestamp": "2026-09-04T20:00:00+00:00",
+        "received_at": "2026-09-07T16:57:31.797942+00:00",
+        "completed_at": "2026-09-07T16:57:31.797942+00:00",
+        "age_seconds": 248254.012356,
+        "status": "STALE",
+        "error_category": "DATA_QUALITY",
+        "latency_seconds": 0.730645
+      },
+      {
+        "symbol": "NVDA",
+        "lane": "secondary",
+        "provider": "stooq-public",
+        "request_time": "2026-09-07T16:57:31.797942+00:00",
+        "provider_timestamp": null,
+        "received_at": null,
+        "completed_at": "2026-09-07T16:57:32.553201+00:00",
+        "age_seconds": null,
+        "status": "UNAVAILABLE",
+        "error_category": "PROVIDER_FAILURE",
+        "latency_seconds": 0.755259
+      },
+      {
+        "symbol": "SPY",
+        "lane": "primary",
+        "provider": "yahoo",
+        "request_time": "2026-09-07T16:57:32.554930+00:00",
+        "provider_timestamp": "2026-09-04T20:00:00+00:00",
+        "received_at": "2026-09-07T16:57:33.287875+00:00",
+        "completed_at": "2026-09-07T16:57:33.287875+00:00",
+        "age_seconds": 248254.012356,
+        "status": "STALE",
+        "error_category": "DATA_QUALITY",
+        "latency_seconds": 0.732945
+      },
+      {
+        "symbol": "SPY",
+        "lane": "secondary",
+        "provider": "stooq-public",
+        "request_time": "2026-09-07T16:57:33.287875+00:00",
+        "provider_timestamp": null,
+        "received_at": null,
+        "completed_at": "2026-09-07T16:57:34.011336+00:00",
+        "age_seconds": null,
+        "status": "UNAVAILABLE",
+        "error_category": "PROVIDER_FAILURE",
+        "latency_seconds": 0.723461
+      }
+    ]
+  },
+  "research": {
+    "credential_status": "CONFIGURED_UNPROBED",
+    "actual_invocation": false,
+    "status": "NOT_RUN",
+    "reason": "Fresh explicit real Host snapshot absent; canonical prerequisites not satisfied."
+  },
+  "decision": {
+    "fixture_context_and_gates": "VERIFIED",
+    "real_workflow": "BLOCKED",
+    "manual_authority": "BLOCKED",
+    "broker_execution": false
+  },
+  "e2e": [
+    {
+      "label": "wheel_init",
+      "run_id": null,
+      "exit_code": 0,
+      "output_files": {},
+      "status": "INIT_COMPLETE"
+    },
+    {
+      "label": "wheel_doctor",
+      "run_id": null,
+      "exit_code": 0,
+      "output_files": {},
+      "status": "PASS"
+    },
+    {
+      "label": "wheel_missing_snapshot",
+      "run_id": "daily-ea48cdf2d4114584920d850eb40182b7",
+      "exit_code": 2,
+      "output_files": {
+        "log": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\logs\\daily-487003b0368e46b981aed6117797a257.log",
+        "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-ea48cdf2d4114584920d850eb40182b7\\daily.json",
+        "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-ea48cdf2d4114584920d850eb40182b7\\daily.md"
+      },
+      "status": "BLOCKED_STALE_ACCOUNT"
+    },
+    {
+      "label": "wheel_daily",
+      "run_id": "daily-5592a01132b39073e0f68932",
+      "exit_code": 0,
+      "output_files": {
+        "log": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\logs\\daily-90674d7e586d42cfb1c9ea7bfb1a2180.log",
+        "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-5592a01132b39073e0f68932\\daily.json",
+        "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-5592a01132b39073e0f68932\\daily.md"
+      },
+      "status": "DRAFT"
+    },
+    {
+      "label": "powershell5_launcher_daily",
+      "run_id": "daily-006a38aa22fe282df0117d2e",
+      "exit_code": 0,
+      "output_files": {
+        "log": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\logs\\daily-2f8600e83e044ebea73a8284e030f91a.log",
+        "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-006a38aa22fe282df0117d2e\\daily.json",
+        "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-006a38aa22fe282df0117d2e\\daily.md"
+      },
+      "status": "DRAFT"
+    },
+    {
+      "label": "restart_doctor",
+      "run_id": null,
+      "exit_code": 0,
+      "output_files": {},
+      "status": "PASS"
+    },
+    {
+      "label": "real_public_provider_matrix",
+      "run_id": null,
+      "exit_code": 2,
+      "output_files": {},
+      "status": "DEGRADED"
+    }
+  ],
+  "acceptance_matrix": [
+    {
+      "id": "R5_runtime_paths",
+      "status": "VERIFIED",
+      "scope": "Wheel resources and writable runtime; actual cwd outside checkout; temporary install ACL deny restored",
+      "evidence": "docs/evidence/batch3/runtime-resume.json; docs/evidence/batch3/readonly-resume.json"
+    },
+    {
+      "id": "R7_real_daily",
+      "status": "BLOCKED",
+      "scope": "No fresh explicitly supplied real Host envelope; market stale; canonical live research not executed",
+      "evidence": "docs/evidence/batch3/runtime-resume.json"
+    },
+    {
+      "id": "R11_R12_operator_failures",
+      "status": "VERIFIED",
+      "scope": "CLI failures are structured with run_id/next_actions; missing Python exits 3; report failure retains identity",
+      "evidence": "tests/test_acceptance_failures.py; docs/evidence/batch3/checks-resume.json"
+    },
+    {
+      "id": "real_host",
+      "status": "BLOCKED",
+      "scope": "BLOCKED_MISSING_REAL_HOST_SNAPSHOT; only examples/templates/historical reports located",
+      "evidence": "Workspace candidate filename scan; no new real input supplied"
+    },
+    {
+      "id": "synthetic_account_boundaries",
+      "status": "VERIFIED",
+      "scope": "REGRESSION_ONLY: fresh/missing/malformed/stale/future, replay and privacy",
+      "evidence": "tests/test_acceptance_failures.py; tests/test_recommendation_readiness.py"
+    },
+    {
+      "id": "actual_public_requests",
+      "status": "VERIFIED",
+      "scope": "Actual Yahoo/Stooq requests for AAPL/MSFT/NVDA/SPY; availability is not inferred",
+      "evidence": "docs/evidence/batch3/runtime-resume.json"
+    },
+    {
+      "id": "closed_market_behavior",
+      "status": "VERIFIED",
+      "scope": "Observed CLOSED session; old closing quote stays STALE without lowering thresholds",
+      "evidence": "docs/evidence/batch3/runtime-resume.json"
+    },
+    {
+      "id": "fresh_open_market",
+      "status": "NOT_TESTED",
+      "scope": "Actual requests occurred during closed session; no fresh open-session acceptance",
+      "evidence": "docs/evidence/batch3/runtime-resume.json"
+    },
+    {
+      "id": "acceptable_live_freshness",
+      "status": "BLOCKED",
+      "scope": "Yahoo STALE, Stooq UNAVAILABLE; no quote selected",
+      "evidence": "docs/evidence/batch3/runtime-resume.json"
+    },
+    {
+      "id": "provider_faults_and_fallback",
+      "status": "VERIFIED",
+      "scope": "REGRESSION_ONLY: timeout, DNS/OSError, invalid payload, primary/secondary selection and both unavailable",
+      "evidence": "tests/test_acceptance_failures.py; tests/test_operational_data.py; tests/test_recommendation_readiness.py"
+    },
+    {
+      "id": "actual_rate_limit",
+      "status": "NOT_TESTED",
+      "scope": "No actual rate-limit acceptance; no provider stress requests made",
+      "evidence": "Bounded actual probe only"
+    },
+    {
+      "id": "llm_failure_coverage",
+      "status": "VERIFIED",
+      "scope": "REGRESSION_ONLY canonical CLI: missing config/auth/timeout/malformed/schema failure; existing 429/retry tests",
+      "evidence": "tests/test_acceptance_failures.py; tests/test_canonical_research.py"
+    },
+    {
+      "id": "live_canonical_research",
+      "status": "BLOCKED",
+      "scope": "CONFIGURED_UNPROBED; actual invocation false; real upstream account absent",
+      "evidence": "docs/evidence/batch3/runtime-resume.json"
+    },
+    {
+      "id": "full_research_to_decision",
+      "status": "DEGRADED",
+      "scope": "Canonical fixture schema/context/gates/report/SQLite verified; real transition not accepted",
+      "evidence": "tests/test_acceptance_failures.py; docs/evidence/batch3/checks-resume.json"
+    },
+    {
+      "id": "authority_separation",
+      "status": "VERIFIED",
+      "scope": "REGRESSION_ONLY all-prerequisite model and sealed gate tests; DRAFT/public quotes do not authorize manual entry",
+      "evidence": "tests/test_recommendation_readiness.py; tests/test_gate6g_supervised_rc.py"
+    },
+    {
+      "id": "quote_certification",
+      "status": "BLOCKED",
+      "scope": "No certified execution quote; all public observations uncertified",
+      "evidence": "docs/evidence/batch3/runtime-resume.json"
+    },
+    {
+      "id": "windows_launcher_installation",
+      "status": "VERIFIED",
+      "scope": "PowerShell 5.1, Chinese/space/# outside cwd, actual wheel entrypoint, init/doctor/daily/restart",
+      "evidence": "docs/evidence/batch3/runtime-resume.json; docs/evidence/batch3/readonly-resume.json"
+    },
+    {
+      "id": "db_durability",
+      "status": "VERIFIED",
+      "scope": "Fresh/existing/failed run/restart, 3 audit rows, integrity ok, actual rename; locked/newer schema/migration rollback regression",
+      "evidence": "docs/evidence/batch3/runtime-resume.json; tests/test_acceptance_failures.py; tests/test_recommendation_readiness.py"
+    },
+    {
+      "id": "report_and_skill",
+      "status": "VERIFIED",
+      "scope": "JSON/Markdown/logs; headline status checked; repository and installed Skill SHA256 identical; parser/launcher options aligned",
+      "evidence": "docs/evidence/batch3/runtime-resume.json; tests/test_acceptance_failures.py"
+    },
+    {
+      "id": "regression_and_dependencies",
+      "status": "VERIFIED",
+      "scope": "375 tests; Ruff/Pyright; dev and installed-wheel pip check; wheel source matches checkout",
+      "evidence": "docs/evidence/batch3/checks-resume.json"
+    }
+  ],
+  "skill_sha256": "c352a9ba8d38f2eae1e6308a456904c9aad2236b8332c270a7d16158df7f54f3",
+  "user_report_unchanged_sha256": "fea9457d5694dac11e5f428b1451039c0e6a7f0cc4627039baa7d2b351342d64",
+  "known_limitations": [
+    "No real Host acceptance or actual canonical live LLM request",
+    "Actual open-session freshness and real rate limiting not tested",
+    "Read-only ACL probe predates final headline-only report edit; current final wheel source and outside-cwd E2E independently checked",
+    "SQLite and report files are separate: partial JSON may retain prior analysis status; linked report-failure event and returned JSON are authoritative for persistence failure",
+    "External model prose citations do not prove truth; research remains advisory",
+    "Shared HTTP socket timeout is not a hard whole-process deadline; body cap is checked after legacy transport read",
+    "Synthetic full-prerequisite/gate tests are not production or brokerage acceptance"
+  ],
+  "recommendation": {
+    "close_phase1_as_production_accepted": false,
+    "begin_phase2_strategy_work": false,
+    "next_three": [
+      "Fresh explicit authenticated Host snapshot acceptance",
+      "Fresh open-session primary/secondary evidence",
+      "Actual canonical live research-to-decision evidence, then existing certification review"
+    ]
+  }
+}

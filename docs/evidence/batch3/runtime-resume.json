@@ -1,0 +1,1409 @@
+{
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "branch": "astra/controlled-improvement-batch3",
+    "commit": "b92a31401d87869e7fd4da277b214cf48e77f47b"
+  },
+  "session": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\acceptance-e81c399876",
+  "runs": [
+    {
+      "label": "wheel_init",
+      "start": "2026-09-07T16:57:19.877772+00:00",
+      "finish": "2026-09-07T16:57:21.214528+00:00",
+      "latency_seconds": 1.336756,
+      "exit_code": 0,
+      "payload": {
+        "created_dirs": [
+          "audit",
+          "cache",
+          "config",
+          "data",
+          "db",
+          "logs",
+          "reports",
+          "runs"
+        ],
+        "db_path": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\db\\meridian.sqlite3",
+        "runtime_home": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space",
+        "schema_version": 2,
+        "status": "INIT_COMPLETE",
+        "warnings": []
+      }
+    },
+    {
+      "label": "wheel_doctor",
+      "start": "2026-09-07T16:57:21.214528+00:00",
+      "finish": "2026-09-07T16:57:22.228711+00:00",
+      "latency_seconds": 1.014183,
+      "exit_code": 0,
+      "payload": {
+        "checks": [
+          {
+            "detail": "3.12.10; production baseline is 3.12",
+            "name": "python",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "package_import",
+            "status": "PASS"
+          },
+          {
+            "detail": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space",
+            "name": "runtime_directories",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:data",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:db",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:cache",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:reports",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:logs",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:runs",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:audit",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:config",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "sqlite",
+            "status": "PASS"
+          },
+          {
+            "detail": "healthy",
+            "name": "database",
+            "status": "PASS"
+          },
+          {
+            "detail": "2",
+            "name": "migration",
+            "status": "CURRENT"
+          },
+          {
+            "detail": "available",
+            "name": "config",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "timezone",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "market_calendar",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "dependency:pydantic",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "dependency:PyYAML",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "dependency:mcp",
+            "status": "PASS"
+          },
+          {
+            "detail": "adapter present; provider not probed",
+            "name": "optional:tradingagents",
+            "status": "UNKNOWN"
+          },
+          {
+            "detail": "adapter present; provider not probed",
+            "name": "optional:finrlx_runtime",
+            "status": "UNKNOWN"
+          },
+          {
+            "detail": "adapter present; provider not probed",
+            "name": "optional:mcp_server",
+            "status": "UNKNOWN"
+          },
+          {
+            "detail": "configured=true",
+            "name": "secrets",
+            "status": "PASS"
+          }
+        ],
+        "database": {
+          "detail": "healthy",
+          "migration_status": "CURRENT",
+          "schema_version": 2,
+          "status": "PASS"
+        },
+        "elapsed_ms": 78.0,
+        "network_accessed": false,
+        "paths": {
+          "audit": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\audit",
+          "cache": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\cache",
+          "config": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\config",
+          "data": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\data",
+          "database": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\db\\meridian.sqlite3",
+          "db": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\db",
+          "home": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space",
+          "logs": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\logs",
+          "policies": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume\\Lib\\site-packages\\meridian\\policies",
+          "reports": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports",
+          "runs": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\runs"
+        },
+        "project_version": "0.0.0",
+        "python_executable": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume\\Scripts\\python.exe",
+        "schema_version": "meridian-doctor.v1",
+        "status": "PASS",
+        "virtual_environment": true
+      }
+    },
+    {
+      "label": "wheel_missing_snapshot",
+      "start": "2026-09-07T16:57:22.229726+00:00",
+      "finish": "2026-09-07T16:57:23.266053+00:00",
+      "latency_seconds": 1.036327,
+      "exit_code": 2,
+      "payload": {
+        "analysis_time": "2026-09-07T16:57:23.198265+00:00",
+        "blocked_reasons": [
+          "ACCOUNT_SNAPSHOT_MISSING"
+        ],
+        "broker_submission": "DISABLED",
+        "data_status": "NOT_RUN",
+        "decision_context": {
+          "research": null,
+          "research_status": "NOT_RUN"
+        },
+        "errors": [
+          "ACCOUNT_SNAPSHOT_MISSING"
+        ],
+        "execution": "MANUAL",
+        "gates": [
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "ACCOUNT_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "SECURITY_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "MARKET_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "RESEARCH_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "QUOTE_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "RISK_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "RECONCILIATION_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          }
+        ],
+        "manual_authority": {
+          "certificate_issued": false,
+          "status": "BLOCKED"
+        },
+        "next_actions": [
+          "Supply a new sanitized Host envelope from an authorized source."
+        ],
+        "orders": [],
+        "output_files": {
+          "log": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\logs\\daily-487003b0368e46b981aed6117797a257.log",
+          "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-ea48cdf2d4114584920d850eb40182b7\\daily.json",
+          "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-ea48cdf2d4114584920d850eb40182b7\\daily.md"
+        },
+        "provider_probes": {},
+        "quant_status": "NOT_RUN",
+        "readiness": {
+          "account_provenance": "UNKNOWN",
+          "account_snapshot_freshness": "UNKNOWN",
+          "account_snapshot_status": "BLOCKED",
+          "blockers": [
+            "ACCOUNT_SNAPSHOT_STATUS_BLOCKED",
+            "ACCOUNT_SNAPSHOT_FRESHNESS_UNKNOWN",
+            "ACCOUNT_PROVENANCE_UNKNOWN",
+            "MARKET_DATA_STATUS_NOT_RUN",
+            "MARKET_DATA_FRESHNESS_NOT_RUN",
+            "PROVIDER_PROVENANCE_UNKNOWN",
+            "RESEARCH_STATUS_NOT_RUN",
+            "RESEARCH_FRESHNESS_UNKNOWN",
+            "DECISION_PIPELINE_STATUS_NOT_RUN",
+            "POLICY_GATE_STATUS_UNKNOWN",
+            "REAL_INPUT_NOT_VERIFIED"
+          ],
+          "decision_pipeline_status": "NOT_RUN",
+          "input_mode": "UNKNOWN",
+          "manual_authority_status": "UNKNOWN",
+          "manual_execution_readiness": "BLOCKED",
+          "market_data_freshness": "NOT_RUN",
+          "market_data_status": "NOT_RUN",
+          "policy_gate_status": "UNKNOWN",
+          "provider_provenance": "UNKNOWN",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "NOT_REQUESTED",
+          "recommendation_readiness": "BLOCKED",
+          "research_freshness": "UNKNOWN",
+          "research_readiness": "BLOCKED",
+          "research_status": "NOT_RUN",
+          "runtime_health": "PASS"
+        },
+        "recommendation_status": "BLOCKED",
+        "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-ea48cdf2d4114584920d850eb40182b7\\daily.json",
+        "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-ea48cdf2d4114584920d850eb40182b7\\daily.md",
+        "research": {
+          "attempts": 0,
+          "context": {
+            "authority": "ADVISORY_ONLY",
+            "output": null,
+            "status": "NOT_RUN"
+          },
+          "error_code": "RESEARCH_UPSTREAM_BLOCKED",
+          "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+          "provenance": "NONE"
+        },
+        "research_status": "NOT_RUN",
+        "risk_status": "NOT_RUN",
+        "run_id": "daily-ea48cdf2d4114584920d850eb40182b7",
+        "runtime_status": "PASS",
+        "snapshot_provenance": {
+          "age_seconds": null,
+          "as_of": null,
+          "checked_at": "2026-09-07T16:57:23.188311Z",
+          "code": "ACCOUNT_SNAPSHOT_MISSING",
+          "content_hash": null,
+          "coverage": null,
+          "freshness": "UNKNOWN",
+          "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+          "novelty": "UNKNOWN",
+          "provenance_status": "UNKNOWN",
+          "retrieved_at": null,
+          "snapshot_key": null,
+          "source_kind": null,
+          "source_name_hash": null,
+          "status": "BLOCKED"
+        },
+        "stages": [
+          {
+            "duration_seconds": 0,
+            "error_code": "UPSTREAM_SNAPSHOT_BLOCKED",
+            "finish": null,
+            "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+            "run_id": "daily-ea48cdf2d4114584920d850eb40182b7",
+            "stage": "market",
+            "start": null,
+            "status": "NOT_RUN"
+          },
+          {
+            "duration_seconds": 0,
+            "error_code": "UPSTREAM_SNAPSHOT_BLOCKED",
+            "finish": null,
+            "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+            "run_id": "daily-ea48cdf2d4114584920d850eb40182b7",
+            "stage": "research",
+            "start": null,
+            "status": "NOT_RUN"
+          },
+          {
+            "duration_seconds": 0,
+            "error_code": "UPSTREAM_SNAPSHOT_BLOCKED",
+            "finish": null,
+            "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+            "run_id": "daily-ea48cdf2d4114584920d850eb40182b7",
+            "stage": "decision",
+            "start": null,
+            "status": "NOT_RUN"
+          }
+        ],
+        "status": "BLOCKED_STALE_ACCOUNT",
+        "timestamp": "2026-09-07T16:57:23.198265+00:00",
+        "trading_date": "2026-09-07",
+        "warnings": []
+      }
+    },
+    {
+      "label": "wheel_daily",
+      "start": "2026-09-07T16:57:23.269317+00:00",
+      "finish": "2026-09-07T16:57:24.299707+00:00",
+      "latency_seconds": 1.03039,
+      "exit_code": 0,
+      "payload": {
+        "account_snapshot_hash": "b525f7938acc80f9a80169b2555722d5e72c7ff353888d6399fcfdcddb6a3300",
+        "account_snapshot_time": "2026-09-07T16:57:23.267283+00:00",
+        "analysis_time": "2026-09-07T16:57:24.205095+00:00",
+        "audit": {
+          "credentials_persisted": false,
+          "later_snapshots_mutate_run": false,
+          "raw_account_persisted": false
+        },
+        "blocked_reasons": [],
+        "broker_submission": "DISABLED",
+        "cache": {},
+        "current_holdings": [],
+        "data_mode": "FIXTURE",
+        "data_status": "PASS",
+        "database_status": "PASS",
+        "decision_context": {
+          "authority": "ADVISORY_ONLY",
+          "financial_parameters_source": "DETERMINISTIC_POLICY_AND_MARKET",
+          "research": null,
+          "research_input_hash": "23261a1b8d987a730673e0e824404b6fd67380d703cf3bf1ef3cd464bec14803",
+          "research_run_id": "research-d21bdb8701874a9f84b1d4438949ac88",
+          "research_status": "NOT_RUN"
+        },
+        "degraded_reasons": [
+          "RESEARCH_NOT_RUN",
+          "POLICY_SECURITY_METADATA_UNCERTIFIED",
+          "PUBLIC_QUOTE_UNCERTIFIED"
+        ],
+        "elapsed_seconds": 0.094,
+        "errors": [],
+        "execution": "MANUAL",
+        "gates": [
+          {
+            "evidence": [
+              "d42a9b4a6160943e27f9932641928685388135f784bac77dc24a8256554f4d14"
+            ],
+            "gate": "ACCOUNT_READY",
+            "reason": "Authenticated fresh Host source required",
+            "status": "BLOCKED"
+          },
+          {
+            "evidence": [
+              "12b1ece6cf262fab3ac195bf9d9809f82f414fbde32791a60f645d1227bb48e9"
+            ],
+            "gate": "SECURITY_READY",
+            "reason": "Operational sector metadata is not authoritative certification",
+            "status": "DEGRADED"
+          },
+          {
+            "evidence": [
+              "1d59d0143e0cb825832ac54de4877a94aa2ff44565a3f92630c4f0b00682d776"
+            ],
+            "gate": "MARKET_READY",
+            "reason": "Market observations must be fresh at decision time",
+            "status": "PASS"
+          },
+          {
+            "evidence": [
+              "23261a1b8d987a730673e0e824404b6fd67380d703cf3bf1ef3cd464bec14803"
+            ],
+            "gate": "RESEARCH_READY",
+            "reason": "Public model inference is advisory, not certified evidence",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "UNAVAILABLE"
+            ],
+            "gate": "QUOTE_READY",
+            "reason": "Certified execution quote absent",
+            "status": "BLOCKED"
+          },
+          {
+            "evidence": [
+              "12b1ece6cf262fab3ac195bf9d9809f82f414fbde32791a60f645d1227bb48e9"
+            ],
+            "gate": "RISK_READY",
+            "reason": "Deterministic projected portfolio validation",
+            "status": "PASS"
+          },
+          {
+            "evidence": [
+              "d42a9b4a6160943e27f9932641928685388135f784bac77dc24a8256554f4d14"
+            ],
+            "gate": "RECONCILIATION_READY",
+            "reason": "Reconciliation uses supplied facts; no fills inferred",
+            "status": "PASS"
+          }
+        ],
+        "information_cutoff": "2026-09-07T16:57:24.205095+00:00",
+        "manual_authority": {
+          "certificate_issued": false,
+          "reason": "Existing sealed authority and certified quote remain required.",
+          "status": "BLOCKED"
+        },
+        "market_data_snapshot_hash": "b46e88cb66220ae22ffb827101686efd15e378d51e1ffe161db180a4217d2cd9",
+        "next_actions": [
+          "Provide verifiable authorized Host source evidence; content hashes are not authentication.",
+          "Supply fresh market observations if freshness is blocked.",
+          "Run certified research and policy gates before recommendation readiness.",
+          "Manual entry additionally requires a certified execution quote and sealed authority."
+        ],
+        "orders": [
+          {
+            "current_weight": "0",
+            "estimated_notional": "404.0000",
+            "max_acceptable_buy_price": "101.0000",
+            "min_acceptable_sell_price": null,
+            "preferred_limit": "100.0000",
+            "quantity": "4",
+            "reason": "Deterministic purchase sized at worst-case limit; sell proceeds not assumed. Reduced by max_single_order_nav_percent/max_daily_turnover constraints.",
+            "side": "BUY",
+            "status": "DRAFT",
+            "target_weight": "0.1",
+            "ticker": "AAPL",
+            "time_in_force": "DAY"
+          }
+        ],
+        "output_files": {
+          "log": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\logs\\daily-90674d7e586d42cfb1c9ea7bfb1a2180.log",
+          "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-5592a01132b39073e0f68932\\daily.json",
+          "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-5592a01132b39073e0f68932\\daily.md"
+        },
+        "output_hash": "75b57cad69f6ad9d26b3cf90756972f0c82d150669e01eb85956abe740793366",
+        "policy_hash": "630da048908fd3d02c76e1a0a04163040391b535a972583d4983162e7c66db1d",
+        "portfolio": {
+          "allocator_name": "deterministic_alpha_volatility_fallback",
+          "allocator_version": "BASELINE_V1",
+          "as_of": "2026-09-07T16:57:23.267283Z",
+          "cash_weight": "0.9",
+          "positions": [
+            {
+              "conviction": "1",
+              "rationale": "Deterministic alpha-score weighted fallback.",
+              "target_weight": "0.1",
+              "ticker": "AAPL"
+            }
+          ]
+        },
+        "portfolio_status": "VERIFIED",
+        "provider_conflicts": {},
+        "provider_health": {
+          "AAPL": {
+            "primary": "FIXTURE",
+            "secondary": "NOT_USED"
+          }
+        },
+        "provider_status": {
+          "AAPL": "VERIFIED"
+        },
+        "quant_status": "PASS",
+        "readiness": {
+          "account_provenance": "UNKNOWN",
+          "account_snapshot_freshness": "PASS",
+          "account_snapshot_status": "PASS",
+          "blockers": [
+            "ACCOUNT_PROVENANCE_UNKNOWN",
+            "PROVIDER_PROVENANCE_DEGRADED",
+            "RESEARCH_STATUS_NOT_RUN",
+            "RESEARCH_FRESHNESS_UNKNOWN",
+            "POLICY_GATE_STATUS_DEGRADED",
+            "REAL_INPUT_NOT_VERIFIED"
+          ],
+          "decision_pipeline_status": "PASS",
+          "input_mode": "FIXTURE",
+          "manual_authority_status": "UNKNOWN",
+          "manual_execution_readiness": "BLOCKED",
+          "market_data_freshness": "PASS",
+          "market_data_status": "PASS",
+          "policy_gate_status": "DEGRADED",
+          "provider_provenance": "DEGRADED",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "FIXTURE",
+          "recommendation_readiness": "BLOCKED",
+          "research_freshness": "UNKNOWN",
+          "research_readiness": "BLOCKED",
+          "research_status": "NOT_RUN",
+          "runtime_health": "PASS"
+        },
+        "recommendation_status": "RESEARCH_ONLY",
+        "reconciliation": {
+          "status": "DRAFT",
+          "warnings": []
+        },
+        "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-5592a01132b39073e0f68932\\daily.json",
+        "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-5592a01132b39073e0f68932\\daily.md",
+        "research": {
+          "attempts": 0,
+          "context": {
+            "analysis_cutoff": "2026-09-07T16:57:24.205095Z",
+            "authority": "ADVISORY_ONLY",
+            "input_hash": "23261a1b8d987a730673e0e824404b6fd67380d703cf3bf1ef3cd464bec14803",
+            "output": null,
+            "parent_run_id": "daily-5592a01132b39073e0f68932",
+            "research_run_id": "research-d21bdb8701874a9f84b1d4438949ac88",
+            "status": "NOT_RUN"
+          },
+          "duration_seconds": 0.0,
+          "error_code": "LIVE_RESEARCH_DISABLED",
+          "finished_at": "2026-09-07T16:57:24.205095Z",
+          "model": "deepseek-v4-flash",
+          "next_action": "Check research configuration, fresh input evidence and provider status; no prior output is substituted.",
+          "prompt_created_at": "2026-09-07T16:57:24.205095Z",
+          "provenance": "NONE",
+          "provider": "deepseek",
+          "request_sent_at": null,
+          "response_received_at": null,
+          "started_at": "2026-09-07T16:57:24.205095Z"
+        },
+        "research_input": {
+          "analysis_cutoff": "2026-09-07T16:57:24.205095Z",
+          "freshness_status": "PASS",
+          "market_reference": "1d59d0143e0cb825832ac54de4877a94aa2ff44565a3f92630c4f0b00682d776",
+          "mode": "FIXTURE",
+          "model": "deepseek-v4-flash",
+          "observations": [
+            {
+              "daily_return": "0.05",
+              "observed_at": "2026-09-07T16:57:23.267283Z",
+              "price": "100",
+              "reference": "ad81dff51fbe00bc6dc74ecc5d9e830a1e4503730926ecc1b3d3b70a529b3f71",
+              "ticker": "AAPL"
+            }
+          ],
+          "parent_run_id": "daily-5592a01132b39073e0f68932",
+          "policy_reference": "12b1ece6cf262fab3ac195bf9d9809f82f414fbde32791a60f645d1227bb48e9",
+          "prompt_version": "public-advisory-v1",
+          "provider": "deepseek",
+          "provider_provenance": {
+            "AAPL": "{\"primary\": \"FIXTURE\", \"secondary\": \"NOT_USED\"}"
+          },
+          "snapshot_reference": "d42a9b4a6160943e27f9932641928685388135f784bac77dc24a8256554f4d14"
+        },
+        "research_note": "Operational observations are not PIT-certified research or execution quotes.",
+        "research_status": "NOT_RUN",
+        "risk_status": "PASS",
+        "run_id": "daily-5592a01132b39073e0f68932",
+        "runtime_status": "PASS",
+        "schema_version": "meridian-daily-closure.v1",
+        "snapshot_provenance": {
+          "age_seconds": 0.913978,
+          "as_of": "2026-09-07T16:57:23.267283Z",
+          "checked_at": "2026-09-07T16:57:24.181261Z",
+          "code": "ACCOUNT_SNAPSHOT_VALID",
+          "content_hash": "d42a9b4a6160943e27f9932641928685388135f784bac77dc24a8256554f4d14",
+          "coverage": "COMPLETE",
+          "freshness": "PASS",
+          "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+          "novelty": "NEW",
+          "provenance_status": "UNKNOWN",
+          "retrieved_at": "2026-09-07T16:57:23.267283Z",
+          "snapshot_key": "32465dc285f19391455ce14630ca78cddb51386ee880ecdc405190839a38100f",
+          "source_kind": "FIXTURE",
+          "source_name_hash": "132af0dc3bdf37fec0ffdfadab224862fdb5813678b9a664c7c0efa91ad8a11b",
+          "status": "PASS"
+        },
+        "stages": [
+          {
+            "duration_seconds": 0.0,
+            "error_code": null,
+            "finish": "2026-09-07T16:57:24.205095+00:00",
+            "next_action": "Review provider probes and freshness.",
+            "run_id": "daily-5592a01132b39073e0f68932",
+            "stage": "market",
+            "start": "2026-09-07T16:57:24.205095+00:00",
+            "status": "PASS"
+          },
+          {
+            "duration_seconds": 0.0,
+            "error_code": "LIVE_RESEARCH_DISABLED",
+            "finish": "2026-09-07T16:57:24.205095+00:00",
+            "next_action": "Check research configuration, fresh input evidence and provider status; no prior output is substituted.",
+            "run_id": "daily-5592a01132b39073e0f68932",
+            "stage": "research",
+            "start": "2026-09-07T16:57:24.205095+00:00",
+            "status": "NOT_RUN"
+          },
+          {
+            "duration_seconds": 0.0,
+            "error_code": null,
+            "finish": "2026-09-07T16:57:24.205095+00:00",
+            "next_action": "Review deterministic policy gates; no manual authority inferred.",
+            "run_id": "daily-5592a01132b39073e0f68932",
+            "stage": "decision",
+            "start": "2026-09-07T16:57:24.205095+00:00",
+            "status": "DRAFT"
+          }
+        ],
+        "status": "DRAFT",
+        "symbols_missing": {},
+        "timestamp": "2026-09-07T16:57:24.205095+00:00",
+        "trading_date": "2026-09-07",
+        "warnings": [
+          "PUBLIC_RESEARCH_IS_ADVISORY_NOT_CERTIFIED",
+          "NOT_AUTHORIZED_FOR_MANUAL_ENTRY"
+        ]
+      }
+    },
+    {
+      "label": "powershell5_launcher_daily",
+      "start": "2026-09-07T16:57:24.299707+00:00",
+      "finish": "2026-09-07T16:57:25.556344+00:00",
+      "latency_seconds": 1.256637,
+      "exit_code": 0,
+      "payload": {
+        "account_snapshot_hash": "8ecb3c8f3a3f7d6c2554126f8c342e7718778863c46e0d3a2e28e09b97cde081",
+        "account_snapshot_time": "2026-09-07T16:57:24.299707+00:00",
+        "analysis_time": "2026-09-07T16:57:25.448301+00:00",
+        "audit": {
+          "credentials_persisted": false,
+          "later_snapshots_mutate_run": false,
+          "raw_account_persisted": false
+        },
+        "blocked_reasons": [],
+        "broker_submission": "DISABLED",
+        "cache": {},
+        "current_holdings": [],
+        "data_mode": "FIXTURE",
+        "data_status": "PASS",
+        "database_status": "PASS",
+        "decision_context": {
+          "authority": "ADVISORY_ONLY",
+          "financial_parameters_source": "DETERMINISTIC_POLICY_AND_MARKET",
+          "research": null,
+          "research_input_hash": "bdf3eeec6ab07c7da9f79de98ade6e7789d8406ced579c95f34a2a5d65e3cd7b",
+          "research_run_id": "research-9f432ab4674747879c949a78856d812f",
+          "research_status": "NOT_RUN"
+        },
+        "degraded_reasons": [
+          "RESEARCH_NOT_RUN",
+          "POLICY_SECURITY_METADATA_UNCERTIFIED",
+          "PUBLIC_QUOTE_UNCERTIFIED"
+        ],
+        "elapsed_seconds": 0.094,
+        "errors": [],
+        "execution": "MANUAL",
+        "gates": [
+          {
+            "evidence": [
+              "bd04816884f64349b660327ff8e5cf23890c11b26ca841b825cc0f8995041fe3"
+            ],
+            "gate": "ACCOUNT_READY",
+            "reason": "Authenticated fresh Host source required",
+            "status": "BLOCKED"
+          },
+          {
+            "evidence": [
+              "12b1ece6cf262fab3ac195bf9d9809f82f414fbde32791a60f645d1227bb48e9"
+            ],
+            "gate": "SECURITY_READY",
+            "reason": "Operational sector metadata is not authoritative certification",
+            "status": "DEGRADED"
+          },
+          {
+            "evidence": [
+              "7b6ff697af3f8c2d7c50d9c03db7f25ce28653c1152a1a0b5f73e84bcffeca1b"
+            ],
+            "gate": "MARKET_READY",
+            "reason": "Market observations must be fresh at decision time",
+            "status": "PASS"
+          },
+          {
+            "evidence": [
+              "bdf3eeec6ab07c7da9f79de98ade6e7789d8406ced579c95f34a2a5d65e3cd7b"
+            ],
+            "gate": "RESEARCH_READY",
+            "reason": "Public model inference is advisory, not certified evidence",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "UNAVAILABLE"
+            ],
+            "gate": "QUOTE_READY",
+            "reason": "Certified execution quote absent",
+            "status": "BLOCKED"
+          },
+          {
+            "evidence": [
+              "12b1ece6cf262fab3ac195bf9d9809f82f414fbde32791a60f645d1227bb48e9"
+            ],
+            "gate": "RISK_READY",
+            "reason": "Deterministic projected portfolio validation",
+            "status": "PASS"
+          },
+          {
+            "evidence": [
+              "bd04816884f64349b660327ff8e5cf23890c11b26ca841b825cc0f8995041fe3"
+            ],
+            "gate": "RECONCILIATION_READY",
+            "reason": "Reconciliation uses supplied facts; no fills inferred",
+            "status": "PASS"
+          }
+        ],
+        "information_cutoff": "2026-09-07T16:57:25.448301+00:00",
+        "manual_authority": {
+          "certificate_issued": false,
+          "reason": "Existing sealed authority and certified quote remain required.",
+          "status": "BLOCKED"
+        },
+        "market_data_snapshot_hash": "e2874cfa1d6af4ff336f2d6ba3796ed5a6159e62ce7c0c9300ddf15a4d0ab0b5",
+        "next_actions": [
+          "Provide verifiable authorized Host source evidence; content hashes are not authentication.",
+          "Supply fresh market observations if freshness is blocked.",
+          "Run certified research and policy gates before recommendation readiness.",
+          "Manual entry additionally requires a certified execution quote and sealed authority."
+        ],
+        "orders": [
+          {
+            "current_weight": "0",
+            "estimated_notional": "404.0000",
+            "max_acceptable_buy_price": "101.0000",
+            "min_acceptable_sell_price": null,
+            "preferred_limit": "100.0000",
+            "quantity": "4",
+            "reason": "Deterministic purchase sized at worst-case limit; sell proceeds not assumed. Reduced by max_single_order_nav_percent/max_daily_turnover constraints.",
+            "side": "BUY",
+            "status": "DRAFT",
+            "target_weight": "0.1",
+            "ticker": "AAPL",
+            "time_in_force": "DAY"
+          }
+        ],
+        "output_files": {
+          "log": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\logs\\daily-2f8600e83e044ebea73a8284e030f91a.log",
+          "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-006a38aa22fe282df0117d2e\\daily.json",
+          "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-006a38aa22fe282df0117d2e\\daily.md"
+        },
+        "output_hash": "884b682315e86fcdcb4b34c82d8a3a16040999e45275aeb8217acbf3c8bbbe80",
+        "policy_hash": "630da048908fd3d02c76e1a0a04163040391b535a972583d4983162e7c66db1d",
+        "portfolio": {
+          "allocator_name": "deterministic_alpha_volatility_fallback",
+          "allocator_version": "BASELINE_V1",
+          "as_of": "2026-09-07T16:57:24.299707Z",
+          "cash_weight": "0.9",
+          "positions": [
+            {
+              "conviction": "1",
+              "rationale": "Deterministic alpha-score weighted fallback.",
+              "target_weight": "0.1",
+              "ticker": "AAPL"
+            }
+          ]
+        },
+        "portfolio_status": "VERIFIED",
+        "provider_conflicts": {},
+        "provider_health": {
+          "AAPL": {
+            "primary": "FIXTURE",
+            "secondary": "NOT_USED"
+          }
+        },
+        "provider_status": {
+          "AAPL": "VERIFIED"
+        },
+        "quant_status": "PASS",
+        "readiness": {
+          "account_provenance": "UNKNOWN",
+          "account_snapshot_freshness": "PASS",
+          "account_snapshot_status": "PASS",
+          "blockers": [
+            "ACCOUNT_PROVENANCE_UNKNOWN",
+            "PROVIDER_PROVENANCE_DEGRADED",
+            "RESEARCH_STATUS_NOT_RUN",
+            "RESEARCH_FRESHNESS_UNKNOWN",
+            "POLICY_GATE_STATUS_DEGRADED",
+            "REAL_INPUT_NOT_VERIFIED"
+          ],
+          "decision_pipeline_status": "PASS",
+          "input_mode": "FIXTURE",
+          "manual_authority_status": "UNKNOWN",
+          "manual_execution_readiness": "BLOCKED",
+          "market_data_freshness": "PASS",
+          "market_data_status": "PASS",
+          "policy_gate_status": "DEGRADED",
+          "provider_provenance": "DEGRADED",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "FIXTURE",
+          "recommendation_readiness": "BLOCKED",
+          "research_freshness": "UNKNOWN",
+          "research_readiness": "BLOCKED",
+          "research_status": "NOT_RUN",
+          "runtime_health": "PASS"
+        },
+        "recommendation_status": "RESEARCH_ONLY",
+        "reconciliation": {
+          "status": "DRAFT",
+          "warnings": []
+        },
+        "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-006a38aa22fe282df0117d2e\\daily.json",
+        "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports\\2026-09-07\\daily-006a38aa22fe282df0117d2e\\daily.md",
+        "research": {
+          "attempts": 0,
+          "context": {
+            "analysis_cutoff": "2026-09-07T16:57:25.448301Z",
+            "authority": "ADVISORY_ONLY",
+            "input_hash": "bdf3eeec6ab07c7da9f79de98ade6e7789d8406ced579c95f34a2a5d65e3cd7b",
+            "output": null,
+            "parent_run_id": "daily-006a38aa22fe282df0117d2e",
+            "research_run_id": "research-9f432ab4674747879c949a78856d812f",
+            "status": "NOT_RUN"
+          },
+          "duration_seconds": 0.0,
+          "error_code": "LIVE_RESEARCH_DISABLED",
+          "finished_at": "2026-09-07T16:57:25.464546Z",
+          "model": "deepseek-v4-flash",
+          "next_action": "Check research configuration, fresh input evidence and provider status; no prior output is substituted.",
+          "prompt_created_at": "2026-09-07T16:57:25.464546Z",
+          "provenance": "NONE",
+          "provider": "deepseek",
+          "request_sent_at": null,
+          "response_received_at": null,
+          "started_at": "2026-09-07T16:57:25.464546Z"
+        },
+        "research_input": {
+          "analysis_cutoff": "2026-09-07T16:57:25.448301Z",
+          "freshness_status": "PASS",
+          "market_reference": "7b6ff697af3f8c2d7c50d9c03db7f25ce28653c1152a1a0b5f73e84bcffeca1b",
+          "mode": "FIXTURE",
+          "model": "deepseek-v4-flash",
+          "observations": [
+            {
+              "daily_return": "0.05",
+              "observed_at": "2026-09-07T16:57:24.299707Z",
+              "price": "100",
+              "reference": "a6301056011a0ef5ab5e59f2860e3bff2f9770365df2aaca47a1fa9e72f04d4f",
+              "ticker": "AAPL"
+            }
+          ],
+          "parent_run_id": "daily-006a38aa22fe282df0117d2e",
+          "policy_reference": "12b1ece6cf262fab3ac195bf9d9809f82f414fbde32791a60f645d1227bb48e9",
+          "prompt_version": "public-advisory-v1",
+          "provider": "deepseek",
+          "provider_provenance": {
+            "AAPL": "{\"primary\": \"FIXTURE\", \"secondary\": \"NOT_USED\"}"
+          },
+          "snapshot_reference": "bd04816884f64349b660327ff8e5cf23890c11b26ca841b825cc0f8995041fe3"
+        },
+        "research_note": "Operational observations are not PIT-certified research or execution quotes.",
+        "research_status": "NOT_RUN",
+        "risk_status": "PASS",
+        "run_id": "daily-006a38aa22fe282df0117d2e",
+        "runtime_status": "PASS",
+        "schema_version": "meridian-daily-closure.v1",
+        "snapshot_provenance": {
+          "age_seconds": 1.129985,
+          "as_of": "2026-09-07T16:57:24.299707Z",
+          "checked_at": "2026-09-07T16:57:25.429692Z",
+          "code": "ACCOUNT_SNAPSHOT_VALID",
+          "content_hash": "bd04816884f64349b660327ff8e5cf23890c11b26ca841b825cc0f8995041fe3",
+          "coverage": "COMPLETE",
+          "freshness": "PASS",
+          "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+          "novelty": "NEW",
+          "provenance_status": "UNKNOWN",
+          "retrieved_at": "2026-09-07T16:57:24.299707Z",
+          "snapshot_key": "85d841f43a8bf7d2a15bd49df8782660e692cd8dcd8b5cb8f239e2d07cb21dd3",
+          "source_kind": "FIXTURE",
+          "source_name_hash": "132af0dc3bdf37fec0ffdfadab224862fdb5813678b9a664c7c0efa91ad8a11b",
+          "status": "PASS"
+        },
+        "stages": [
+          {
+            "duration_seconds": 0.015121,
+            "error_code": null,
+            "finish": "2026-09-07T16:57:25.463422+00:00",
+            "next_action": "Review provider probes and freshness.",
+            "run_id": "daily-006a38aa22fe282df0117d2e",
+            "stage": "market",
+            "start": "2026-09-07T16:57:25.448301+00:00",
+            "status": "PASS"
+          },
+          {
+            "duration_seconds": 0.0,
+            "error_code": "LIVE_RESEARCH_DISABLED",
+            "finish": "2026-09-07T16:57:25.464546+00:00",
+            "next_action": "Check research configuration, fresh input evidence and provider status; no prior output is substituted.",
+            "run_id": "daily-006a38aa22fe282df0117d2e",
+            "stage": "research",
+            "start": "2026-09-07T16:57:25.464546+00:00",
+            "status": "NOT_RUN"
+          },
+          {
+            "duration_seconds": 0.000995,
+            "error_code": null,
+            "finish": "2026-09-07T16:57:25.465541+00:00",
+            "next_action": "Review deterministic policy gates; no manual authority inferred.",
+            "run_id": "daily-006a38aa22fe282df0117d2e",
+            "stage": "decision",
+            "start": "2026-09-07T16:57:25.464546+00:00",
+            "status": "DRAFT"
+          }
+        ],
+        "status": "DRAFT",
+        "symbols_missing": {},
+        "timestamp": "2026-09-07T16:57:25.448301+00:00",
+        "trading_date": "2026-09-07",
+        "warnings": [
+          "PUBLIC_RESEARCH_IS_ADVISORY_NOT_CERTIFIED",
+          "NOT_AUTHORIZED_FOR_MANUAL_ENTRY"
+        ]
+      }
+    },
+    {
+      "label": "restart_doctor",
+      "start": "2026-09-07T16:57:25.808392+00:00",
+      "finish": "2026-09-07T16:57:26.788505+00:00",
+      "latency_seconds": 0.980113,
+      "exit_code": 0,
+      "payload": {
+        "checks": [
+          {
+            "detail": "3.12.10; production baseline is 3.12",
+            "name": "python",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "package_import",
+            "status": "PASS"
+          },
+          {
+            "detail": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space",
+            "name": "runtime_directories",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:data",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:db",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:cache",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:reports",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:logs",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:runs",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:audit",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:config",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "sqlite",
+            "status": "PASS"
+          },
+          {
+            "detail": "healthy",
+            "name": "database",
+            "status": "PASS"
+          },
+          {
+            "detail": "2",
+            "name": "migration",
+            "status": "CURRENT"
+          },
+          {
+            "detail": "available",
+            "name": "config",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "timezone",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "market_calendar",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "dependency:pydantic",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "dependency:PyYAML",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "dependency:mcp",
+            "status": "PASS"
+          },
+          {
+            "detail": "adapter present; provider not probed",
+            "name": "optional:tradingagents",
+            "status": "UNKNOWN"
+          },
+          {
+            "detail": "adapter present; provider not probed",
+            "name": "optional:finrlx_runtime",
+            "status": "UNKNOWN"
+          },
+          {
+            "detail": "adapter present; provider not probed",
+            "name": "optional:mcp_server",
+            "status": "UNKNOWN"
+          },
+          {
+            "detail": "configured=true",
+            "name": "secrets",
+            "status": "PASS"
+          }
+        ],
+        "database": {
+          "detail": "healthy",
+          "migration_status": "CURRENT",
+          "schema_version": 2,
+          "status": "PASS"
+        },
+        "elapsed_ms": 47.0,
+        "network_accessed": false,
+        "paths": {
+          "audit": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\audit",
+          "cache": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\cache",
+          "config": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\config",
+          "data": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\data",
+          "database": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\db\\meridian.sqlite3",
+          "db": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\db",
+          "home": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space",
+          "logs": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\logs",
+          "policies": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume\\Lib\\site-packages\\meridian\\policies",
+          "reports": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\reports",
+          "runs": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian outside 中文 # rio85imf\\runtime 中文 # space\\runs"
+        },
+        "project_version": "0.0.0",
+        "python_executable": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume\\Scripts\\python.exe",
+        "schema_version": "meridian-doctor.v1",
+        "status": "PASS",
+        "virtual_environment": true
+      }
+    },
+    {
+      "label": "real_public_provider_matrix",
+      "start": "2026-09-07T16:57:26.790045+00:00",
+      "finish": "2026-09-07T16:57:34.050973+00:00",
+      "latency_seconds": 7.260928,
+      "exit_code": 2,
+      "payload": {
+        "cache": {
+          "AAPL": false,
+          "MSFT": false,
+          "NVDA": false,
+          "SPY": false
+        },
+        "certification": "OPERATIONAL_DATA_IS_NOT_CERTIFIED_RESEARCH",
+        "data_mode": "OPERATIONAL_PUBLIC",
+        "historical_universe": "BLOCKED",
+        "information_cutoff": "2026-09-07T16:57:34.012356+00:00",
+        "latest_daily_bar": "UNKNOWN",
+        "latest_quote": "STALE_OR_UNAVAILABLE",
+        "market_calendar": "OK",
+        "market_snapshot_hash": "faad3ad6ccfe12cdff2ed3df0e6f6d851d24f9a9699a14451762652bdeacd6c9",
+        "operational": "BLOCKED_MARKET_DATA",
+        "primary_price": "DEGRADED",
+        "provider_conflicts": {},
+        "provider_health": {
+          "AAPL": {
+            "primary": "STALE",
+            "secondary": "UNAVAILABLE"
+          },
+          "MSFT": {
+            "primary": "STALE",
+            "secondary": "UNAVAILABLE"
+          },
+          "NVDA": {
+            "primary": "STALE",
+            "secondary": "UNAVAILABLE"
+          },
+          "SPY": {
+            "primary": "STALE",
+            "secondary": "UNAVAILABLE"
+          }
+        },
+        "provider_probes": {
+          "AAPL": {
+            "analysis_cutoff": "2026-09-07T16:57:34.012356+00:00",
+            "final_market_status": "BLOCKED",
+            "history": {
+              "status": "NOT_RUN"
+            },
+            "primary": {
+              "age_seconds": 248253.012356,
+              "analysis_cutoff": "2026-09-07T16:57:34.012356+00:00",
+              "attempted_at": "2026-09-07T16:57:27.657528+00:00",
+              "completed_at": "2026-09-07T16:57:28.566480+00:00",
+              "detail": "public operational observation; not PIT certified",
+              "error_category": "DATA_QUALITY",
+              "latest_completed_session": "2026-09-04",
+              "provenance": {
+                "provider_symbol": "AAPL",
+                "shadow_only": "true",
+                "source": "yahoo-chart-public"
+              },
+              "provider": "yahoo",
+              "provider_session": "CLOSED",
+              "quote_certification_status": "BLOCKED",
+              "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+              "received_at": "2026-09-07T16:57:28.565689+00:00",
+              "request_mode": "LIVE",
+              "requested_provider": "yahoo",
+              "research_context": "LAST_COMPLETED_SESSION_ONLY",
+              "session": "CLOSED",
+              "source_timestamp": "2026-09-04T20:00:01+00:00",
+              "status": "STALE",
+              "symbol": "AAPL"
+            },
+            "secondary": {
+              "attempted_at": "2026-09-07T16:57:28.566480+00:00",
+              "completed_at": "2026-09-07T16:57:29.401241+00:00",
+              "detail": "http_404",
+              "error_category": "PROVIDER_FAILURE",
+              "provider": "stooq-public",
+              "request_mode": "LIVE",
+              "status": "UNAVAILABLE"
+            },
+            "selected_provider": null,
+            "selection": "NONE"
+          },
+          "MSFT": {
+            "analysis_cutoff": "2026-09-07T16:57:34.012356+00:00",
+            "final_market_status": "BLOCKED",
+            "history": {
+              "status": "NOT_RUN"
+            },
+            "primary": {
+              "age_seconds": 248253.012356,
+              "analysis_cutoff": "2026-09-07T16:57:34.012356+00:00",
+              "attempted_at": "2026-09-07T16:57:29.401838+00:00",
+              "completed_at": "2026-09-07T16:57:30.225697+00:00",
+              "detail": "public operational observation; not PIT certified",
+              "error_category": "DATA_QUALITY",
+              "latest_completed_session": "2026-09-04",
+              "provenance": {
+                "provider_symbol": "MSFT",
+                "shadow_only": "true",
+                "source": "yahoo-chart-public"
+              },
+              "provider": "yahoo",
+              "provider_session": "CLOSED",
+              "quote_certification_status": "BLOCKED",
+              "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+              "received_at": "2026-09-07T16:57:30.225697+00:00",
+              "request_mode": "LIVE",
+              "requested_provider": "yahoo",
+              "research_context": "LAST_COMPLETED_SESSION_ONLY",
+              "session": "CLOSED",
+              "source_timestamp": "2026-09-04T20:00:01+00:00",
+              "status": "STALE",
+              "symbol": "MSFT"
+            },
+            "secondary": {
+              "attempted_at": "2026-09-07T16:57:30.225697+00:00",
+              "completed_at": "2026-09-07T16:57:31.066740+00:00",
+              "detail": "http_404",
+              "error_category": "PROVIDER_FAILURE",
+              "provider": "stooq-public",
+              "request_mode": "LIVE",
+              "status": "UNAVAILABLE"
+            },
+            "selected_provider": null,
+            "selection": "NONE"
+          },
+          "NVDA": {
+            "analysis_cutoff": "2026-09-07T16:57:34.012356+00:00",
+            "final_market_status": "BLOCKED",
+            "history": {
+              "status": "NOT_RUN"
+            },
+            "primary": {
+              "age_seconds": 248254.012356,
+              "analysis_cutoff": "2026-09-07T16:57:34.012356+00:00",
+              "attempted_at": "2026-09-07T16:57:31.067297+00:00",
+              "completed_at": "2026-09-07T16:57:31.797942+00:00",
+              "detail": "public operational observation; not PIT certified",
+              "error_category": "DATA_QUALITY",
+              "latest_completed_session": "2026-09-04",
+              "provenance": {
+                "provider_symbol": "NVDA",
+                "shadow_only": "true",
+                "source": "yahoo-chart-public"
+              },
+              "provider": "yahoo",
+              "provider_session": "CLOSED",
+              "quote_certification_status": "BLOCKED",
+              "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+              "received_at": "2026-09-07T16:57:31.797942+00:00",
+              "request_mode": "LIVE",
+              "requested_provider": "yahoo",
+              "research_context": "LAST_COMPLETED_SESSION_ONLY",
+              "session": "CLOSED",
+              "source_timestamp": "2026-09-04T20:00:00+00:00",
+              "status": "STALE",
+              "symbol": "NVDA"
+            },
+            "secondary": {
+              "attempted_at": "2026-09-07T16:57:31.797942+00:00",
+              "completed_at": "2026-09-07T16:57:32.553201+00:00",
+              "detail": "http_404",
+              "error_category": "PROVIDER_FAILURE",
+              "provider": "stooq-public",
+              "request_mode": "LIVE",
+              "status": "UNAVAILABLE"
+            },
+            "selected_provider": null,
+            "selection": "NONE"
+          },
+          "SPY": {
+            "analysis_cutoff": "2026-09-07T16:57:34.012356+00:00",
+            "final_market_status": "BLOCKED",
+            "history": {
+              "status": "NOT_RUN"
+            },
+            "primary": {
+              "age_seconds": 248254.012356,
+              "analysis_cutoff": "2026-09-07T16:57:34.012356+00:00",
+              "attempted_at": "2026-09-07T16:57:32.554930+00:00",
+              "completed_at": "2026-09-07T16:57:33.287875+00:00",
+              "detail": "public operational observation; not PIT certified",
+              "error_category": "DATA_QUALITY",
+              "latest_completed_session": "2026-09-04",
+              "provenance": {
+                "provider_symbol": "SPY",
+                "shadow_only": "true",
+                "source": "yahoo-chart-public"
+              },
+              "provider": "yahoo",
+              "provider_session": "CLOSED",
+              "quote_certification_status": "BLOCKED",
+              "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+              "received_at": "2026-09-07T16:57:33.287875+00:00",
+              "request_mode": "LIVE",
+              "requested_provider": "yahoo",
+              "research_context": "LAST_COMPLETED_SESSION_ONLY",
+              "session": "CLOSED",
+              "source_timestamp": "2026-09-04T20:00:00+00:00",
+              "status": "STALE",
+              "symbol": "SPY"
+            },
+            "secondary": {
+              "attempted_at": "2026-09-07T16:57:33.287875+00:00",
+              "completed_at": "2026-09-07T16:57:34.011336+00:00",
+              "detail": "http_404",
+              "error_category": "PROVIDER_FAILURE",
+              "provider": "stooq-public",
+              "request_mode": "LIVE",
+              "status": "UNAVAILABLE"
+            },
+            "selected_provider": null,
+            "selection": "NONE"
+          }
+        },
+        "research": "RESEARCH_BLOCKED",
+        "secondary_price": "DEGRADED",
+        "status": "DEGRADED",
+        "symbols_missing": {
+          "AAPL": "MARKET_DATA_STALE",
+          "MSFT": "MARKET_DATA_STALE",
+          "NVDA": "MARKET_DATA_STALE",
+          "SPY": "MARKET_DATA_STALE"
+        }
+      }
+    }
+  ],
+  "account": "BLOCKED_MISSING_REAL_HOST_SNAPSHOT",
+  "synthetic_scope": "REGRESSION_ONLY",
+  "installed_resources": {
+    "package": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume\\Lib\\site-packages\\meridian\\__init__.py",
+    "policies": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume\\Lib\\site-packages\\meridian\\policies"
+  },
+  "powershell_version": "5.1.26100.9278",
+  "database": {
+    "runs": 3,
+    "readiness_records": 3,
+    "integrity": "ok"
+  },
+  "live_research": {
+    "credential_status": "CONFIGURED_UNPROBED",
+    "actual_invocation": false,
+    "status": "NOT_RUN",
+    "reason": "Fresh explicit real Host snapshot absent; canonical prerequisites not satisfied."
+  },
+  "wheel_sha256": "9851b842f15d043efa389ce2dded639fad94179799b99ff20402f578e28d6b39"
+}

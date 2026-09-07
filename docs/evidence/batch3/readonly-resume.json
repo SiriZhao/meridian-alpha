@@ -1,0 +1,379 @@
+{
+  "install_write_denied": true,
+  "scope": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume",
+  "runtime": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec",
+  "runs": [
+    {
+      "command": "init",
+      "exit_code": 0,
+      "payload": {
+        "created_dirs": [
+          "audit",
+          "cache",
+          "config",
+          "data",
+          "db",
+          "logs",
+          "reports",
+          "runs"
+        ],
+        "db_path": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\db\\meridian.sqlite3",
+        "runtime_home": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec",
+        "schema_version": 2,
+        "status": "INIT_COMPLETE",
+        "warnings": []
+      }
+    },
+    {
+      "command": "doctor",
+      "exit_code": 0,
+      "payload": {
+        "checks": [
+          {
+            "detail": "3.12.10; production baseline is 3.12",
+            "name": "python",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "package_import",
+            "status": "PASS"
+          },
+          {
+            "detail": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec",
+            "name": "runtime_directories",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:data",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:db",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:cache",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:reports",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:logs",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:runs",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:audit",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "runtime_write:config",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "sqlite",
+            "status": "PASS"
+          },
+          {
+            "detail": "healthy",
+            "name": "database",
+            "status": "PASS"
+          },
+          {
+            "detail": "2",
+            "name": "migration",
+            "status": "CURRENT"
+          },
+          {
+            "detail": "available",
+            "name": "config",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "timezone",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "market_calendar",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "dependency:pydantic",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "dependency:PyYAML",
+            "status": "PASS"
+          },
+          {
+            "detail": "available",
+            "name": "dependency:mcp",
+            "status": "PASS"
+          },
+          {
+            "detail": "adapter present; provider not probed",
+            "name": "optional:tradingagents",
+            "status": "UNKNOWN"
+          },
+          {
+            "detail": "adapter present; provider not probed",
+            "name": "optional:finrlx_runtime",
+            "status": "UNKNOWN"
+          },
+          {
+            "detail": "adapter present; provider not probed",
+            "name": "optional:mcp_server",
+            "status": "UNKNOWN"
+          },
+          {
+            "detail": "configured=true",
+            "name": "secrets",
+            "status": "PASS"
+          }
+        ],
+        "database": {
+          "detail": "healthy",
+          "migration_status": "CURRENT",
+          "schema_version": 2,
+          "status": "PASS"
+        },
+        "elapsed_ms": 31.0,
+        "network_accessed": false,
+        "paths": {
+          "audit": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\audit",
+          "cache": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\cache",
+          "config": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\config",
+          "data": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\data",
+          "database": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\db\\meridian.sqlite3",
+          "db": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\db",
+          "home": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec",
+          "logs": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\logs",
+          "policies": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume\\Lib\\site-packages\\meridian\\policies",
+          "reports": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\reports",
+          "runs": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\runs"
+        },
+        "project_version": "0.0.0",
+        "python_executable": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\artifacts\\batch3\\installed-resume\\Scripts\\python.exe",
+        "schema_version": "meridian-doctor.v1",
+        "status": "PASS",
+        "virtual_environment": true
+      }
+    },
+    {
+      "command": "daily",
+      "exit_code": 2,
+      "payload": {
+        "analysis_time": "2026-09-07T16:54:57.154013+00:00",
+        "blocked_reasons": [
+          "ACCOUNT_SNAPSHOT_MISSING"
+        ],
+        "broker_submission": "DISABLED",
+        "data_status": "NOT_RUN",
+        "decision_context": {
+          "research": null,
+          "research_status": "NOT_RUN"
+        },
+        "errors": [
+          "ACCOUNT_SNAPSHOT_MISSING"
+        ],
+        "execution": "MANUAL",
+        "gates": [
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "ACCOUNT_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "SECURITY_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "MARKET_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "RESEARCH_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "QUOTE_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "RISK_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          },
+          {
+            "evidence": [
+              "ACCOUNT_SNAPSHOT_MISSING"
+            ],
+            "gate": "RECONCILIATION_READY",
+            "reason": "Snapshot validation prevented evaluation",
+            "status": "NOT_RUN"
+          }
+        ],
+        "manual_authority": {
+          "certificate_issued": false,
+          "status": "BLOCKED"
+        },
+        "next_actions": [
+          "Supply a new sanitized Host envelope from an authorized source."
+        ],
+        "orders": [],
+        "output_files": {
+          "log": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\logs\\daily-ee6c4cf322fa4ffd9b50cc188ad37794.log",
+          "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\reports\\2026-09-07\\daily-d5b10c62cd264003a7fbd2ca1c765313\\daily.json",
+          "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\reports\\2026-09-07\\daily-d5b10c62cd264003a7fbd2ca1c765313\\daily.md"
+        },
+        "provider_probes": {},
+        "quant_status": "NOT_RUN",
+        "readiness": {
+          "account_provenance": "UNKNOWN",
+          "account_snapshot_freshness": "UNKNOWN",
+          "account_snapshot_status": "BLOCKED",
+          "blockers": [
+            "ACCOUNT_SNAPSHOT_STATUS_BLOCKED",
+            "ACCOUNT_SNAPSHOT_FRESHNESS_UNKNOWN",
+            "ACCOUNT_PROVENANCE_UNKNOWN",
+            "MARKET_DATA_STATUS_NOT_RUN",
+            "MARKET_DATA_FRESHNESS_NOT_RUN",
+            "PROVIDER_PROVENANCE_UNKNOWN",
+            "RESEARCH_STATUS_NOT_RUN",
+            "RESEARCH_FRESHNESS_UNKNOWN",
+            "DECISION_PIPELINE_STATUS_NOT_RUN",
+            "POLICY_GATE_STATUS_UNKNOWN",
+            "REAL_INPUT_NOT_VERIFIED"
+          ],
+          "decision_pipeline_status": "NOT_RUN",
+          "input_mode": "UNKNOWN",
+          "manual_authority_status": "UNKNOWN",
+          "manual_execution_readiness": "BLOCKED",
+          "market_data_freshness": "NOT_RUN",
+          "market_data_status": "NOT_RUN",
+          "policy_gate_status": "UNKNOWN",
+          "provider_provenance": "UNKNOWN",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "NOT_REQUESTED",
+          "recommendation_readiness": "BLOCKED",
+          "research_freshness": "UNKNOWN",
+          "research_readiness": "BLOCKED",
+          "research_status": "NOT_RUN",
+          "runtime_health": "PASS"
+        },
+        "recommendation_status": "BLOCKED",
+        "report_json": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\reports\\2026-09-07\\daily-d5b10c62cd264003a7fbd2ca1c765313\\daily.json",
+        "report_markdown": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\Meridian readonly 中文 # fa4z1pec\\reports\\2026-09-07\\daily-d5b10c62cd264003a7fbd2ca1c765313\\daily.md",
+        "research": {
+          "attempts": 0,
+          "context": {
+            "authority": "ADVISORY_ONLY",
+            "output": null,
+            "status": "NOT_RUN"
+          },
+          "error_code": "RESEARCH_UPSTREAM_BLOCKED",
+          "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+          "provenance": "NONE"
+        },
+        "research_status": "NOT_RUN",
+        "risk_status": "NOT_RUN",
+        "run_id": "daily-d5b10c62cd264003a7fbd2ca1c765313",
+        "runtime_status": "PASS",
+        "snapshot_provenance": {
+          "age_seconds": null,
+          "as_of": null,
+          "checked_at": "2026-09-07T16:54:57.154013Z",
+          "code": "ACCOUNT_SNAPSHOT_MISSING",
+          "content_hash": null,
+          "coverage": null,
+          "freshness": "UNKNOWN",
+          "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+          "novelty": "UNKNOWN",
+          "provenance_status": "UNKNOWN",
+          "retrieved_at": null,
+          "snapshot_key": null,
+          "source_kind": null,
+          "source_name_hash": null,
+          "status": "BLOCKED"
+        },
+        "stages": [
+          {
+            "duration_seconds": 0,
+            "error_code": "UPSTREAM_SNAPSHOT_BLOCKED",
+            "finish": null,
+            "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+            "run_id": "daily-d5b10c62cd264003a7fbd2ca1c765313",
+            "stage": "market",
+            "start": null,
+            "status": "NOT_RUN"
+          },
+          {
+            "duration_seconds": 0,
+            "error_code": "UPSTREAM_SNAPSHOT_BLOCKED",
+            "finish": null,
+            "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+            "run_id": "daily-d5b10c62cd264003a7fbd2ca1c765313",
+            "stage": "research",
+            "start": null,
+            "status": "NOT_RUN"
+          },
+          {
+            "duration_seconds": 0,
+            "error_code": "UPSTREAM_SNAPSHOT_BLOCKED",
+            "finish": null,
+            "next_action": "Supply a new sanitized Host envelope from an authorized source.",
+            "run_id": "daily-d5b10c62cd264003a7fbd2ca1c765313",
+            "stage": "decision",
+            "start": null,
+            "status": "NOT_RUN"
+          }
+        ],
+        "status": "BLOCKED_STALE_ACCOUNT",
+        "timestamp": "2026-09-07T16:54:57.154013+00:00",
+        "trading_date": "2026-09-07",
+        "warnings": []
+      }
+    }
+  ]
+}

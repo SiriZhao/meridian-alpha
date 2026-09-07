@@ -1,0 +1,67 @@
+[
+  {
+    "command": [
+      "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\uv.exe",
+      "run",
+      "--no-sync",
+      "pytest",
+      "-q"
+    ],
+    "exit_code": 0,
+    "seconds": 39.843,
+    "stdout": "........................................................................ [ 19%]\n........................................................................ [ 38%]\n........................................................................ [ 57%]\n........................................................................ [ 76%]\n........................................................................ [ 96%]\n...............                                                          [100%]\n375 passed in 38.36s\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\uv.exe",
+      "run",
+      "--no-sync",
+      "ruff",
+      "check",
+      "."
+    ],
+    "exit_code": 0,
+    "seconds": 0.125,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\uv.exe",
+      "run",
+      "--no-sync",
+      "pyright"
+    ],
+    "exit_code": 0,
+    "seconds": 6.485,
+    "stdout": "0 errors, 0 warnings, 0 informations\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\python.exe",
+      "-m",
+      "pip",
+      "check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.031,
+    "stdout": "No broken requirements found.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\python.exe",
+      "-m",
+      "pip",
+      "--python",
+      "artifacts/batch3/installed-resume/Scripts/python.exe",
+      "check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.875,
+    "stdout": "No broken requirements found.\n",
+    "stderr": ""
+  }
+]
