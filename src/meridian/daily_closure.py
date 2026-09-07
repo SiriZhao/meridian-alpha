@@ -18,6 +18,7 @@ from meridian.risk import RiskEngine
 from meridian.runtime import RuntimePaths
 from meridian.schemas import (
     AccountSnapshot,
+    AccountSyncState,
     AlphaScore,
     DailyDecision,
     FreshnessState,
@@ -88,13 +89,13 @@ class DailyClosureService:
 
     def _gates(self, account: AccountSnapshot, quotes: dict[str, MarketSnapshot], cutoff: datetime) -> tuple[str, ...]:
         blockers: list[str] = []
-        if account.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT} or account.as_of > cutoff:
+        if account.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT} or account.as_of > cutoff or (cutoff - account.as_of).total_seconds() > self.policies.data.account_snapshot_max_age_seconds or account.sync_state is not AccountSyncState.SYNCED:
             blockers.append("ACCOUNT_SNAPSHOT_STALE_OR_AFTER_CUTOFF")
         selected = {ticker: quote for ticker, quote in quotes.items() if ticker in self.policies.universe.tickers}
         if not selected:
             blockers.append("REQUIRED_OPERATIONAL_MARKET_DATA_UNAVAILABLE")
         for ticker, quote in selected.items():
-            if quote.timestamp > cutoff or (cutoff - quote.timestamp).total_seconds() > 900 or quote.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT}:
+            if quote.timestamp > cutoff or (cutoff - quote.timestamp).total_seconds() > self.policies.data.quote_max_age_seconds or quote.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT}:
                 blockers.append(f"{ticker}:MARKET_STALE_OR_AFTER_CUTOFF")
         return tuple(blockers)
 
@@ -104,17 +105,40 @@ class DailyClosureService:
         return DailyClosureResult(decision, report)
 
 
-def persist_report(result: DailyClosureResult, paths: RuntimePaths) -> DailyClosureResult:
+def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[Path, Path]:
+    """One writer for completed analysis and rejected-input diagnostics."""
     paths.ensure_directories()
-    directory = paths.reports / result.decision.as_of.date().isoformat() / result.decision.run_id
+    as_of = datetime.fromisoformat(str(report["analysis_time"]))
+    directory = paths.reports / as_of.date().isoformat() / str(report["run_id"])
     directory.mkdir(parents=True, exist_ok=True)
     json_path, markdown_path = directory / "daily.json", directory / "daily.md"
     temporary = json_path.with_suffix(".tmp")
-    temporary.write_text(json.dumps(result.report, ensure_ascii=False, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
+    temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
     temporary.replace(json_path)
-    order_lines = [f"- {order.side.value} {order.quantity} {order.ticker} @ {order.preferred_limit} — {order.reason}" for order in result.decision.orders] or ["- No order draft."]
-    text = "\n".join(("# Meridian daily manual-decision report", "", f"Run ID: `{result.decision.run_id}`", f"Status: **{result.decision.overall_status.value}**", "", "EXECUTION = MANUAL", "BROKER SUBMISSION = DISABLED", "", "## Blockers", *[f"- {item}" for item in result.decision.blocked_reasons or ("None",)], "", "## Research-only draft — NOT AUTHORIZED FOR MANUAL ENTRY", *order_lines)) + "\n"
+    readiness = report.get("readiness", {})
+    readiness = readiness if isinstance(readiness, dict) else {}
+    lines = ["# Meridian daily research report", "", f"Run ID: `{report['run_id']}`",
+             f"Runtime: **{report.get('runtime_status', 'UNKNOWN')}**; Analysis: **{report['status']}**",
+             "", "## Recommendation readiness", "",
+             f"Recommendation: **{readiness.get('recommendation_readiness', 'UNKNOWN')}**",
+             f"Research: **{readiness.get('research_readiness', 'UNKNOWN')}**",
+             f"Manual execution: **{readiness.get('manual_execution_readiness', 'BLOCKED')}**",
+             "", "EXECUTION = MANUAL", "BROKER SUBMISSION = DISABLED", "",
+             "## Blockers", ""]
+    blockers = list(report.get("blocked_reasons", [])) + list(readiness.get("blockers", []))  # type: ignore[arg-type]
+    lines.extend(f"- {item}" for item in dict.fromkeys(blockers))
+    lines.extend(["", "## Next actions", ""])
+    lines.extend(f"- {item}" for item in report.get("next_actions", []))  # type: ignore[union-attr]
+    lines.extend(["", "## Research-only draft — NOT AUTHORIZED FOR MANUAL ENTRY", ""])
+    orders = report.get("orders", [])
+    if isinstance(orders, list):
+        lines.extend(f"- {order['side']} {order['quantity']} {order['ticker']} @ {order.get('preferred_limit')}" for order in orders if isinstance(order, dict))
     temporary_md = markdown_path.with_suffix(".tmp")
-    temporary_md.write_text(text, encoding="utf-8")
+    temporary_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
     temporary_md.replace(markdown_path)
+    return json_path, markdown_path
+
+
+def persist_report(result: DailyClosureResult, paths: RuntimePaths) -> DailyClosureResult:
+    json_path, markdown_path = persist_run_report(result.report, paths)
     return DailyClosureResult(result.decision, result.report, json_path, markdown_path)

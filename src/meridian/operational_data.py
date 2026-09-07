@@ -10,11 +10,12 @@ import hashlib
 import json
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass, replace
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from enum import StrEnum
 from pathlib import Path
 from typing import Protocol
+from urllib.error import HTTPError, URLError
 
 from meridian.quotes import (
     QuoteObservation,
@@ -22,7 +23,13 @@ from meridian.quotes import (
     QuoteProviderMalformed,
     QuoteProviderTimeout,
 )
-from meridian.trading_calendar import latest_completed_session
+from meridian.trading_calendar import (
+    NEW_YORK,
+    is_trading_session,
+    latest_completed_session,
+    session_close,
+    session_context,
+)
 
 
 class OperationalReadiness(StrEnum):
@@ -57,11 +64,50 @@ class FreshnessPolicy:
         _aware(as_of, "as_of")
         if observation.timestamp > as_of or observation.received_at > as_of:
             return OperationalProviderStatus.INVALID_RESPONSE
-        return OperationalProviderStatus.OK if (as_of - observation.timestamp).total_seconds() <= self.quote_max_age_seconds else OperationalProviderStatus.STALE
+        age = (as_of - observation.timestamp).total_seconds()
+        if age > self.quote_max_age_seconds:
+            return OperationalProviderStatus.STALE
+        # A recent timestamp during a scheduled closure is not a fresh trade.
+        # Prior-session closes remain diagnostic context, never a stale override.
+        if session_context(observation.timestamp) == "CLOSED":
+            return OperationalProviderStatus.INVALID_RESPONSE
+        return OperationalProviderStatus.OK
+
+    def describe(self, observation: OperationalQuote, *, as_of: datetime) -> dict[str, object]:
+        status = self.quote_status(observation, as_of=as_of)
+        context = session_context(as_of)
+        completed = latest_completed_session(as_of)
+        observed_session = observation.timestamp.astimezone(NEW_YORK).date()
+        closing_context = (context != "REGULAR" and observed_session == completed
+                           and abs((observation.timestamp - session_close(completed)).total_seconds()) <= self.quote_max_age_seconds)
+        return {
+            "symbol": observation.symbol, "provider": observation.provider,
+            "source_timestamp": observation.timestamp.isoformat(),
+            "received_at": observation.received_at.isoformat(),
+            "analysis_cutoff": as_of.isoformat(),
+            "age_seconds": (as_of - observation.timestamp).total_seconds(),
+            "session": context, "provider_session": observation.session,
+            "latest_completed_session": completed.isoformat(),
+            "status": status.value,
+            "research_context": "LAST_COMPLETED_SESSION_ONLY" if closing_context and status is OperationalProviderStatus.STALE else status.value,
+            "error_category": "DATA_QUALITY" if status is not OperationalProviderStatus.OK else None,
+            "quote_kind": "PUBLIC_RESEARCH_QUOTE", "quote_certification_status": "BLOCKED",
+            "provenance": dict(observation.provenance or {}),
+        }
 
     def daily_bar_is_current(self, bar_session: date, *, as_of: datetime) -> bool:
         completed = latest_completed_session(as_of)
-        return (completed - bar_session).days <= self.daily_bar_max_age_sessions
+        if bar_session > completed or not is_trading_session(bar_session):
+            return False
+        age = 0
+        candidate = completed
+        while candidate > bar_session:
+            if is_trading_session(candidate):
+                age += 1
+                if age > self.daily_bar_max_age_sessions:
+                    return False
+            candidate -= timedelta(days=1)
+        return True
 
 
 @dataclass(frozen=True)
@@ -115,6 +161,8 @@ class ProviderResult:
     status: OperationalProviderStatus
     detail: str
     quote: OperationalQuote | None = None
+    attempted_at: datetime | None = None
+    completed_at: datetime | None = None
 
 
 @dataclass(frozen=True)
@@ -173,9 +221,9 @@ class OperationalCache:
                 pass
             return None
 
-    def store(self, quote: OperationalQuote) -> None:
+    def store(self, quote: OperationalQuote, *, provider: str | None = None) -> None:
         self.directory.mkdir(parents=True, exist_ok=True)
-        path = self._path(quote.symbol, quote.provider)
+        path = self._path(quote.symbol, provider or quote.provider)
         body = asdict(quote)
         body["price"] = str(quote.price)
         body["timestamp"] = quote.timestamp.isoformat()
@@ -206,30 +254,37 @@ class OperationalRefreshService:
         selected = primary.quote if primary.status is OperationalProviderStatus.OK else secondary.quote if secondary.status is OperationalProviderStatus.OK else None
         cache_hit = False
         if selected is None and self.cache is not None:
-            cached = self.cache.load(symbol, self.primary.provider_name) or self.cache.load(symbol, self.secondary.provider_name)
-            if cached is not None:
-                selected, cache_hit = cached, True
+            for provider in (self.primary, self.secondary):
+                cached = self.cache.load(symbol, provider.provider_name)
+                if cached is not None and cached.symbol == symbol and self.policy.quote_status(cached, as_of=analysis_time) is OperationalProviderStatus.OK:
+                    selected, cache_hit = cached, True
+                    break
         if selected is not None and self.cache is not None and not cache_hit:
-            self.cache.store(selected)
+            self.cache.store(selected, provider=primary.provider if selected is primary.quote else secondary.provider)
         conflict = None
-        if primary.quote is not None and secondary.quote is not None:
+        if primary.status is OperationalProviderStatus.OK and secondary.status is OperationalProviderStatus.OK and primary.quote is not None and secondary.quote is not None:
             conflict = abs(primary.quote.price - secondary.quote.price) / primary.quote.price
         conflict_block = conflict is not None and conflict > self.discrepancy_tolerance_percent
         readiness = OperationalReadiness.OPERATIONAL_READY if selected is not None and self.policy.quote_status(selected, as_of=analysis_time) is OperationalProviderStatus.OK and not conflict_block else OperationalReadiness.OPERATIONAL_DEGRADED
         return OperationalSnapshot(analysis_time=analysis_time, information_cutoff=analysis_time, primary=primary, secondary=secondary, selected=selected, readiness=readiness, research_readiness=OperationalReadiness.RESEARCH_BLOCKED, conflict_percent=conflict, cache_hit=cache_hit)
 
     def _fetch(self, provider: OperationalQuoteProvider, symbol: str, as_of: datetime, *, live: bool = False) -> ProviderResult:
+        started = datetime.now(UTC)
         try:
             quote = OperationalQuote.from_shadow_quote(provider.get_quote(symbol, as_of=None if live else as_of))
-            return ProviderResult(provider.provider_name, self.policy.quote_status(quote, as_of=as_of), "public operational observation; not PIT certified", quote)
+            if quote.symbol != symbol:
+                raise ValueError("MARKET_SYMBOL_MISMATCH")
+            return ProviderResult(provider.provider_name, self.policy.quote_status(quote, as_of=as_of), "public operational observation; not PIT certified", quote, started, datetime.now(UTC))
         except QuoteProviderTimeout:
-            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "timeout")
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "timeout", attempted_at=started, completed_at=datetime.now(UTC))
         except (QuoteProviderMalformed, ValueError):
-            return ProviderResult(provider.provider_name, OperationalProviderStatus.INVALID_RESPONSE, "invalid_response")
-        except QuoteProviderError:
-            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "provider_error")
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.INVALID_RESPONSE, "invalid_response", attempted_at=started, completed_at=datetime.now(UTC))
+        except QuoteProviderError as error:
+            cause = error.__cause__
+            detail = f"http_{cause.code}" if isinstance(cause, HTTPError) else "timeout" if isinstance(cause, TimeoutError) else "network_unavailable" if isinstance(cause, URLError) else "provider_error"
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, detail, attempted_at=started, completed_at=datetime.now(UTC))
         except OSError:
-            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "network_unavailable")
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "network_unavailable", attempted_at=started, completed_at=datetime.now(UTC))
 
 
 def data_status(snapshot: OperationalSnapshot | None = None) -> dict[str, object]:

@@ -94,6 +94,10 @@ def session_open(value: date | datetime, calendar: TradingCalendarName = Trading
 def session_close(value: date | datetime, calendar: TradingCalendarName = TradingCalendarName.US_EQUITY) -> datetime:
     local = _coerce_local(value)
     close_time = time(16, 15) if calendar is TradingCalendarName.CBOE_VIX else time(16, 0)
+    thanksgiving_friday = _nth_weekday(local.year, 11, 3, 4) + timedelta(days=1)
+    early = local.date() == thanksgiving_friday or (local.month == 12 and local.day == 24 and local.weekday() < 5) or (local.month == 7 and local.day == 3 and local.weekday() < 5)
+    if early and is_trading_session(local, calendar):
+        close_time = time(13, 15) if calendar is TradingCalendarName.CBOE_VIX else time(13)
     return datetime.combine(local.date(), close_time, tzinfo=NEW_YORK).astimezone(UTC)
 
 
@@ -114,3 +118,17 @@ def session_is_complete(as_of: datetime, calendar: TradingCalendarName = Trading
     return is_trading_session(local, calendar) and local >= session_close(local, calendar).astimezone(NEW_YORK)
 
 
+
+
+def session_context(as_of: datetime) -> str:
+    """Scheduled US equity context; unscheduled halts are not certified."""
+    local = _coerce_local(as_of)
+    if not is_trading_session(local):
+        return "CLOSED"
+    if time(4) <= local.time() < time(9, 30):
+        return "PRE_MARKET"
+    if session_open(local) <= as_of < session_close(local):
+        return "REGULAR"
+    if session_close(local) <= as_of and local.time() < time(20):
+        return "AFTER_HOURS"
+    return "CLOSED"

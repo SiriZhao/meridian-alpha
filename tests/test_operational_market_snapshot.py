@@ -25,7 +25,7 @@ class QuoteProvider:
 
 class Bars:
     def get_series(
-        self, symbol: str, start: date, end: date, *, as_of: datetime
+        self, symbol: str, start: date, end: date, *, as_of: datetime, live: bool = False
     ) -> HistoricalBarSeries:
         _ = start, end
         bars = tuple(
@@ -43,8 +43,8 @@ class Bars:
                 currency="USD",
                 adjustment_status="RAW",
                 provider="fixture",
-                observed_at=NOW - timedelta(days=20 - day),
-                available_at=NOW - timedelta(days=20 - day),
+                observed_at=datetime(2026, 8, 11, 20, tzinfo=UTC) + timedelta(days=day),
+                available_at=datetime(2026, 8, 11, 20, tzinfo=UTC) + timedelta(days=day),
                 retrieved_at=NOW,
                 source="fixture",
             )

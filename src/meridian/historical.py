@@ -487,7 +487,7 @@ class YahooChartHistoricalProvider:
                     "volume": volume,
                     "currency": currency,
                     "observed_at": session_close(session, TradingCalendarName(security.trading_calendar)),
-                    "available_at": session_close(session, TradingCalendarName(security.trading_calendar)),
+                    "available_at": retrieved,
                     "source": "yahoo-chart-public",
                 }
             )
@@ -502,13 +502,14 @@ class YahooChartHistoricalProvider:
         end: date,
         *,
         as_of: datetime,
+        live: bool = False,
     ) -> HistoricalBarSeries:
-        retrieved = self.clock()
         rows = self.get_bars(symbol, start, end, as_of=as_of)
+        retrieved = self.clock()
         return HistoricalDataNormalizer(self.security_master, provider=self.provider_name).normalize(
             rows,
             symbol=symbol,
-            as_of=as_of,
+            as_of=max(as_of, retrieved) if live else as_of,
             retrieved_at=retrieved,
             adjustment_status=HistoricalAdjustmentStatus.RAW,
             certification=HistoricalBarCertification.UNVERIFIED,

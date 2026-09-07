@@ -29,7 +29,12 @@ def test_daily_fresh_and_existing_home_outside_checkout(tmp_path: Path) -> None:
         "gap_percent": "0.01", "freshness_state": "VERIFIED",
     }]}), encoding="utf-8")
     env = {**os.environ, "MERIDIAN_HOME": str(home), "PYTHONUTF8": "1"}
-    for _ in range(2):
+    for index in range(2):
+        # Each daily run supplies new facts; duplicate protection is tested separately.
+        payload = json.loads(account.read_text(encoding="utf-8"))
+        payload["snapshot_id"] = f"reliability-fixture-{index}"
+        payload["as_of"] = payload["retrieved_at"] = datetime.now(UTC).isoformat()
+        account.write_text(json.dumps(payload), encoding="utf-8")
         run = subprocess.run(
             [sys.executable, "-m", "meridian", "daily", "--snapshot", str(account),
              "--market-fixture", str(market), "--json"],
@@ -75,14 +80,23 @@ def test_future_schema_preserved_and_connections_released(tmp_path: Path) -> Non
     paths.db.rename(paths.db.with_suffix(".preserved"))
 
 
-def test_live_retrieval_closes_cutoff_without_weakening_replay() -> None:
+def test_live_retrieval_closes_cutoff_without_weakening_replay(monkeypatch) -> None:
     from datetime import timedelta
 
+    import meridian.operational_data as data_module
     from meridian.operational_data import OperationalRefreshService
     from meridian.quotes import YahooChartQuoteProvider
     from meridian.security_master import DEFAULT_SECURITY_MASTER
 
-    started = datetime.now(UTC) - timedelta(seconds=2)
+    finished = datetime(2026, 9, 8, 14, tzinfo=UTC)
+    started = finished - timedelta(seconds=2)
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return finished.astimezone(tz or UTC)
+
+    monkeypatch.setattr(data_module, "datetime", Clock)
 
     class Response:
         status = 200
@@ -93,7 +107,7 @@ def test_live_retrieval_closes_cutoff_without_weakening_replay() -> None:
                 "regularMarketTime": started.timestamp(), "currency": "USD",
             }}]}}).encode()
 
-    provider = YahooChartQuoteProvider(DEFAULT_SECURITY_MASTER, opener=lambda *a, **k: Response())
+    provider = YahooChartQuoteProvider(DEFAULT_SECURITY_MASTER, opener=lambda *a, **k: Response(), clock=lambda: finished)
     refresh = OperationalRefreshService(provider, provider)
     replay = refresh.refresh("AAPL", analysis_time=started)
     assert replay.primary.status.value == "INVALID_RESPONSE"

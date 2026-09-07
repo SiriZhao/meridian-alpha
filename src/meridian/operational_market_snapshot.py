@@ -11,7 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Protocol
@@ -38,7 +38,7 @@ from meridian.trading_calendar import latest_completed_session
 
 class HistoricalSeriesProvider(Protocol):
     def get_series(
-        self, symbol: str, start: date, end: date, *, as_of: datetime
+        self, symbol: str, start: date, end: date, *, as_of: datetime, live: bool = False
     ) -> HistoricalBarSeries: ...
 
 
@@ -59,6 +59,7 @@ class OperationalMarketSnapshot:
     conflicts: dict[str, str]
     missing_symbols: dict[str, str]
     data_mode: str = "OPERATIONAL_PUBLIC"
+    provider_probes: dict[str, dict[str, object]] = field(default_factory=dict)
 
     @property
     def snapshot_hash(self) -> str:
@@ -69,6 +70,7 @@ class OperationalMarketSnapshot:
                 key: value.model_dump(mode="json") for key, value in sorted(self.quotes.items())
             },
             "provider_health": self.provider_health,
+            "provider_probes": self.provider_probes,
             "cache": self.cache,
             "conflicts": self.conflicts,
             "missing_symbols": self.missing_symbols,
@@ -80,7 +82,7 @@ class OperationalMarketSnapshot:
 
     @property
     def status(self) -> str:
-        return "BLOCKED_MARKET_DATA" if self.missing_symbols else "OPERATIONAL_READY"
+        return "BLOCKED_MARKET_DATA" if self.missing_symbols or not self.quotes else "OPERATIONAL_READY"
 
     def data_status(self) -> dict[str, object]:
         statuses = [value["primary"] for value in self.provider_health.values()]
@@ -105,6 +107,7 @@ class OperationalMarketSnapshot:
             "market_snapshot_hash": self.snapshot_hash,
             "information_cutoff": self.information_cutoff.isoformat(),
             "provider_health": self.provider_health,
+            "provider_probes": self.provider_probes,
             "cache": self.cache,
             "provider_conflicts": self.conflicts,
             "symbols_missing": self.missing_symbols,
@@ -131,9 +134,9 @@ class OperationalMarketSnapshotService:
 
     @classmethod
     def from_runtime(
-        cls, paths: RuntimePaths, *, timeout_seconds: float = 4.0
+        cls, paths: RuntimePaths, *, timeout_seconds: float = 4.0, policy: FreshnessPolicy | None = None
     ) -> OperationalMarketSnapshotService:
-        policy = FreshnessPolicy()
+        policy = policy or FreshnessPolicy()
         primary = YahooChartQuoteProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=timeout_seconds)
         secondary = StooqQuoteProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=timeout_seconds)
         refresh = OperationalRefreshService(
@@ -155,6 +158,8 @@ class OperationalMarketSnapshotService:
         cache: dict[str, bool] = {}
         conflicts: dict[str, str] = {}
         missing: dict[str, str] = {}
+        probes: dict[str, dict[str, object]] = {}
+        observations: dict[str, OperationalSnapshot] = {}
         for symbol in requested:
             refresh = self.refresh.refresh(symbol, analysis_time=analysis_time, live=True) if live else self.refresh.refresh(symbol, analysis_time=analysis_time)
             if live:
@@ -162,6 +167,14 @@ class OperationalMarketSnapshotService:
             health[symbol] = {
                 "primary": refresh.primary.status.value,
                 "secondary": refresh.secondary.status.value,
+            }
+            observations[symbol] = refresh
+            probes[symbol] = {
+                "primary": {"provider": refresh.primary.provider, "status": refresh.primary.status.value, "detail": refresh.primary.detail},
+                "secondary": {"provider": refresh.secondary.provider, "status": refresh.secondary.status.value, "detail": refresh.secondary.detail},
+                "selected_provider": refresh.selected.provider if refresh.selected else None,
+                "selection": "CACHE" if refresh.cache_hit else "PRIMARY" if refresh.primary.status is OperationalProviderStatus.OK else "SECONDARY" if refresh.secondary.status is OperationalProviderStatus.OK else "NONE",
+                "history": {"status": "NOT_RUN"},
             }
             cache[symbol] = refresh.cache_hit
             if (
@@ -181,12 +194,32 @@ class OperationalMarketSnapshotService:
                 missing[symbol] = "MARKET_DATA_STALE"
                 continue
             try:
-                quotes[symbol] = self._market_snapshot(symbol, refresh, analysis_time)
+                quotes[symbol] = self._market_snapshot(symbol, refresh, analysis_time, live=live, diagnostic=probes[symbol])
             except (HistoricalProviderError, OSError, ValueError) as error:
                 missing[symbol] = self._historical_code(error)
+                probes[symbol]["history"] = {"status": "BLOCKED", "code": missing[symbol]}
         if live:
             analysis_time = datetime.now(UTC)
+        for symbol, observation in observations.items():
+            for lane, result in (("primary", observation.primary), ("secondary", observation.secondary)):
+                if result.quote is not None:
+                    probes[symbol][lane] = {**self.policy.describe(result.quote, as_of=analysis_time), "requested_provider": result.provider, "detail": result.detail}
+                lane_payload = probes[symbol][lane]
+                if isinstance(lane_payload, dict):
+                    health[symbol][lane] = str(lane_payload["status"])
+                    lane_payload.update({"attempted_at": result.attempted_at.isoformat() if result.attempted_at else None,
+                                         "completed_at": result.completed_at.isoformat() if result.completed_at else None,
+                                         "request_mode": "LIVE" if live else "REPLAY",
+                                         "error_category": None if lane_payload["status"] == "OK" else "DATA_QUALITY" if result.quote is not None else "PROVIDER_FAILURE"})
+            if observation.selected is not None:
+                probes[symbol]["selected"] = self.policy.describe(observation.selected, as_of=analysis_time)
+                if self.policy.quote_status(observation.selected, as_of=analysis_time) is not OperationalProviderStatus.OK:
+                    quotes.pop(symbol, None)
+                    missing[symbol] = "MARKET_DATA_STALE_OR_AFTER_CUTOFF"
+            probes[symbol]["final_market_status"] = "BLOCKED" if symbol in missing else "PASS"
+            probes[symbol]["analysis_cutoff"] = analysis_time.isoformat()
         return OperationalMarketSnapshot(
+            provider_probes=probes,
             analysis_time=analysis_time,
             information_cutoff=analysis_time,
             quotes=quotes,
@@ -197,7 +230,7 @@ class OperationalMarketSnapshotService:
         )
 
     def _market_snapshot(
-        self, symbol: str, refresh: OperationalSnapshot, analysis_time: datetime
+        self, symbol: str, refresh: OperationalSnapshot, analysis_time: datetime, *, live: bool = False, diagnostic: dict[str, object] | None = None
     ) -> MarketSnapshot:
         selected = refresh.selected
         if selected is None:
@@ -207,13 +240,20 @@ class OperationalMarketSnapshotService:
             analysis_time.date() - timedelta(days=self.lookback_days),
             analysis_time.date(),
             as_of=analysis_time,
+            live=live,
         )
-        bars = tuple(bar for bar in series.bars if bar.available_at <= analysis_time)
+        if live:
+            analysis_time = datetime.now(UTC)
+        bars = tuple(bar for bar in series.bars if bar.available_at <= analysis_time and bar.retrieved_at <= analysis_time)
         completed = latest_completed_session(analysis_time)
         completed_bars = tuple(bar for bar in bars if bar.session <= completed)
         if len(completed_bars) < 2:
             raise ValueError("SYMBOL_MISSING")
         latest = completed_bars[-1]
+        if not self.policy.daily_bar_is_current(latest.session, as_of=analysis_time):
+            raise ValueError("HISTORICAL_DATA_STALE")
+        if diagnostic is not None:
+            diagnostic["history"] = {"status": "PASS", "provider": series.provider, "latest_session": latest.session.isoformat(), "received_at": latest.retrieved_at.isoformat(), "available_at": latest.available_at.isoformat(), "cutoff": analysis_time.isoformat(), "certification": "UNVERIFIED"}
         previous = completed_bars[-2] if latest.session == completed else latest
         if previous.close <= 0:
             raise ValueError("INVALID_RESPONSE")
@@ -263,6 +303,8 @@ class OperationalMarketSnapshotService:
 
     @staticmethod
     def _historical_code(error: Exception) -> str:
+        if str(error) == "HISTORICAL_DATA_STALE":
+            return "HISTORICAL_DATA_STALE"
         if "timed out" in str(error).lower():
             return "NETWORK_TIMEOUT"
         return "SYMBOL_MISSING"
