@@ -1,0 +1,1016 @@
+﻿{
+    "schema_version":  "meridian-production-acceptance.v1",
+    "generated_at":  "2026-09-07T17:50:18.0412650Z",
+    "environment":  {
+                        "branch":  "astra/controlled-improvement-batch3",
+                        "commit":  "ba6a8fd5024b7948b2a879222b5a6a4e7b6c9bc2",
+                        "powershell":  "5.1.26100.9278"
+                    },
+    "git":  {
+                "branch":  "astra/controlled-improvement-batch3",
+                "commit":  "ba6a8fd5024b7948b2a879222b5a6a4e7b6c9bc2",
+                "working_tree":  "DIRTY"
+            },
+    "baseline":  {
+                     "status":  "VERIFIED",
+                     "checks":  [
+                                    {
+                                        "name":  "pytest",
+                                        "exit_code":  0,
+                                        "seconds":  33.057,
+                                        "summary":  "375 passed in 31.88s"
+                                    },
+                                    {
+                                        "name":  "ruff",
+                                        "exit_code":  0,
+                                        "seconds":  0.13,
+                                        "summary":  "All checks passed!"
+                                    },
+                                    {
+                                        "name":  "pyright",
+                                        "exit_code":  0,
+                                        "seconds":  5.918,
+                                        "summary":  "0 errors, 0 warnings, 0 informations"
+                                    }
+                                ]
+                 },
+    "doctor":  {
+                   "status":  "VERIFIED",
+                   "exit_code":  0,
+                   "initial":  {
+                                   "checks":  [
+                                                  {
+                                                      "detail":  "3.12.10; production baseline is 3.12",
+                                                      "name":  "python",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "package_import",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha",
+                                                      "name":  "runtime_directories",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:data",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:db",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:cache",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:reports",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:logs",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:runs",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:audit",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:config",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "sqlite",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "healthy",
+                                                      "name":  "database",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "2",
+                                                      "name":  "migration",
+                                                      "status":  "CURRENT"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "config",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "timezone",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "market_calendar",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "dependency:pydantic",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "dependency:PyYAML",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "dependency:mcp",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "adapter present; provider not probed",
+                                                      "name":  "optional:tradingagents",
+                                                      "status":  "UNKNOWN"
+                                                  },
+                                                  {
+                                                      "detail":  "adapter present; provider not probed",
+                                                      "name":  "optional:finrlx_runtime",
+                                                      "status":  "UNKNOWN"
+                                                  },
+                                                  {
+                                                      "detail":  "adapter present; provider not probed",
+                                                      "name":  "optional:mcp_server",
+                                                      "status":  "UNKNOWN"
+                                                  },
+                                                  {
+                                                      "detail":  "configured=true",
+                                                      "name":  "secrets",
+                                                      "status":  "PASS"
+                                                  }
+                                              ],
+                                   "database":  {
+                                                    "detail":  "healthy",
+                                                    "migration_status":  "CURRENT",
+                                                    "schema_version":  2,
+                                                    "status":  "PASS"
+                                                },
+                                   "elapsed_ms":  78.0,
+                                   "network_accessed":  false,
+                                   "paths":  {
+                                                 "audit":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\audit",
+                                                 "cache":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\cache",
+                                                 "config":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\config",
+                                                 "data":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\data",
+                                                 "database":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\db\\meridian.sqlite3",
+                                                 "db":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\db",
+                                                 "home":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha",
+                                                 "logs":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\logs",
+                                                 "policies":  "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\policies",
+                                                 "reports":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\reports",
+                                                 "runs":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\runs"
+                                             },
+                                   "project_version":  "0.0.0",
+                                   "python_executable":  "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\python.exe",
+                                   "schema_version":  "meridian-doctor.v1",
+                                   "status":  "PASS",
+                                   "virtual_environment":  true
+                               },
+                   "initialization":  null,
+                   "payload":  {
+                                   "checks":  [
+                                                  {
+                                                      "detail":  "3.12.10; production baseline is 3.12",
+                                                      "name":  "python",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "package_import",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha",
+                                                      "name":  "runtime_directories",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:data",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:db",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:cache",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:reports",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:logs",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:runs",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:audit",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "runtime_write:config",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "sqlite",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "healthy",
+                                                      "name":  "database",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "2",
+                                                      "name":  "migration",
+                                                      "status":  "CURRENT"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "config",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "timezone",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "market_calendar",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "dependency:pydantic",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "dependency:PyYAML",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "available",
+                                                      "name":  "dependency:mcp",
+                                                      "status":  "PASS"
+                                                  },
+                                                  {
+                                                      "detail":  "adapter present; provider not probed",
+                                                      "name":  "optional:tradingagents",
+                                                      "status":  "UNKNOWN"
+                                                  },
+                                                  {
+                                                      "detail":  "adapter present; provider not probed",
+                                                      "name":  "optional:finrlx_runtime",
+                                                      "status":  "UNKNOWN"
+                                                  },
+                                                  {
+                                                      "detail":  "adapter present; provider not probed",
+                                                      "name":  "optional:mcp_server",
+                                                      "status":  "UNKNOWN"
+                                                  },
+                                                  {
+                                                      "detail":  "configured=true",
+                                                      "name":  "secrets",
+                                                      "status":  "PASS"
+                                                  }
+                                              ],
+                                   "database":  {
+                                                    "detail":  "healthy",
+                                                    "migration_status":  "CURRENT",
+                                                    "schema_version":  2,
+                                                    "status":  "PASS"
+                                                },
+                                   "elapsed_ms":  63.0,
+                                   "network_accessed":  false,
+                                   "paths":  {
+                                                 "audit":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\audit",
+                                                 "cache":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\cache",
+                                                 "config":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\config",
+                                                 "data":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\data",
+                                                 "database":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\db\\meridian.sqlite3",
+                                                 "db":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\db",
+                                                 "home":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha",
+                                                 "logs":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\logs",
+                                                 "policies":  "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\policies",
+                                                 "reports":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\reports",
+                                                 "runs":  "C:\\Users\\YOGA Pro16\\AppData\\Local\\MeridianAlpha\\runs"
+                                             },
+                                   "project_version":  "0.0.0",
+                                   "python_executable":  "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\python.exe",
+                                   "schema_version":  "meridian-doctor.v1",
+                                   "status":  "PASS",
+                                   "virtual_environment":  true
+                               }
+               },
+    "host_snapshot":  {
+                          "status":  "BLOCKED",
+                          "reason":  "BLOCKED_MISSING_REAL_HOST_SNAPSHOT",
+                          "supplied":  false,
+                          "validation":  null
+                      },
+    "market_session":  {
+                           "status":  "NOT_TESTED",
+                           "session":  "CLOSED",
+                           "evidence":  {
+                                            "AAPL":  {
+                                                         "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                         "final_market_status":  "BLOCKED",
+                                                         "history":  {
+                                                                         "status":  "NOT_RUN"
+                                                                     },
+                                                         "primary":  {
+                                                                         "age_seconds":  251377.864007,
+                                                                         "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                         "attempted_at":  "2026-09-07T17:49:34.100267+00:00",
+                                                                         "completed_at":  "2026-09-07T17:49:34.604642+00:00",
+                                                                         "detail":  "public operational observation; not PIT certified",
+                                                                         "error_category":  "DATA_QUALITY",
+                                                                         "latest_completed_session":  "2026-09-04",
+                                                                         "provenance":  {
+                                                                                            "provider_symbol":  "AAPL",
+                                                                                            "shadow_only":  "true",
+                                                                                            "source":  "yahoo-chart-public"
+                                                                                        },
+                                                                         "provider":  "yahoo",
+                                                                         "provider_session":  "CLOSED",
+                                                                         "quote_certification_status":  "BLOCKED",
+                                                                         "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                         "received_at":  "2026-09-07T17:49:34.603627+00:00",
+                                                                         "request_mode":  "LIVE",
+                                                                         "requested_provider":  "yahoo",
+                                                                         "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                         "session":  "CLOSED",
+                                                                         "source_timestamp":  "2026-09-04T20:00:01+00:00",
+                                                                         "status":  "STALE",
+                                                                         "symbol":  "AAPL"
+                                                                     },
+                                                         "secondary":  {
+                                                                           "attempted_at":  "2026-09-07T17:49:34.604642+00:00",
+                                                                           "completed_at":  "2026-09-07T17:49:35.326688+00:00",
+                                                                           "detail":  "http_404",
+                                                                           "error_category":  "PROVIDER_FAILURE",
+                                                                           "provider":  "stooq-public",
+                                                                           "request_mode":  "LIVE",
+                                                                           "status":  "UNAVAILABLE"
+                                                                       },
+                                                         "selected_provider":  null,
+                                                         "selection":  "NONE"
+                                                     },
+                                            "MSFT":  {
+                                                         "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                         "final_market_status":  "BLOCKED",
+                                                         "history":  {
+                                                                         "status":  "NOT_RUN"
+                                                                     },
+                                                         "primary":  {
+                                                                         "age_seconds":  251377.864007,
+                                                                         "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                         "attempted_at":  "2026-09-07T17:49:35.329382+00:00",
+                                                                         "completed_at":  "2026-09-07T17:49:35.783977+00:00",
+                                                                         "detail":  "public operational observation; not PIT certified",
+                                                                         "error_category":  "DATA_QUALITY",
+                                                                         "latest_completed_session":  "2026-09-04",
+                                                                         "provenance":  {
+                                                                                            "provider_symbol":  "MSFT",
+                                                                                            "shadow_only":  "true",
+                                                                                            "source":  "yahoo-chart-public"
+                                                                                        },
+                                                                         "provider":  "yahoo",
+                                                                         "provider_session":  "CLOSED",
+                                                                         "quote_certification_status":  "BLOCKED",
+                                                                         "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                         "received_at":  "2026-09-07T17:49:35.782966+00:00",
+                                                                         "request_mode":  "LIVE",
+                                                                         "requested_provider":  "yahoo",
+                                                                         "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                         "session":  "CLOSED",
+                                                                         "source_timestamp":  "2026-09-04T20:00:01+00:00",
+                                                                         "status":  "STALE",
+                                                                         "symbol":  "MSFT"
+                                                                     },
+                                                         "secondary":  {
+                                                                           "attempted_at":  "2026-09-07T17:49:35.783977+00:00",
+                                                                           "completed_at":  "2026-09-07T17:49:36.500834+00:00",
+                                                                           "detail":  "http_404",
+                                                                           "error_category":  "PROVIDER_FAILURE",
+                                                                           "provider":  "stooq-public",
+                                                                           "request_mode":  "LIVE",
+                                                                           "status":  "UNAVAILABLE"
+                                                                       },
+                                                         "selected_provider":  null,
+                                                         "selection":  "NONE"
+                                                     },
+                                            "NVDA":  {
+                                                         "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                         "final_market_status":  "BLOCKED",
+                                                         "history":  {
+                                                                         "status":  "NOT_RUN"
+                                                                     },
+                                                         "primary":  {
+                                                                         "age_seconds":  251378.864007,
+                                                                         "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                         "attempted_at":  "2026-09-07T17:49:36.505331+00:00",
+                                                                         "completed_at":  "2026-09-07T17:49:36.937442+00:00",
+                                                                         "detail":  "public operational observation; not PIT certified",
+                                                                         "error_category":  "DATA_QUALITY",
+                                                                         "latest_completed_session":  "2026-09-04",
+                                                                         "provenance":  {
+                                                                                            "provider_symbol":  "NVDA",
+                                                                                            "shadow_only":  "true",
+                                                                                            "source":  "yahoo-chart-public"
+                                                                                        },
+                                                                         "provider":  "yahoo",
+                                                                         "provider_session":  "CLOSED",
+                                                                         "quote_certification_status":  "BLOCKED",
+                                                                         "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                         "received_at":  "2026-09-07T17:49:36.937442+00:00",
+                                                                         "request_mode":  "LIVE",
+                                                                         "requested_provider":  "yahoo",
+                                                                         "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                         "session":  "CLOSED",
+                                                                         "source_timestamp":  "2026-09-04T20:00:00+00:00",
+                                                                         "status":  "STALE",
+                                                                         "symbol":  "NVDA"
+                                                                     },
+                                                         "secondary":  {
+                                                                           "attempted_at":  "2026-09-07T17:49:36.937442+00:00",
+                                                                           "completed_at":  "2026-09-07T17:49:37.659632+00:00",
+                                                                           "detail":  "http_404",
+                                                                           "error_category":  "PROVIDER_FAILURE",
+                                                                           "provider":  "stooq-public",
+                                                                           "request_mode":  "LIVE",
+                                                                           "status":  "UNAVAILABLE"
+                                                                       },
+                                                         "selected_provider":  null,
+                                                         "selection":  "NONE"
+                                                     },
+                                            "SPY":  {
+                                                        "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                        "final_market_status":  "BLOCKED",
+                                                        "history":  {
+                                                                        "status":  "NOT_RUN"
+                                                                    },
+                                                        "primary":  {
+                                                                        "age_seconds":  251378.864007,
+                                                                        "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                        "attempted_at":  "2026-09-07T17:49:37.662538+00:00",
+                                                                        "completed_at":  "2026-09-07T17:49:38.137356+00:00",
+                                                                        "detail":  "public operational observation; not PIT certified",
+                                                                        "error_category":  "DATA_QUALITY",
+                                                                        "latest_completed_session":  "2026-09-04",
+                                                                        "provenance":  {
+                                                                                           "provider_symbol":  "SPY",
+                                                                                           "shadow_only":  "true",
+                                                                                           "source":  "yahoo-chart-public"
+                                                                                       },
+                                                                        "provider":  "yahoo",
+                                                                        "provider_session":  "CLOSED",
+                                                                        "quote_certification_status":  "BLOCKED",
+                                                                        "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                        "received_at":  "2026-09-07T17:49:38.137356+00:00",
+                                                                        "request_mode":  "LIVE",
+                                                                        "requested_provider":  "yahoo",
+                                                                        "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                        "session":  "CLOSED",
+                                                                        "source_timestamp":  "2026-09-04T20:00:00+00:00",
+                                                                        "status":  "STALE",
+                                                                        "symbol":  "SPY"
+                                                                    },
+                                                        "secondary":  {
+                                                                          "attempted_at":  "2026-09-07T17:49:38.137356+00:00",
+                                                                          "completed_at":  "2026-09-07T17:49:38.861455+00:00",
+                                                                          "detail":  "http_404",
+                                                                          "error_category":  "PROVIDER_FAILURE",
+                                                                          "provider":  "stooq-public",
+                                                                          "request_mode":  "LIVE",
+                                                                          "status":  "UNAVAILABLE"
+                                                                      },
+                                                        "selected_provider":  null,
+                                                        "selection":  "NONE"
+                                                    }
+                                        }
+                       },
+    "market_freshness":  {
+                             "status":  "NOT_TESTED",
+                             "canonical_status":  "STALE_OR_UNAVAILABLE",
+                             "providers":  {
+                                               "AAPL":  {
+                                                            "primary":  "STALE",
+                                                            "secondary":  "UNAVAILABLE"
+                                                        },
+                                               "MSFT":  {
+                                                            "primary":  "STALE",
+                                                            "secondary":  "UNAVAILABLE"
+                                                        },
+                                               "NVDA":  {
+                                                            "primary":  "STALE",
+                                                            "secondary":  "UNAVAILABLE"
+                                                        },
+                                               "SPY":  {
+                                                           "primary":  "STALE",
+                                                           "secondary":  "UNAVAILABLE"
+                                                       }
+                                           },
+                             "evidence":  {
+                                              "AAPL":  {
+                                                           "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                           "final_market_status":  "BLOCKED",
+                                                           "history":  {
+                                                                           "status":  "NOT_RUN"
+                                                                       },
+                                                           "primary":  {
+                                                                           "age_seconds":  251377.864007,
+                                                                           "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                           "attempted_at":  "2026-09-07T17:49:34.100267+00:00",
+                                                                           "completed_at":  "2026-09-07T17:49:34.604642+00:00",
+                                                                           "detail":  "public operational observation; not PIT certified",
+                                                                           "error_category":  "DATA_QUALITY",
+                                                                           "latest_completed_session":  "2026-09-04",
+                                                                           "provenance":  {
+                                                                                              "provider_symbol":  "AAPL",
+                                                                                              "shadow_only":  "true",
+                                                                                              "source":  "yahoo-chart-public"
+                                                                                          },
+                                                                           "provider":  "yahoo",
+                                                                           "provider_session":  "CLOSED",
+                                                                           "quote_certification_status":  "BLOCKED",
+                                                                           "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                           "received_at":  "2026-09-07T17:49:34.603627+00:00",
+                                                                           "request_mode":  "LIVE",
+                                                                           "requested_provider":  "yahoo",
+                                                                           "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                           "session":  "CLOSED",
+                                                                           "source_timestamp":  "2026-09-04T20:00:01+00:00",
+                                                                           "status":  "STALE",
+                                                                           "symbol":  "AAPL"
+                                                                       },
+                                                           "secondary":  {
+                                                                             "attempted_at":  "2026-09-07T17:49:34.604642+00:00",
+                                                                             "completed_at":  "2026-09-07T17:49:35.326688+00:00",
+                                                                             "detail":  "http_404",
+                                                                             "error_category":  "PROVIDER_FAILURE",
+                                                                             "provider":  "stooq-public",
+                                                                             "request_mode":  "LIVE",
+                                                                             "status":  "UNAVAILABLE"
+                                                                         },
+                                                           "selected_provider":  null,
+                                                           "selection":  "NONE"
+                                                       },
+                                              "MSFT":  {
+                                                           "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                           "final_market_status":  "BLOCKED",
+                                                           "history":  {
+                                                                           "status":  "NOT_RUN"
+                                                                       },
+                                                           "primary":  {
+                                                                           "age_seconds":  251377.864007,
+                                                                           "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                           "attempted_at":  "2026-09-07T17:49:35.329382+00:00",
+                                                                           "completed_at":  "2026-09-07T17:49:35.783977+00:00",
+                                                                           "detail":  "public operational observation; not PIT certified",
+                                                                           "error_category":  "DATA_QUALITY",
+                                                                           "latest_completed_session":  "2026-09-04",
+                                                                           "provenance":  {
+                                                                                              "provider_symbol":  "MSFT",
+                                                                                              "shadow_only":  "true",
+                                                                                              "source":  "yahoo-chart-public"
+                                                                                          },
+                                                                           "provider":  "yahoo",
+                                                                           "provider_session":  "CLOSED",
+                                                                           "quote_certification_status":  "BLOCKED",
+                                                                           "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                           "received_at":  "2026-09-07T17:49:35.782966+00:00",
+                                                                           "request_mode":  "LIVE",
+                                                                           "requested_provider":  "yahoo",
+                                                                           "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                           "session":  "CLOSED",
+                                                                           "source_timestamp":  "2026-09-04T20:00:01+00:00",
+                                                                           "status":  "STALE",
+                                                                           "symbol":  "MSFT"
+                                                                       },
+                                                           "secondary":  {
+                                                                             "attempted_at":  "2026-09-07T17:49:35.783977+00:00",
+                                                                             "completed_at":  "2026-09-07T17:49:36.500834+00:00",
+                                                                             "detail":  "http_404",
+                                                                             "error_category":  "PROVIDER_FAILURE",
+                                                                             "provider":  "stooq-public",
+                                                                             "request_mode":  "LIVE",
+                                                                             "status":  "UNAVAILABLE"
+                                                                         },
+                                                           "selected_provider":  null,
+                                                           "selection":  "NONE"
+                                                       },
+                                              "NVDA":  {
+                                                           "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                           "final_market_status":  "BLOCKED",
+                                                           "history":  {
+                                                                           "status":  "NOT_RUN"
+                                                                       },
+                                                           "primary":  {
+                                                                           "age_seconds":  251378.864007,
+                                                                           "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                           "attempted_at":  "2026-09-07T17:49:36.505331+00:00",
+                                                                           "completed_at":  "2026-09-07T17:49:36.937442+00:00",
+                                                                           "detail":  "public operational observation; not PIT certified",
+                                                                           "error_category":  "DATA_QUALITY",
+                                                                           "latest_completed_session":  "2026-09-04",
+                                                                           "provenance":  {
+                                                                                              "provider_symbol":  "NVDA",
+                                                                                              "shadow_only":  "true",
+                                                                                              "source":  "yahoo-chart-public"
+                                                                                          },
+                                                                           "provider":  "yahoo",
+                                                                           "provider_session":  "CLOSED",
+                                                                           "quote_certification_status":  "BLOCKED",
+                                                                           "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                           "received_at":  "2026-09-07T17:49:36.937442+00:00",
+                                                                           "request_mode":  "LIVE",
+                                                                           "requested_provider":  "yahoo",
+                                                                           "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                           "session":  "CLOSED",
+                                                                           "source_timestamp":  "2026-09-04T20:00:00+00:00",
+                                                                           "status":  "STALE",
+                                                                           "symbol":  "NVDA"
+                                                                       },
+                                                           "secondary":  {
+                                                                             "attempted_at":  "2026-09-07T17:49:36.937442+00:00",
+                                                                             "completed_at":  "2026-09-07T17:49:37.659632+00:00",
+                                                                             "detail":  "http_404",
+                                                                             "error_category":  "PROVIDER_FAILURE",
+                                                                             "provider":  "stooq-public",
+                                                                             "request_mode":  "LIVE",
+                                                                             "status":  "UNAVAILABLE"
+                                                                         },
+                                                           "selected_provider":  null,
+                                                           "selection":  "NONE"
+                                                       },
+                                              "SPY":  {
+                                                          "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                          "final_market_status":  "BLOCKED",
+                                                          "history":  {
+                                                                          "status":  "NOT_RUN"
+                                                                      },
+                                                          "primary":  {
+                                                                          "age_seconds":  251378.864007,
+                                                                          "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                          "attempted_at":  "2026-09-07T17:49:37.662538+00:00",
+                                                                          "completed_at":  "2026-09-07T17:49:38.137356+00:00",
+                                                                          "detail":  "public operational observation; not PIT certified",
+                                                                          "error_category":  "DATA_QUALITY",
+                                                                          "latest_completed_session":  "2026-09-04",
+                                                                          "provenance":  {
+                                                                                             "provider_symbol":  "SPY",
+                                                                                             "shadow_only":  "true",
+                                                                                             "source":  "yahoo-chart-public"
+                                                                                         },
+                                                                          "provider":  "yahoo",
+                                                                          "provider_session":  "CLOSED",
+                                                                          "quote_certification_status":  "BLOCKED",
+                                                                          "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                          "received_at":  "2026-09-07T17:49:38.137356+00:00",
+                                                                          "request_mode":  "LIVE",
+                                                                          "requested_provider":  "yahoo",
+                                                                          "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                          "session":  "CLOSED",
+                                                                          "source_timestamp":  "2026-09-04T20:00:00+00:00",
+                                                                          "status":  "STALE",
+                                                                          "symbol":  "SPY"
+                                                                      },
+                                                          "secondary":  {
+                                                                            "attempted_at":  "2026-09-07T17:49:38.137356+00:00",
+                                                                            "completed_at":  "2026-09-07T17:49:38.861455+00:00",
+                                                                            "detail":  "http_404",
+                                                                            "error_category":  "PROVIDER_FAILURE",
+                                                                            "provider":  "stooq-public",
+                                                                            "request_mode":  "LIVE",
+                                                                            "status":  "UNAVAILABLE"
+                                                                        },
+                                                          "selected_provider":  null,
+                                                          "selection":  "NONE"
+                                                      }
+                                          }
+                         },
+    "providers":  {
+                      "status":  "DEGRADED",
+                      "canonical_probes":  {
+                                               "AAPL":  {
+                                                            "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                            "final_market_status":  "BLOCKED",
+                                                            "history":  {
+                                                                            "status":  "NOT_RUN"
+                                                                        },
+                                                            "primary":  {
+                                                                            "age_seconds":  251377.864007,
+                                                                            "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                            "attempted_at":  "2026-09-07T17:49:34.100267+00:00",
+                                                                            "completed_at":  "2026-09-07T17:49:34.604642+00:00",
+                                                                            "detail":  "public operational observation; not PIT certified",
+                                                                            "error_category":  "DATA_QUALITY",
+                                                                            "latest_completed_session":  "2026-09-04",
+                                                                            "provenance":  {
+                                                                                               "provider_symbol":  "AAPL",
+                                                                                               "shadow_only":  "true",
+                                                                                               "source":  "yahoo-chart-public"
+                                                                                           },
+                                                                            "provider":  "yahoo",
+                                                                            "provider_session":  "CLOSED",
+                                                                            "quote_certification_status":  "BLOCKED",
+                                                                            "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                            "received_at":  "2026-09-07T17:49:34.603627+00:00",
+                                                                            "request_mode":  "LIVE",
+                                                                            "requested_provider":  "yahoo",
+                                                                            "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                            "session":  "CLOSED",
+                                                                            "source_timestamp":  "2026-09-04T20:00:01+00:00",
+                                                                            "status":  "STALE",
+                                                                            "symbol":  "AAPL"
+                                                                        },
+                                                            "secondary":  {
+                                                                              "attempted_at":  "2026-09-07T17:49:34.604642+00:00",
+                                                                              "completed_at":  "2026-09-07T17:49:35.326688+00:00",
+                                                                              "detail":  "http_404",
+                                                                              "error_category":  "PROVIDER_FAILURE",
+                                                                              "provider":  "stooq-public",
+                                                                              "request_mode":  "LIVE",
+                                                                              "status":  "UNAVAILABLE"
+                                                                          },
+                                                            "selected_provider":  null,
+                                                            "selection":  "NONE"
+                                                        },
+                                               "MSFT":  {
+                                                            "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                            "final_market_status":  "BLOCKED",
+                                                            "history":  {
+                                                                            "status":  "NOT_RUN"
+                                                                        },
+                                                            "primary":  {
+                                                                            "age_seconds":  251377.864007,
+                                                                            "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                            "attempted_at":  "2026-09-07T17:49:35.329382+00:00",
+                                                                            "completed_at":  "2026-09-07T17:49:35.783977+00:00",
+                                                                            "detail":  "public operational observation; not PIT certified",
+                                                                            "error_category":  "DATA_QUALITY",
+                                                                            "latest_completed_session":  "2026-09-04",
+                                                                            "provenance":  {
+                                                                                               "provider_symbol":  "MSFT",
+                                                                                               "shadow_only":  "true",
+                                                                                               "source":  "yahoo-chart-public"
+                                                                                           },
+                                                                            "provider":  "yahoo",
+                                                                            "provider_session":  "CLOSED",
+                                                                            "quote_certification_status":  "BLOCKED",
+                                                                            "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                            "received_at":  "2026-09-07T17:49:35.782966+00:00",
+                                                                            "request_mode":  "LIVE",
+                                                                            "requested_provider":  "yahoo",
+                                                                            "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                            "session":  "CLOSED",
+                                                                            "source_timestamp":  "2026-09-04T20:00:01+00:00",
+                                                                            "status":  "STALE",
+                                                                            "symbol":  "MSFT"
+                                                                        },
+                                                            "secondary":  {
+                                                                              "attempted_at":  "2026-09-07T17:49:35.783977+00:00",
+                                                                              "completed_at":  "2026-09-07T17:49:36.500834+00:00",
+                                                                              "detail":  "http_404",
+                                                                              "error_category":  "PROVIDER_FAILURE",
+                                                                              "provider":  "stooq-public",
+                                                                              "request_mode":  "LIVE",
+                                                                              "status":  "UNAVAILABLE"
+                                                                          },
+                                                            "selected_provider":  null,
+                                                            "selection":  "NONE"
+                                                        },
+                                               "NVDA":  {
+                                                            "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                            "final_market_status":  "BLOCKED",
+                                                            "history":  {
+                                                                            "status":  "NOT_RUN"
+                                                                        },
+                                                            "primary":  {
+                                                                            "age_seconds":  251378.864007,
+                                                                            "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                            "attempted_at":  "2026-09-07T17:49:36.505331+00:00",
+                                                                            "completed_at":  "2026-09-07T17:49:36.937442+00:00",
+                                                                            "detail":  "public operational observation; not PIT certified",
+                                                                            "error_category":  "DATA_QUALITY",
+                                                                            "latest_completed_session":  "2026-09-04",
+                                                                            "provenance":  {
+                                                                                               "provider_symbol":  "NVDA",
+                                                                                               "shadow_only":  "true",
+                                                                                               "source":  "yahoo-chart-public"
+                                                                                           },
+                                                                            "provider":  "yahoo",
+                                                                            "provider_session":  "CLOSED",
+                                                                            "quote_certification_status":  "BLOCKED",
+                                                                            "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                            "received_at":  "2026-09-07T17:49:36.937442+00:00",
+                                                                            "request_mode":  "LIVE",
+                                                                            "requested_provider":  "yahoo",
+                                                                            "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                            "session":  "CLOSED",
+                                                                            "source_timestamp":  "2026-09-04T20:00:00+00:00",
+                                                                            "status":  "STALE",
+                                                                            "symbol":  "NVDA"
+                                                                        },
+                                                            "secondary":  {
+                                                                              "attempted_at":  "2026-09-07T17:49:36.937442+00:00",
+                                                                              "completed_at":  "2026-09-07T17:49:37.659632+00:00",
+                                                                              "detail":  "http_404",
+                                                                              "error_category":  "PROVIDER_FAILURE",
+                                                                              "provider":  "stooq-public",
+                                                                              "request_mode":  "LIVE",
+                                                                              "status":  "UNAVAILABLE"
+                                                                          },
+                                                            "selected_provider":  null,
+                                                            "selection":  "NONE"
+                                                        },
+                                               "SPY":  {
+                                                           "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                           "final_market_status":  "BLOCKED",
+                                                           "history":  {
+                                                                           "status":  "NOT_RUN"
+                                                                       },
+                                                           "primary":  {
+                                                                           "age_seconds":  251378.864007,
+                                                                           "analysis_cutoff":  "2026-09-07T17:49:38.864007+00:00",
+                                                                           "attempted_at":  "2026-09-07T17:49:37.662538+00:00",
+                                                                           "completed_at":  "2026-09-07T17:49:38.137356+00:00",
+                                                                           "detail":  "public operational observation; not PIT certified",
+                                                                           "error_category":  "DATA_QUALITY",
+                                                                           "latest_completed_session":  "2026-09-04",
+                                                                           "provenance":  {
+                                                                                              "provider_symbol":  "SPY",
+                                                                                              "shadow_only":  "true",
+                                                                                              "source":  "yahoo-chart-public"
+                                                                                          },
+                                                                           "provider":  "yahoo",
+                                                                           "provider_session":  "CLOSED",
+                                                                           "quote_certification_status":  "BLOCKED",
+                                                                           "quote_kind":  "PUBLIC_RESEARCH_QUOTE",
+                                                                           "received_at":  "2026-09-07T17:49:38.137356+00:00",
+                                                                           "request_mode":  "LIVE",
+                                                                           "requested_provider":  "yahoo",
+                                                                           "research_context":  "LAST_COMPLETED_SESSION_ONLY",
+                                                                           "session":  "CLOSED",
+                                                                           "source_timestamp":  "2026-09-04T20:00:00+00:00",
+                                                                           "status":  "STALE",
+                                                                           "symbol":  "SPY"
+                                                                       },
+                                                           "secondary":  {
+                                                                             "attempted_at":  "2026-09-07T17:49:38.137356+00:00",
+                                                                             "completed_at":  "2026-09-07T17:49:38.861455+00:00",
+                                                                             "detail":  "http_404",
+                                                                             "error_category":  "PROVIDER_FAILURE",
+                                                                             "provider":  "stooq-public",
+                                                                             "request_mode":  "LIVE",
+                                                                             "status":  "UNAVAILABLE"
+                                                                         },
+                                                           "selected_provider":  null,
+                                                           "selection":  "NONE"
+                                                       }
+                                           },
+                      "stooq_404_investigation":  {
+                                                      "status":  "DEGRADED",
+                                                      "conclusion":  "UPSTREAM_UNAVAILABLE_OR_ENDPOINT_CHANGED",
+                                                      "evidence":  "Canonical probes returned http_404 for Stooq across the configured universe; direct bounded diagnostics confirmed Stooq 404 responses for configured URL and documented URL variants."
+                                                  }
+                  },
+    "research":  {
+                     "status":  "NOT_TESTED",
+                     "canonical_status":  "NOT_RUN",
+                     "invocation":  "NOT_INVOKED",
+                     "configuration":  {
+                                           "policy_live_enabled":  "DISABLED_OR_UNAVAILABLE",
+                                           "credential_reference":  "UNPROBED_NOT_INSPECTED",
+                                           "policy_path":  "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\policies\\models.yaml"
+                                       }
+                 },
+    "decision":  {
+                     "status":  "NOT_TESTED",
+                     "context":  null,
+                     "gates":  null,
+                     "readiness":  null
+                 },
+    "research_invocation":  {
+                                "status":  "NOT_TESTED",
+                                "run_id":  null,
+                                "evidence":  "research"
+                            },
+    "gates":  {
+
+              },
+    "readiness":  null,
+    "outputs":  {
+
+                },
+    "quote_certification":  {
+                                "status":  "BLOCKED",
+                                "reason":  "PUBLIC_RESEARCH_QUOTES_ARE_NOT_CERTIFIED_EXECUTION_QUOTES"
+                            },
+    "persistence":  {
+                        "status":  "NOT_TESTED",
+                        "output_files":  {
+
+                                         }
+                    },
+    "run_ids":  {
+                    "daily":  null
+                },
+    "acceptance_matrix":  [
+                              {
+                                  "item":  "baseline",
+                                  "status":  "VERIFIED",
+                                  "evidence":  "baseline.checks"
+                              },
+                              {
+                                  "item":  "doctor",
+                                  "status":  "VERIFIED",
+                                  "evidence":  "doctor.payload"
+                              },
+                              {
+                                  "item":  "host_snapshot",
+                                  "status":  "BLOCKED",
+                                  "evidence":  "host_snapshot.validation"
+                              },
+                              {
+                                  "item":  "market_session",
+                                  "status":  "NOT_TESTED",
+                                  "evidence":  "market_session.evidence"
+                              },
+                              {
+                                  "item":  "market_freshness",
+                                  "status":  "NOT_TESTED",
+                                  "evidence":  "market_freshness.evidence"
+                              },
+                              {
+                                  "item":  "live_canonical_research",
+                                  "status":  "NOT_TESTED",
+                                  "evidence":  "research"
+                              },
+                              {
+                                  "item":  "research_to_decision",
+                                  "status":  "NOT_TESTED",
+                                  "evidence":  "decision"
+                              },
+                              {
+                                  "item":  "quote_certification",
+                                  "status":  "BLOCKED",
+                                  "evidence":  "quote_certification"
+                              },
+                              {
+                                  "item":  "persistence",
+                                  "status":  "NOT_TESTED",
+                                  "evidence":  "persistence"
+                              }
+                          ],
+    "overall_status":  "BLOCKED",
+    "blockers":  [
+                     "BLOCKED_MISSING_REAL_HOST_SNAPSHOT",
+                     "OPEN_SESSION_ACCEPTANCE_NOT_AVAILABLE"
+                 ],
+    "next_actions":  [
+                         "Supply a newly exported, sanitized, absolute-path HostAccountSnapshotEnvelope from the authorized source; never reuse or fabricate one.",
+                         "OPEN_SESSION_ACCEPTANCE_NOT_AVAILABLE: rerun during the NYSE regular session (09:30-16:00 America/New_York) with a newly supplied snapshot.",
+                         "Do not lower freshness thresholds. Inspect provider_probes and rerun only in a valid market session.",
+                         "Canonical daily was intentionally not invoked because its real-input or regular-session prerequisites were not met.",
+                         "Public Yahoo/Stooq observations remain uncertified execution quotes; manual authority remains blocked."
+                     ]
+}
