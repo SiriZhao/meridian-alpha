@@ -20,6 +20,12 @@ Do not call legacy internal CLI modules or the old scripts in this Skill.
    one; never substitute a synthetic account for a real daily request.
 4. Read the JSON result and its `output_files`. Present runtime/data/portfolio/
    research/quant/risk/recommendation status, warnings, errors and report paths.
+   Read the typed `readiness` object, `snapshot_provenance`, and `provider_probes`.
+   Runtime PASS does not imply recommendation PASS. UNKNOWN, NOT_RUN, stale,
+   incomplete, replayed, synthetic, and unauthenticated inputs cannot authorize
+   recommendation. `quote_certification_status` remains BLOCKED for public data.
+   Missing/replayed snapshots produce diagnostic reports without running analysis.
+   Validate-only does not consume a snapshot; daily atomically records its hash.
    A blocked investment recommendation is distinct from a runtime failure.
 
 For regression only, add `--market-fixture <absolute-synthetic-market.json>`

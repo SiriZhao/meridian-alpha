@@ -43,7 +43,8 @@ Supply a fresh sanitized HostAccountSnapshotEnvelope from your authorized source
 The launcher delegates to `python -m meridian`; installed `meridian` uses the
 same CLI. It runs DB initialization, doctor, public market retrieval,
 deterministic portfolio/risk analysis, audit persistence, and reports. JSON
-includes component statuses, warnings/errors, and `output_files`. Reports and
+includes typed `readiness`, `snapshot_provenance`, actual `provider_probes`,
+`next_actions`, warnings/errors, and `output_files`. Reports and
 logs are under the runtime home. No raw snapshot is saved by default.
 
 The canonical operational path currently reports `research_status=NOT_RUN`:
@@ -65,7 +66,11 @@ Old `--profile`, `--date`, and `--account-fixture` commands are historical.
   never replace missing quotes with invented prices.
 
 Exit codes: 0 completed operational result, 2 degraded/blocked input, 3 failure.
-A zero exit code never grants manual-entry authority. Use the PowerShell terminal
+A zero exit code never grants recommendation or manual-entry authority.
+Read `readiness.recommendation_readiness` and `manual_execution_readiness`.
+A snapshot content digest does not authenticate the Host source. Repeated
+snapshot IDs/facts are explicitly rejected across processes; provide a new
+snapshot for each daily run, including after a failed run consumed its input. Use the PowerShell terminal
 so diagnostics remain visible; the launcher preserves the process exit code.
 
 ## Maintenance
@@ -77,3 +82,8 @@ the checkout, runs twice, checks SQLite integrity and persisted reports.
 See [runtime baseline](docs/runtime-baseline.md), [maintenance backlog](MAINTENANCE.md)
 and [runtime details](docs/runtime.md). Historical Gate/ROUND documents remain
 for audit only and are not the daily operating instructions.
+
+
+Controlled Improvement Phase 1 implementation and evidence are recorded in
+[phase record](docs/controlled-improvement-phase1.md). Real acceptance remains
+DEGRADED/BLOCKED; no certified LLM/quote path is implied by this implementation.

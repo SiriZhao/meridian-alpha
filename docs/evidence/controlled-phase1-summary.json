@@ -1,0 +1,123 @@
+{
+  "phase": "Controlled Improvement — Phase 1 / Batch 1",
+  "generated_at": "2026-09-07T06:36:34.433856+00:00",
+  "branch": "astra/controlled-improvement-phase1",
+  "starting_commit": "c81eddc",
+  "ending_implementation_commit": "fb7fbaf079d24cb1ec191d7410386856d8b7072d",
+  "commits_created": [
+    "1d9fe5c",
+    "fb7fbaf079d24cb1ec191d7410386856d8b7072d"
+  ],
+  "resume_drift": "Branch and uncommitted Phase 1 work already existed; retained and reviewed.",
+  "baseline": {
+    "pytest": {
+      "passed": 333,
+      "seconds": 19.03
+    },
+    "ruff": "PASS",
+    "pyright": "PASS"
+  },
+  "final_tests": {
+    "pytest": {
+      "passed": 337,
+      "seconds": 16.6
+    },
+    "ruff": "PASS",
+    "pyright": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "command_prefix": ".venv/Scripts/uv.exe run --no-sync"
+  },
+  "migration": {
+    "from": 1,
+    "to": 2,
+    "tests": "PASS",
+    "new_tables": [
+      "snapshot_receipts",
+      "run_readiness"
+    ],
+    "production_database_used": false
+  },
+  "cli": {
+    "compatible_exit_codes": [
+      0,
+      2,
+      3
+    ],
+    "canonical": "python -m meridian",
+    "readiness_in_json_and_markdown": true
+  },
+  "readiness": {
+    "runtime_health": "PASS",
+    "account_snapshot_status": "BLOCKED",
+    "account_snapshot_freshness": "UNKNOWN",
+    "account_provenance": "UNKNOWN",
+    "market_data_status": "BLOCKED",
+    "market_data_freshness": "BLOCKED",
+    "provider_provenance": "PASS",
+    "research_status": "NOT_RUN",
+    "research_freshness": "UNKNOWN",
+    "decision_pipeline_status": "NOT_RUN",
+    "policy_gate_status": "NOT_RUN",
+    "quote_certification_status": "BLOCKED",
+    "recommendation_readiness": "BLOCKED",
+    "manual_execution_readiness": "BLOCKED"
+  },
+  "provider_health": {
+    "AAPL": {
+      "primary": "STALE",
+      "secondary": "UNAVAILABLE"
+    },
+    "MSFT": {
+      "primary": "STALE",
+      "secondary": "UNAVAILABLE"
+    },
+    "NVDA": {
+      "primary": "STALE",
+      "secondary": "UNAVAILABLE"
+    },
+    "SPY": {
+      "primary": "STALE",
+      "secondary": "UNAVAILABLE"
+    }
+  },
+  "symbols_missing": {
+    "AAPL": "MARKET_DATA_STALE",
+    "MSFT": "MARKET_DATA_STALE",
+    "NVDA": "MARKET_DATA_STALE",
+    "SPY": "MARKET_DATA_STALE"
+  },
+  "real_account_accepted": false,
+  "acceptance_status": "DEGRADED",
+  "batch1_engineering_criteria_met": true,
+  "batch2_preparation_ready": true,
+  "production_promotion_ready": false,
+  "blockers": [
+    "New authorized Host snapshot and source verification absent",
+    "Public market data stale; secondary provider unavailable",
+    "Certified research not run",
+    "Certified execution quote and sealed manual authority absent"
+  ],
+  "limitations": [
+    "Scheduled calendar does not certify unscheduled halts/closures",
+    "Daily rejects previously claimed snapshots even after downstream failure",
+    "Snapshot hashes prove consistency and novelty within this runtime, not source identity",
+    "History adapter strict/live behavior regression-tested; current live daily history not run because quotes stale",
+    "SQLite and report files are not one cross-resource transaction; no recovery claim after persistence failure"
+  ],
+  "evidence_files": [
+    "docs/evidence/controlled-phase1-reality.json",
+    "docs/evidence/controlled-phase1-resume-reality.json"
+  ],
+  "batch2_preparation": [
+    "Define verifiable Host-source evidence without adding broker access",
+    "Review certified research service inputs and replay evidence before live invocation",
+    "Recheck market providers during a fresh supported session",
+    "Validate readiness/report recovery after partial persistence without destructive retry"
+  ],
+  "skill_sync": {
+    "status": "PASS",
+    "sha256": "d0021a1b093b3fc011e987ac0f78a65dddf6564b5fa24ed5e39b68df8d35ac52"
+  }
+}
