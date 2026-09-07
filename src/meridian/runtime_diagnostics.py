@@ -21,6 +21,7 @@ from pathlib import Path
 from time import monotonic
 from zoneinfo import ZoneInfo
 
+from meridian.audit import SCHEMA_VERSION
 from meridian.config import load_policies
 from meridian.runtime import RuntimePaths, policy_directory
 
@@ -48,10 +49,10 @@ def _database(path: Path) -> dict[str, object]:
             quick = connection.execute("PRAGMA quick_check").fetchone()
             table = connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'").fetchone()
             version = connection.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0] if table else None
-        if version is not None and version > 1:
+        if version is not None and version > SCHEMA_VERSION:
             return {"status": "FAIL", "detail": "MERIDIAN_DATABASE_NEWER_SCHEMA: upgrade Meridian; preserve DB", "schema_version": version, "migration_status": "FAILED"}
-        healthy = quick == ("ok",) and version == 1
-        return {"status": "PASS" if healthy else "DEGRADED", "detail": "healthy" if healthy else "migration_required", "schema_version": version, "migration_status": "CURRENT" if version == 1 else "PENDING"}
+        healthy = quick == ("ok",) and version == SCHEMA_VERSION
+        return {"status": "PASS" if healthy else "DEGRADED", "detail": "healthy" if healthy else "migration_required", "schema_version": version, "migration_status": "CURRENT" if version == SCHEMA_VERSION else "PENDING"}
     except sqlite3.DatabaseError:
         return {"status": "FAIL", "detail": "DATABASE_CORRUPT_OR_INCOMPATIBLE", "schema_version": None, "migration_status": "FAILED"}
     except OSError:

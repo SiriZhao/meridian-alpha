@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from meridian.application import MeridianApplicationService
+from meridian.audit import SCHEMA_VERSION
 from meridian.runtime import RuntimePaths
 
 
@@ -16,7 +17,7 @@ def test_fresh_home_requires_explicit_init_then_doctor_is_current(tmp_path: Path
     assert database(service.doctor())["migration_status"] == "PENDING"
     initialized = service.init()
     assert initialized["status"] == "INIT_COMPLETE"
-    assert initialized["schema_version"] == 1
+    assert initialized["schema_version"] == SCHEMA_VERSION
     assert service.init()["status"] == "INIT_ALREADY_COMPLETE"
     assert database(service.doctor())["migration_status"] == "CURRENT"
 

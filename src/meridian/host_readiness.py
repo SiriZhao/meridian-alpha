@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from pydantic import Field
+from pydantic import Field, computed_field
 
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.manual_authority import ManualReadinessCertificate, ManualReadinessStatus
@@ -20,6 +21,10 @@ class ReadinessStatus(StrEnum):
     PASS = "PASS"
     FAIL = "FAIL"
     DEGRADED = "DEGRADED"
+    BLOCKED = "BLOCKED"
+    FAILED = "FAILED"
+    UNKNOWN = "UNKNOWN"
+    NOT_RUN = "NOT_RUN"
 
 
 class ReadinessGateResult(StableModel):
@@ -216,3 +221,122 @@ def write_host_smoke_report(report: HostReadinessReport, json_path: Path, markdo
 
 # A concise alias for integrations that use the gate's shorter name.
 evaluate_readiness = evaluate_host_readiness
+
+
+class RecommendationReadiness(StableModel):
+    """Diagnostic aggregate, never a substitute for sealed manual authority.
+
+    Missing dimensions default to UNKNOWN. Computed outcomes cannot be supplied
+    by callers or promoted by successful process completion alone.
+    """
+
+    runtime_health: ReadinessStatus = ReadinessStatus.UNKNOWN
+    account_snapshot_status: ReadinessStatus = ReadinessStatus.UNKNOWN
+    account_snapshot_freshness: ReadinessStatus = ReadinessStatus.UNKNOWN
+    account_provenance: ReadinessStatus = ReadinessStatus.UNKNOWN
+    market_data_status: ReadinessStatus = ReadinessStatus.UNKNOWN
+    market_data_freshness: ReadinessStatus = ReadinessStatus.UNKNOWN
+    provider_provenance: ReadinessStatus = ReadinessStatus.UNKNOWN
+    research_status: ReadinessStatus = ReadinessStatus.NOT_RUN
+    research_freshness: ReadinessStatus = ReadinessStatus.UNKNOWN
+    decision_pipeline_status: ReadinessStatus = ReadinessStatus.NOT_RUN
+    policy_gate_status: ReadinessStatus = ReadinessStatus.UNKNOWN
+    quote_certification_status: ReadinessStatus = ReadinessStatus.UNKNOWN
+    manual_authority_status: ReadinessStatus = ReadinessStatus.UNKNOWN
+    input_mode: str = "UNKNOWN"
+    quote_kind: str = "UNKNOWN"
+
+    @computed_field
+    @property
+    def blockers(self) -> tuple[str, ...]:
+        required = (
+            "runtime_health", "account_snapshot_status", "account_snapshot_freshness",
+            "account_provenance", "market_data_status", "market_data_freshness",
+            "provider_provenance", "research_status", "research_freshness",
+            "decision_pipeline_status", "policy_gate_status",
+        )
+        reasons = tuple(f"{name.upper()}_{getattr(self, name).value}" for name in required
+                        if getattr(self, name) is not ReadinessStatus.PASS)
+        return reasons + (() if self.input_mode == "REAL_VERIFIED" else ("REAL_INPUT_NOT_VERIFIED",))
+
+    @computed_field
+    @property
+    def recommendation_readiness(self) -> ReadinessStatus:
+        return ReadinessStatus.BLOCKED if self.blockers else ReadinessStatus.PASS
+
+    @computed_field
+    @property
+    def research_readiness(self) -> ReadinessStatus:
+        return ReadinessStatus.PASS if all(value is ReadinessStatus.PASS for value in (
+            self.runtime_health, self.market_data_status, self.market_data_freshness,
+            self.provider_provenance, self.research_status, self.research_freshness,
+        )) else ReadinessStatus.BLOCKED
+
+    @computed_field
+    @property
+    def manual_execution_readiness(self) -> ReadinessStatus:
+        return ReadinessStatus.PASS if (
+            self.recommendation_readiness is ReadinessStatus.PASS
+            and self.quote_kind == "CERTIFIED_EXECUTION_QUOTE"
+            and self.quote_certification_status is ReadinessStatus.PASS
+            and self.manual_authority_status is ReadinessStatus.PASS
+        ) else ReadinessStatus.BLOCKED
+
+
+class SnapshotDiagnostic(StableModel):
+    status: ReadinessStatus = ReadinessStatus.BLOCKED
+    code: str
+    snapshot_key: str | None = None
+    content_hash: str | None = None
+    source_kind: str | None = None
+    source_name_hash: str | None = None
+    as_of: datetime | None = None
+    retrieved_at: datetime | None = None
+    checked_at: datetime
+    age_seconds: float | None = None
+    coverage: str | None = None
+    freshness: ReadinessStatus = ReadinessStatus.UNKNOWN
+    novelty: str = "UNKNOWN"
+    # A content digest is integrity evidence, not host-source authentication.
+    provenance_status: ReadinessStatus = ReadinessStatus.UNKNOWN
+    next_action: str = "Supply a new sanitized Host envelope from an authorized source."
+
+
+def inspect_snapshot(path: Path | None, *, max_age_seconds: int, checked_at: datetime | None = None, replay: bool = False) -> tuple[SnapshotDiagnostic, AccountSnapshot | None]:
+    """Read one explicit envelope; return only bounded diagnostics on rejection."""
+    if checked_at is not None and not replay:
+        raise ValueError("Injected snapshot clock requires explicit replay")
+    now = checked_at or datetime.now(UTC)
+    if path is None or not path.is_file():
+        return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_MISSING", checked_at=now), None
+    try:
+        envelope = HostAccountSnapshotEnvelope.model_validate_json(path.read_text(encoding="utf-8"))
+    except (ValueError, UnicodeError):
+        return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_INVALID", checked_at=now), None
+    # Never echo caller-controlled labels or account facts into diagnostics.
+    def digest(value: str) -> str:
+        return hashlib.sha256(value.encode("utf-8")).hexdigest()
+    fingerprint = envelope.model_dump(mode="json", exclude={"snapshot_id", "retrieved_at", "provenance_digest"})
+    fingerprint["as_of"] = envelope.as_of.astimezone(UTC).isoformat()
+    lineage: dict[str, Any] = dict(
+        snapshot_key=digest(envelope.snapshot_id),
+        content_hash=digest(json.dumps(fingerprint, sort_keys=True)),
+        source_kind="FIXTURE" if envelope.source_kind.lower() in {"fixture", "test", "synthetic", "replay"} else "HOST_SUPPLIED_UNVERIFIED",
+        source_name_hash=digest(envelope.source_name),
+        as_of=envelope.as_of, retrieved_at=envelope.retrieved_at,
+        checked_at=now, age_seconds=(now - envelope.as_of).total_seconds(),
+        coverage=envelope.coverage_status.value,
+    )
+    if envelope.as_of > now or envelope.retrieved_at > now:
+        return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_FUTURE_DATED", **lineage), None
+    try:
+        account = normalize_host_snapshot(envelope, max_age_seconds=max_age_seconds,
+                                          trusted_now=checked_at, replay=replay)
+    except ValueError:
+        return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_INVALID", **lineage), None
+    if account.freshness_state is FreshnessState.STALE:
+        return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_STALE", freshness=ReadinessStatus.BLOCKED, **lineage), account
+    if account.sync_state is not AccountSyncState.SYNCED or envelope.pending_or_unknown_state:
+        return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_INCOMPLETE_OR_PENDING", freshness=ReadinessStatus.PASS, **lineage), account
+    return SnapshotDiagnostic(status=ReadinessStatus.PASS, code="ACCOUNT_SNAPSHOT_VALID",
+                              freshness=ReadinessStatus.PASS, **lineage), account

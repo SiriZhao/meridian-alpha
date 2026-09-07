@@ -13,7 +13,7 @@ from typing import Any
 
 from meridian.schemas import DailyDecision
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 @dataclass(frozen=True)
@@ -47,6 +47,12 @@ class AuditStore:
                 version = connection.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0]
                 if version is not None and version > SCHEMA_VERSION:
                     raise sqlite3.DatabaseError("MERIDIAN_DATABASE_NEWER_SCHEMA: upgrade Meridian before opening this database")
+            for name, required in (("snapshot_receipts", {"snapshot_key", "content_hash", "first_seen_at"}), ("run_readiness", {"run_id", "payload_json"})):
+                existing = connection.execute("SELECT type FROM sqlite_master WHERE name=?", (name,)).fetchone()
+                if existing:
+                    columns = {row[1] for row in connection.execute(f"PRAGMA table_info({name})")}
+                    if existing[0] != "table" or not required.issubset(columns):
+                        raise sqlite3.DatabaseError("MERIDIAN_DATABASE_SCHEMA_COLLISION")
             connection.executescript(
                 """
                 BEGIN IMMEDIATE;
@@ -98,6 +104,16 @@ class AuditStore:
                     PRIMARY KEY (run_id, provider, model_name)
                 );
                 INSERT OR IGNORE INTO schema_migrations(version) VALUES (1);
+                CREATE TABLE IF NOT EXISTS snapshot_receipts (
+                    snapshot_key TEXT PRIMARY KEY,
+                    content_hash TEXT NOT NULL UNIQUE,
+                    first_seen_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS run_readiness (
+                    run_id TEXT PRIMARY KEY REFERENCES runs(run_id),
+                    payload_json TEXT NOT NULL
+                );
+                INSERT OR IGNORE INTO schema_migrations(version) VALUES (2);
                 COMMIT;
                 """
             )
@@ -314,3 +330,43 @@ class AuditStore:
                     )
                 ],
             }
+
+
+    def snapshot_novelty(self, snapshot_key: str, content_hash: str, *, seen_at: str | None = None) -> str:
+        """Check or atomically claim hashes, never raw account facts.
+
+        A failed run may leave a receipt: conservative replay protection requires
+        a new snapshot rather than silently reusing input after a crash.
+        """
+        if not self.path.exists() and seen_at is None:
+            return "NEW"
+        with closing(self.connect()) as connection, connection:
+            if seen_at is not None:
+                connection.execute("BEGIN IMMEDIATE")
+            table = connection.execute("SELECT name FROM sqlite_master WHERE name='snapshot_receipts'").fetchone()
+            if not table:
+                if seen_at is None:
+                    return "NEW"
+                raise sqlite3.DatabaseError("SNAPSHOT_RECEIPTS_MIGRATION_REQUIRED")
+            previous = connection.execute("SELECT content_hash FROM snapshot_receipts WHERE snapshot_key=?", (snapshot_key,)).fetchone()
+            if previous:
+                return "REPLAYED" if previous[0] == content_hash else "CONFLICT"
+            if connection.execute("SELECT 1 FROM snapshot_receipts WHERE content_hash=?", (content_hash,)).fetchone():
+                return "REPLAYED"
+            if seen_at is not None:
+                connection.execute("INSERT INTO snapshot_receipts VALUES (?, ?, ?)", (snapshot_key, content_hash, seen_at))
+            return "NEW"
+
+    def write_readiness(self, run_id: str, as_of: str, status: str, payload: dict[str, object]) -> None:
+        """Append immutable diagnostics to the same run, including rejected input."""
+        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+        digest = hashlib.sha256(encoded.encode()).hexdigest()
+        with closing(self.connect()) as connection, connection:
+            connection.execute("BEGIN IMMEDIATE")
+            existing = connection.execute("SELECT payload_json FROM run_readiness WHERE run_id=?", (run_id,)).fetchone()
+            if existing:
+                if existing[0] != encoded:
+                    raise ValueError("READINESS_RUN_CONFLICT")
+                return
+            connection.execute("INSERT OR IGNORE INTO runs(run_id, decision_hash, overall_status, as_of) VALUES (?, ?, ?, ?)", (run_id, digest, status, as_of))
+            connection.execute("INSERT INTO run_readiness VALUES (?, ?)", (run_id, encoded))
