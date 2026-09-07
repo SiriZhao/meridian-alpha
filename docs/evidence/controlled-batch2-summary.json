@@ -1,0 +1,67 @@
+{
+  "phase": "Controlled Improvement Batch 2",
+  "engineering_status": "PASS",
+  "production_acceptance": "BLOCKED",
+  "branch": "astra/controlled-improvement-batch2",
+  "starting_commit": "fa96d86",
+  "ending_implementation_commit": "208c256a1e7eeeaeb680244281fe2a452e123cf6",
+  "implementation_commits": [
+    "f85e478",
+    "c34e717",
+    "208c256"
+  ],
+  "checks": {
+    "pytest": {
+      "status": "PASS",
+      "passed": 354,
+      "seconds": 17.42
+    },
+    "ruff": "PASS",
+    "pyright": {
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "commands": [
+    ".venv/Scripts/uv.exe run --no-sync pytest -q",
+    ".venv/Scripts/uv.exe run --no-sync ruff check .",
+    ".venv/Scripts/uv.exe run --no-sync pyright"
+  ],
+  "reality_evidence": "controlled-batch2-reality.json",
+  "readiness": {
+    "runtime": "PASS",
+    "real_snapshot": "BLOCKED",
+    "market_freshness": "BLOCKED",
+    "yahoo": "STALE",
+    "stooq": "UNAVAILABLE",
+    "live_research": "NOT_RUN",
+    "canonical_research_fixture": "PASS",
+    "decision_context_fixture": "PASS",
+    "certified_research": "BLOCKED",
+    "manual_authority": "BLOCKED",
+    "recommendation": "BLOCKED"
+  },
+  "schema_migration": "NONE; existing SQLite v2 run_readiness payload extended",
+  "cli_compatibility": "canonical daily and Windows launcher unchanged; exits 0/2/3 retained",
+  "installed_skill": "synchronized after baseline comparison; previous version backed up",
+  "blockers": [
+    "No new real Host snapshot or authenticated Host acceptance",
+    "Fresh live market inputs unavailable",
+    "Live LLM response not executed/accepted",
+    "Certified research and execution quote/sealed manual authority not accepted"
+  ],
+  "known_limits": [
+    "Public-only model inference; citations prove membership, not truth",
+    "Socket timeout is not a hard wall-clock deadline; shared HTTP helper reads body before accepted-size validation",
+    "Replay uses explicit original artifact; no CLI replay or automatic cache",
+    "Report and SQLite writes remain separate",
+    "Legacy baseline test refreshed two checked_at fields in user report before isolation; original uncommitted timestamps unavailable"
+  ],
+  "user_report": "reports/gate6g-quote-preflight.json remains uncommitted and excluded from all commits",
+  "batch3": {
+    "preparation": "READY",
+    "production_promotion": "BLOCKED",
+    "plan": "../controlled-improvement-batch2.md#batch-3-acceptance-preparation"
+  },
+  "push": false
+}

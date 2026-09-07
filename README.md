@@ -47,8 +47,10 @@ includes typed `readiness`, `snapshot_provenance`, actual `provider_probes`,
 `next_actions`, warnings/errors, and `output_files`. Reports and
 logs are under the runtime home. No raw snapshot is saved by default.
 
-The canonical operational path currently reports `research_status=NOT_RUN`:
-LLM/certified research is not integrated into this path. Missing/stale market
+Canonical daily runs structured advisory research when the existing research
+policy is explicitly enabled and fresh inputs are available. Research status
+comes from the actual HTTP response and schema validation; disabled configuration
+remains NOT_RUN. Advisory completion does not certify a recommendation. Missing/stale market
 inputs block recommendations while still producing a diagnostic report.
 No real account snapshot means no real portfolio validation.
 

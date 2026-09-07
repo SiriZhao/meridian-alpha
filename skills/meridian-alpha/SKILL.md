@@ -30,8 +30,10 @@ Do not call legacy internal CLI modules or the old scripts in this Skill.
 
 For regression only, add `--market-fixture <absolute-synthetic-market.json>`
 with a synthetic account. Label results FIXTURE; never claim live verification.
-The current canonical path reports LLM research NOT_RUN. Do not call it a full
-certified research run. Old `--profile`, `--date`, and `--account-fixture`
+Read `research`, `decision_context`, `gates`, and `stages` in the daily JSON.
+Enabled research uses validated public inputs; AVAILABLE requires a validated
+response, and FIXTURE is never a live probe. Disabled research is NOT_RUN.
+Advisory output cannot confer certified research or manual-entry authority. Old `--profile`, `--date`, and `--account-fixture`
 arguments are not supported by this CLI.
 
 All current outputs are research-only and NOT_AUTHORIZED_FOR_MANUAL_ENTRY.

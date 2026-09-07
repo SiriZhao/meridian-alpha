@@ -1,0 +1,291 @@
+{
+  "recorded_at": "2026-09-07T11:43:40.295665+00:00",
+  "mode": "REAL_ISOLATED_RUNTIME",
+  "init": {
+    "status": "INIT_COMPLETE",
+    "runtime_home": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\meridian-batch2-qyewsz4j",
+    "db_path": "C:\\Users\\YOGAPR~1\\AppData\\Local\\Temp\\meridian-batch2-qyewsz4j\\db\\meridian.sqlite3",
+    "schema_version": 2,
+    "created_dirs": [
+      "audit",
+      "cache",
+      "config",
+      "data",
+      "db",
+      "logs",
+      "reports",
+      "runs"
+    ],
+    "warnings": []
+  },
+  "doctor": "PASS",
+  "daily": {
+    "runtime_status": "PASS",
+    "research_status": "NOT_RUN",
+    "readiness": {
+      "runtime_health": "PASS",
+      "account_snapshot_status": "BLOCKED",
+      "account_snapshot_freshness": "UNKNOWN",
+      "account_provenance": "UNKNOWN",
+      "market_data_status": "NOT_RUN",
+      "market_data_freshness": "NOT_RUN",
+      "provider_provenance": "UNKNOWN",
+      "research_status": "NOT_RUN",
+      "research_freshness": "UNKNOWN",
+      "decision_pipeline_status": "NOT_RUN",
+      "policy_gate_status": "UNKNOWN",
+      "quote_certification_status": "BLOCKED",
+      "manual_authority_status": "UNKNOWN",
+      "input_mode": "UNKNOWN",
+      "quote_kind": "NOT_REQUESTED",
+      "blockers": [
+        "ACCOUNT_SNAPSHOT_STATUS_BLOCKED",
+        "ACCOUNT_SNAPSHOT_FRESHNESS_UNKNOWN",
+        "ACCOUNT_PROVENANCE_UNKNOWN",
+        "MARKET_DATA_STATUS_NOT_RUN",
+        "MARKET_DATA_FRESHNESS_NOT_RUN",
+        "PROVIDER_PROVENANCE_UNKNOWN",
+        "RESEARCH_STATUS_NOT_RUN",
+        "RESEARCH_FRESHNESS_UNKNOWN",
+        "DECISION_PIPELINE_STATUS_NOT_RUN",
+        "POLICY_GATE_STATUS_UNKNOWN",
+        "REAL_INPUT_NOT_VERIFIED"
+      ],
+      "recommendation_readiness": "BLOCKED",
+      "research_readiness": "BLOCKED",
+      "manual_execution_readiness": "BLOCKED"
+    },
+    "blocked_reasons": [
+      "ACCOUNT_SNAPSHOT_MISSING"
+    ]
+  },
+  "market": {
+    "market_calendar": "OK",
+    "primary_price": "DEGRADED",
+    "secondary_price": "DEGRADED",
+    "latest_quote": "STALE_OR_UNAVAILABLE",
+    "latest_daily_bar": "UNKNOWN",
+    "operational": "BLOCKED_MARKET_DATA",
+    "research": "RESEARCH_BLOCKED",
+    "historical_universe": "BLOCKED",
+    "certification": "OPERATIONAL_DATA_IS_NOT_CERTIFIED_RESEARCH",
+    "data_mode": "OPERATIONAL_PUBLIC",
+    "market_snapshot_hash": "8b0893a9c4aefd10b6f392cdbe2e9f532b3cd96a1345bfb5fe3f9afec281c171",
+    "information_cutoff": "2026-09-07T11:43:45.680363+00:00",
+    "provider_health": {
+      "AAPL": {
+        "primary": "STALE",
+        "secondary": "UNAVAILABLE"
+      },
+      "MSFT": {
+        "primary": "STALE",
+        "secondary": "UNAVAILABLE"
+      },
+      "NVDA": {
+        "primary": "STALE",
+        "secondary": "UNAVAILABLE"
+      },
+      "SPY": {
+        "primary": "STALE",
+        "secondary": "UNAVAILABLE"
+      }
+    },
+    "provider_probes": {
+      "AAPL": {
+        "primary": {
+          "symbol": "AAPL",
+          "provider": "yahoo",
+          "source_timestamp": "2026-09-04T20:00:01+00:00",
+          "received_at": "2026-09-07T11:43:40.979150+00:00",
+          "analysis_cutoff": "2026-09-07T11:43:45.680363+00:00",
+          "age_seconds": 229424.680363,
+          "session": "CLOSED",
+          "provider_session": "CLOSED",
+          "latest_completed_session": "2026-09-04",
+          "status": "STALE",
+          "research_context": "LAST_COMPLETED_SESSION_ONLY",
+          "error_category": "DATA_QUALITY",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "quote_certification_status": "BLOCKED",
+          "provenance": {
+            "provider_symbol": "AAPL",
+            "source": "yahoo-chart-public",
+            "shadow_only": "true"
+          },
+          "requested_provider": "yahoo",
+          "detail": "public operational observation; not PIT certified",
+          "attempted_at": "2026-09-07T11:43:40.491491+00:00",
+          "completed_at": "2026-09-07T11:43:40.979150+00:00",
+          "request_mode": "LIVE"
+        },
+        "secondary": {
+          "provider": "stooq-public",
+          "status": "UNAVAILABLE",
+          "detail": "http_404",
+          "attempted_at": "2026-09-07T11:43:40.979150+00:00",
+          "completed_at": "2026-09-07T11:43:41.714868+00:00",
+          "request_mode": "LIVE",
+          "error_category": "PROVIDER_FAILURE"
+        },
+        "selected_provider": null,
+        "selection": "NONE",
+        "history": {
+          "status": "NOT_RUN"
+        },
+        "final_market_status": "BLOCKED",
+        "analysis_cutoff": "2026-09-07T11:43:45.680363+00:00"
+      },
+      "MSFT": {
+        "primary": {
+          "symbol": "MSFT",
+          "provider": "yahoo",
+          "source_timestamp": "2026-09-04T20:00:01+00:00",
+          "received_at": "2026-09-07T11:43:42.191538+00:00",
+          "analysis_cutoff": "2026-09-07T11:43:45.680363+00:00",
+          "age_seconds": 229424.680363,
+          "session": "CLOSED",
+          "provider_session": "CLOSED",
+          "latest_completed_session": "2026-09-04",
+          "status": "STALE",
+          "research_context": "LAST_COMPLETED_SESSION_ONLY",
+          "error_category": "DATA_QUALITY",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "quote_certification_status": "BLOCKED",
+          "provenance": {
+            "provider_symbol": "MSFT",
+            "source": "yahoo-chart-public",
+            "shadow_only": "true"
+          },
+          "requested_provider": "yahoo",
+          "detail": "public operational observation; not PIT certified",
+          "attempted_at": "2026-09-07T11:43:41.717554+00:00",
+          "completed_at": "2026-09-07T11:43:42.191538+00:00",
+          "request_mode": "LIVE"
+        },
+        "secondary": {
+          "provider": "stooq-public",
+          "status": "UNAVAILABLE",
+          "detail": "http_404",
+          "attempted_at": "2026-09-07T11:43:42.191538+00:00",
+          "completed_at": "2026-09-07T11:43:43.263803+00:00",
+          "request_mode": "LIVE",
+          "error_category": "PROVIDER_FAILURE"
+        },
+        "selected_provider": null,
+        "selection": "NONE",
+        "history": {
+          "status": "NOT_RUN"
+        },
+        "final_market_status": "BLOCKED",
+        "analysis_cutoff": "2026-09-07T11:43:45.680363+00:00"
+      },
+      "NVDA": {
+        "primary": {
+          "symbol": "NVDA",
+          "provider": "yahoo",
+          "source_timestamp": "2026-09-04T20:00:00+00:00",
+          "received_at": "2026-09-07T11:43:43.734405+00:00",
+          "analysis_cutoff": "2026-09-07T11:43:45.680363+00:00",
+          "age_seconds": 229425.680363,
+          "session": "CLOSED",
+          "provider_session": "CLOSED",
+          "latest_completed_session": "2026-09-04",
+          "status": "STALE",
+          "research_context": "LAST_COMPLETED_SESSION_ONLY",
+          "error_category": "DATA_QUALITY",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "quote_certification_status": "BLOCKED",
+          "provenance": {
+            "provider_symbol": "NVDA",
+            "source": "yahoo-chart-public",
+            "shadow_only": "true"
+          },
+          "requested_provider": "yahoo",
+          "detail": "public operational observation; not PIT certified",
+          "attempted_at": "2026-09-07T11:43:43.265878+00:00",
+          "completed_at": "2026-09-07T11:43:43.734405+00:00",
+          "request_mode": "LIVE"
+        },
+        "secondary": {
+          "provider": "stooq-public",
+          "status": "UNAVAILABLE",
+          "detail": "http_404",
+          "attempted_at": "2026-09-07T11:43:43.734405+00:00",
+          "completed_at": "2026-09-07T11:43:44.466167+00:00",
+          "request_mode": "LIVE",
+          "error_category": "PROVIDER_FAILURE"
+        },
+        "selected_provider": null,
+        "selection": "NONE",
+        "history": {
+          "status": "NOT_RUN"
+        },
+        "final_market_status": "BLOCKED",
+        "analysis_cutoff": "2026-09-07T11:43:45.680363+00:00"
+      },
+      "SPY": {
+        "primary": {
+          "symbol": "SPY",
+          "provider": "yahoo",
+          "source_timestamp": "2026-09-04T20:00:00+00:00",
+          "received_at": "2026-09-07T11:43:44.925414+00:00",
+          "analysis_cutoff": "2026-09-07T11:43:45.680363+00:00",
+          "age_seconds": 229425.680363,
+          "session": "CLOSED",
+          "provider_session": "CLOSED",
+          "latest_completed_session": "2026-09-04",
+          "status": "STALE",
+          "research_context": "LAST_COMPLETED_SESSION_ONLY",
+          "error_category": "DATA_QUALITY",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "quote_certification_status": "BLOCKED",
+          "provenance": {
+            "provider_symbol": "SPY",
+            "source": "yahoo-chart-public",
+            "shadow_only": "true"
+          },
+          "requested_provider": "yahoo",
+          "detail": "public operational observation; not PIT certified",
+          "attempted_at": "2026-09-07T11:43:44.466167+00:00",
+          "completed_at": "2026-09-07T11:43:44.925414+00:00",
+          "request_mode": "LIVE"
+        },
+        "secondary": {
+          "provider": "stooq-public",
+          "status": "UNAVAILABLE",
+          "detail": "http_404",
+          "attempted_at": "2026-09-07T11:43:44.925414+00:00",
+          "completed_at": "2026-09-07T11:43:45.678348+00:00",
+          "request_mode": "LIVE",
+          "error_category": "PROVIDER_FAILURE"
+        },
+        "selected_provider": null,
+        "selection": "NONE",
+        "history": {
+          "status": "NOT_RUN"
+        },
+        "final_market_status": "BLOCKED",
+        "analysis_cutoff": "2026-09-07T11:43:45.680363+00:00"
+      }
+    },
+    "cache": {
+      "AAPL": false,
+      "MSFT": false,
+      "NVDA": false,
+      "SPY": false
+    },
+    "provider_conflicts": {},
+    "symbols_missing": {
+      "AAPL": "MARKET_DATA_STALE",
+      "MSFT": "MARKET_DATA_STALE",
+      "NVDA": "MARKET_DATA_STALE",
+      "SPY": "MARKET_DATA_STALE"
+    },
+    "status": "DEGRADED"
+  },
+  "research_probe": {
+    "status": "NOT_RUN",
+    "actual_http_request": false,
+    "reason": "Fresh validated canonical inputs absent; no synthetic facts sent to live LLM."
+  }
+}

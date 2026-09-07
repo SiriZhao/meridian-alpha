@@ -31,7 +31,8 @@ not certified execution quotes. Closed-market stale quotes remain blocked.
 UNKNOWN/NOT_RUN/DEGRADED never aggregate to recommendation PASS. Research,
 recommendation and manual execution are distinct derived outcomes; these
 are diagnostics, not a replacement for the sealed seven-gate authority.
-Canonical public quotes remain uncertified. Canonical research remains NOT_RUN.
+Canonical public quotes remain uncertified. Canonical research is an optional
+validated advisory stage; disabled configuration remains NOT_RUN.
 Policy validation is not certification of the operational placeholder sectors.
 
 SQLite v2 adds `snapshot_receipts` (only ID/content hashes and first-seen time)
