@@ -190,6 +190,11 @@ def test_default_live_path_selects_graph_runner(monkeypatch):
         called.append(ticker)
         return graph_result("Buy")
 
+    # This is a routing test with a fake graph, independent of optional installation.
+    original_spec = adapter_module.importlib.util.find_spec
+    monkeypatch.setattr(adapter_module.importlib.util, "find_spec",
+                        lambda name: object() if name == "tradingagents" else original_spec(name))
+    monkeypatch.setattr(adapter_module, "_installed_version", lambda: adapter_module.PINNED_TRADINGAGENTS_VERSION)
     monkeypatch.setattr(adapter_module, "_official_graph_runner", fake_graph)
     result = TradingAgentsResearchEngine(settings(live=True)).analyze("AAPL", AS_OF, {})
     assert called == ["AAPL"]

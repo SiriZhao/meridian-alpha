@@ -21,7 +21,6 @@ from meridian.daily_closure import (
     DailyClosureService,
     daily_run_id,
     load_market_fixture,
-    persist_report,
     persist_run_report,
 )
 from meridian.daily_research import (
@@ -153,8 +152,7 @@ class MeridianApplicationService:
             "output_files": {"report_json": str(directory / "daily.json"), "report_markdown": str(directory / "daily.md"), "log": str(log_path)},
         }
         AuditStore(self.paths.db).write_readiness(run_id, now.isoformat(), str(payload["status"]), payload)
-        j, m = persist_run_report(payload, self.paths)
-        return {**payload, "report_json": str(j), "report_markdown": str(m)}
+        return self._complete_report(payload)
 
     def daily(self, snapshot_path: Path | None, market_fixture: Path | None = None) -> dict[str, object]:
         self.paths.ensure_directories()
@@ -168,7 +166,11 @@ class MeridianApplicationService:
         logger.addHandler(handler)
         logger.info("START invocation=%s config=%s", invocation, policy_directory())
         try:
-            return self._daily(snapshot_path, market_fixture, logger, log_path)
+            payload = self._daily(snapshot_path, market_fixture, logger, log_path)
+            logger.log(logging.ERROR if payload.get("runtime_status") == "FAILED" else logging.INFO,
+                "run_id=%s runtime=%s error_code=%s", payload.get("run_id"),
+                payload.get("runtime_status"), payload.get("error_code"))
+            return payload
         except (OSError, ValueError, sqlite3.Error):
             logger.error("Daily failed; run doctor and validate input. Exception details omitted to protect account data.")
             raise
@@ -346,12 +348,38 @@ class MeridianApplicationService:
         logger.info("recommendation=%s blockers=%s", ready.recommendation_readiness.value, ready.blockers)
         logger.warning("Research status=%s; advisory-only, no manual-entry authority", research.context.status.value)
         logger.info("status=%s provider_health=%s report=%s", result.report["status"], provenance["provider_health"], directory)
-        persisted = persist_report(result, self.paths)
-        return {
-            **persisted.report,
-            "report_json": str(persisted.report_json),
-            "report_markdown": str(persisted.report_markdown),
-        }
+        return self._complete_report(result.report)
+
+    def _complete_report(self, payload: dict[str, object]) -> dict[str, object]:
+        try:
+            json_path, markdown_path = persist_run_report(payload, self.paths)
+            return {**payload, "report_json": str(json_path), "report_markdown": str(markdown_path)}
+        except OSError:
+            # Analysis may already be durable. Keep its identity and append a failure
+            # receipt rather than replacing immutable evidence or inventing a new run.
+            outputs = payload.get("output_files", {})
+            outputs = outputs if isinstance(outputs, dict) else {}
+            raw_readiness = payload.get("readiness", {})
+            raw_readiness = raw_readiness if isinstance(raw_readiness, dict) else {}
+            readiness = RecommendationReadiness.model_validate({key: value for key, value in raw_readiness.items()
+                if key in RecommendationReadiness.model_fields}).model_copy(update={"runtime_health": ReadinessStatus.FAILED})
+            failure = {**payload, "status": "FAILED", "runtime_status": "FAILED", "exit_code": 3,
+                "error_code": "MERIDIAN_REPORT_WRITE_FAILED", "error_category": "USER_FIXABLE",
+                "recommendation_status": "BLOCKED", "report_persistence_status": "FAILED",
+                "readiness": readiness.model_dump(mode="json"),
+                "errors": ["MERIDIAN_REPORT_WRITE_FAILED"],
+                "next_actions": ["Check report directory permissions, free space and file locks. Partial files are not a completed report; preserve audit history and use this run_id for diagnosis."],
+                "partial_output_files": {key: value for key, value in outputs.items() if key != "log" and Path(str(value)).is_file()},
+                "output_files": {key: value for key, value in outputs.items() if key == "log" and Path(str(value)).is_file()},
+                "audit_failure_recorded": True}
+            try:
+                AuditStore(self.paths.db).write_readiness(str(payload["run_id"]) + ":report-failure",
+                    str(payload["analysis_time"]), "FAILED",
+                    {"event_type": "REPORT_PERSISTENCE_FAILED", "parent_run_id": payload["run_id"],
+                     "error_code": failure["error_code"], "runtime_status": "FAILED"})
+            except (OSError, sqlite3.Error):
+                failure["audit_failure_recorded"] = False
+            return failure
 
     def data_status(self) -> dict[str, object]:
         policies = load_policies(policy_directory())

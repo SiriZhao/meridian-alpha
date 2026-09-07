@@ -143,6 +143,10 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
     readiness = readiness if isinstance(readiness, dict) else {}
     lines = ["# Meridian daily research report", "", f"Run ID: `{report['run_id']}`",
              f"Runtime: **{report.get('runtime_status', 'UNKNOWN')}**; Analysis: **{report['status']}**",
+             f"Account freshness: **{readiness.get('account_snapshot_freshness', 'UNKNOWN')}**; "
+             f"Market freshness: **{readiness.get('market_data_freshness', 'UNKNOWN')}**",
+             f"Research invocation: **{report.get('research_status', 'NOT_RUN')}**; "
+             f"Decision: **{readiness.get('decision_pipeline_status', 'NOT_RUN')}**",
              "", "## Recommendation readiness", "",
              f"Recommendation: **{readiness.get('recommendation_readiness', 'UNKNOWN')}**",
              f"Research: **{readiness.get('research_readiness', 'UNKNOWN')}**",
@@ -151,6 +155,16 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
              "## Blockers", ""]
     blockers = list(report.get("blocked_reasons", [])) + list(readiness.get("blockers", []))  # type: ignore[arg-type]
     lines.extend(f"- {item}" for item in dict.fromkeys(blockers))
+    snapshot = report.get("snapshot_provenance", {})
+    snapshot = snapshot if isinstance(snapshot, dict) else {}
+    lines.extend(["", "## Input verification", "",
+                  f"Account freshness: **{readiness.get('account_snapshot_freshness', 'UNKNOWN')}**; "
+                  f"novelty: **{snapshot.get('novelty', 'UNKNOWN')}**; "
+                  f"age seconds: {snapshot.get('age_seconds', 'UNKNOWN')}.",
+                  f"Account provenance: **{readiness.get('account_provenance', 'UNKNOWN')}**; "
+                  f"diagnostic: {snapshot.get('code', 'UNKNOWN')}.",
+                  f"Market freshness: **{readiness.get('market_data_freshness', 'UNKNOWN')}**; "
+                  f"mode: {report.get('data_mode', 'NOT_RUN')}."])
     lines.extend(["", "## Operator stages", "", "| Stage | Status |", "| --- | --- |"])
     for label, key in (("Market", "data_status"), ("Account", "portfolio_status"),
                        ("Research", "research_status"), ("Decision", "status")):
@@ -165,7 +179,8 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
     research = report.get("research", {})
     if isinstance(research, dict):
         lines.extend(["", "## Research (MODEL_INFERENCE; advisory only)", "",
-                      f"Provider evidence: {research.get('provenance', 'NONE')}; "
+                      f"Provider/model: {research.get('provider', 'NOT_RUN')}/{research.get('model', 'NOT_RUN')}; "
+                      f"provider evidence: {research.get('provenance', 'NONE')}; "
                       f"attempts: {research.get('attempts', 0)}; "
                       f"diagnostic: {research.get('error_code') or 'none'}."])
         context = research.get("context", {})
