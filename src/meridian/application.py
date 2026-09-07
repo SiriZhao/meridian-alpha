@@ -246,7 +246,9 @@ class MeridianApplicationService:
             return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
         health = provenance.get("provider_health")
         health = health if isinstance(health, dict) else {}
-        inputs_ready = not closure._gates(account, quotes, cutoff)
+        input_blockers = closure._gates(account, quotes, cutoff)
+        inputs_ready = not input_blockers
+        market_valid = bool(quotes) and not any("MARKET" in reason for reason in input_blockers)
         request = DailyResearchInput(parent_run_id=parent_id, analysis_cutoff=cutoff,
             mode="FIXTURE" if market_fixture or snapshot.source_kind == "FIXTURE" else "LIVE",
             snapshot_reference=snapshot.content_hash or "UNAVAILABLE",
@@ -266,7 +268,7 @@ class MeridianApplicationService:
         result = closure.run(account, quotes, cutoff=cutoff, research=research.context, evaluated_at=evaluated_at)
         result.report.update({"research": research.model_dump(mode="json"), "research_input": request.model_dump(mode="json"),
             "stages": [
-                {"stage": "market", "run_id": parent_id, "start": market_started.isoformat(), "finish": market_finished.isoformat(), "duration_seconds": (market_finished - market_started).total_seconds(), "status": "PASS" if quotes else "BLOCKED", "error_code": market_error, "next_action": "Review provider probes and freshness."},
+                {"stage": "market", "run_id": parent_id, "start": market_started.isoformat(), "finish": market_finished.isoformat(), "duration_seconds": (market_finished - market_started).total_seconds(), "status": "PASS" if market_valid else "BLOCKED", "error_code": market_error or (None if market_valid else "MARKET_INPUT_NOT_READY"), "next_action": "Review provider probes and freshness."},
                 {"stage": "research", "run_id": parent_id, "start": research.started_at.isoformat(), "finish": research.finished_at.isoformat(), "duration_seconds": research.duration_seconds, "status": research.context.status.value, "error_code": research.error_code, "next_action": research.next_action},
                 {"stage": "decision", "run_id": parent_id, "start": evaluated_at.isoformat(), "finish": datetime.now(UTC).isoformat(), "duration_seconds": (datetime.now(UTC) - evaluated_at).total_seconds(), "status": result.decision.overall_status.value, "error_code": None, "next_action": "Review deterministic policy gates; no manual authority inferred."},
             ]})

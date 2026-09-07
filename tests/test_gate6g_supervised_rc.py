@@ -147,10 +147,15 @@ def test_readiness_certificate_requires_all_seven_and_fixture_is_not_real_ready(
     assert issue_manual_readiness_certificate(certificate_id="blocked", run_id="run-6g", decision_as_of=T, issued_at=T, hashes={name: H for name in ("account_snapshot_hash", "security_master_manifest_hash", "market_state_hash", "research_state_hash", "risk_state_hash", "reconciliation_state_hash", "policy_hash")}, gates=gates, execution_quote_certificate_id="cert-6g").status is ManualReadinessStatus.BLOCKED
 
 
-def test_gate6g_runner_reports_missing_real_gates_without_secrets() -> None:
-    from scripts.gate6g_supervised_rc import run
+def test_gate6g_runner_reports_missing_real_gates_without_secrets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from scripts import gate6g_supervised_rc as runner
 
-    report = run(probe=False)
+    user_report = ROOT / "reports" / "gate6g-quote-preflight.json"
+    original = user_report.read_bytes()
+    monkeypatch.setattr(runner, "REPORTS", tmp_path)
+    report = runner.run(probe=False)
+    assert user_report.read_bytes() == original
+    assert (tmp_path / "gate6g-quote-preflight.json").is_file()
     assert report["host"]["real_input_present"] is False
     assert report["manual_rc"]["status"] == "BLOCKED_REAL_HOST_INPUT"
     assert report["manual_rc"]["manual_entry_ready"] is False

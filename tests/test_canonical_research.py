@@ -116,6 +116,8 @@ def test_canonical_research_report_and_persistence(tmp_path, monkeypatch, future
     result = MeridianApplicationService(paths, research_stage=stage).daily(account, market)
     assert result["research_status"] == ("BLOCKED" if future else "AVAILABLE" if http == 200 else "AUTH_FAILED")
     assert len(calls) == (0 if future else 1)
+    assert isinstance(result["stages"], list)
+    assert result["stages"][0]["status"] == ("BLOCKED" if future else "PASS")
     assert isinstance(result["readiness"], dict)
     assert isinstance(result["manual_authority"], dict)
     assert isinstance(result["decision_context"], dict)
