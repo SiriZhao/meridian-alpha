@@ -31,6 +31,7 @@ class ReadinessGateResult(StableModel):
     gate: str = Field(min_length=1, max_length=64)
     status: ReadinessStatus
     reason: str = Field(min_length=1, max_length=512)
+    evidence: tuple[str, ...] = ()
 
 
 class HostReadinessReport(StableModel):

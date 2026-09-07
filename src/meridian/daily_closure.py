@@ -11,6 +11,7 @@ from pathlib import Path
 
 from meridian.allocation import allocate_with_fallback
 from meridian.config import Policies
+from meridian.daily_research import ResearchDecisionContext
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.orders import OrderPlanner, ProjectedPortfolioValidator
 from meridian.reconciliation import ReconciliationEngine, ReconciliationResult
@@ -56,19 +57,39 @@ class DailyClosureResult:
     report_markdown: Path | None = None
 
 
+def daily_run_id(account: AccountSnapshot, quotes: dict[str, MarketSnapshot], cutoff: datetime, policies: Policies) -> str:
+    market = _hash({ticker: quote.model_dump(mode="json") for ticker, quote in sorted(quotes.items())})
+    return "daily-" + _hash({"snapshot": account.stable_json(), "market": market, "cutoff": cutoff.isoformat(), "policy": _hash(policies.models.model_dump(mode="json"))})[:24]
+
+
 class DailyClosureService:
     """The only Stage-C closure service; it never enables broker submission."""
 
     def __init__(self, policies: Policies) -> None:
         self.policies = policies
 
-    def run(self, account: AccountSnapshot, quotes: dict[str, MarketSnapshot], *, cutoff: datetime) -> DailyClosureResult:
+    def run(self, account: AccountSnapshot, quotes: dict[str, MarketSnapshot], *, cutoff: datetime,
+            research: ResearchDecisionContext | None = None, evaluated_at: datetime | None = None) -> DailyClosureResult:
+        expected = daily_run_id(account, quotes, cutoff, self.policies)
+        if research is not None and (research.parent_run_id != expected or research.analysis_cutoff != cutoff):
+            raise ValueError("RESEARCH_DECISION_CONTEXT_MISMATCH")
+        result = self._run(account, quotes, cutoff=cutoff, evaluated_at=evaluated_at)
+        result.report["decision_context"] = {
+            "research_run_id": research.research_run_id if research else None,
+            "research_input_hash": research.input_hash if research else None,
+            "research_status": research.status.value if research else "NOT_RUN",
+            "authority": "ADVISORY_ONLY", "financial_parameters_source": "DETERMINISTIC_POLICY_AND_MARKET",
+            "research": research.output.model_dump(mode="json") if research and research.output else None,
+        }
+        return result
+
+    def _run(self, account: AccountSnapshot, quotes: dict[str, MarketSnapshot], *, cutoff: datetime, evaluated_at: datetime | None = None) -> DailyClosureResult:
         if cutoff.tzinfo is None or cutoff.utcoffset() is None:
             raise ValueError("DAILY_CUTOFF_TIMEZONE_REQUIRED")
         market_hash = _hash({ticker: quote.model_dump(mode="json") for ticker, quote in sorted(quotes.items())})
         policy_hash = _hash(self.policies.models.model_dump(mode="json"))
-        run_id = "daily-" + _hash({"snapshot": account.stable_json(), "market": market_hash, "cutoff": cutoff.isoformat(), "policy": policy_hash})[:24]
-        blockers = self._gates(account, quotes, cutoff)
+        run_id = daily_run_id(account, quotes, cutoff, self.policies)
+        blockers = self._gates(account, quotes, cutoff, evaluated_at=evaluated_at)
         if account.total_equity == 0:
             return self._result(run_id, account, cutoff, None, (), RunStatus.NO_CAPITAL, ("NO_CAPITAL",), quotes, market_hash, policy_hash)
         if blockers:
@@ -87,15 +108,18 @@ class DailyClosureService:
         status = RunStatus.DRAFT if orders and not failures else RunStatus.NO_ACTION if not failures else RunStatus.FAILED
         return self._result(run_id, account, cutoff, approved, orders if not failures else (), status, failures, selected, market_hash, policy_hash, reconciliation)
 
-    def _gates(self, account: AccountSnapshot, quotes: dict[str, MarketSnapshot], cutoff: datetime) -> tuple[str, ...]:
+    def _gates(self, account: AccountSnapshot, quotes: dict[str, MarketSnapshot], cutoff: datetime, *, evaluated_at: datetime | None = None) -> tuple[str, ...]:
+        evaluated = evaluated_at or cutoff
+        if evaluated.tzinfo is None or evaluated < cutoff:
+            raise ValueError("DECISION_EVALUATION_TIME_INVALID")
         blockers: list[str] = []
-        if account.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT} or account.as_of > cutoff or (cutoff - account.as_of).total_seconds() > self.policies.data.account_snapshot_max_age_seconds or account.sync_state is not AccountSyncState.SYNCED:
+        if account.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT} or account.as_of > cutoff or (evaluated - account.as_of).total_seconds() > self.policies.data.account_snapshot_max_age_seconds or account.sync_state is not AccountSyncState.SYNCED:
             blockers.append("ACCOUNT_SNAPSHOT_STALE_OR_AFTER_CUTOFF")
         selected = {ticker: quote for ticker, quote in quotes.items() if ticker in self.policies.universe.tickers}
         if not selected:
             blockers.append("REQUIRED_OPERATIONAL_MARKET_DATA_UNAVAILABLE")
         for ticker, quote in selected.items():
-            if quote.timestamp > cutoff or (cutoff - quote.timestamp).total_seconds() > self.policies.data.quote_max_age_seconds or quote.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT}:
+            if quote.timestamp > cutoff or (evaluated - quote.timestamp).total_seconds() > self.policies.data.quote_max_age_seconds or quote.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT}:
                 blockers.append(f"{ticker}:MARKET_STALE_OR_AFTER_CUTOFF")
         return tuple(blockers)
 
@@ -127,6 +151,31 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
              "## Blockers", ""]
     blockers = list(report.get("blocked_reasons", [])) + list(readiness.get("blockers", []))  # type: ignore[arg-type]
     lines.extend(f"- {item}" for item in dict.fromkeys(blockers))
+    lines.extend(["", "## Operator stages", "", "| Stage | Status |", "| --- | --- |"])
+    for label, key in (("Market", "data_status"), ("Account", "portfolio_status"),
+                       ("Research", "research_status"), ("Decision", "status")):
+        lines.append(f"| {label} | {report.get(key, 'NOT_RUN')} |")
+    lines.extend(["", "## Gates", ""])
+    gates = report.get("gates", [])
+    if isinstance(gates, list) and gates:
+        lines.extend(f"- {gate['gate']}: **{gate['status']}** — {gate['reason']}"
+                     for gate in gates if isinstance(gate, dict))
+    else:
+        lines.append("NOT_RUN: upstream inputs unavailable; no authority issued.")
+    research = report.get("research", {})
+    if isinstance(research, dict):
+        lines.extend(["", "## Research (MODEL_INFERENCE; advisory only)", "",
+                      f"Provider evidence: {research.get('provenance', 'NONE')}; "
+                      f"attempts: {research.get('attempts', 0)}; "
+                      f"diagnostic: {research.get('error_code') or 'none'}."])
+        context = research.get("context", {})
+        output = context.get("output") if isinstance(context, dict) else None
+        if isinstance(output, dict):
+            # Indented text renders model prose as literal content, never links/HTML.
+            for item in output.get("results", []):
+                lines.append("")
+                lines.extend("    " + line for line in
+                             (str(item.get("ticker")) + ": " + str(item.get("thesis"))).splitlines())
     lines.extend(["", "## Next actions", ""])
     lines.extend(f"- {item}" for item in report.get("next_actions", []))  # type: ignore[union-attr]
     lines.extend(["", "## Research-only draft — NOT AUTHORIZED FOR MANUAL ENTRY", ""])
