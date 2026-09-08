@@ -204,10 +204,54 @@ def test_mcp_refuses_ready_status_without_persisted_certificate(monkeypatch: pyt
         def get_decision_summary(self, run_id: str) -> dict[str, object]:
             return {"run": {"overall_status": "READY_FOR_MANUAL_ENTRY"}, "orders": [{"status": "DRAFT"}]}
 
-    monkeypatch.setattr(mcp_server, "STORE", FakeStore())
+    monkeypatch.setattr(mcp_server, "_store", lambda: FakeStore())
     result = mcp_server.get_order_ticket("run-1")
     assert result["ticket_available"] is False
     assert "CERTIFICATE" in str(result["reason"])
+
+
+def test_mcp_host_envelope_routes_to_canonical_application_service(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from meridian import mcp_server
+    from meridian.host_account import HostAccountSnapshotEnvelope, HostCoverageStatus
+    from meridian.runtime import RuntimePaths
+
+    now = datetime.now(UTC)
+    envelope = HostAccountSnapshotEnvelope(
+        snapshot_id="mcp-route-audit",
+        source_kind="HOST_SANITIZED",
+        source_name="authorized-host",
+        as_of=now,
+        retrieved_at=now,
+        coverage_status=HostCoverageStatus.COMPLETE,
+        cash=Decimal("1000"),
+        total_equity=Decimal("1000"),
+    )
+    paths = RuntimePaths.from_environment({"MERIDIAN_HOME": str(tmp_path)})
+    seen = []
+
+    class FakeService:
+        def __init__(self) -> None:
+            self.paths = paths
+
+        def daily(self, snapshot_path):
+            seen.append(snapshot_path)
+            assert HostAccountSnapshotEnvelope.model_validate_json(
+                snapshot_path.read_text(encoding="utf-8")
+            ) == envelope
+            return {
+                "run_id": "canonical-mcp-audit",
+                "status": "DRAFT",
+                "broker_submission": "DISABLED",
+            }
+
+    monkeypatch.setattr(mcp_server, "_service", FakeService)
+    result = mcp_server.run_host_daily_analysis(envelope, now)
+
+    assert result["run_id"] == "canonical-mcp-audit"
+    assert result["broker_submission"] == "DISABLED"
+    assert len(seen) == 1 and not seen[0].exists()
 
 
 def test_manual_draft_has_no_fill_side_effects() -> None:
