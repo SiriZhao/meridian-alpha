@@ -58,6 +58,41 @@ For synthetic regression only, add `--market-fixture <synthetic-market.json>`
 with a synthetic account. Fixture success is not production verification.
 Old `--profile`, `--date`, and `--account-fixture` commands are historical.
 
+## Schwab-Paper daily workflow
+
+For the default persistent paper account, the only daily command is:
+
+```powershell
+.\scripts\run_meridian.ps1 paper run --account Schwab-Paper --json
+```
+
+On its first use it creates `Schwab-Paper` with USD 100,000.00 cash. Later
+runs load the same SQLite ledger and never reset it. The command creates a
+fresh internal `PAPER_LEDGER` account observation, calls the existing canonical
+daily path, attempts the configured DeepSeek advisory stage through its normal
+credential boundary, evaluates deterministic decisions and gates, and simulates
+only eligible paper fills. It writes canonical and Schwab-Paper JSON/Markdown
+reports under the runtime home.
+
+Paper fills require a NYSE regular session, fresh public market observations,
+validated advisory research, a completed deterministic decision and current
+portfolio constraints. Closed/stale/unavailable inputs return `PAPER_BLOCKED`
+with evidence; no fixture, prior LLM response or stale quote is substituted.
+Public quotes remain `PUBLIC_RESEARCH_QUOTE`, never certified execution quotes.
+Paper execution does not grant manual authority and broker submission remains
+disabled.
+
+Useful read-only commands are:
+
+```powershell
+.\scripts\run_meridian.ps1 paper status --account Schwab-Paper --json
+.\scripts\run_meridian.ps1 paper history --account Schwab-Paper --json
+.\scripts\run_meridian.ps1 paper trades --account Schwab-Paper --json
+```
+
+`paper init` is idempotent. `paper reset` requires `--confirm-reset` with the
+exact account name and is never called by `paper run` or the Skill. See
+[Schwab-Paper operations](docs/schwab-paper.md).
 ## Common errors
 
 - Missing Python: install Python 3.12 and sync dependencies.

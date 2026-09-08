@@ -11,7 +11,7 @@ Doctor probes real directory creation/read/write/delete, Python/dependencies,
 config, timezone and SQLite schema/integrity. Optional adapter presence is
 UNKNOWN provider availability, never a successful live probe.
 
-Fresh DB is PENDING in doctor; daily applies the SQLite v1 → v2 migration.
+Fresh DB is PENDING in doctor; daily applies the SQLite v1 → v3 migration.
 Init is idempotent. A newer schema is rejected. Migration and audit connections
 are explicitly closed, including on failure. No Alembic or external DB exists.
 
@@ -25,6 +25,29 @@ a fixed cutoff and rejects observations received afterward. Public inputs are
 not certified execution quotes. Closed-market stale quotes remain blocked.
 
 
+## Schwab-Paper runtime
+
+`paper run --account Schwab-Paper --json` is the canonical persistent paper
+portfolio workflow. It uses the existing SQLite database and creates the
+account at USD 100,000.00 only when it does not yet exist. Its paper ledger
+contains no broker account identifier, credential, raw Host snapshot or broker
+connector response. A ledger observation is exported as a temporary sanitized
+`PAPER_LEDGER` envelope and removed after canonical daily consumes it.
+
+SQLite v3 adds paper accounts, positions, fills, cash-ledger entries, daily
+idempotency receipts and NAV history in the existing AuditStore database. The
+migration is transactional and rejects newer schemas. A same-state paper
+observation at a later time is new evidence; resubmitting the old artifact is
+still replayed. Paper fills update fill, cash, average cost, realized P&L,
+positions and ledger sequence in one `BEGIN IMMEDIATE` transaction.
+
+Paper execution requires regular-session fresh public inputs, validated
+canonical advisory research, a deterministic completed decision and existing
+risk/execution constraints. It uses configured paper slippage/commission from
+`policies/paper.yaml` and tracks SPY from inception. Dividends are explicitly
+`NOT_IMPLEMENTED`. Paper execution is separate from recommendation/manual
+readiness: public quotes stay uncertified, manual authority stays governed by
+the sealed seven gates, and no broker submission exists.
 ## Recommendation readiness and persistence
 
 `RecommendationReadiness` extends the existing host readiness vocabulary.

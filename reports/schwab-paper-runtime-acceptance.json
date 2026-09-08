@@ -1,0 +1,85 @@
+{
+  "schema_version": "meridian-schwab-paper-acceptance.v1",
+  "generated_at": "2026-09-08T05:45:01Z",
+  "git": {
+    "branch": "astra/schwab-paper-runtime",
+    "starting_commit": "ccbadb3",
+    "implementation_commit": "PENDING"
+  },
+  "baseline": {
+    "pytest": {"status": "VERIFIED", "evidence": "384 passed in 33.16s"},
+    "ruff": {"status": "VERIFIED", "evidence": "All checks passed"},
+    "pyright": {"status": "VERIFIED", "evidence": "0 errors, 0 warnings"},
+    "pip_check": {"status": "VERIFIED", "evidence": "No broken requirements found"}
+  },
+  "persistence": {
+    "status": "VERIFIED",
+    "evidence": [
+      "SQLite schema v2 to v3 migration preserved a user table in regression coverage",
+      "paper initialization is idempotent and restart-safe",
+      "paper fill/cash/position/ledger mutation is one transaction",
+      "same-day execution receipt prevents duplicate fills"
+    ]
+  },
+  "paper_account": {
+    "status": "VERIFIED",
+    "account_name": "Schwab-Paper",
+    "environment": "PAPER",
+    "initial_capital": "100000.00 USD",
+    "provenance": "INTERNAL_PAPER_LEDGER",
+    "real_broker_account": "NOT_CLAIMED"
+  },
+  "canonical_integration": {
+    "status": "VERIFIED",
+    "call_chain": "paper ledger -> temporary PAPER_LEDGER envelope -> canonical daily -> market -> advisory research -> deterministic decision/gates -> paper execution -> ledger/report",
+    "fixture_fallback": "DISABLED",
+    "manual_authority": "UNCHANGED_AND_BLOCKED_FOR_PUBLIC_QUOTES"
+  },
+  "execution_model": {
+    "status": "VERIFIED",
+    "authority": "PAPER_EXECUTION_ONLY",
+    "long_only": true,
+    "same_day_idempotency": "VERIFIED",
+    "slippage_bps": "5",
+    "commission_per_order": "1.00 USD",
+    "benchmark": "SPY",
+    "dividends": "NOT_IMPLEMENTED",
+    "quote_certification": "BLOCKED"
+  },
+  "windows_and_installation": {
+    "launcher_outside_checkout": "VERIFIED",
+    "wheel_outside_checkout": "VERIFIED",
+    "wheel_smoke": "paper init and paper status both exit 0"
+  },
+  "real_canonical_probe": {
+    "status": "DEGRADED",
+    "run_id": "daily-c9f001c1661c7630c1c24536",
+    "command": "scripts/run_meridian.ps1 paper run --account Schwab-Paper --json",
+    "runtime": "PASS",
+    "paper_account_auto_initialized": true,
+    "market_session": "CLOSED",
+    "yahoo": "STALE",
+    "stooq": "UNAVAILABLE_HTTP_404",
+    "research": "BLOCKED_RESEARCH_INPUT_NOT_READY; no HTTP request sent",
+    "decision": "BLOCKED_STALE_MARKET",
+    "paper_execution": "PAPER_BLOCKED",
+    "fills": 0,
+    "reports": "canonical JSON/Markdown plus paper JSON/Markdown created"
+  },
+  "acceptance_matrix": [
+    {"item": "paper ledger/accounting", "status": "VERIFIED"},
+    {"item": "paper snapshot provenance/replay", "status": "VERIFIED"},
+    {"item": "canonical daily integration", "status": "VERIFIED"},
+    {"item": "live market freshness", "status": "BLOCKED", "reason": "CLOSED session; Yahoo stale; Stooq unavailable"},
+    {"item": "live canonical advisory research", "status": "NOT_TESTED", "reason": "fresh market prerequisites absent"},
+    {"item": "live paper fills", "status": "BLOCKED", "reason": "paper authority requires fresh market and validated research"},
+    {"item": "real Host production acceptance", "status": "BLOCKED", "reason": "unchanged: no real Host snapshot supplied"},
+    {"item": "manual execution authority", "status": "BLOCKED", "reason": "public quotes are not certified execution quotes"}
+  ],
+  "verdict": "ENGINEERING_VERIFIED; LIVE_PAPER_EXECUTION_NOT_YET_VERIFIED",
+  "next_actions": [
+    "Run the same canonical paper command during a NYSE regular session with fresh public observations.",
+    "Allow the configured canonical research provider to return a validated response; retain the actual evidence.",
+    "Do not use a fixture or modify freshness/policy thresholds to promote live acceptance."
+  ]
+}

@@ -2,6 +2,28 @@
 
 Follow the canonical Windows command in [README](../README.md).
 
+## Daily Schwab-Paper operation
+
+For normal paper operation, run exactly one command:
+
+```powershell
+.\scripts\run_meridian.ps1 paper run --account Schwab-Paper --json
+```
+
+Do not create or edit an account envelope, cash balance, position file or
+market fixture. The command safely initializes the default USD 100,000.00
+account only once, exports a fresh paper-ledger observation, invokes canonical
+daily and attempts paper-only fills after the same market/research/decision
+checks. Inspect `output_files.paper_report_markdown` and the structured
+`paper_execution` result. `PAPER_BLOCKED` is a valid, non-destructive outcome
+when the market is closed, public inputs are stale or research is unavailable.
+
+Use `paper status`, `paper history`, and `paper trades` for inspection. Never
+call `paper reset` in normal operation; it requires an exact explicit
+`--confirm-reset` account-name confirmation.
+
+## External Host operation
+
 1. Run doctor; correct FAIL diagnostics. Daily initializes a missing DB.
 2. Supply a new sanitized HostAccountSnapshotEnvelope; never assume prior fills.
 3. Run daily --snapshot <absolute-file> --json.

@@ -1,47 +1,51 @@
 ---
 name: meridian-alpha
-description: Run Meridian daily portfolio decision support through its installed canonical CLI, diagnose runtime failures, and present sanitized research-only results without broker execution.
+description: Run Meridian's authoritative Schwab-Paper daily portfolio workflow through the installed canonical CLI, inspect its persistent account, and present paper-only results without broker execution.
 ---
 
-# Meridian daily operation
+# Meridian Schwab-Paper operation
 
-Use the installed `meridian` command (equivalently `python -m meridian`). On
-this Windows checkout the stable launcher is `scripts/run_meridian.ps1`.
-Do not call legacy internal CLI modules or the old scripts in this Skill.
+For the user request **“运行今天的 Meridian”**, immediately run the single
+canonical paper workflow. Do not ask for an account name, snapshot file, cash,
+market fixture, report path, provider or Python path.
 
-1. Run `meridian doctor --json`. If the only degraded check is a missing DB,
-   daily initializes it safely. For FAIL, resolve the reported runtime issue.
-2. Obtain a newly supplied sanitized `HostAccountSnapshotEnvelope`; see
-   [account-contract.md](references/account-contract.md). Never infer current
-   cash, holdings or fills from conversation history or earlier recommendations.
-3. Run `meridian daily --snapshot <absolute-sanitized-envelope.json> --json`.
-   It performs initialization/preflight, public market retrieval, deterministic
-   analysis, audit persistence and report generation. No real snapshot: request
-   one; never substitute a synthetic account for a real daily request.
-4. Read the JSON result and its `output_files`. Present runtime/data/portfolio/
-   research/quant/risk/recommendation status, warnings, errors and report paths.
-   Read the typed `readiness` object, `snapshot_provenance`, and `provider_probes`.
-   Runtime PASS does not imply recommendation PASS. UNKNOWN, NOT_RUN, stale,
-   incomplete, replayed, synthetic, and unauthenticated inputs cannot authorize
-   recommendation. `quote_certification_status` remains BLOCKED for public data.
-   Missing/replayed snapshots produce diagnostic reports without running analysis.
-   Validate-only does not consume a snapshot; daily atomically records its hash.
-   A blocked investment recommendation is distinct from a runtime failure.
+```powershell
+scripts/run_meridian.ps1 paper run --account Schwab-Paper --json
+```
 
-For regression only, add `--market-fixture <absolute-synthetic-market.json>`
-with a synthetic account. Label results FIXTURE; never claim live verification.
-Read `research`, `decision_context`, `gates`, and `stages` in the daily JSON.
-Enabled research uses validated public inputs; AVAILABLE requires a validated
-response, and FIXTURE is never a live probe. Disabled research is NOT_RUN.
-Advisory output cannot confer certified research or manual-entry authority. Old `--profile`, `--date`, and `--account-fixture`
-arguments are not supported by this CLI.
+The command initializes `Schwab-Paper` to USD 100,000.00 only once. It loads the
+persistent SQLite paper ledger, exports a fresh internal `PAPER_LEDGER` envelope,
+then invokes the existing canonical daily path for preflight, live public market
+retrieval, structured advisory research, deterministic decision/gates, eligible
+paper fills, accounting, persistence and reports. It never resets the account,
+uses a fixture, infers cash/positions/fills, or runs a shadow daily pipeline.
 
-All current outputs are research-only and NOT_AUTHORIZED_FOR_MANUAL_ENTRY.
-DRAFT is not a sealed ManualReadinessCertificate. A manual-entry candidate
-requires all seven authority gates and a matching certified ExecutionQuote;
-never derive that authority from a successful process exit or report status.
-No broker login, write, execution, or assumed fills. Do not read or print
-credentials or raw account identifiers. See [safety.md](references/safety.md).
+Read the JSON result before responding. Report only these concise operator facts:
+status, NAV, cash, position count, daily/since-inception return if present,
+benchmark/excess return if present, research status, decision status,
+`paper_execution.status`, blockers, and `output_files.paper_report_markdown`.
+A `PAPER_BLOCKED` result is a normal honest outcome: state the exact blocker and
+next action. Do not treat runtime completion, public quotes, advisory research,
+recommendation readiness, paper execution or manual authority as equivalent.
 
-If the installed Python/package is missing, report MERIDIAN_RUNTIME_UNAVAILABLE
-with the missing capability. Do not reproduce financial calculations in prose.
+Public inputs remain `PUBLIC_RESEARCH_QUOTE`; they never become certified
+execution quotes. `PAPER_EXECUTION_ONLY` never grants a manual recommendation
+certificate. Broker submission is disabled. Never read, print, log or write a
+credential, raw account identifier or raw snapshot.
+
+For inspection requests, use the matching read-only canonical command:
+
+```powershell
+scripts/run_meridian.ps1 paper status --account Schwab-Paper --json
+scripts/run_meridian.ps1 paper history --account Schwab-Paper --json
+scripts/run_meridian.ps1 paper trades --account Schwab-Paper --json
+```
+
+Do not run `paper reset` during normal operation. It is a destructive explicit
+operator action requiring `--confirm-reset Schwab-Paper`; ordinary daily use and
+this Skill must never invoke it.
+
+The original real-Host acceptance workflow remains separate. Only when the user
+explicitly requests real Host analysis, require a newly supplied authorized
+sanitized `HostAccountSnapshotEnvelope` and use `daily --snapshot <absolute-file>
+--json`. A paper ledger must never be presented as a real broker account.
