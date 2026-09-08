@@ -12,6 +12,7 @@ from typing import Literal
 from pydantic import AwareDatetime, Field, model_validator
 
 from meridian.research import GroundedResearchResult
+from meridian.research_universe import ResearchUniversePlan
 from meridian.schemas import StableModel
 
 
@@ -51,6 +52,7 @@ class DailyResearchInput(StableModel):
     observations: tuple[PublicResearchObservation, ...]
     freshness_status: Literal["PASS", "BLOCKED"] = "BLOCKED"
     provider_provenance: dict[str, str] = Field(default_factory=dict)
+    universe_plan: ResearchUniversePlan | None = None
 
     @model_validator(mode="after")
     def temporal_boundary(self) -> DailyResearchInput:
@@ -58,6 +60,10 @@ class DailyResearchInput(StableModel):
             raise ValueError("RESEARCH_INPUT_AFTER_CUTOFF")
         if len({item.ticker for item in self.observations}) != len(self.observations):
             raise ValueError("RESEARCH_DUPLICATE_SYMBOL")
+        if self.universe_plan is not None and tuple(
+            item.ticker for item in self.observations
+        ) != self.universe_plan.deep_analysis_universe:
+            raise ValueError("RESEARCH_UNIVERSE_PLAN_MISMATCH")
         return self
 
     @property

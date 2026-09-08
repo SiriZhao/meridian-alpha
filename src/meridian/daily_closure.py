@@ -181,6 +181,8 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
     provider = provider if isinstance(provider, dict) else {}
     market_status = startup.get("market_status", {})
     market_status = market_status if isinstance(market_status, dict) else {}
+    research_universe = report.get("research_universe", {})
+    research_universe = research_universe if isinstance(research_universe, dict) else {}
     lines = ["# Meridian daily research report", "", f"Run ID: `{report['run_id']}`",
              f"Environment: **{environment.get('status', report.get('runtime_status', 'UNKNOWN'))}**",
              f"Cache: **{cache.get('status', 'UNKNOWN')}** ({cache.get('error_code') or 'healthy'})",
@@ -193,6 +195,10 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
              f"Market freshness: **{readiness.get('market_data_freshness', 'UNKNOWN')}**",
              f"Research invocation: **{report.get('research_status', 'NOT_RUN')}**; "
              f"Decision: **{readiness.get('decision_pipeline_status', 'NOT_RUN')}**",
+             f"Research universe: **{research_universe.get('mode', 'full')}**; "
+             f"eligible {research_universe.get('original_count', 0)} -> "
+             f"research {research_universe.get('research_count', 0)} -> "
+             f"deep analysis {research_universe.get('deep_analysis_count', 0)}",
              "", "## Recommendation readiness", "",
              f"Recommendation: **{readiness.get('recommendation_readiness', 'UNKNOWN')}**",
              f"Research: **{readiness.get('research_readiness', 'UNKNOWN')}**",

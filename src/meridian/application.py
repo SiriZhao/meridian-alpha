@@ -46,6 +46,7 @@ from meridian.operational_data import FreshnessPolicy
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
 from meridian.paper import DEFAULT_ACCOUNT, DEFAULT_INITIAL_CASH, PaperLedger, PaperSettings
 from meridian.research_stage import CanonicalResearchStage
+from meridian.research_universe import ResearchUniverseScheduler
 from meridian.runtime import RuntimePaths, policy_directory
 from meridian.runtime_diagnostics import report as doctor_report
 
@@ -53,9 +54,18 @@ from meridian.runtime_diagnostics import report as doctor_report
 class MeridianApplicationService:
     """Thin canonical application layer; it owns no allocator, risk, or pricing logic."""
 
-    def __init__(self, paths: RuntimePaths | None = None, *, research_stage: CanonicalResearchStage | None = None) -> None:
+    def __init__(
+        self,
+        paths: RuntimePaths | None = None,
+        *,
+        research_stage: CanonicalResearchStage | None = None,
+        research_universe_scheduler: ResearchUniverseScheduler | None = None,
+    ) -> None:
         self.paths = paths or RuntimePaths.from_environment()
         self.research_stage = research_stage or CanonicalResearchStage()
+        self.research_universe_scheduler = (
+            research_universe_scheduler or ResearchUniverseScheduler()
+        )
 
     def version(self) -> dict[str, object]:
         try:
@@ -309,17 +319,39 @@ class MeridianApplicationService:
         input_blockers = closure._gates(account, quotes, cutoff)
         inputs_ready = not input_blockers
         market_valid = bool(quotes) and not any("MARKET" in reason for reason in input_blockers)
+        eligible_research_tickers = tuple(
+            ticker
+            for ticker in sorted(quotes)
+            if ticker in policies.universe.tickers and inputs_ready
+        )
+        universe_plan = (
+            self.research_universe_scheduler.plan(
+                eligible_research_tickers,
+                quotes,
+                policy=settings.budget,
+                existing_holdings=tuple(holding.ticker for holding in account.holdings),
+            )
+            if settings is not None and eligible_research_tickers
+            else None
+        )
+        research_request_tickers = (
+            universe_plan.deep_analysis_universe
+            if universe_plan is not None
+            else eligible_research_tickers
+        )
         request = DailyResearchInput(parent_run_id=parent_id, analysis_cutoff=cutoff,
             mode="FIXTURE" if market_fixture or snapshot.source_kind == "FIXTURE" else "LIVE",
             snapshot_reference=snapshot.content_hash or "UNAVAILABLE",
             market_reference=digest({symbol: quote.model_dump(mode="json") for symbol, quote in quotes.items()}),
             policy_reference=digest({name: value.model_dump(mode="json") for name, value in vars(policies).items()}),
             provider=settings.provider if settings else "UNCONFIGURED", model=settings.model if settings else "UNCONFIGURED",
-            observations=tuple(PublicResearchObservation(ticker=ticker, observed_at=quote.timestamp,
-                price=quote.last, daily_return=quote.daily_return, reference=digest(quote.model_dump(mode="json")))
-                for ticker, quote in sorted(quotes.items()) if ticker in policies.universe.tickers and inputs_ready),
+            observations=tuple(PublicResearchObservation(ticker=ticker, observed_at=quotes[ticker].timestamp,
+                price=quotes[ticker].last, daily_return=quotes[ticker].daily_return,
+                reference=digest(quotes[ticker].model_dump(mode="json")))
+                for ticker in research_request_tickers),
             freshness_status="PASS" if inputs_ready else "BLOCKED",
             provider_provenance={ticker: json.dumps(health, sort_keys=True) for ticker, health in health.items()},
+            universe_plan=universe_plan,
         )
         logger.info("run_id=%s stage=research start", parent_id)
         research = self.research_stage.run(request, settings)
@@ -327,6 +359,11 @@ class MeridianApplicationService:
         evaluated_at = datetime.now(UTC)
         result = closure.run(account, quotes, cutoff=cutoff, research=research.context, evaluated_at=evaluated_at)
         result.report.update({"research": research.model_dump(mode="json"), "research_input": request.model_dump(mode="json"),
+            "research_universe": universe_plan.model_dump(mode="json") if universe_plan else {
+                "eligible_universe": [], "research_universe": [], "deep_analysis_universe": [],
+                "original_count": 0, "research_count": 0, "deep_analysis_count": 0,
+                "mode": "full", "selection_basis": "FULL_UNIVERSE",
+            },
             "stages": [
                 {"stage": "market", "run_id": parent_id, "start": market_started.isoformat(), "finish": market_finished.isoformat(), "duration_seconds": (market_finished - market_started).total_seconds(), "status": "PASS" if market_valid else "BLOCKED", "error_code": market_error or (None if market_valid else "MARKET_INPUT_NOT_READY"), "next_action": "Review provider probes and freshness."},
                 {"stage": "research", "run_id": parent_id, "start": research.started_at.isoformat(), "finish": research.finished_at.isoformat(), "duration_seconds": research.duration_seconds, "status": research.context.status.value, "error_code": research.error_code, "next_action": research.next_action},
@@ -654,6 +691,8 @@ class MeridianApplicationService:
         execution = execution if isinstance(execution, dict) else {}
         research = payload.get("research", {})
         research = research if isinstance(research, dict) else {}
+        research_universe = payload.get("research_universe", {})
+        research_universe = research_universe if isinstance(research_universe, dict) else {}
         forward = payload.get("forward_evidence", {})
         forward = forward if isinstance(forward, dict) else {}
         market = payload.get("market", {})
@@ -680,6 +719,10 @@ class MeridianApplicationService:
             f"Data Provider: **{provider.get('status', 'NOT_RUN')}**; lanes: {', '.join(provider.get('selected_lanes', [])) or 'NONE'}",
             f"Market Status: **{market_status_summary.get('status', market.get('session', 'UNKNOWN'))}**",
             f"Execution Mode: **{payload.get('execution_mode', 'SAFE_ANALYSIS')}**",
+            f"Research Universe: **{research_universe.get('mode', 'full')}**; "
+            f"eligible {research_universe.get('original_count', 0)} -> "
+            f"research {research_universe.get('research_count', 0)} -> "
+            f"deep analysis {research_universe.get('deep_analysis_count', 0)}",
             "",
             "## Portfolio",
             "",
@@ -935,6 +978,7 @@ class MeridianApplicationService:
                 "quote_certification": "BLOCKED",
             },
             "research": daily.get("research", {"status": research_status}),
+            "research_universe": daily.get("research_universe", {}),
             "forward_evidence": daily.get("forward_evidence", {"status": "NOT_RUN"}),
             "decision": {
                 "status": report_status,
