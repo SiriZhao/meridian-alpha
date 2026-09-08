@@ -6,7 +6,12 @@ from decimal import Decimal
 from pathlib import Path
 
 from meridian.config import load_policies
-from meridian.daily_closure import DailyClosureService, load_snapshot, persist_report
+from meridian.daily_closure import (
+    DailyClosureService,
+    load_snapshot,
+    persist_report,
+    publish_staged_report,
+)
 from meridian.runtime import RuntimePaths
 from meridian.schemas import (
     AccountSnapshot,
@@ -40,6 +45,21 @@ def test_fresh_path_generates_manual_draft_and_deterministic_audit(tmp_path: Pat
     saved = persist_report(first, RuntimePaths.from_environment({"MERIDIAN_HOME": str(tmp_path)}))
     assert saved.report_json is not None and saved.report_json.is_file()
     assert "BROKER SUBMISSION = DISABLED" in saved.report_markdown.read_text(encoding="utf-8")  # type: ignore[union-attr]
+
+
+def test_report_publication_handles_windows_cross_device_rename(tmp_path: Path, monkeypatch) -> None:
+    staged = tmp_path / "daily.tmp"
+    destination = tmp_path / "daily.json"
+    staged.write_text('{"complete": true}\n', encoding="utf-8")
+
+    def reject_replace(self: Path, target: Path) -> None:
+        raise OSError(0, "The system cannot move the file to a different disk drive", None, 17)
+
+    monkeypatch.setattr(Path, "replace", reject_replace)
+    publish_staged_report(staged, destination)
+
+    assert destination.read_text(encoding="utf-8") == '{"complete": true}\n'
+    assert staged.exists()
 
 
 def test_stale_missing_and_future_market_fail_closed() -> None:

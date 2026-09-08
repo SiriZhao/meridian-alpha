@@ -23,6 +23,7 @@ from meridian.daily_closure import (
     daily_run_id,
     load_market_fixture,
     persist_run_report,
+    publish_staged_report,
 )
 from meridian.daily_research import (
     DailyResearchInput,
@@ -509,7 +510,7 @@ class MeridianApplicationService:
             json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True, default=str) + "\n",
             encoding="utf-8",
         )
-        temporary.replace(json_path)
+        publish_staged_report(temporary, json_path)
         portfolio = payload.get("portfolio", {})
         portfolio = portfolio if isinstance(portfolio, dict) else {}
         performance = payload.get("performance", {})
@@ -637,7 +638,7 @@ class MeridianApplicationService:
         )
         temporary_md = markdown_path.with_suffix(".tmp")
         temporary_md.write_text("\n".join(lines), encoding="utf-8")
-        temporary_md.replace(markdown_path)
+        publish_staged_report(temporary_md, markdown_path)
         return {"paper_report_json": str(json_path), "paper_report_markdown": str(markdown_path)}
 
     def paper_run(self, account_name: str = DEFAULT_ACCOUNT) -> dict[str, object]:

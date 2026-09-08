@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -129,6 +130,31 @@ class DailyClosureService:
         return DailyClosureResult(decision, report)
 
 
+def publish_staged_report(staged: Path, destination: Path) -> None:
+    """Publish a fully-written report without weakening failure semantics.
+
+    Normal runtimes use an atomic rename. Some Windows EFS/AppContainer report
+    directories allow creation but reject a rename with WinError 17. A daily run
+    id makes the destination unique, so only in that case we create the final
+    file exclusively, fsync it, and verify its content. Existing output is never
+    overwritten and all other publication failures remain visible to the caller.
+    """
+    try:
+        staged.replace(destination)
+        return
+    except OSError as error:
+        if getattr(error, "winerror", None) != 17 or destination.exists():
+            raise
+
+    content = staged.read_bytes()
+    with destination.open("xb") as handle:
+        handle.write(content)
+        handle.flush()
+        os.fsync(handle.fileno())
+    if destination.read_bytes() != content:
+        raise OSError("report publication verification failed")
+
+
 def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[Path, Path]:
     """One writer for completed analysis and rejected-input diagnostics."""
     paths.ensure_directories()
@@ -138,7 +164,7 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
     json_path, markdown_path = directory / "daily.json", directory / "daily.md"
     temporary = json_path.with_suffix(".tmp")
     temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
-    temporary.replace(json_path)
+    publish_staged_report(temporary, json_path)
     readiness = report.get("readiness", {})
     readiness = readiness if isinstance(readiness, dict) else {}
     lines = ["# Meridian daily research report", "", f"Run ID: `{report['run_id']}`",
@@ -199,7 +225,7 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
         lines.extend(f"- {order['side']} {order['quantity']} {order['ticker']} @ {order.get('preferred_limit')}" for order in orders if isinstance(order, dict))
     temporary_md = markdown_path.with_suffix(".tmp")
     temporary_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    temporary_md.replace(markdown_path)
+    publish_staged_report(temporary_md, markdown_path)
     return json_path, markdown_path
 
 
