@@ -105,3 +105,23 @@ Use the bounded acceptance command during a NYSE regular session only when you h
 ```
 
 It records doctor, safe pending migration, snapshot validation, canonical market probes, policy state and—only if input and session qualify—canonical daily. When the market is closed, it writes `OPEN_SESSION_ACCEPTANCE_NOT_AVAILABLE`, does not wait, and does not call daily or LLM research. It never enables research, reads a credential, changes portfolio policy or submits an order. See [live acceptance](controlled-improvement-phase1-live-acceptance.md).
+
+
+## Canonical daily and forward evidence
+
+For the default paper workflow use only:
+
+```powershell
+.\scripts\run_meridian.ps1 paper run --account Schwab-Paper --json
+```
+
+Read `forward_evidence` from the returned JSON or run:
+
+```powershell
+.\scripts\run_meridian.ps1 forward-status --json
+```
+
+`NOT_MATURE` means the factory has insufficient mature samples. It is not a
+strategy verdict and never permits automatic promotion. If a daily result is
+blocked, preserve its report and correct the named account, market, research or
+runtime condition; never freeze a fixture or use a second daily command.

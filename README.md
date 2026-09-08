@@ -124,3 +124,17 @@ for audit only and are not the daily operating instructions.
 Controlled Improvement Phase 1 implementation and evidence are recorded in
 [phase record](docs/controlled-improvement-phase1.md). Real acceptance remains
 DEGRADED/BLOCKED; no certified LLM/quote path is implied by this implementation.
+
+## Forward evidence
+
+Canonical daily freezes append-only, cutoff-bound operational forward evidence
+only after an eligible non-fixture decision. It is evaluated on configured NYSE
+trading-session horizons and can never promote a strategy automatically. Inspect
+its mature sample status with:
+
+```powershell
+.\scripts\run_meridian.ps1 forward-status --json
+```
+
+See [Forward Evidence Factory](docs/forward-evidence.md) and the
+[canonical workflow](docs/canonical-production-workflow.md).

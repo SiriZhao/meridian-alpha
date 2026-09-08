@@ -23,7 +23,8 @@ uses a fixture, infers cash/positions/fills, or runs a shadow daily pipeline.
 Read the JSON result before responding. Report only these concise operator facts:
 status, NAV, cash, position count, daily/since-inception return if present,
 benchmark/excess return if present, research status, decision status,
-`paper_execution.status`, blockers, and `output_files.paper_report_markdown`.
+`paper_execution.status`, `forward_evidence.status` and maturity/sample status, blockers, and
+`output_files.paper_report_markdown`.
 A `PAPER_BLOCKED` result is a normal honest outcome: state the exact blocker and
 next action. Do not treat runtime completion, public quotes, advisory research,
 recommendation readiness, paper execution or manual authority as equivalent.
