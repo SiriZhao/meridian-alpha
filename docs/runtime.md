@@ -78,3 +78,20 @@ Rejected account input produces JSON, Markdown and a DB diagnostic run. Invalid
 market fixtures likewise persist blocked evidence and retain exit 3. If runtime
 storage itself is unavailable, JSON/exit diagnostics may be the only possible
 output; no persistence success is claimed. CLI compatibility remains 0/2/3.
+
+## Cache health and Windows EFS recovery
+
+`RuntimePaths.cache` is probed at startup with a bounded atomic write, replace, read, and cleanup check. Doctor reports `READY`, `DEGRADED`, or `BLOCKED` with an error code and next action. Cache failure never changes the configured storage root silently and never invalidates a fresh provider observation; it does prevent cache fallback from being trusted.
+
+Set `MERIDIAN_CACHE` to an absolute, writable, non-EFS path when the default Windows cache inherits encryption that the runtime identity cannot decrypt. The PowerShell launcher reads the user-level variable for fresh shells. Example:
+
+```powershell
+[Environment]::SetEnvironmentVariable('MERIDIAN_CACHE', 'E:MeridianAlphaRuntimecache', 'User')
+.scriptsun_meridian.ps1 doctor --json
+```
+
+A healthy result shows `encrypted=false`, `writable=true`, and `atomic_replace=true`. Remove residual `.tmp`/`.lock` files only after confirming no Meridian process is active. If EFS decryption is denied, retain the original directory for recovery and configure a new explicit cache path.
+
+## Degraded market operation
+
+Market retrieval uses bounded primary, fallback, then fresh-cache lanes. Any failed lane is visible as `DATA_DEGRADED`; no provider response is fabricated. `OPEN`, `PRE_MARKET`, `AFTER_HOURS`, `CLOSED`, and `HOLIDAY` are evaluated separately. Outside a valid regular session, or when usable quotes are absent, daily enters `SAFE_ANALYSIS` and may report account-only risk and portfolio checks, but produces no executable order or forward-evidence freeze.
