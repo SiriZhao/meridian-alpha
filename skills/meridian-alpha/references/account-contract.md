@@ -1,13 +1,11 @@
-# Host account contract
+# Account provenance reference
 
-The Host supplies a provider-independent `HostAccountSnapshotEnvelope`: a
-snapshot ID, source label, as-of/retrieved timestamps, coverage status, base
-currency, cash, equity, and position facts. Position facts contain a canonical
-asset/ticker, quantity, supplied market value, optional supplied cost basis,
-and currency.
+`Schwab-Paper` is an authoritative internal paper account with
+`account_environment = PAPER` and `account_provenance = INTERNAL_PAPER_LEDGER`.
+It is initialized once with USD 100,000.00 and its cash, positions, fills and
+performance come only from the persistent Meridian ledger. It is never a real
+Schwab or broker-authenticated account.
 
-Never supply or persist account numbers, usernames, access tokens, credentials,
-or raw connector responses. Meridian records only sanitized decision artifacts
-and hashes. `COMPLETE` is required for eventual manual-entry readiness;
-`PARTIAL` is analysis-only; `STALE`, `UNAVAILABLE`, and `CONFLICTING` block.
-A recommendation is never evidence of a fill.
+For explicitly requested real-Host analysis, a newly supplied authorized
+sanitary HostAccountSnapshotEnvelope remains required. Do not infer account
+facts from reports, prior recommendations, fixtures or chat history.

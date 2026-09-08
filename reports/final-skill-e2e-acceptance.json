@@ -83,6 +83,7 @@
   },
   "schema_version": "meridian-final-skill-e2e-acceptance.v1",
   "skill": {
+    "content_tree_sha256": "ac547a1327bed18499992ad264e1b1595fa7c67214e01135b132ca7acfd451fd",
     "fresh_reload": {
       "evidence": "Fresh Codex task 01a07fdb-a624-7622-95c0-456e36436c98 discovered meridian-alpha and read the installed SKILL.md.",
       "status": "PASS"
@@ -100,14 +101,26 @@
       "status": "PASS"
     },
     "installed_path": "C:\\Users\\YOGA Pro16\\.codex\\skills\\meridian-alpha",
+    "legacy_helper_retirement": {
+      "evidence": "The two preserved helper scripts now return SKILL_HELPER_RETIRED with current canonical next actions; active resources contain no legacy --profile or fixture execution command.",
+      "status": "PASS"
+    },
     "legacy_paths": "MISSING_PATH_DRIFT",
     "repository_path": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\skills\\meridian-alpha",
     "requested_legacy_installed_path": "C:\\Users\\Administrator\\.codex\\skills\\personal-alpha-terminal",
     "requested_legacy_repository_path": "E:\\CSDIY\\Vibe Coding Project\\personal-alpha-terminal-skill\\skill",
+    "resource_sync": {
+      "evidence": "All 10 live source resources match the installed Skill tree. Historical installed SKILL backups and bytecode cache are excluded.",
+      "status": "PASS"
+    },
     "sha256": "FE37028C99EF43CBDFDA8BEDC0959D1D759B7CEB4266A9F1F84E0C35FB000AA2",
     "trigger": {
       "command": "scripts/run_meridian.ps1 paper run --account Schwab-Paper --json",
       "phrase": "运行今天的 Meridian",
+      "status": "PASS"
+    },
+    "validator": {
+      "evidence": "skill-creator quick_validate.py passed with UTF-8 enabled.",
       "status": "PASS"
     }
   },

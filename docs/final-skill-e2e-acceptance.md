@@ -37,6 +37,22 @@ discovered `meridian-alpha` and read the installed instructions. It confirmed:
 - default account: `Schwab-Paper`
 - initialization: USD 100,000.00 once only; later runs load the persistent ledger.
 
+## Bundled resource audit
+
+The live source and installed Skill trees now match across 10 resources (tree
+SHA-256: `ac547a1327bed18499992ad264e1b1595fa7c67214e01135b132ca7acfd451fd`).
+The old helper scripts and fixture were retained as files but made safe:
+
+- `scripts/preflight.py` and `scripts/run_daily.py` now return
+  `SKILL_HELPER_RETIRED` with the current canonical command; they do not accept
+  a legacy profile, fixture, snapshot, or create a parallel workflow.
+- The fixture is `TEMPLATE_ONLY_NOT_RUNTIME_INPUT`.
+- Supporting references now document only the canonical Schwab-Paper workflow
+  and the separate explicit real-Host path.
+
+`skill-creator` validation passed with UTF-8 enabled. Existing installed
+`SKILL.*` historical backups were preserved and remain inactive.
+
 ## Default-account E2E
 
 The canonical command was run twice against the default runtime. Both runs had
