@@ -6,9 +6,11 @@ Without a verified production market-data adapter, non-zero accounts fail closed
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import uvicorn
 from mcp.server.fastmcp import FastMCP
@@ -16,17 +18,23 @@ from mcp.types import ToolAnnotations
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
+from meridian.application import MeridianApplicationService
 from meridian.audit import AuditStore
-from meridian.config import load_policies
 from meridian.execution_quote_providers import provider_preflight
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.host_readiness import evaluate_host_readiness
-from meridian.orchestrator import DailyAnalysisService
 from meridian.provider_registry import provider_certification_map
+from meridian.runtime import RuntimePaths
 from meridian.schemas import AccountSnapshot, AccountSyncState, FreshnessState, RunStatus
 
 ROOT = Path(__file__).parents[2]
-STORE = AuditStore(ROOT / "var" / "meridian.db")
+
+def _service() -> MeridianApplicationService:
+    return MeridianApplicationService()
+
+
+def _store() -> AuditStore:
+    return AuditStore(RuntimePaths.from_environment().db)
 READ_ONLY = ToolAnnotations(
     readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=False
 )
@@ -73,12 +81,11 @@ def validate_account_snapshot(account_snapshot: AccountSnapshot) -> dict[str, An
     structured_output=True,
 )
 def run_daily_analysis(account_snapshot: AccountSnapshot, run_date: datetime) -> dict[str, Any]:
-    """Run the shared application workflow; no provider means fail-closed market status."""
-    decision = DailyAnalysisService(None, load_policies(ROOT / "policies")).run(
-        account_snapshot, run_date
-    )
-    STORE.write_decision(decision)
-    return decision.model_dump(mode="json")
+    """Retired: a canonical daily run requires an envelope and its provenance."""
+    _ = account_snapshot, run_date
+    return {"status": "BLOCKED", "error_code": "CANONICAL_HOST_ENVELOPE_REQUIRED",
+            "next_action": "Use run_host_daily_analysis with a fresh sanitized HostAccountSnapshotEnvelope.",
+            "broker_submission": "DISABLED"}
 
 
 @mcp.tool(
@@ -111,10 +118,20 @@ def validate_host_account_snapshot(envelope: HostAccountSnapshotEnvelope) -> dic
     structured_output=True,
 )
 def run_host_daily_analysis(envelope: HostAccountSnapshotEnvelope, run_date: datetime) -> dict[str, Any]:
-    snapshot = normalize_host_snapshot(envelope)
-    decision = DailyAnalysisService(None, load_policies(ROOT / "policies")).run(snapshot, run_date)
-    STORE.write_decision(decision)
-    return decision.model_dump(mode="json")
+    """Run the one canonical application path using a short-lived envelope file."""
+    _ = run_date  # Canonical daily binds its own UTC cutoff; caller time cannot override it.
+    service = _service()
+    service.paths.ensure_directories()
+    temporary = service.paths.cache / "mcp-snapshots" / ("host-" + uuid4().hex + ".json")
+    temporary.parent.mkdir(parents=True, exist_ok=True)
+    temporary.write_text(json.dumps(envelope.model_dump(mode="json"), ensure_ascii=False), encoding="utf-8")
+    try:
+        return service.daily(temporary)
+    finally:
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError:
+            pass
 
 
 @mcp.tool(
@@ -142,7 +159,7 @@ def get_provider_health() -> dict[str, Any]:
     structured_output=True,
 )
 def get_run(run_id: str) -> dict[str, Any]:
-    result = STORE.get_decision_summary(run_id)
+    result = _store().get_decision_summary(run_id)
     if result is None:
         return {"found": False, "run_id": run_id}
     return {"found": True, "result": result}
@@ -165,7 +182,7 @@ def get_daily_report(run_id: str) -> dict[str, Any]:
     structured_output=True,
 )
 def inspect_evidence(run_id: str) -> dict[str, Any]:
-    result = STORE.get_decision_summary(run_id)
+    result = _store().get_decision_summary(run_id)
     if result is None:
         return {"found": False, "run_id": run_id, "evidence_ids": []}
     return {"found": True, "run_id": run_id, "evidence_ids": [], "reason": "Raw evidence is not persisted in the default audit store."}
@@ -178,7 +195,7 @@ def inspect_evidence(run_id: str) -> dict[str, Any]:
     structured_output=True,
 )
 def inspect_research(run_id: str) -> dict[str, Any]:
-    result = STORE.get_decision_summary(run_id)
+    result = _store().get_decision_summary(run_id)
     if result is None:
         return {"found": False, "run_id": run_id}
     return {"found": True, "run_id": run_id, "status": "SANITIZED_AUDIT_ONLY", "transcript_available": False}
@@ -191,7 +208,7 @@ def inspect_research(run_id: str) -> dict[str, Any]:
     structured_output=True,
 )
 def inspect_target_portfolio(run_id: str) -> dict[str, Any]:
-    result = STORE.get_decision_summary(run_id)
+    result = _store().get_decision_summary(run_id)
     if result is None:
         return {"found": False, "run_id": run_id, "target": []}
     return {"found": True, "run_id": run_id, "target": result.get("recommendations", [])}
@@ -233,7 +250,7 @@ def provider_health() -> dict[str, Any]:
     structured_output=True,
 )
 def get_order_ticket(run_id: str) -> dict[str, Any]:
-    result = STORE.get_decision_summary(run_id)
+    result = _store().get_decision_summary(run_id)
     if result is None:
         return {"found": False, "ticket_available": False, "reason": "Unknown run."}
     run = result["run"]
@@ -273,7 +290,7 @@ def get_order_ticket(run_id: str) -> dict[str, Any]:
     structured_output=True,
 )
 def explain_decision(run_id: str) -> dict[str, Any]:
-    result = STORE.get_decision_summary(run_id)
+    result = _store().get_decision_summary(run_id)
     if result is None:
         return {"found": False, "explanation": "No run with that identifier exists."}
     run = result["run"]
