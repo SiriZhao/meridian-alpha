@@ -1,0 +1,123 @@
+{
+  "account": {
+    "broker_submission": "DISABLED",
+    "cash_usd": "100000.0000",
+    "environment": "PAPER",
+    "ledger_version": 0,
+    "name": "Schwab-Paper",
+    "nav_usd": "100000.0000",
+    "persistence": {
+      "evidence": "Separate launcher/status/history/trades invocations retained $100,000.00, zero positions, zero fills and ledger version 0.",
+      "status": "PASS"
+    },
+    "positions": 0,
+    "provenance": "INTERNAL_PAPER_LEDGER",
+    "starting_capital_usd": "100000.0000",
+    "status": "PASS"
+  },
+  "e2e": {
+    "first_post_fix_run": {
+      "paper_run_id": "paper-daily-747f4a84da90968098b4eee5",
+      "reports": "canonical JSON/Markdown and paper JSON/Markdown persisted",
+      "run_id": "daily-747f4a84da90968098b4eee5",
+      "runtime_status": "PASS",
+      "status": "PAPER_BLOCKED"
+    },
+    "idempotency": {
+      "evidence": "The repeated same-day trigger produced zero fills; cash, NAV, positions, trade count and ledger version stayed unchanged. Eligible-fill duplicate protection remains covered by regression.",
+      "status": "PASS"
+    },
+    "market": {
+      "quote_certification": "BLOCKED",
+      "session": "CLOSED",
+      "stooq": "UNAVAILABLE_HTTP_404",
+      "yahoo": "STALE"
+    },
+    "research": {
+      "attempts": 0,
+      "credential_value": "NOT_INSPECTED",
+      "error_code": "RESEARCH_INPUT_NOT_READY",
+      "status": "BLOCKED"
+    },
+    "routing": {
+      "canonical_daily": "PASS",
+      "decision": "BLOCKED_STALE_MARKET",
+      "gates": "EVALUATED",
+      "paper_execution": "BLOCKED",
+      "research_http_request": "NOT_SENT_BY_POLICY",
+      "research_stage": "PASS"
+    },
+    "second_run": {
+      "paper_run_id": "paper-daily-02c224868194d290c146632a",
+      "reports": "canonical JSON/Markdown and paper JSON/Markdown persisted",
+      "run_id": "daily-02c224868194d290c146632a",
+      "runtime_status": "PASS",
+      "status": "PAPER_BLOCKED"
+    }
+  },
+  "final_verdict": {
+    "paper_execution": "BLOCKED_MARKET_CLOSED",
+    "skill_e2e_trigger": "PASS",
+    "statement": "A fresh Codex user can type only the exact trigger to start the canonical Schwab-Paper workflow. This closed-session run correctly did not create a paper fill."
+  },
+  "generated_at": "2026-09-08T15:18:00+08:00",
+  "git": {
+    "branch": "astra/schwab-paper-runtime",
+    "report_publication_fix": "1814f09",
+    "starting_head": "c726c16"
+  },
+  "next_action": "Retry the unchanged trigger in a NYSE regular session with fresh public market evidence and a validated research response; do not use fixtures or lower freshness policy.",
+  "quality": {
+    "focused_report_regression": "34 passed",
+    "pip_check": "PASS",
+    "pyright": "0 errors / 0 warnings",
+    "pytest": "385 passed",
+    "ruff": "PASS"
+  },
+  "safety": {
+    "broker_execution": "DISABLED",
+    "manual_execution_authority": "BLOCKED",
+    "quote_certification": "BLOCKED",
+    "real_host_acceptance": "UNCHANGED_BLOCKED",
+    "user_report_sha256": "FEA9457D5694DAC11E5F428B1451039C0E6A7F0CC4627039BAA7D2B351342D64"
+  },
+  "schema_version": "meridian-final-skill-e2e-acceptance.v1",
+  "skill": {
+    "fresh_reload": {
+      "evidence": "Fresh Codex task 01a07fdb-a624-7622-95c0-456e36436c98 discovered meridian-alpha and read the installed SKILL.md.",
+      "status": "PASS"
+    },
+    "inspection_mappings": {
+      "commands": [
+        "paper status --account Schwab-Paper --json",
+        "paper history --account Schwab-Paper --json",
+        "paper trades --account Schwab-Paper --json"
+      ],
+      "status": "PASS"
+    },
+    "installation": {
+      "evidence": "Repository and installed SKILL.md hashes are byte-identical; no overwrite or backup was required.",
+      "status": "PASS"
+    },
+    "installed_path": "C:\\Users\\YOGA Pro16\\.codex\\skills\\meridian-alpha",
+    "legacy_paths": "MISSING_PATH_DRIFT",
+    "repository_path": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\skills\\meridian-alpha",
+    "requested_legacy_installed_path": "C:\\Users\\Administrator\\.codex\\skills\\personal-alpha-terminal",
+    "requested_legacy_repository_path": "E:\\CSDIY\\Vibe Coding Project\\personal-alpha-terminal-skill\\skill",
+    "sha256": "FE37028C99EF43CBDFDA8BEDC0959D1D759B7CEB4266A9F1F84E0C35FB000AA2",
+    "trigger": {
+      "command": "scripts/run_meridian.ps1 paper run --account Schwab-Paper --json",
+      "phrase": "运行今天的 Meridian",
+      "status": "PASS"
+    }
+  },
+  "windows_installation": {
+    "powershell_outside_checkout": "PASS",
+    "report_publication": {
+      "evidence": "The local EFS/AppContainer report directory rejected rename with WinError 17; the repair exclusively publishes and fsync-verifies a new final file. Both daily and paper reports persisted on the default runtime.",
+      "status": "PASS"
+    },
+    "wheel": "meridian_alpha-0.0.0-py3-none-any.whl",
+    "wheel_outside_checkout": "PASS"
+  }
+}
