@@ -4,7 +4,7 @@
   "git": {
     "branch": "astra/schwab-paper-runtime",
     "starting_commit": "ccbadb3",
-    "implementation_commit": "PENDING"
+    "implementation_commit": "2921252"
   },
   "baseline": {
     "pytest": {"status": "VERIFIED", "evidence": "384 passed in 33.16s"},
