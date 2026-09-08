@@ -41,13 +41,13 @@ from meridian.host_readiness import (
 )
 from meridian.intelligence import ResearchPacket
 from meridian.intelligence_tools import dip_scout
+from meridian.market_status import MarketStatus, market_status
 from meridian.operational_data import FreshnessPolicy
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
 from meridian.paper import DEFAULT_ACCOUNT, DEFAULT_INITIAL_CASH, PaperLedger, PaperSettings
 from meridian.research_stage import CanonicalResearchStage
 from meridian.runtime import RuntimePaths, policy_directory
 from meridian.runtime_diagnostics import report as doctor_report
-from meridian.trading_calendar import session_context
 
 
 class MeridianApplicationService:
@@ -121,7 +121,7 @@ class MeridianApplicationService:
             {"status": ReadinessStatus.BLOCKED, "code": "ACCOUNT_SNAPSHOT_REPLAYED" if novelty == "REPLAYED" else "ACCOUNT_SNAPSHOT_ID_CONFLICT"}
             if novelty != "NEW" else {})})
 
-    def _rejected_snapshot(self, diagnostic: SnapshotDiagnostic, log_path: Path) -> dict[str, object]:
+    def _rejected_snapshot(self, diagnostic: SnapshotDiagnostic, log_path: Path, startup: dict[str, object] | None = None) -> dict[str, object]:
         now = datetime.now(UTC)
         run_id = "daily-" + uuid4().hex
         ready = RecommendationReadiness(runtime_health=ReadinessStatus.PASS,
@@ -154,6 +154,10 @@ class MeridianApplicationService:
                         "duration_seconds": 0, "status": "NOT_RUN", "error_code": "UPSTREAM_SNAPSHOT_BLOCKED",
                         "next_action": diagnostic.next_action} for name in ("market", "research", "decision")],
             "execution": "MANUAL", "broker_submission": "DISABLED",
+            "market_status": (startup or {}).get("market_status", {}),
+            "execution_mode": "SAFE_ANALYSIS",
+            "startup_diagnostics": startup or {},
+            "safe_analysis": {"status": "BLOCKED_ACCOUNT_INPUT", "orders": [], "authority": "NONE"},
             "output_files": {"report_json": str(directory / "daily.json"), "report_markdown": str(directory / "daily.md"), "log": str(log_path)},
         }
         AuditStore(self.paths.db).write_readiness(run_id, now.isoformat(), str(payload["status"]), payload)
@@ -210,11 +214,19 @@ class MeridianApplicationService:
             return {"status": "FAILED", "run_id": log_path.stem, "runtime_status": "FAILED", "error_code": "MERIDIAN_PREFLIGHT_FAILED", "diagnostics": preflight, "readiness": RecommendationReadiness(runtime_health=ReadinessStatus.FAILED).model_dump(mode="json"), "errors": ["MERIDIAN_PREFLIGHT_FAILED"], "next_actions": ["Resolve failed doctor checks."], "output_files": {"log": str(log_path)}}
         logger.info("Database status=%s", initialized["status"])
         policies = load_policies(policy_directory())
+        initial_market = market_status(datetime.now(UTC))
+        startup: dict[str, object] = {
+            "environment": {"status": preflight["status"], "python": sys.version.split()[0], "runtime_home": str(self.paths.home)},
+            "cache": preflight.get("cache", {"status": "BLOCKED", "error_code": "CACHE_HEALTH_UNAVAILABLE"}),
+            "data_provider": {"status": "NOT_RUN", "selected_lanes": []},
+            "market_status": initial_market.as_dict(),
+            "execution_mode": "NORMAL" if initial_market.status is MarketStatus.OPEN else "SAFE_ANALYSIS",
+        }
         snapshot, account = inspect_snapshot(snapshot_path, max_age_seconds=policies.data.account_snapshot_max_age_seconds)
         snapshot = self._snapshot_novelty(snapshot, claim=True)
         if snapshot.status is not ReadinessStatus.PASS or account is None:
             logger.warning("Snapshot rejected code=%s", snapshot.code)
-            return self._rejected_snapshot(snapshot, log_path)
+            return self._rejected_snapshot(snapshot, log_path, startup)
         cutoff = datetime.now(UTC)
         market_started = cutoff
         logger.info("Market retrieval started; mode=%s", "FIXTURE" if market_fixture else "OPERATIONAL_PUBLIC")
@@ -228,8 +240,10 @@ class MeridianApplicationService:
             except OSError:
                 quotes = {}
                 market_error = "MARKET_FIXTURE_UNAVAILABLE"
+            partial_quotes = dict(quotes)
             provenance: dict[str, object] = {
                 "data_mode": "FIXTURE",
+                "data_quality_mode": "DATA_DEGRADED",
                 "information_cutoff": cutoff.isoformat(),
                 "provider_health": {
                     ticker: {"primary": "FIXTURE", "secondary": "NOT_USED"} for ticker in quotes
@@ -246,9 +260,11 @@ class MeridianApplicationService:
                 symbols, analysis_time=cutoff, live=True
             )
             cutoff = operational.information_cutoff
+            partial_quotes = dict(operational.quotes)
             quotes = operational.quotes if not operational.missing_symbols else {}
             provenance = {
                 "data_mode": operational.data_mode,
+                "data_quality_mode": operational.data_quality_mode,
                 "market_snapshot_hash": operational.snapshot_hash,
                 "information_cutoff": operational.information_cutoff.isoformat(),
                 "provider_health": operational.provider_health,
@@ -259,6 +275,27 @@ class MeridianApplicationService:
                 "research_pit": "BLOCKED",
             }
         market_finished = datetime.now(UTC)
+        current_market = market_status(cutoff)
+        provider_probes = provenance.get("provider_probes", {})
+        provider_probes = provider_probes if isinstance(provider_probes, dict) else {}
+        selected_lanes = sorted({
+            str(item.get("selection"))
+            for item in provider_probes.values()
+            if isinstance(item, dict) and item.get("selection")
+        })
+        provider_status = "PASS" if quotes else "DATA_DEGRADED"
+        if provenance.get("data_quality_mode") == "DATA_DEGRADED":
+            provider_status = "DATA_DEGRADED"
+        execution_mode = (
+            "NORMAL" if current_market.status is MarketStatus.OPEN and bool(quotes)
+            else "DEGRADED_OPERATIONAL" if current_market.status is MarketStatus.OPEN and bool(partial_quotes)
+            else "SAFE_ANALYSIS"
+        )
+        startup.update({
+            "data_provider": {"status": provider_status, "selected_lanes": selected_lanes},
+            "market_status": current_market.as_dict(),
+            "execution_mode": execution_mode,
+        })
         closure = DailyClosureService(policies)
         parent_id = daily_run_id(account, quotes, cutoff, policies)
         settings = policies.models.research
@@ -316,18 +353,57 @@ class MeridianApplicationService:
             result.report.update({"error_code": market_error, "exit_code": 3, "error_category": "DATA_QUALITY"})
         analysis_ok = result.report["status"] in {"DRAFT", "NO_ACTION", "NO_CAPITAL"}
         directory = self.paths.reports / result.decision.as_of.date().isoformat() / result.decision.run_id
+        total_equity = account.total_equity
+        invested_value = sum((holding.market_value for holding in account.holdings), Decimal("0"))
+        position_weights = [holding.market_value / total_equity for holding in account.holdings] if total_equity > 0 else []
+        safe_analysis = {
+            "status": "NOT_REQUIRED" if market_valid else "COMPLETED_NO_EXECUTION",
+            "risk_analysis": {
+                "status": "PASS_ACCOUNT_ONLY",
+                "cash": str(account.cash),
+                "total_equity": str(total_equity),
+                "gross_exposure": str(invested_value / total_equity if total_equity > 0 else Decimal("0")),
+                "max_position_weight": str(max(position_weights, default=Decimal("0"))),
+                "limitations": ["No fresh complete market snapshot; price-sensitive risk is not asserted"] if not market_valid else [],
+            },
+            "portfolio_check": {
+                "status": "PASS_ACCOUNT_FACTS_ONLY",
+                "position_count": len(account.holdings),
+                "negative_cash": account.cash < 0,
+                "long_only": all(holding.quantity >= 0 for holding in account.holdings),
+            },
+            "historical_factor_analysis": {
+                "status": "PARTIAL" if partial_quotes else "NOT_RUN",
+                "symbols": sorted(partial_quotes),
+                "reason": "Only verified operational observations already produced by the canonical market stage are shown; no missing factor is fabricated.",
+            },
+            "simulated_decision": {
+                "status": "BLOCKED" if not market_valid else "NOT_REQUIRED",
+                "action": "HOLD" if not market_valid else None,
+                "orders": [],
+                "authority": "NONE",
+                "reason": "Fresh complete market data is required before deterministic order construction." if not market_valid else None,
+            },
+        }
+        preflight_cache = preflight.get("cache", {})
+        cache_degraded = isinstance(preflight_cache, dict) and preflight_cache.get("status") != "READY"
         result.report.update({
             "timestamp": cutoff.isoformat(),
             "trading_date": cutoff.astimezone(ZoneInfo("America/New_York")).date().isoformat(),
-            "runtime_status": "PASS",
+            "runtime_status": "PASS" if preflight["status"] == "PASS" else "DEGRADED",
             "database_status": "PASS",
+            "startup_diagnostics": startup,
+            "market_status": current_market.as_dict(),
+            "execution_mode": execution_mode,
+            "data_quality_mode": provenance.get("data_quality_mode", "NORMAL"),
+            "safe_analysis": safe_analysis,
             "data_status": "PASS" if quotes and not any("MARKET" in reason for reason in result.decision.blocked_reasons) else "FAILED",
             "portfolio_status": account.freshness_state.value,
             "research_status": research.context.status.value,
             "quant_status": "PASS" if result.decision.target_portfolio is not None else "NOT_RUN",
             "risk_status": "PASS" if result.decision.target_portfolio is not None and analysis_ok else "NOT_RUN",
             "recommendation_status": "RESEARCH_ONLY" if analysis_ok else "BLOCKED",
-            "warnings": ["PUBLIC_RESEARCH_IS_ADVISORY_NOT_CERTIFIED", "NOT_AUTHORIZED_FOR_MANUAL_ENTRY"],
+            "warnings": ["PUBLIC_RESEARCH_IS_ADVISORY_NOT_CERTIFIED", "NOT_AUTHORIZED_FOR_MANUAL_ENTRY"] + (["CACHE_DEGRADED"] if cache_degraded else []) + (["DATA_DEGRADED"] if provenance.get("data_quality_mode") == "DATA_DEGRADED" else []),
             "errors": list(result.decision.blocked_reasons) + ([market_error] if market_error else []),
             "output_files": {"report_json": str(directory / "daily.json"), "report_markdown": str(directory / "daily.md"), "log": str(log_path)},
             "elapsed_seconds": round(monotonic() - started, 3),
@@ -584,11 +660,26 @@ class MeridianApplicationService:
         market = market if isinstance(market, dict) else {}
         decision = payload.get("decision", {})
         decision = decision if isinstance(decision, dict) else {}
+        startup = payload.get("startup_diagnostics", {})
+        startup = startup if isinstance(startup, dict) else {}
+        environment = startup.get("environment", {})
+        environment = environment if isinstance(environment, dict) else {}
+        cache = startup.get("cache", {})
+        cache = cache if isinstance(cache, dict) else {}
+        provider = startup.get("data_provider", {})
+        provider = provider if isinstance(provider, dict) else {}
+        market_status_summary = startup.get("market_status", {})
+        market_status_summary = market_status_summary if isinstance(market_status_summary, dict) else {}
         lines = [
             "# Meridian Daily — Schwab-Paper",
             "",
             f"Status: **{payload.get('status', 'UNKNOWN')}**",
             f"Canonical run: `{payload.get('canonical_run_id', 'UNKNOWN')}`",
+            f"Environment: **{environment.get('status', payload.get('runtime_status', 'UNKNOWN'))}**",
+            f"Cache: **{cache.get('status', 'UNKNOWN')}** ({cache.get('error_code') or 'healthy'})",
+            f"Data Provider: **{provider.get('status', 'NOT_RUN')}**; lanes: {', '.join(provider.get('selected_lanes', [])) or 'NONE'}",
+            f"Market Status: **{market_status_summary.get('status', market.get('session', 'UNKNOWN'))}**",
+            f"Execution Mode: **{payload.get('execution_mode', 'SAFE_ANALYSIS')}**",
             "",
             "## Portfolio",
             "",
@@ -733,9 +824,9 @@ class MeridianApplicationService:
         cutoff_text = str(daily.get("information_cutoff") or daily.get("analysis_time"))
         try:
             cutoff = datetime.fromisoformat(cutoff_text)
-            market_session = session_context(cutoff)
+            market_session = market_status(cutoff).status.value
         except ValueError:
-            market_session = "UNKNOWN"
+            market_session = "CLOSED"
         trading_date = str(daily.get("trading_date") or datetime.now(ZoneInfo("America/New_York")).date())
         canonical_run_id = str(daily.get("run_id", "UNAVAILABLE"))
         report_status = str(daily.get("status", "FAILED"))
@@ -745,7 +836,7 @@ class MeridianApplicationService:
         blockers: list[str] = []
         if str(daily.get("runtime_status", "FAILED")) != "PASS":
             blockers.append("PAPER_CANONICAL_RUNTIME_FAILED")
-        if market_session != "REGULAR":
+        if market_session != MarketStatus.OPEN.value:
             blockers.append("PAPER_EXECUTION_BLOCKED_MARKET_CLOSED")
         if str(daily.get("data_status", "FAILED")) != "PASS" or not quotes:
             blockers.append("PAPER_EXECUTION_BLOCKED_MARKET_DATA")
@@ -833,6 +924,9 @@ class MeridianApplicationService:
                 "positions": account_status.get("positions", []),
             },
             "performance": performance or {"status": "NOT_MARKED", "reason": "FRESH_QUOTES_FOR_ALL_POSITIONS_REQUIRED"},
+            "startup_diagnostics": daily.get("startup_diagnostics", {}),
+            "execution_mode": daily.get("execution_mode", "SAFE_ANALYSIS"),
+            "safe_analysis": daily.get("safe_analysis", {}),
             "market": {
                 "status": daily.get("data_status", "NOT_RUN"),
                 "session": market_session,
@@ -873,7 +967,7 @@ class MeridianApplicationService:
         snapshot = OperationalMarketSnapshotService.from_runtime(self.paths, policy=FreshnessPolicy(quote_max_age_seconds=policies.data.quote_max_age_seconds, account_max_age_seconds=policies.data.account_snapshot_max_age_seconds)).build(
             policies.universe.tickers, analysis_time=datetime.now().astimezone(), live=True
         )
-        return {**snapshot.data_status(), "status": "PASS" if snapshot.quotes and not snapshot.missing_symbols else "DEGRADED"}
+        return {**snapshot.data_status(), "status": "PASS" if snapshot.status == "OPERATIONAL_READY" else "DEGRADED"}
 
     def dip_scout(self, packet_path: Path) -> dict[str, object]:
         return dip_scout(

@@ -13,6 +13,12 @@ from meridian.runtime_diagnostics import report
 def test_windows_default_and_environment_override(tmp_path: Path) -> None:
     overridden = RuntimePaths.from_environment({"MERIDIAN_HOME": str(tmp_path)})
     assert overridden.home == tmp_path
+    cache = tmp_path / "explicit-cache"
+    split = RuntimePaths.from_environment(
+        {"MERIDIAN_HOME": str(tmp_path), "MERIDIAN_CACHE": str(cache)}
+    )
+    assert split.home == tmp_path
+    assert split.cache == cache
     windows = RuntimePaths.from_environment({"LOCALAPPDATA": "C:/Local"}, platform="win32")
     assert windows.home == Path("C:/Local") / "MeridianAlpha"
 

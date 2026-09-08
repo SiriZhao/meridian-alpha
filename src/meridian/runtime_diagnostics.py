@@ -22,6 +22,7 @@ from time import monotonic
 from zoneinfo import ZoneInfo
 
 from meridian.audit import SCHEMA_VERSION
+from meridian.cache_health import CacheHealthStatus, check_cache_health
 from meridian.config import load_policies
 from meridian.runtime import RuntimePaths, policy_directory
 
@@ -76,10 +77,14 @@ def report(paths: RuntimePaths | None = None) -> dict[str, object]:
         Check("python", "PASS" if sys.version_info[:2] == (3, 12) else "FAIL", f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}; production baseline is 3.12"),
         _attempt("package_import", lambda: __import__("meridian")),
     ]
+    cache_health = None
     try:
         paths.ensure_directories()
         checks.append(Check("runtime_directories", "PASS", str(paths.home)))
-        checks.extend(_attempt(f"runtime_write:{name}", lambda path=path: _writable(path)) for name, path in paths.directories().items())
+        checks.extend(_attempt(f"runtime_write:{name}", lambda path=path: _writable(path)) for name, path in paths.directories().items() if name != "cache")
+        cache_health = check_cache_health(paths.cache)
+        cache_check_status = "PASS" if cache_health.status is CacheHealthStatus.READY else "WARN"
+        checks.append(Check("cache_health", cache_check_status, f"{cache_health.status.value}:{cache_health.error_code or 'NONE'}"))
     except Exception:  # noqa: BLE001
         checks.append(Check("runtime_directories", "FAIL", f"{paths.home}: create failed; set MERIDIAN_HOME to an absolute writable user directory"))
     checks.append(_attempt("sqlite", lambda: sqlite3.connect(":memory:").close()))
@@ -96,7 +101,7 @@ def report(paths: RuntimePaths | None = None) -> dict[str, object]:
     secret_names = ("DEEPSEEK_API_KEY", "ALPACA_API_KEY", "POLYGON_API_KEY", "MERIDIAN_MCP_BEARER_TOKEN")
     checks.append(Check("secrets", "PASS", "configured=" + str(any(bool(os.environ.get(name)) for name in secret_names)).lower()))
     statuses = {check.status for check in checks}
-    return {"schema_version": "meridian-doctor.v1", "status": "FAIL" if "FAIL" in statuses else "DEGRADED" if "WARN" in statuses or "DEGRADED" in statuses else "PASS", "checks": [asdict(check) for check in checks], "paths": {**paths.as_dict(), "database": str(paths.db), "policies": str(policy_directory())}, "python_executable": sys.executable, "virtual_environment": sys.prefix != sys.base_prefix, "database": database, "project_version": _version(), "elapsed_ms": round((monotonic() - started) * 1000, 1), "network_accessed": False}
+    return {"schema_version": "meridian-doctor.v1", "status": "FAIL" if "FAIL" in statuses else "DEGRADED" if "WARN" in statuses or "DEGRADED" in statuses else "PASS", "checks": [asdict(check) for check in checks], "paths": {**paths.as_dict(), "database": str(paths.db), "policies": str(policy_directory())}, "python_executable": sys.executable, "virtual_environment": sys.prefix != sys.base_prefix, "database": database, "cache": cache_health.as_dict() if cache_health is not None else {"status": "BLOCKED", "error_code": "CACHE_HEALTH_UNAVAILABLE"}, "project_version": _version(), "elapsed_ms": round((monotonic() - started) * 1000, 1), "network_accessed": False}
 
 
 def _version() -> str:

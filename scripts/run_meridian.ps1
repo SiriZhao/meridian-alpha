@@ -24,6 +24,10 @@ if (-not (Test-Path -LiteralPath $python)) {
     exit 3
 }
 $env:PYTHONUTF8 = '1'
+$configuredCache = [Environment]::GetEnvironmentVariable('MERIDIAN_CACHE', 'User')
+if (-not $env:MERIDIAN_CACHE -and $configuredCache) {
+    $env:MERIDIAN_CACHE = $configuredCache
+}
 if (-not $MeridianArgs) { $MeridianArgs = @('doctor') }
 & $python -m meridian @MeridianArgs
 exit $LASTEXITCODE

@@ -20,6 +20,7 @@ from meridian.historical import (
     HistoricalBar,
     HistoricalBarSeries,
     HistoricalProviderError,
+    HistoricalProviderMalformed,
     YahooChartHistoricalProvider,
 )
 from meridian.operational_data import (
@@ -59,6 +60,7 @@ class OperationalMarketSnapshot:
     conflicts: dict[str, str]
     missing_symbols: dict[str, str]
     data_mode: str = "OPERATIONAL_PUBLIC"
+    data_quality_mode: str = "NORMAL"
     provider_probes: dict[str, dict[str, object]] = field(default_factory=dict)
 
     @property
@@ -75,6 +77,7 @@ class OperationalMarketSnapshot:
             "conflicts": self.conflicts,
             "missing_symbols": self.missing_symbols,
             "data_mode": self.data_mode,
+            "data_quality_mode": self.data_quality_mode,
         }
         return hashlib.sha256(
             json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
@@ -82,7 +85,9 @@ class OperationalMarketSnapshot:
 
     @property
     def status(self) -> str:
-        return "BLOCKED_MARKET_DATA" if self.missing_symbols or not self.quotes else "OPERATIONAL_READY"
+        if self.missing_symbols or not self.quotes:
+            return "BLOCKED_MARKET_DATA"
+        return "DATA_DEGRADED" if self.data_quality_mode == "DATA_DEGRADED" else "OPERATIONAL_READY"
 
     def data_status(self) -> dict[str, object]:
         statuses = [value["primary"] for value in self.provider_health.values()]
@@ -104,6 +109,7 @@ class OperationalMarketSnapshot:
             "historical_universe": "BLOCKED",
             "certification": "OPERATIONAL_DATA_IS_NOT_CERTIFIED_RESEARCH",
             "data_mode": self.data_mode,
+            "data_quality_mode": self.data_quality_mode,
             "market_snapshot_hash": self.snapshot_hash,
             "information_cutoff": self.information_cutoff.isoformat(),
             "provider_health": self.provider_health,
@@ -160,6 +166,7 @@ class OperationalMarketSnapshotService:
         missing: dict[str, str] = {}
         probes: dict[str, dict[str, object]] = {}
         observations: dict[str, OperationalSnapshot] = {}
+        data_quality_mode = "NORMAL"
         for symbol in requested:
             refresh = self.refresh.refresh(symbol, analysis_time=analysis_time, live=True) if live else self.refresh.refresh(symbol, analysis_time=analysis_time)
             if live:
@@ -169,11 +176,15 @@ class OperationalMarketSnapshotService:
                 "secondary": refresh.secondary.status.value,
             }
             observations[symbol] = refresh
+            if refresh.data_quality_mode == "DATA_DEGRADED":
+                data_quality_mode = "DATA_DEGRADED"
             probes[symbol] = {
                 "primary": {"provider": refresh.primary.provider, "status": refresh.primary.status.value, "detail": refresh.primary.detail},
                 "secondary": {"provider": refresh.secondary.provider, "status": refresh.secondary.status.value, "detail": refresh.secondary.detail},
                 "selected_provider": refresh.selected.provider if refresh.selected else None,
-                "selection": "CACHE" if refresh.cache_hit else "PRIMARY" if refresh.primary.status is OperationalProviderStatus.OK else "SECONDARY" if refresh.secondary.status is OperationalProviderStatus.OK else "NONE",
+                "selection": refresh.selected_lane,
+                "cache": {"status": refresh.cache_status, "hit": refresh.cache_hit},
+                "data_quality_mode": refresh.data_quality_mode,
                 "history": {"status": "NOT_RUN"},
             }
             cache[symbol] = refresh.cache_hit
@@ -227,6 +238,7 @@ class OperationalMarketSnapshotService:
             cache=cache,
             conflicts=conflicts,
             missing_symbols=missing,
+            data_quality_mode="DATA_DEGRADED" if missing else data_quality_mode,
         )
 
     def _market_snapshot(
@@ -258,13 +270,14 @@ class OperationalMarketSnapshotService:
         if previous.close <= 0:
             raise ValueError("INVALID_RESPONSE")
         atr = self._atr(completed_bars)
+        money_unit = Decimal("0.0001")
         return MarketSnapshot(
             ticker=symbol,
             timestamp=selected.timestamp,
-            last=selected.price,
-            previous_close=previous.close,
+            last=selected.price.quantize(money_unit),
+            previous_close=previous.close.quantize(money_unit),
             volume=int(latest.volume),
-            atr14=atr,
+            atr14=atr.quantize(money_unit) if atr is not None else None,
             # Public shadow providers do not supply an execution-grade VWAP or spread.
             vwap=None,
             bid=None,
@@ -307,4 +320,8 @@ class OperationalMarketSnapshotService:
             return "HISTORICAL_DATA_STALE"
         if "timed out" in str(error).lower():
             return "NETWORK_TIMEOUT"
-        return "SYMBOL_MISSING"
+        if str(error) == "SYMBOL_MISSING":
+            return "SYMBOL_MISSING"
+        if isinstance(error, HistoricalProviderMalformed):
+            return "INVALID_RESPONSE"
+        return "INVALID_RESPONSE"

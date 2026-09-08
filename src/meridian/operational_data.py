@@ -16,6 +16,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Protocol
 from urllib.error import HTTPError, URLError
+from uuid import uuid4
 
 from meridian.quotes import (
     QuoteObservation,
@@ -176,6 +177,9 @@ class OperationalSnapshot:
     research_readiness: OperationalReadiness
     conflict_percent: Decimal | None
     cache_hit: bool
+    cache_status: str = "NOT_CONFIGURED"
+    selected_lane: str = "NONE"
+    data_quality_mode: str = "DATA_DEGRADED"
 
     def __post_init__(self) -> None:
         _aware(self.analysis_time, "analysis_time")
@@ -230,9 +234,15 @@ class OperationalCache:
         body["received_at"] = quote.received_at.isoformat()
         body["quality"] = quote.quality.value
         payload = {"schema_version": self.schema_version, "quote": body, "content_hash": hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()}
-        temporary = path.with_suffix(".tmp")
-        temporary.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":")), encoding="utf-8")
-        temporary.replace(path)
+        temporary = path.with_name(path.name + "." + uuid4().hex + ".tmp")
+        try:
+            temporary.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":")), encoding="utf-8")
+            temporary.replace(path)
+        finally:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 class OperationalRefreshService:
@@ -252,21 +262,33 @@ class OperationalRefreshService:
             primary = replace(primary, status=self.policy.quote_status(primary.quote, as_of=analysis_time)) if primary.quote is not None else primary
             secondary = replace(secondary, status=self.policy.quote_status(secondary.quote, as_of=analysis_time)) if secondary.quote is not None else secondary
         selected = primary.quote if primary.status is OperationalProviderStatus.OK else secondary.quote if secondary.status is OperationalProviderStatus.OK else None
+        selected_lane = "PRIMARY" if selected is primary.quote else "FALLBACK" if selected is secondary.quote else "NONE"
         cache_hit = False
+        cache_status = "NOT_CONFIGURED" if self.cache is None else "NOT_USED"
         if selected is None and self.cache is not None:
+            cache_status = "MISS"
             for provider in (self.primary, self.secondary):
                 cached = self.cache.load(symbol, provider.provider_name)
                 if cached is not None and cached.symbol == symbol and self.policy.quote_status(cached, as_of=analysis_time) is OperationalProviderStatus.OK:
                     selected, cache_hit = cached, True
+                    selected_lane, cache_status = "CACHE", "HIT"
                     break
         if selected is not None and self.cache is not None and not cache_hit:
-            self.cache.store(selected, provider=primary.provider if selected is primary.quote else secondary.provider)
+            try:
+                self.cache.store(selected, provider=primary.provider if selected is primary.quote else secondary.provider)
+                cache_status = "WRITE_OK"
+            except OSError:
+                # Cache is an availability lane, never authority. A cache ACL/EFS
+                # failure must not discard an already-validated provider quote.
+                cache_status = "WRITE_FAILED"
         conflict = None
         if primary.status is OperationalProviderStatus.OK and secondary.status is OperationalProviderStatus.OK and primary.quote is not None and secondary.quote is not None:
             conflict = abs(primary.quote.price - secondary.quote.price) / primary.quote.price
         conflict_block = conflict is not None and conflict > self.discrepancy_tolerance_percent
         readiness = OperationalReadiness.OPERATIONAL_READY if selected is not None and self.policy.quote_status(selected, as_of=analysis_time) is OperationalProviderStatus.OK and not conflict_block else OperationalReadiness.OPERATIONAL_DEGRADED
-        return OperationalSnapshot(analysis_time=analysis_time, information_cutoff=analysis_time, primary=primary, secondary=secondary, selected=selected, readiness=readiness, research_readiness=OperationalReadiness.RESEARCH_BLOCKED, conflict_percent=conflict, cache_hit=cache_hit)
+        provider_degraded = primary.status is not OperationalProviderStatus.OK or secondary.status is not OperationalProviderStatus.OK
+        data_quality_mode = "DATA_DEGRADED" if provider_degraded or cache_status in {"HIT", "MISS", "WRITE_FAILED"} or conflict_block else "NORMAL"
+        return OperationalSnapshot(analysis_time=analysis_time, information_cutoff=analysis_time, primary=primary, secondary=secondary, selected=selected, readiness=readiness, research_readiness=OperationalReadiness.RESEARCH_BLOCKED, conflict_percent=conflict, cache_hit=cache_hit, cache_status=cache_status, selected_lane=selected_lane, data_quality_mode=data_quality_mode)
 
     def _fetch(self, provider: OperationalQuoteProvider, symbol: str, as_of: datetime, *, live: bool = False) -> ProviderResult:
         started = datetime.now(UTC)
@@ -291,4 +313,4 @@ def data_status(snapshot: OperationalSnapshot | None = None) -> dict[str, object
     """Human and machine readable separation of today's data from research PIT."""
     if snapshot is None:
         return {"market_calendar": "OK", "primary_price": "UNAVAILABLE", "secondary_price": "UNAVAILABLE", "latest_quote": "UNAVAILABLE", "latest_daily_bar": "UNKNOWN", "account_snapshot": "EXTERNAL_INPUT_REQUIRED", "sec_pit_research": "PARTIAL", "historical_universe": "BLOCKED", "operational": OperationalReadiness.OPERATIONAL_DEGRADED.value, "research": OperationalReadiness.RESEARCH_BLOCKED.value, "certification": "OPERATIONAL_DATA_IS_NOT_CERTIFIED_RESEARCH"}
-    return {"market_calendar": "OK", "primary_price": snapshot.primary.status.value, "secondary_price": snapshot.secondary.status.value, "latest_quote": "FRESH" if snapshot.readiness is OperationalReadiness.OPERATIONAL_READY else "STALE_OR_UNAVAILABLE", "latest_daily_bar": "UNKNOWN", "account_snapshot": "EXTERNAL_INPUT_REQUIRED", "sec_pit_research": "PARTIAL", "historical_universe": "BLOCKED", "operational": snapshot.readiness.value, "research": snapshot.research_readiness.value, "provider_conflict_percent": str(snapshot.conflict_percent) if snapshot.conflict_percent is not None else None, "information_cutoff": snapshot.information_cutoff.isoformat(), "cache_hit": snapshot.cache_hit, "certification": "OPERATIONAL_DATA_IS_NOT_CERTIFIED_RESEARCH"}
+    return {"market_calendar": "OK", "primary_price": snapshot.primary.status.value, "secondary_price": snapshot.secondary.status.value, "latest_quote": "FRESH" if snapshot.readiness is OperationalReadiness.OPERATIONAL_READY else "STALE_OR_UNAVAILABLE", "latest_daily_bar": "UNKNOWN", "account_snapshot": "EXTERNAL_INPUT_REQUIRED", "sec_pit_research": "PARTIAL", "historical_universe": "BLOCKED", "operational": snapshot.readiness.value, "data_quality_mode": snapshot.data_quality_mode, "selected_lane": snapshot.selected_lane, "research": snapshot.research_readiness.value, "provider_conflict_percent": str(snapshot.conflict_percent) if snapshot.conflict_percent is not None else None, "information_cutoff": snapshot.information_cutoff.isoformat(), "cache_hit": snapshot.cache_hit, "cache_status": snapshot.cache_status, "certification": "OPERATIONAL_DATA_IS_NOT_CERTIFIED_RESEARCH"}

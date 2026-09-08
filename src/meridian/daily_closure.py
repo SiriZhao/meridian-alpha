@@ -171,7 +171,22 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
     forward = forward if isinstance(forward, dict) else {}
     forward_summary = forward.get("summary", {})
     forward_summary = forward_summary if isinstance(forward_summary, dict) else {}
+    startup = report.get("startup_diagnostics", {})
+    startup = startup if isinstance(startup, dict) else {}
+    environment = startup.get("environment", {})
+    environment = environment if isinstance(environment, dict) else {}
+    cache = startup.get("cache", {})
+    cache = cache if isinstance(cache, dict) else {}
+    provider = startup.get("data_provider", {})
+    provider = provider if isinstance(provider, dict) else {}
+    market_status = startup.get("market_status", {})
+    market_status = market_status if isinstance(market_status, dict) else {}
     lines = ["# Meridian daily research report", "", f"Run ID: `{report['run_id']}`",
+             f"Environment: **{environment.get('status', report.get('runtime_status', 'UNKNOWN'))}**",
+             f"Cache: **{cache.get('status', 'UNKNOWN')}** ({cache.get('error_code') or 'healthy'})",
+             f"Data Provider: **{provider.get('status', 'NOT_RUN')}**; lanes: {', '.join(provider.get('selected_lanes', [])) or 'NONE'}",
+             f"Market Status: **{market_status.get('status', 'UNKNOWN')}**",
+             f"Execution Mode: **{startup.get('execution_mode', report.get('execution_mode', 'SAFE_ANALYSIS'))}**",
              f"Runtime: **{report.get('runtime_status', 'UNKNOWN')}**; Analysis: **{report['status']}**",
              f"Forward evidence: **{forward.get('status', 'NOT_RUN')}**; maturity: **{forward_summary.get('maturity_status', 'UNKNOWN')}**; samples: {forward_summary.get('sample_count', 0)}.",
              f"Account freshness: **{readiness.get('account_snapshot_freshness', 'UNKNOWN')}**; "

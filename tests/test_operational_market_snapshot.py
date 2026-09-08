@@ -82,7 +82,8 @@ def test_primary_with_secondary_failure_builds_provenance_snapshot(tmp_path) -> 
         cache=OperationalCache(tmp_path),
     )
     result = OperationalMarketSnapshotService(refresh, Bars()).build(["AAPL"], analysis_time=NOW)
-    assert result.status == "OPERATIONAL_READY"
+    assert result.status == "DATA_DEGRADED"
+    assert result.data_quality_mode == "DATA_DEGRADED"
     assert result.quotes["AAPL"].last == Decimal("101")
     assert result.provider_health["AAPL"]["secondary"] == "UNAVAILABLE"
     assert result.data_status()["certification"] == "OPERATIONAL_DATA_IS_NOT_CERTIFIED_RESEARCH"
@@ -129,3 +130,36 @@ def test_future_quote_is_never_converted_to_market_snapshot() -> None:
         Bars(),
     ).build(["AAPL"], analysis_time=NOW)
     assert result.missing_symbols["AAPL"] == "INVALID_RESPONSE"
+
+
+def test_provider_precision_is_normalized_at_market_snapshot_boundary(tmp_path) -> None:
+    class HighPrecisionBars(Bars):
+        def get_series(
+            self, symbol: str, start: date, end: date, *, as_of: datetime, live: bool = False
+        ) -> HistoricalBarSeries:
+            series = super().get_series(symbol, start, end, as_of=as_of, live=live)
+            bars = tuple(
+                bar.model_copy(
+                    update={
+                        "high": Decimal("331.19000244140625"),
+                        "low": Decimal("320.1499938964844"),
+                        "close": Decimal("328.2099914550781"),
+                    }
+                )
+                for bar in series.bars
+            )
+            return series.model_copy(update={"bars": bars})
+
+    refresh = OperationalRefreshService(
+        QuoteProvider("primary", observation("329.123456789")),
+        QuoteProvider("secondary", QuoteProviderTimeout()),
+        cache=OperationalCache(tmp_path),
+    )
+    result = OperationalMarketSnapshotService(refresh, HighPrecisionBars()).build(
+        ["AAPL"], analysis_time=NOW
+    )
+
+    assert result.missing_symbols == {}
+    assert result.quotes["AAPL"].last == Decimal("329.1235")
+    assert result.quotes["AAPL"].previous_close == Decimal("328.2100")
+    assert result.quotes["AAPL"].atr14 == Decimal("11.0400")

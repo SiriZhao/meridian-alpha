@@ -22,6 +22,7 @@ class RuntimePaths:
     """The only supported writable directory layout for Meridian."""
 
     home: Path
+    cache_root: Path | None = None
 
     @classmethod
     def from_environment(
@@ -38,9 +39,13 @@ class RuntimePaths:
             home = Path(local_app_data) / "MeridianAlpha"
         else:
             home = Path(environment.get("XDG_STATE_HOME", Path.home() / ".local" / "state")) / "meridian-alpha"
+        cache_override = environment.get("MERIDIAN_CACHE")
+        cache_root = Path(cache_override).expanduser() if cache_override else None
         if not home.is_absolute():
             raise RuntimePathError("RUNTIME_HOME_INVALID:MERIDIAN_HOME must be absolute")
-        return cls(home=home)
+        if cache_root is not None and not cache_root.is_absolute():
+            raise RuntimePathError("RUNTIME_CACHE_INVALID:MERIDIAN_CACHE must be absolute")
+        return cls(home=home, cache_root=cache_root)
 
     @property
     def data(self) -> Path:
@@ -52,7 +57,7 @@ class RuntimePaths:
 
     @property
     def cache(self) -> Path:
-        return self.home / "cache"
+        return self.cache_root or self.home / "cache"
 
     @property
     def reports(self) -> Path:
