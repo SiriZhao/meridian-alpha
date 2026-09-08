@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
+from decimal import Decimal
 from pathlib import Path
 from uuid import uuid4
 
@@ -15,12 +16,16 @@ from meridian.runtime import RuntimePathError
 
 def main() -> int:
     parser = argparse.ArgumentParser(prog="meridian")
-    parser.add_argument("command", choices=("version", "paths", "doctor", "init", "data-status", "snapshot", "daily", "dip-scout", "forward-status"))
+    parser.add_argument("command", choices=("version", "paths", "doctor", "init", "data-status", "snapshot", "daily", "dip-scout", "forward-status", "paper"))
     parser.add_argument("subcommand", nargs="?")
     parser.add_argument("file", nargs="?")
     parser.add_argument("--snapshot")
     parser.add_argument("--market-fixture")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--account", default="Schwab-Paper")
+    parser.add_argument("--cash")
+    parser.add_argument("--currency", default="USD")
+    parser.add_argument("--confirm-reset")
     args = parser.parse_args()
     service = None
     try:
@@ -41,6 +46,22 @@ def main() -> int:
             payload = service.snapshot_validate(Path(args.file))
         elif args.command == "daily":
             payload = service.daily(Path(args.snapshot) if args.snapshot else None, Path(args.market_fixture) if args.market_fixture else None)
+        elif args.command == "paper" and args.subcommand == "init":
+            payload = service.paper_init(
+                args.account,
+                cash=Decimal(args.cash) if args.cash is not None else Decimal("100000.00"),
+                currency=args.currency,
+            )
+        elif args.command == "paper" and args.subcommand == "run":
+            payload = service.paper_run(args.account)
+        elif args.command == "paper" and args.subcommand == "status":
+            payload = service.paper_status(args.account)
+        elif args.command == "paper" and args.subcommand == "history":
+            payload = service.paper_history(args.account)
+        elif args.command == "paper" and args.subcommand == "trades":
+            payload = service.paper_trades(args.account)
+        elif args.command == "paper" and args.subcommand == "reset":
+            payload = service.paper_reset(args.account, confirmation=args.confirm_reset)
         elif args.command == "dip-scout" and args.file:
             payload = service.dip_scout(Path(args.file))
         else:
@@ -52,6 +73,8 @@ def main() -> int:
             code, category, message = "MERIDIAN_FILESYSTEM_ERROR", "USER_FIXABLE", "Check the indicated path, permissions and file locks; choose a writable MERIDIAN_HOME."
         elif isinstance(error, sqlite3.Error):
             code, category, message = "MERIDIAN_DATABASE_ERROR", "USER_FIXABLE", "Run doctor; check database permissions, locks and schema. Preserve the database."
+        elif str(error) == "PAPER_RESET_CONFIRMATION_REQUIRED":
+            code, category, message = "PAPER_RESET_CONFIRMATION_REQUIRED", "USER_FIXABLE", "Reset requires --confirm-reset with the exact paper account name; no account state changed."
         else:
             code, category, message = "MERIDIAN_INPUT_INVALID", "DATA_QUALITY", "Supply a valid sanitized HostAccountSnapshotEnvelope and market fixture; run snapshot validate first."
         payload = {"status": "FAILED", "runtime_status": "FAILED", "error_code": code, "category": category, "message": message, "path": str(getattr(error, "filename", None) or ""), "logs_path": str(service.paths.logs) if service else None, "automatic_recovery": "No destructive recovery attempted"}
@@ -69,7 +92,7 @@ def main() -> int:
     if payload.get("exit_code") == 3:
         return 3
     status = str(payload.get("status", "PASS"))
-    return 0 if status in {"PASS", "INIT_COMPLETE", "INIT_ALREADY_COMPLETE", "NO_ACTION", "NO_CAPITAL", "DRAFT"} else 2 if status in {"DEGRADED", "BLOCKED_STALE_ACCOUNT", "BLOCKED_STALE_MARKET", "INSUFFICIENT_FORWARD_EVIDENCE"} else 3
+    return 0 if status in {"PASS", "INIT_COMPLETE", "INIT_ALREADY_COMPLETE", "NO_ACTION", "NO_CAPITAL", "DRAFT", "PAPER_INITIALIZED", "PAPER_ACCOUNT_ALREADY_EXISTS", "PAPER_ACCOUNT_READY", "PAPER_HISTORY", "PAPER_TRADES", "PAPER_COMPLETE", "PAPER_NO_TRADE", "PAPER_ALREADY_EXECUTED", "PAPER_RESET_COMPLETE"} else 2 if status in {"DEGRADED", "BLOCKED_STALE_ACCOUNT", "BLOCKED_STALE_MARKET", "INSUFFICIENT_FORWARD_EVIDENCE", "PAPER_BLOCKED", "PAPER_ACCOUNT_NOT_FOUND"} else 3
 
 
 if __name__ == "__main__":

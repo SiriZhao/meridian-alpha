@@ -10,6 +10,7 @@ import sqlite3
 import sys
 from contextlib import closing
 from datetime import UTC, datetime
+from decimal import Decimal
 from pathlib import Path
 from time import monotonic
 from uuid import uuid4
@@ -40,9 +41,11 @@ from meridian.intelligence import ResearchPacket
 from meridian.intelligence_tools import dip_scout
 from meridian.operational_data import FreshnessPolicy
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
+from meridian.paper import DEFAULT_ACCOUNT, DEFAULT_INITIAL_CASH, PaperLedger, PaperSettings
 from meridian.research_stage import CanonicalResearchStage
 from meridian.runtime import RuntimePaths, policy_directory
 from meridian.runtime_diagnostics import report as doctor_report
+from meridian.trading_calendar import session_context
 
 
 class MeridianApplicationService:
@@ -154,7 +157,13 @@ class MeridianApplicationService:
         AuditStore(self.paths.db).write_readiness(run_id, now.isoformat(), str(payload["status"]), payload)
         return self._complete_report(payload)
 
-    def daily(self, snapshot_path: Path | None, market_fixture: Path | None = None) -> dict[str, object]:
+    def daily(
+        self,
+        snapshot_path: Path | None,
+        market_fixture: Path | None = None,
+        *,
+        research_live_enabled: bool = False,
+    ) -> dict[str, object]:
         self.paths.ensure_directories()
         invocation = uuid4().hex
         log_path = self.paths.logs / ("daily-" + invocation + ".log")
@@ -166,7 +175,7 @@ class MeridianApplicationService:
         logger.addHandler(handler)
         logger.info("START invocation=%s config=%s", invocation, policy_directory())
         try:
-            payload = self._daily(snapshot_path, market_fixture, logger, log_path)
+            payload = self._daily(snapshot_path, market_fixture, logger, log_path, research_live_enabled)
             logger.log(logging.ERROR if payload.get("runtime_status") == "FAILED" else logging.INFO,
                 "run_id=%s runtime=%s error_code=%s", payload.get("run_id"),
                 payload.get("runtime_status"), payload.get("error_code"))
@@ -179,7 +188,14 @@ class MeridianApplicationService:
             logger.removeHandler(handler)
             handler.close()
 
-    def _daily(self, snapshot_path: Path | None, market_fixture: Path | None, logger: logging.Logger, log_path: Path) -> dict[str, object]:
+    def _daily(
+        self,
+        snapshot_path: Path | None,
+        market_fixture: Path | None,
+        logger: logging.Logger,
+        log_path: Path,
+        research_live_enabled: bool,
+    ) -> dict[str, object]:
         started = monotonic()
         logger.info("Database initialization and preflight started")
         initialized = self.init()
@@ -244,6 +260,9 @@ class MeridianApplicationService:
         closure = DailyClosureService(policies)
         parent_id = daily_run_id(account, quotes, cutoff, policies)
         settings = policies.models.research
+        if settings is not None and research_live_enabled:
+            # Paper runs opt in locally; the global models.yaml default stays unchanged.
+            settings = settings.model_copy(update={"live_enabled": True})
         def digest(value: object) -> str:
             return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
         health = provenance.get("provider_health")
@@ -275,6 +294,22 @@ class MeridianApplicationService:
                 {"stage": "decision", "run_id": parent_id, "start": evaluated_at.isoformat(), "finish": datetime.now(UTC).isoformat(), "duration_seconds": (datetime.now(UTC) - evaluated_at).total_seconds(), "status": result.decision.overall_status.value, "error_code": None, "next_action": "Review deterministic policy gates; no manual authority inferred."},
             ]})
         result.report.update(provenance)
+        # Reuse the selected canonical public observations for any downstream
+        # paper-only fill simulation; paper code never performs a shadow fetch.
+        market_observations: dict[str, dict[str, object]] = {}
+        raw_probes = provenance.get("provider_probes", {})
+        raw_probes = raw_probes if isinstance(raw_probes, dict) else {}
+        for ticker, quote in quotes.items():
+            probe = raw_probes.get(ticker, {})
+            probe = probe if isinstance(probe, dict) else {}
+            market_observations[ticker] = {
+                "last": str(quote.last),
+                "timestamp": quote.timestamp.isoformat(),
+                "freshness_state": quote.freshness_state.value,
+                "provider": probe.get("selected_provider") or "PUBLIC_PROVIDER",
+                "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+            }
+        result.report["market_observations"] = market_observations
         if market_error:
             result.report.update({"error_code": market_error, "exit_code": 3, "error_category": "DATA_QUALITY"})
         analysis_ok = result.report["status"] in {"DRAFT", "NO_ACTION", "NO_CAPITAL"}
@@ -312,13 +347,20 @@ class MeridianApplicationService:
             decision_pipeline_status=ReadinessStatus.PASS if result.decision.target_portfolio is not None and analysis_ok else ReadinessStatus.FAILED if result.report["status"] == "FAILED" else ReadinessStatus.NOT_RUN,
             policy_gate_status=ReadinessStatus.DEGRADED if result.decision.target_portfolio is not None else ReadinessStatus.NOT_RUN,
             quote_certification_status=ReadinessStatus.BLOCKED,
-            input_mode="FIXTURE" if market_fixture or snapshot.source_kind == "FIXTURE" else "HOST_SUPPLIED_UNVERIFIED",
+            input_mode=("FIXTURE" if market_fixture or snapshot.source_kind == "FIXTURE"
+                        else "PAPER_LEDGER" if snapshot.source_kind == "PAPER_LEDGER"
+                        else "HOST_SUPPLIED_UNVERIFIED"),
             quote_kind="PUBLIC_RESEARCH_QUOTE" if not market_fixture else "FIXTURE",
         )
         reconciliation = result.report.get("reconciliation")
         reconciled = isinstance(reconciliation, dict) and reconciliation.get("status") == "DRAFT"
         gate_specs = (
-            ("ACCOUNT_READY", ReadinessStatus.PASS if ready.account_provenance is ReadinessStatus.PASS and snapshot_fresh else ReadinessStatus.BLOCKED, "Authenticated fresh Host source required", snapshot.content_hash or "UNAVAILABLE"),
+            (
+                "ACCOUNT_READY",
+                ReadinessStatus.PASS if ready.account_provenance is ReadinessStatus.PASS and snapshot_fresh else ReadinessStatus.BLOCKED,
+                "Fresh authoritative paper ledger observation" if snapshot.source_kind == "PAPER_LEDGER" else "Authenticated fresh Host source required",
+                snapshot.content_hash or "UNAVAILABLE",
+            ),
             ("SECURITY_READY", ready.policy_gate_status, "Operational sector metadata is not authoritative certification", request.policy_reference),
             ("MARKET_READY", ready.market_data_freshness, "Market observations must be fresh at decision time", request.market_reference),
             ("RESEARCH_READY", ReadinessStatus.DEGRADED if research_available else research_health, "Public model inference is advisory, not certified evidence", research.context.input_hash),
@@ -381,6 +423,384 @@ class MeridianApplicationService:
                 failure["audit_failure_recorded"] = False
             return failure
 
+    def _paper_ledger(self) -> PaperLedger:
+        return PaperLedger(
+            AuditStore(self.paths.db), PaperSettings.from_policy_directory(policy_directory())
+        )
+
+    def paper_init(
+        self,
+        account_name: str = DEFAULT_ACCOUNT,
+        *,
+        cash: Decimal = DEFAULT_INITIAL_CASH,
+        currency: str = "USD",
+    ) -> dict[str, object]:
+        initialized = self.init()
+        if initialized["status"] == "INIT_FAILED":
+            return initialized
+        account, created = self._paper_ledger().initialize(
+            account_name, cash=cash, currency=currency
+        )
+        payload = self._paper_ledger().status(account_name)
+        payload.update(
+            {
+                "status": "PAPER_INITIALIZED" if created else "PAPER_ACCOUNT_ALREADY_EXISTS",
+                "created": created,
+                "reset_performed": False,
+                "next_actions": (
+                    ["Run `meridian paper run --account Schwab-Paper --json`."]
+                    if created
+                    else ["Account was preserved; ordinary paper runs never reset history."]
+                ),
+            }
+        )
+        return payload
+
+    def paper_status(self, account_name: str = DEFAULT_ACCOUNT) -> dict[str, object]:
+        return self._paper_ledger().status(account_name)
+
+    def paper_history(self, account_name: str = DEFAULT_ACCOUNT) -> dict[str, object]:
+        return {
+            "status": "PAPER_HISTORY",
+            "account": account_name,
+            "history": self._paper_ledger().history(account_name),
+        }
+
+    def paper_trades(self, account_name: str = DEFAULT_ACCOUNT) -> dict[str, object]:
+        return {
+            "status": "PAPER_TRADES",
+            "account": account_name,
+            "trades": self._paper_ledger().trades(account_name),
+        }
+
+    def paper_reset(self, account_name: str, *, confirmation: str | None) -> dict[str, object]:
+        if confirmation != account_name:
+            raise ValueError("PAPER_RESET_CONFIRMATION_REQUIRED")
+        self._paper_ledger().reset(account_name, confirmation=account_name)
+        return {
+            "status": "PAPER_RESET_COMPLETE",
+            "account": account_name,
+            "reset_performed": True,
+            "next_actions": [
+                "The account is empty. Run `paper init` explicitly to create a new paper account."
+            ],
+        }
+
+    @staticmethod
+    def _paper_quotes(daily: dict[str, object]) -> dict[str, dict[str, object]]:
+        raw = daily.get("market_observations", {})
+        if not isinstance(raw, dict):
+            return {}
+        quotes: dict[str, dict[str, object]] = {}
+        for ticker, item in raw.items():
+            if isinstance(ticker, str) and isinstance(item, dict):
+                quotes[ticker] = dict(item)
+        return quotes
+
+    def _persist_paper_report(self, payload: dict[str, object]) -> dict[str, str]:
+        analysis = datetime.fromisoformat(str(payload["analysis_time"]))
+        run_id = str(payload["paper_run_id"])
+        directory = self.paths.reports / analysis.date().isoformat() / run_id
+        directory.mkdir(parents=True, exist_ok=True)
+        json_path = directory / "paper-daily.json"
+        markdown_path = directory / "paper-daily.md"
+        temporary = json_path.with_suffix(".tmp")
+        temporary.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True, default=str) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(json_path)
+        portfolio = payload.get("portfolio", {})
+        portfolio = portfolio if isinstance(portfolio, dict) else {}
+        performance = payload.get("performance", {})
+        performance = performance if isinstance(performance, dict) else {}
+        execution = payload.get("paper_execution", {})
+        execution = execution if isinstance(execution, dict) else {}
+        research = payload.get("research", {})
+        research = research if isinstance(research, dict) else {}
+        market = payload.get("market", {})
+        market = market if isinstance(market, dict) else {}
+        decision = payload.get("decision", {})
+        decision = decision if isinstance(decision, dict) else {}
+        lines = [
+            "# Meridian Daily — Schwab-Paper",
+            "",
+            f"Status: **{payload.get('status', 'UNKNOWN')}**",
+            f"Canonical run: `{payload.get('canonical_run_id', 'UNKNOWN')}`",
+            "",
+            "## Portfolio",
+            "",
+            f"NAV: **${performance.get('nav', 'UNKNOWN')}**",
+            f"Cash: **${performance.get('cash', portfolio.get('cash', 'UNKNOWN'))}**",
+            f"Market value: **${performance.get('market_value', 'UNKNOWN')}**",
+            f"Realized P&L: **${portfolio.get('realized_pnl', 'UNKNOWN')}**",
+            "",
+            "## Performance",
+            "",
+            f"Daily return: **{performance.get('daily_return', 'NOT_AVAILABLE')}**",
+            f"Since inception: **{performance.get('cumulative_return', 'NOT_AVAILABLE')}**",
+            f"{performance.get('benchmark_symbol', 'SPY')} since inception: **{performance.get('benchmark_cumulative_return', 'NOT_AVAILABLE')}**",
+            f"Excess return: **{performance.get('excess_return', 'NOT_AVAILABLE')}**",
+            f"Drawdown: **{performance.get('drawdown', 'NOT_AVAILABLE')}**",
+            "",
+            "## Positions",
+            "",
+        ]
+        positions = portfolio.get("positions", [])
+        if isinstance(positions, list) and positions:
+            lines.extend(
+                f"- {item.get('ticker')}: {item.get('quantity')} shares @ average ${item.get('average_cost')}"
+                for item in positions
+                if isinstance(item, dict)
+            )
+        else:
+            lines.append("- No open positions.")
+        lines.extend(
+            [
+                "",
+                "## Market",
+                "",
+                f"Status: **{market.get('status', 'NOT_RUN')}**; session: **{market.get('session', 'UNKNOWN')}**.",
+                "Public observations are research quotes only; quote certification remains BLOCKED.",
+                "",
+                "## Today's Decisions",
+                "",
+                f"Deterministic decision: **{decision.get('status', 'NOT_RUN')}**.",
+                f"Paper order intents: **{execution.get('intent_count', 0)}**.",
+                "",
+                "## Risk",
+                "",
+                "Existing long-only, cash reserve, position, concentration and turnover constraints were applied.",
+                "",
+                "## Today's Paper Trades",
+                "",
+            ]
+        )
+        fills = execution.get("fills", [])
+        if isinstance(fills, list) and fills:
+            lines.extend(
+                f"- {item.get('side')} {item.get('quantity')} {item.get('ticker')} @ ${item.get('fill_price')} (fees ${item.get('fees')})"
+                for item in fills
+                if isinstance(item, dict)
+            )
+        else:
+            lines.append("- No paper fills.")
+        lines.extend(
+            [
+                "",
+                "## Research",
+                "",
+                f"Status: **{research.get('status', 'NOT_RUN')}**; provider/model: {research.get('provider', 'UNKNOWN')}/{research.get('model', 'UNKNOWN')}",
+                "",
+                "## Gates",
+                "",
+            ]
+        )
+        gates = decision.get("gates", [])
+        if isinstance(gates, list) and gates:
+            lines.extend(
+                f"- {gate.get('gate')}: **{gate.get('status')}** — {gate.get('reason')}"
+                for gate in gates
+                if isinstance(gate, dict)
+            )
+        else:
+            lines.append("- No gate evidence was produced.")
+        lines.extend(
+            [
+                "",
+                "## Readiness",
+                "",
+                f"Paper execution: **{execution.get('status', 'BLOCKED')}**",
+                f"Recommendation readiness: **{payload.get('recommendation_readiness', 'BLOCKED')}**",
+                f"Manual authority: **{payload.get('manual_authority', 'BLOCKED')}**",
+                "Quote certification: **BLOCKED** — public research quotes are not certified execution quotes.",
+                "",
+                "## Blockers",
+                "",
+            ]
+        )
+        blockers = payload.get("blockers", [])
+        if isinstance(blockers, list) and blockers:
+            lines.extend(f"- {item}" for item in blockers)
+        else:
+            lines.append("- None.")
+        lines.extend(["", "## Next action", ""])
+        next_actions = payload.get("next_actions", [])
+        if isinstance(next_actions, list):
+            lines.extend(f"- {item}" for item in next_actions)
+        lines.extend(
+            [
+                "",
+                "PAPER ACCOUNT ONLY. BROKER SUBMISSION = DISABLED. PUBLIC QUOTES = UNCERTIFIED.",
+                "",
+            ]
+        )
+        temporary_md = markdown_path.with_suffix(".tmp")
+        temporary_md.write_text("\n".join(lines), encoding="utf-8")
+        temporary_md.replace(markdown_path)
+        return {"paper_report_json": str(json_path), "paper_report_markdown": str(markdown_path)}
+
+    def paper_run(self, account_name: str = DEFAULT_ACCOUNT) -> dict[str, object]:
+        """Run the existing canonical daily flow against one durable paper account."""
+        initialized = self.init()
+        if initialized["status"] == "INIT_FAILED":
+            return {**initialized, "status": "PAPER_BLOCKED", "paper_execution": {"status": "BLOCKED"}}
+        ledger = self._paper_ledger()
+        account = ledger.state(account_name)
+        auto_initialized = False
+        if account is None:
+            if account_name != DEFAULT_ACCOUNT:
+                raise ValueError("PAPER_ACCOUNT_NOT_FOUND")
+            _, auto_initialized = ledger.initialize(account_name)
+        snapshot_path = ledger.write_snapshot(self.paths.cache / "paper-snapshots", account_name)
+        try:
+            # This is the canonical daily service, including its doctor, market,
+            # research, deterministic decision, gates, AuditStore and report steps.
+            daily = self.daily(snapshot_path, research_live_enabled=True)
+        finally:
+            try:
+                snapshot_path.unlink(missing_ok=True)
+            except OSError:
+                # A sanitized paper export is still not used as a fallback input.
+                pass
+        quotes = self._paper_quotes(daily)
+        cutoff_text = str(daily.get("information_cutoff") or daily.get("analysis_time"))
+        try:
+            cutoff = datetime.fromisoformat(cutoff_text)
+            market_session = session_context(cutoff)
+        except ValueError:
+            market_session = "UNKNOWN"
+        trading_date = str(daily.get("trading_date") or datetime.now(ZoneInfo("America/New_York")).date())
+        canonical_run_id = str(daily.get("run_id", "UNAVAILABLE"))
+        report_status = str(daily.get("status", "FAILED"))
+        research_status = str(daily.get("research_status", "NOT_RUN"))
+        portfolio = daily.get("portfolio")
+        targets = portfolio.get("positions", []) if isinstance(portfolio, dict) else []
+        blockers: list[str] = []
+        if str(daily.get("runtime_status", "FAILED")) != "PASS":
+            blockers.append("PAPER_CANONICAL_RUNTIME_FAILED")
+        if market_session != "REGULAR":
+            blockers.append("PAPER_EXECUTION_BLOCKED_MARKET_CLOSED")
+        if str(daily.get("data_status", "FAILED")) != "PASS" or not quotes:
+            blockers.append("PAPER_EXECUTION_BLOCKED_MARKET_DATA")
+        if research_status != "AVAILABLE":
+            blockers.append("PAPER_EXECUTION_BLOCKED_RESEARCH_" + research_status)
+        if report_status not in {"DRAFT", "NO_ACTION"}:
+            blockers.append("PAPER_EXECUTION_BLOCKED_DECISION_" + report_status)
+        if report_status == "DRAFT" and not isinstance(targets, list):
+            blockers.append("PAPER_EXECUTION_BLOCKED_DECISION_CONTEXT")
+
+        execution_status = "PAPER_BLOCKED"
+        fills = ()
+        intents = ()
+        if not blockers:
+            previous = ledger.daily_execution(account_name, trading_date)
+            if previous is not None:
+                execution_status = "PAPER_ALREADY_EXECUTED"
+                blockers.append("PAPER_DAILY_IDEMPOTENCY_ALREADY_EXECUTED")
+            else:
+                policies = load_policies(policy_directory())
+                if report_status == "NO_ACTION":
+                    execution_status, paper_fills = ledger.execute(
+                        account_name,
+                        trading_date=trading_date,
+                        canonical_run_id=canonical_run_id,
+                        intents=(),
+                    )
+                else:
+                    paper_intents = ledger.build_order_intents(
+                        account_name,
+                        trading_date=trading_date,
+                        canonical_run_id=canonical_run_id,
+                        targets=targets,
+                        quotes=quotes,
+                        risk=policies.risk,
+                        execution=policies.execution,
+                    )
+                    intents = paper_intents
+                    execution_status, paper_fills = ledger.execute(
+                        account_name,
+                        trading_date=trading_date,
+                        canonical_run_id=canonical_run_id,
+                        intents=paper_intents,
+                    )
+                fills = paper_fills
+        paper_fills = tuple(fills)
+        performance = ledger.record_nav(
+            account_name,
+            trading_date=trading_date,
+            canonical_run_id=canonical_run_id,
+            quotes=quotes,
+            fills=paper_fills,
+        )
+        account_status = ledger.status(account_name)
+        paper_run_id = "paper-" + canonical_run_id
+        paper_execution = {
+            "status": execution_status,
+            "readiness": "PASS" if execution_status in {"PAPER_COMPLETE", "PAPER_NO_TRADE"} else "BLOCKED",
+            "authority": "PAPER_EXECUTION_ONLY",
+            "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+            "quote_certification": "BLOCKED",
+            "market_session": market_session,
+            "intent_count": len(intents),
+            "fills": [item.as_dict() for item in paper_fills],
+            "slippage_bps": str(ledger.settings.slippage_bps),
+            "commission_per_order": str(ledger.settings.commission_per_order),
+        }
+        final_status = execution_status if execution_status != "PAPER_BLOCKED" else "PAPER_BLOCKED"
+        daily_readiness = daily.get("readiness")
+        daily_readiness = daily_readiness if isinstance(daily_readiness, dict) else {}
+        daily_manual_authority = daily.get("manual_authority")
+        daily_manual_authority = daily_manual_authority if isinstance(daily_manual_authority, dict) else {}
+        payload: dict[str, object] = {
+            "schema_version": "meridian-paper-daily.v1",
+            "paper_run_id": paper_run_id,
+            "canonical_run_id": canonical_run_id,
+            "analysis_time": daily.get("analysis_time", datetime.now(UTC).isoformat()),
+            "trading_date": trading_date,
+            "status": final_status,
+            "runtime_status": daily.get("runtime_status", "FAILED"),
+            "account": account_status,
+            "portfolio": {
+                "cash": account_status.get("cash"),
+                "realized_pnl": account_status.get("realized_pnl"),
+                "positions": account_status.get("positions", []),
+            },
+            "performance": performance or {"status": "NOT_MARKED", "reason": "FRESH_QUOTES_FOR_ALL_POSITIONS_REQUIRED"},
+            "market": {
+                "status": daily.get("data_status", "NOT_RUN"),
+                "session": market_session,
+                "observations": quotes,
+                "provider_probes": daily.get("provider_probes", {}),
+                "quote_certification": "BLOCKED",
+            },
+            "research": daily.get("research", {"status": research_status}),
+            "decision": {
+                "status": report_status,
+                "context": daily.get("decision_context"),
+                "gates": daily.get("gates", []),
+            },
+            "paper_execution": paper_execution,
+            "recommendation_readiness": daily_readiness.get("recommendation_readiness", "BLOCKED"),
+            "manual_authority": daily_manual_authority.get("status", "BLOCKED"),
+            "quote_certification": "BLOCKED",
+            "auto_initialized": auto_initialized,
+            "blockers": blockers,
+            "next_actions": (
+                ["Inspect canonical report and retry only during a regular session with fresh public data and validated advisory research."]
+                if blockers
+                else ["Paper ledger and report were updated. Broker submission remains disabled."]
+            ),
+            "canonical_output_files": daily.get("output_files", {}),
+        }
+        try:
+            paper_outputs = self._persist_paper_report(payload)
+        except OSError:
+            paper_outputs = {}
+            payload["blockers"] = [*blockers, "PAPER_REPORT_WRITE_FAILED"]
+            payload["next_actions"] = ["Check report directory permissions and preserve the canonical report and paper ledger."]
+        payload["output_files"] = {**paper_outputs, **({"canonical_report_json": daily["report_json"]} if "report_json" in daily else {}), **({"canonical_report_markdown": daily["report_markdown"]} if "report_markdown" in daily else {})}
+        return payload
     def data_status(self) -> dict[str, object]:
         policies = load_policies(policy_directory())
         snapshot = OperationalMarketSnapshotService.from_runtime(self.paths, policy=FreshnessPolicy(quote_max_age_seconds=policies.data.quote_max_age_seconds, account_max_age_seconds=policies.data.account_snapshot_max_age_seconds)).build(
