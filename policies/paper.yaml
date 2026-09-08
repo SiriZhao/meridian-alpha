@@ -1,0 +1,4 @@
+# Paper-only simulation assumptions. Public market observations remain uncertified.
+slippage_bps: 5
+commission_per_order: 1.00
+benchmark_symbol: SPY

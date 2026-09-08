@@ -13,7 +13,7 @@ from typing import Any
 
 from meridian.schemas import DailyDecision
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 @dataclass(frozen=True)
@@ -47,7 +47,16 @@ class AuditStore:
                 version = connection.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0]
                 if version is not None and version > SCHEMA_VERSION:
                     raise sqlite3.DatabaseError("MERIDIAN_DATABASE_NEWER_SCHEMA: upgrade Meridian before opening this database")
-            for name, required in (("snapshot_receipts", {"snapshot_key", "content_hash", "first_seen_at"}), ("run_readiness", {"run_id", "payload_json"})):
+            for name, required in (
+                ("snapshot_receipts", {"snapshot_key", "content_hash", "first_seen_at"}),
+                ("run_readiness", {"run_id", "payload_json"}),
+                ("paper_accounts", {"account_name", "cash", "ledger_version"}),
+                ("paper_positions", {"account_name", "ticker", "quantity", "average_cost"}),
+                ("paper_fills", {"fill_id", "account_name", "paper_order_id"}),
+                ("paper_ledger", {"account_name", "sequence", "event_type"}),
+                ("paper_daily_runs", {"account_name", "trading_date", "canonical_run_id"}),
+                ("paper_nav_history", {"account_name", "trading_date", "nav"}),
+            ):
                 existing = connection.execute("SELECT type FROM sqlite_master WHERE name=?", (name,)).fetchone()
                 if existing:
                     columns = {row[1] for row in connection.execute(f"PRAGMA table_info({name})")}
@@ -114,6 +123,78 @@ class AuditStore:
                     payload_json TEXT NOT NULL
                 );
                 INSERT OR IGNORE INTO schema_migrations(version) VALUES (2);
+                CREATE TABLE IF NOT EXISTS paper_accounts (
+                    account_name TEXT PRIMARY KEY,
+                    currency TEXT NOT NULL,
+                    starting_cash TEXT NOT NULL,
+                    cash TEXT NOT NULL,
+                    realized_pnl TEXT NOT NULL,
+                    ledger_version INTEGER NOT NULL,
+                    created_at TEXT NOT NULL,
+                    benchmark_symbol TEXT NOT NULL,
+                    benchmark_inception_price TEXT
+                );
+                CREATE TABLE IF NOT EXISTS paper_positions (
+                    account_name TEXT NOT NULL REFERENCES paper_accounts(account_name),
+                    ticker TEXT NOT NULL,
+                    quantity TEXT NOT NULL,
+                    average_cost TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (account_name, ticker)
+                );
+                CREATE TABLE IF NOT EXISTS paper_fills (
+                    fill_id TEXT PRIMARY KEY,
+                    account_name TEXT NOT NULL REFERENCES paper_accounts(account_name),
+                    paper_order_id TEXT NOT NULL,
+                    canonical_run_id TEXT NOT NULL,
+                    ticker TEXT NOT NULL,
+                    side TEXT NOT NULL,
+                    quantity TEXT NOT NULL,
+                    reference_price TEXT NOT NULL,
+                    fill_price TEXT NOT NULL,
+                    slippage_bps TEXT NOT NULL,
+                    fees TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    filled_at TEXT NOT NULL,
+                    UNIQUE(account_name, paper_order_id)
+                );
+                CREATE TABLE IF NOT EXISTS paper_ledger (
+                    account_name TEXT NOT NULL REFERENCES paper_accounts(account_name),
+                    sequence INTEGER NOT NULL,
+                    event_type TEXT NOT NULL,
+                    run_id TEXT,
+                    payload_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY (account_name, sequence)
+                );
+                CREATE TABLE IF NOT EXISTS paper_daily_runs (
+                    account_name TEXT NOT NULL REFERENCES paper_accounts(account_name),
+                    trading_date TEXT NOT NULL,
+                    canonical_run_id TEXT NOT NULL,
+                    order_intent_hash TEXT NOT NULL,
+                    execution_status TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY (account_name, trading_date)
+                );
+                CREATE TABLE IF NOT EXISTS paper_nav_history (
+                    account_name TEXT NOT NULL REFERENCES paper_accounts(account_name),
+                    trading_date TEXT NOT NULL,
+                    run_id TEXT NOT NULL,
+                    observed_at TEXT NOT NULL,
+                    cash TEXT NOT NULL,
+                    market_value TEXT NOT NULL,
+                    nav TEXT NOT NULL,
+                    daily_return TEXT,
+                    cumulative_return TEXT NOT NULL,
+                    drawdown TEXT NOT NULL,
+                    turnover TEXT NOT NULL,
+                    fees TEXT NOT NULL,
+                    trade_count INTEGER NOT NULL,
+                    benchmark_price TEXT,
+                    benchmark_cumulative_return TEXT,
+                    PRIMARY KEY (account_name, trading_date)
+                );
+                INSERT OR IGNORE INTO schema_migrations(version) VALUES (3);
                 COMMIT;
                 """
             )

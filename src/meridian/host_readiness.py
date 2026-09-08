@@ -314,30 +314,65 @@ def inspect_snapshot(path: Path | None, *, max_age_seconds: int, checked_at: dat
         envelope = HostAccountSnapshotEnvelope.model_validate_json(path.read_text(encoding="utf-8"))
     except (ValueError, UnicodeError):
         return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_INVALID", checked_at=now), None
-    # Never echo caller-controlled labels or account facts into diagnostics.
+
     def digest(value: str) -> str:
         return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
     fingerprint = envelope.model_dump(mode="json", exclude={"snapshot_id", "retrieved_at", "provenance_digest"})
     fingerprint["as_of"] = envelope.as_of.astimezone(UTC).isoformat()
+    source_kind = (
+        "FIXTURE" if envelope.source_kind.lower() in {"fixture", "test", "synthetic", "replay"}
+        else "PAPER_LEDGER" if envelope.source_kind.lower() == "paper_ledger"
+        else "HOST_SUPPLIED_UNVERIFIED"
+    )
     lineage: dict[str, Any] = dict(
         snapshot_key=digest(envelope.snapshot_id),
         content_hash=digest(json.dumps(fingerprint, sort_keys=True)),
-        source_kind="FIXTURE" if envelope.source_kind.lower() in {"fixture", "test", "synthetic", "replay"} else "HOST_SUPPLIED_UNVERIFIED",
+        source_kind=source_kind,
         source_name_hash=digest(envelope.source_name),
-        as_of=envelope.as_of, retrieved_at=envelope.retrieved_at,
-        checked_at=now, age_seconds=(now - envelope.as_of).total_seconds(),
+        as_of=envelope.as_of,
+        retrieved_at=envelope.retrieved_at,
+        checked_at=now,
+        age_seconds=(now - envelope.as_of).total_seconds(),
         coverage=envelope.coverage_status.value,
     )
     if envelope.as_of > now or envelope.retrieved_at > now:
         return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_FUTURE_DATED", **lineage), None
     try:
-        account = normalize_host_snapshot(envelope, max_age_seconds=max_age_seconds,
-                                          trusted_now=checked_at, replay=replay)
+        account = normalize_host_snapshot(
+            envelope, max_age_seconds=max_age_seconds, trusted_now=checked_at, replay=replay
+        )
     except ValueError:
         return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_INVALID", **lineage), None
     if account.freshness_state is FreshnessState.STALE:
-        return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_STALE", freshness=ReadinessStatus.BLOCKED, **lineage), account
+        return (
+            SnapshotDiagnostic(
+                code="ACCOUNT_SNAPSHOT_STALE", freshness=ReadinessStatus.BLOCKED, **lineage
+            ),
+            account,
+        )
     if account.sync_state is not AccountSyncState.SYNCED or envelope.pending_or_unknown_state:
-        return SnapshotDiagnostic(code="ACCOUNT_SNAPSHOT_INCOMPLETE_OR_PENDING", freshness=ReadinessStatus.PASS, **lineage), account
-    return SnapshotDiagnostic(status=ReadinessStatus.PASS, code="ACCOUNT_SNAPSHOT_VALID",
-                              freshness=ReadinessStatus.PASS, **lineage), account
+        return (
+            SnapshotDiagnostic(
+                code="ACCOUNT_SNAPSHOT_INCOMPLETE_OR_PENDING",
+                freshness=ReadinessStatus.PASS,
+                **lineage,
+            ),
+            account,
+        )
+    is_paper = source_kind == "PAPER_LEDGER"
+    return (
+        SnapshotDiagnostic(
+            status=ReadinessStatus.PASS,
+            code="ACCOUNT_SNAPSHOT_VALID",
+            freshness=ReadinessStatus.PASS,
+            provenance_status=ReadinessStatus.PASS if is_paper else ReadinessStatus.UNKNOWN,
+            next_action=(
+                "Paper ledger observation accepted; inspect canonical market, research, and paper execution readiness."
+                if is_paper
+                else "Supply a new sanitized Host envelope from an authorized source."
+            ),
+            **lineage,
+        ),
+        account,
+    )
