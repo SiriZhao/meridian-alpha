@@ -200,6 +200,34 @@ class DataPolicy(PolicyModel):
     )
 
 
+class ForwardHorizonPolicy(PolicyModel):
+    name: str = Field(pattern=r"^[A-Z][A-Z0-9_]{1,31}$")
+    trading_sessions: int = Field(ge=1, le=2520)
+
+
+class ForwardEvidencePolicy(PolicyModel):
+    enabled: bool = True
+    benchmark: str = Field(pattern=r"^[A-Z][A-Z0-9.\-]{0,14}$")
+    minimum_mature_samples: int = Field(ge=1, le=100000)
+    horizons: tuple[ForwardHorizonPolicy, ...] = Field(min_length=1, max_length=12)
+    allowed_modes: tuple[str, ...] = Field(min_length=1, max_length=8)
+
+    @model_validator(mode="after")
+    def unique_horizons(self) -> ForwardEvidencePolicy:
+        if len({item.name for item in self.horizons}) != len(self.horizons):
+            raise ValueError("forward evidence horizon names must be unique")
+        allowed = {
+            "PURE_QUANT",
+            "QUANT_PLUS_PROBABILITY",
+            "QUANT_PLUS_LLM",
+            "QUANT_PLUS_PROBABILITY_PLUS_LLM",
+            "FULL_INTELLIGENCE_ADAPTIVE_EXPOSURE",
+        }
+        if any(mode not in allowed for mode in self.allowed_modes):
+            raise ValueError("forward evidence contains an unsupported mode")
+        return self
+
+
 @dataclass(frozen=True)
 class Policies:
     risk: RiskPolicy
@@ -242,3 +270,19 @@ def load_policies(directory: Path) -> Policies:
         except ValidationError as error:
             raise ValueError(f"invalid policy {path.name}: {error}") from error
     return Policies(**loaded)  # type: ignore[arg-type]
+
+
+def load_forward_evidence_policy(directory: Path) -> ForwardEvidencePolicy:
+    """Load the separately versioned forward-evidence policy.
+
+    It is deliberately outside ``Policies`` so historical callers that only
+    need a decision policy do not silently acquire a new promotion surface.
+    Canonical application orchestration loads it explicitly.
+    """
+    path = directory / "forward_evidence.yaml"
+    if not path.is_file():
+        raise ValueError(f"missing policy file: {path.name}")
+    try:
+        return ForwardEvidencePolicy.model_validate(_load_yaml(path))
+    except ValidationError as error:
+        raise ValueError(f"invalid policy {path.name}: {error}") from error

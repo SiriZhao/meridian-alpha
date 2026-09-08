@@ -1,0 +1,14 @@
+enabled: true
+benchmark: SPY
+minimum_mature_samples: 20
+horizons:
+  - name: SHORT
+    trading_sessions: 5
+  - name: MEDIUM
+    trading_sessions: 20
+allowed_modes:
+  - PURE_QUANT
+  - QUANT_PLUS_PROBABILITY
+  - QUANT_PLUS_LLM
+  - QUANT_PLUS_PROBABILITY_PLUS_LLM
+  - FULL_INTELLIGENCE_ADAPTIVE_EXPOSURE
