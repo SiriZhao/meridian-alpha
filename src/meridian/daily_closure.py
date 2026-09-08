@@ -167,8 +167,13 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
     publish_staged_report(temporary, json_path)
     readiness = report.get("readiness", {})
     readiness = readiness if isinstance(readiness, dict) else {}
+    forward = report.get("forward_evidence", {})
+    forward = forward if isinstance(forward, dict) else {}
+    forward_summary = forward.get("summary", {})
+    forward_summary = forward_summary if isinstance(forward_summary, dict) else {}
     lines = ["# Meridian daily research report", "", f"Run ID: `{report['run_id']}`",
              f"Runtime: **{report.get('runtime_status', 'UNKNOWN')}**; Analysis: **{report['status']}**",
+             f"Forward evidence: **{forward.get('status', 'NOT_RUN')}**; maturity: **{forward_summary.get('maturity_status', 'UNKNOWN')}**; samples: {forward_summary.get('sample_count', 0)}.",
              f"Account freshness: **{readiness.get('account_snapshot_freshness', 'UNKNOWN')}**; "
              f"Market freshness: **{readiness.get('market_data_freshness', 'UNKNOWN')}**",
              f"Research invocation: **{report.get('research_status', 'NOT_RUN')}**; "

@@ -17,7 +17,7 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from meridian.audit import SCHEMA_VERSION, AuditStore
-from meridian.config import load_policies
+from meridian.config import load_forward_evidence_policy, load_policies
 from meridian.daily_closure import (
     DailyClosureService,
     daily_run_id,
@@ -30,7 +30,8 @@ from meridian.daily_research import (
     PublicResearchObservation,
     ResearchProviderStatus,
 )
-from meridian.forward_evidence import ForwardLedger
+from meridian.forward_evidence import ForwardLedger, freeze_canonical_predictions
+from meridian.forward_evidence import policy_hash as forward_policy_hash
 from meridian.host_readiness import (
     ReadinessGateResult,
     ReadinessStatus,
@@ -380,6 +381,64 @@ class MeridianApplicationService:
                              "Manual entry additionally requires a certified execution quote and sealed authority."],
             "degraded_reasons": ["RESEARCH_ADVISORY_ONLY" if research_available else "RESEARCH_" + research.context.status.value, "POLICY_SECURITY_METADATA_UNCERTIFIED", "PUBLIC_QUOTE_UNCERTIFIED"],
         })
+        # Forward evidence consumes this exact final decision and the already-selected
+        # operational observations. It is intentionally observational: it never
+        # recalculates an order, upgrades public data, or promotes a strategy.
+        forward_policy = load_forward_evidence_policy(policy_directory())
+        forward_ledger = ForwardLedger(self.paths.audit / "forward-evidence.json")
+        forward_freeze: dict[str, object]
+        forward_outcomes: dict[str, object]
+        try:
+            if analysis_ok and market_ok:
+                targets = result.decision.target_portfolio
+                target_weights = ({item.ticker: item.target_weight for item in targets.positions}
+                                  if targets is not None else {})
+                order_signals = {item.ticker: item.side.value for item in result.decision.orders}
+                quote_prices = {ticker: quote.last for ticker, quote in quotes.items()}
+                forward_freeze = freeze_canonical_predictions(
+                    forward_ledger,
+                    policy=forward_policy,
+                    decision_run_id=result.decision.run_id,
+                    decision_timestamp=result.decision.as_of,
+                    information_cutoff=cutoff,
+                    account_reference=digest(account.account_alias),
+                    universe=tuple(sorted(policies.universe.tickers)),
+                    prices=quote_prices,
+                    quant_scores={ticker: quote.daily_return for ticker, quote in quotes.items()},
+                    target_weights=target_weights,
+                    order_signals=order_signals,
+                    cash_weight=targets.cash_weight if targets is not None else Decimal("1"),
+                    market_snapshot_hash=str(result.report["market_data_snapshot_hash"]),
+                    policy_digest=forward_policy_hash(forward_policy),
+                    model_config_digest=digest(policies.models.model_dump(mode="json")),
+                    research_available=research_available,
+                    data_mode=str(provenance["data_mode"]),
+                )
+                forward_outcomes = forward_ledger.ingest_prices(
+                    observed_at=cutoff, prices=quote_prices, source="CANONICAL_OPERATIONAL_MARKET_SNAPSHOT"
+                )
+            else:
+                forward_freeze = {"status": "FORWARD_NOT_FROZEN", "reason": "CANONICAL_DECISION_OR_MARKET_NOT_READY"}
+                forward_outcomes = {"status": "FORWARD_OUTCOME_NOT_READY", "reason": "CANONICAL_MARKET_NOT_READY"}
+            forward_summary = forward_ledger.evaluate(minimum_samples=forward_policy.minimum_mature_samples)
+            result.report["forward_evidence"] = {
+                "status": forward_summary["status"], "freeze": forward_freeze,
+                "outcomes": forward_outcomes, "summary": forward_summary,
+                "policy_hash": forward_policy_hash(forward_policy),
+                "authority": "SHADOW_EVIDENCE_ONLY_NO_AUTOMATIC_PROMOTION",
+            }
+        except (OSError, ValueError):
+            result.report["forward_evidence"] = {
+                "status": "BLOCKED", "freeze": {"status": "FORWARD_NOT_FROZEN"},
+                "outcomes": {"status": "FORWARD_OUTCOME_NOT_READY"},
+                "summary": {"status": "BLOCKED"},
+                "authority": "SHADOW_EVIDENCE_ONLY_NO_AUTOMATIC_PROMOTION",
+                "error_code": "FORWARD_EVIDENCE_INTEGRITY_OR_STORAGE_FAILED",
+            }
+            errors = result.report.get("errors", [])
+            next_actions = result.report.get("next_actions", [])
+            result.report["errors"] = [*errors, "FORWARD_EVIDENCE_INTEGRITY_OR_STORAGE_FAILED"] if isinstance(errors, list) else ["FORWARD_EVIDENCE_INTEGRITY_OR_STORAGE_FAILED"]
+            result.report["next_actions"] = [*next_actions, "Inspect forward evidence storage and preserve the conflicting receipt; do not infer a replacement prediction."] if isinstance(next_actions, list) else ["Inspect forward evidence storage and preserve the conflicting receipt; do not infer a replacement prediction."]
         AuditStore(self.paths.db).write_decision(result.decision)
         AuditStore(self.paths.db).write_readiness(result.decision.run_id, cutoff.isoformat(), str(result.report["status"]), {
             "research": result.report["research"], "research_input": result.report["research_input"], "decision_context": result.report["decision_context"], "gates": result.report["gates"], "stages": result.report["stages"], "manual_authority": result.report["manual_authority"],
@@ -519,6 +578,8 @@ class MeridianApplicationService:
         execution = execution if isinstance(execution, dict) else {}
         research = payload.get("research", {})
         research = research if isinstance(research, dict) else {}
+        forward = payload.get("forward_evidence", {})
+        forward = forward if isinstance(forward, dict) else {}
         market = payload.get("market", {})
         market = market if isinstance(market, dict) else {}
         decision = payload.get("decision", {})
@@ -592,6 +653,10 @@ class MeridianApplicationService:
                 "## Research",
                 "",
                 f"Status: **{research.get('status', 'NOT_RUN')}**; provider/model: {research.get('provider', 'UNKNOWN')}/{research.get('model', 'UNKNOWN')}",
+                "",
+                "## Forward Evidence",
+                "",
+                f"Status: **{forward.get('status', 'NOT_RUN')}**. Evidence never grants automatic promotion.",
                 "",
                 "## Gates",
                 "",
@@ -776,6 +841,7 @@ class MeridianApplicationService:
                 "quote_certification": "BLOCKED",
             },
             "research": daily.get("research", {"status": research_status}),
+            "forward_evidence": daily.get("forward_evidence", {"status": "NOT_RUN"}),
             "decision": {
                 "status": report_status,
                 "context": daily.get("decision_context"),
@@ -815,8 +881,11 @@ class MeridianApplicationService:
         )
 
     def forward_status(self) -> dict[str, object]:
+        policy = load_forward_evidence_policy(policy_directory())
         ledger = ForwardLedger(self.paths.audit / "forward-evidence.json")
-        return ledger.evaluate()
+        return {**ledger.evaluate(minimum_samples=policy.minimum_mature_samples),
+                "policy_hash": forward_policy_hash(policy),
+                "authority": "SHADOW_EVIDENCE_ONLY_NO_AUTOMATIC_PROMOTION"}
 
     def latest_report(self) -> dict[str, object]:
         reports = sorted(

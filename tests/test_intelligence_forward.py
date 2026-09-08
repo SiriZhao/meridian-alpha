@@ -123,10 +123,11 @@ def test_forward_ingestion_waits_for_maturity_and_is_idempotent(tmp_path: Path) 
     prediction = next(item for item in ledger.predictions.values() if item.symbol == "AAPL")
     early = ledger.ingest_prices(observed_at=prediction.maturity_at - timedelta(seconds=1), prices={"AAPL": Decimal("110"), "SPY": Decimal("510")})
     assert early["status"] == "FORWARD_OUTCOME_NOT_READY"
-    mature = ledger.ingest_prices(observed_at=prediction.maturity_at, prices={"AAPL": Decimal("110"), "SPY": Decimal("510")})
+    ledger.ingest_prices(observed_at=prediction.maturity_at, prices={"AAPL": Decimal("110"), "SPY": Decimal("510")})
     assert len(ledger.outcomes) == 2
     repeat = ledger.ingest_prices(observed_at=prediction.maturity_at, prices={"AAPL": Decimal("110"), "SPY": Decimal("510")})
     assert repeat["appended"] == []
     status = ledger.evaluate()
     assert status["maturity_status"] == "NOT_MATURE"
     assert status["promotion_readiness"] == "NOT_ELIGIBLE_AUTOMATIC_PROMOTION_DISABLED"
+
