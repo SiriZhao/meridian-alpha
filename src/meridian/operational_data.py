@@ -74,13 +74,32 @@ class FreshnessPolicy:
             return OperationalProviderStatus.INVALID_RESPONSE
         return OperationalProviderStatus.OK
 
+    def research_quote_eligible(self, observation: OperationalQuote, *, as_of: datetime) -> bool:
+        """Accept only the latest completed-session close for research context.
+
+        The same observation remains stale and unusable for execution, sizing,
+        and limit pricing.
+        """
+        _aware(as_of, "as_of")
+        if observation.timestamp > as_of or observation.received_at > as_of:
+            return False
+        if session_context(as_of) == "REGULAR":
+            return False
+        completed = latest_completed_session(as_of)
+        observed_session = observation.timestamp.astimezone(NEW_YORK).date()
+        return (
+            observed_session == completed
+            and abs(
+                (observation.timestamp - session_close(completed)).total_seconds()
+            )
+            <= self.quote_max_age_seconds
+        )
+
     def describe(self, observation: OperationalQuote, *, as_of: datetime) -> dict[str, object]:
         status = self.quote_status(observation, as_of=as_of)
         context = session_context(as_of)
         completed = latest_completed_session(as_of)
-        observed_session = observation.timestamp.astimezone(NEW_YORK).date()
-        closing_context = (context != "REGULAR" and observed_session == completed
-                           and abs((observation.timestamp - session_close(completed)).total_seconds()) <= self.quote_max_age_seconds)
+        closing_context = self.research_quote_eligible(observation, as_of=as_of)
         return {
             "symbol": observation.symbol, "provider": observation.provider,
             "source_timestamp": observation.timestamp.isoformat(),

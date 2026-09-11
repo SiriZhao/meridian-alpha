@@ -17,6 +17,7 @@ from pydantic import Field, model_validator
 
 from meridian.evidence import ProviderCapabilities
 from meridian.evidence_foundation import SECCompanyFactsProvider
+from meridian.fundamentals import SECTickerResolver
 from meridian.schemas import EvidenceItem, EvidencePointInTimeStatus, StableModel
 
 
@@ -167,6 +168,7 @@ class SECAccessionCertifiedFactsProvider:
         *,
         facts_provider: Any | None = None,
         metadata_provider: Any | None = None,
+        resolver: Any | None = None,
     ) -> None:
         self.facts_provider = facts_provider or SECCompanyFactsProvider()
         self.metadata_provider = metadata_provider or SECSubmissionMetadataProvider()
@@ -178,15 +180,12 @@ class SECAccessionCertifiedFactsProvider:
             execution_grade=False,
             research_grade=True,
         )
-        self._ciks = {
-            "AAPL": "0000320193",
-            "MSFT": "0000789019",
-            "NVDA": "0001045810",
-        }
+        self.resolver = resolver or SECTickerResolver()
 
     def get_evidence(self, ticker: str, as_of: datetime) -> tuple[EvidenceItem, ...]:
-        cik = self._ciks.get(ticker.upper())
-        if cik is None:
+        try:
+            cik, _, _, _ = self.resolver.resolve(ticker.upper())
+        except (OSError, ValueError):
             return ()
         facts = self.facts_provider.get_evidence(ticker.upper(), as_of)
         adapter = SECAccessionCertifiedFactsAdapter()
@@ -201,3 +200,6 @@ class SECAccessionCertifiedFactsProvider:
             if item is not None:
                 certified.append(item)
         return tuple(certified)
+
+
+

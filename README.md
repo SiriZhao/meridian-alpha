@@ -49,7 +49,8 @@ logs are under the runtime home. No raw snapshot is saved by default.
 
 Canonical daily runs structured advisory research when the existing research
 policy is explicitly enabled and fresh inputs are available. Research status
-comes from the actual HTTP response and schema validation; disabled configuration
+comes from a local `codex exec` final response and strict schema validation;
+disabled configuration
 remains NOT_RUN. Advisory completion does not certify a recommendation. Missing/stale market
 inputs block recommendations while still producing a diagnostic report.
 No real account snapshot means no real portfolio validation.
@@ -69,8 +70,8 @@ For the default persistent paper account, the only daily command is:
 On its first use it creates `Schwab-Paper` with USD 100,000.00 cash. Later
 runs load the same SQLite ledger and never reset it. The command creates a
 fresh internal `PAPER_LEDGER` account observation, calls the existing canonical
-daily path, attempts the configured DeepSeek advisory stage through its normal
-credential boundary, evaluates deterministic decisions and gates, and simulates
+daily path, invokes the Codex CLI advisory stage through its saved
+ChatGPT-managed login, evaluates deterministic decisions and gates, and simulates
 only eligible paper fills. It writes canonical and Schwab-Paper JSON/Markdown
 reports under the runtime home.
 

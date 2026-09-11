@@ -1,0 +1,177 @@
+{
+  "schema_version": "meridian-astra-evals.v1",
+  "as_of": "2026-09-11T16:00:00Z",
+  "fixtures": [
+    {
+      "id": "unsupported-claim",
+      "intent": "COMPANY_RESEARCH",
+      "input": {
+        "claim": "Revenue grew 40%",
+        "evidence": []
+      },
+      "expected": {
+        "classification": "UNKNOWN",
+        "must_not_assert_fact": true
+      }
+    },
+    {
+      "id": "evidence-attribution",
+      "intent": "EARNINGS_REVIEW",
+      "input": {
+        "claim": "A filing was published",
+        "evidence_ids": [
+          "ev-sec-1"
+        ]
+      },
+      "expected": {
+        "required_evidence_ids": [
+          "ev-sec-1"
+        ]
+      }
+    },
+    {
+      "id": "contradiction-discovery",
+      "intent": "BUY_REVIEW",
+      "input": {
+        "source_a": "210.00",
+        "source_b": "185.00",
+        "field": "price"
+      },
+      "expected": {
+        "status": "SOURCE_CONFLICT",
+        "recommendation": "NO_ACTION"
+      }
+    },
+    {
+      "id": "uncertainty-reporting",
+      "intent": "PRE_MORTEM",
+      "input": {
+        "fundamentals": "available",
+        "executable_quote": "missing"
+      },
+      "expected": {
+        "unknowns_include": "executable quote",
+        "execution_authority": "NONE"
+      }
+    },
+    {
+      "id": "tool-selection",
+      "intent": "DIP_RESEARCH",
+      "input": {
+        "available": [
+          "market_snapshot",
+          "company_facts",
+          "quant_metrics"
+        ]
+      },
+      "expected": {
+        "numerical_tool": "quant_metrics",
+        "must_not_use_llm_for_values": true
+      }
+    },
+    {
+      "id": "research-completeness",
+      "intent": "PORTFOLIO_REVIEW",
+      "input": {
+        "portfolio_context": "available",
+        "market_snapshot": "stale"
+      },
+      "expected": {
+        "research_may_continue": true,
+        "execution_must_block": true
+      }
+    },
+    {
+      "intent": "COMPANY_RESEARCH",
+      "id": "bull-with-material-contradiction",
+      "expected": {
+        "must_report_unknowns": true,
+        "must_surface_contradiction": true
+      },
+      "input": {
+        "primary_evidence": "strong demand",
+        "contradiction": "guidance cut"
+      }
+    },
+    {
+      "intent": "BUY_REVIEW",
+      "id": "cheap-with-deteriorating-fundamentals",
+      "expected": {
+        "must_include_risk": "deterioration",
+        "must_not_equate_cheap_with_buy": true
+      },
+      "input": {
+        "fundamentals": "margin and FCF deteriorating",
+        "valuation": "low multiple"
+      }
+    },
+    {
+      "intent": "COMPANY_RESEARCH",
+      "id": "excellent-but-expensive",
+      "expected": {
+        "must_separate_quality_and_valuation": true
+      },
+      "input": {
+        "valuation": "expensive",
+        "quality": "strong"
+      }
+    },
+    {
+      "intent": "EARNINGS_REVIEW",
+      "id": "earnings-beat-weak-guidance",
+      "expected": {
+        "recommendation_not_preordained": true,
+        "must_surface_contradiction": true
+      },
+      "input": {
+        "guidance": "weak",
+        "earnings": "beat"
+      }
+    },
+    {
+      "intent": "NEWS_IMPACT",
+      "id": "negative-headline-no-thesis-impact",
+      "expected": {
+        "must_assess_materiality": true
+      },
+      "input": {
+        "headline": "negative",
+        "primary_evidence": "no material thesis change"
+      }
+    },
+    {
+      "intent": "PRE_MORTEM",
+      "id": "material-regulatory-risk",
+      "expected": {
+        "must_include_risk": true,
+        "must_cite_event": true
+      },
+      "input": {
+        "source_tier": "PRIMARY",
+        "event_type": "regulatory"
+      }
+    },
+    {
+      "intent": "COMPANY_RESEARCH",
+      "id": "insufficient-data",
+      "expected": {
+        "classification": "UNKNOWN",
+        "recommendation": "NO_ACTION"
+      },
+      "input": {
+        "evidence": []
+      }
+    },
+    {
+      "intent": "DAILY_RESEARCH",
+      "id": "future-information-contamination",
+      "expected": {
+        "temporal_safety": true,
+        "must_reject_evidence": true
+      },
+      "input": {
+        "evidence_known_at": "after_analysis_cutoff"
+      }
+    }
+  ]
+}

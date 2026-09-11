@@ -183,6 +183,8 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
     market_status = market_status if isinstance(market_status, dict) else {}
     research_universe = report.get("research_universe", {})
     research_universe = research_universe if isinstance(research_universe, dict) else {}
+    retrieval = report.get("data_auto_retrieval", {})
+    retrieval = retrieval if isinstance(retrieval, dict) else {}
     lines = ["# Meridian daily research report", "", f"Run ID: `{report['run_id']}`",
              f"Environment: **{environment.get('status', report.get('runtime_status', 'UNKNOWN'))}**",
              f"Cache: **{cache.get('status', 'UNKNOWN')}** ({cache.get('error_code') or 'healthy'})",
@@ -199,6 +201,16 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
              f"eligible {research_universe.get('original_count', 0)} -> "
              f"research {research_universe.get('research_count', 0)} -> "
              f"deep analysis {research_universe.get('deep_analysis_count', 0)}",
+             "", "## Data auto-retrieval", "",
+             f"Initial completeness: **{retrieval.get('initial_completeness', 'NOT_RUN')}**",
+             f"Final completeness: **{retrieval.get('final_completeness', 'NOT_RUN')}**",
+             f"Quality: **{retrieval.get('quality_grade', 'NOT_RUN')}** "
+             f"({retrieval.get('quality_score', 0)}/100)",
+             f"Requirements: {retrieval.get('requirements', 0)}; "
+             f"retrieved: {retrieval.get('retrieved', 0)}; "
+             f"sources: {retrieval.get('source_count', 0)}.",
+             f"Unresolved blocking fields: "
+             f"{', '.join(retrieval.get('blocking_missing', [])) or 'none'}",
              "", "## Recommendation readiness", "",
              f"Recommendation: **{readiness.get('recommendation_readiness', 'UNKNOWN')}**",
              f"Research: **{readiness.get('research_readiness', 'UNKNOWN')}**",
@@ -230,12 +242,24 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
         lines.append("NOT_RUN: upstream inputs unavailable; no authority issued.")
     research = report.get("research", {})
     if isinstance(research, dict):
+        diagnostics = research.get("provider_diagnostics", {})
+        diagnostics = diagnostics if isinstance(diagnostics, dict) else {}
+        structured = research.get("structured_response", {})
+        structured = structured if isinstance(structured, dict) else {}
+        context = research.get("context", {})
+        context = context if isinstance(context, dict) else {}
         lines.extend(["", "## Research (MODEL_INFERENCE; advisory only)", "",
                       f"Provider/model: {research.get('provider', 'NOT_RUN')}/{research.get('model', 'NOT_RUN')}; "
                       f"provider evidence: {research.get('provenance', 'NONE')}; "
                       f"attempts: {research.get('attempts', 0)}; "
-                      f"diagnostic: {research.get('error_code') or 'none'}."])
-        context = research.get("context", {})
+                      f"diagnostic: {research.get('error_code') or 'none'}.",
+                      f"Auth mode: **{diagnostics.get('auth_mode', 'CHATGPT_MANAGED_CODEX')}**; "
+                      f"reasoning: **{diagnostics.get('reasoning_effort', 'medium')}**; "
+                      f"schema: **{'PASS' if diagnostics.get('schema_valid') else 'FAIL'}**; "
+                      f"elapsed: **{diagnostics.get('elapsed_ms', 0)} ms**.",
+                      f"Research status: **{context.get('status', 'NOT_RUN')}**; "
+                      f"recommendation: **{structured.get('recommended_action', 'NO_ACTION')}**; "
+                      f"confidence: **{structured.get('confidence', 'NOT_AVAILABLE')}**."])
         output = context.get("output") if isinstance(context, dict) else None
         if isinstance(output, dict):
             # Indented text renders model prose as literal content, never links/HTML.

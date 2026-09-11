@@ -182,7 +182,7 @@ def graph_result(rating="Hold"):
     }
 
 
-def test_default_live_path_selects_graph_runner(monkeypatch):
+def test_default_live_path_is_legacy_disabled(monkeypatch):
     monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
     called = []
 
@@ -197,14 +197,11 @@ def test_default_live_path_selects_graph_runner(monkeypatch):
     monkeypatch.setattr(adapter_module, "_installed_version", lambda: adapter_module.PINNED_TRADINGAGENTS_VERSION)
     monkeypatch.setattr(adapter_module, "_official_graph_runner", fake_graph)
     result = TradingAgentsResearchEngine(settings(live=True)).analyze("AAPL", AS_OF, {})
-    assert called == ["AAPL"]
-    assert result.status is ResearchStatus.GRAPH_SUMMARY_ONLY
-    assert result.framework == "TradingAgentsGraph"
-    assert result.graph_rating == "Buy"
+    assert called == []
+    assert result.status is ResearchStatus.UNAVAILABLE
+    assert result.error_code == "LEGACY_DEEPSEEK_RUNTIME_DISABLED"
     assert result.signal is None
-    assert result.selected_analysts == ("market", "social", "news", "fundamentals")
-    assert result.graph_summary is not None
-    assert result.graph_summary.status is ResearchStatus.GRAPH_SUMMARY_ONLY
+    assert result.graph_summary is None
 
 
 def test_client_only_runner_cannot_masquerade_as_full_graph(monkeypatch):

@@ -7,6 +7,7 @@ from meridian.historical import HistoricalBar, HistoricalBarSeries
 from meridian.operational_data import OperationalCache, OperationalRefreshService
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
 from meridian.quotes import QuoteObservation, QuoteProviderTimeout
+from meridian.schemas import FreshnessState
 
 NOW = datetime(2026, 9, 2, 20, 30, tzinfo=UTC)
 
@@ -163,3 +164,29 @@ def test_provider_precision_is_normalized_at_market_snapshot_boundary(tmp_path) 
     assert result.quotes["AAPL"].last == Decimal("329.1235")
     assert result.quotes["AAPL"].previous_close == Decimal("328.2100")
     assert result.quotes["AAPL"].atr14 == Decimal("11.0400")
+
+
+def test_last_completed_session_quote_is_research_only(tmp_path) -> None:
+    analysis_time = datetime(2026, 9, 2, 23, tzinfo=UTC)
+    close = observation().model_copy(
+        update={
+            "observed_at": datetime(2026, 9, 2, 20, tzinfo=UTC),
+            "available_at": datetime(2026, 9, 2, 20, tzinfo=UTC),
+            "retrieved_at": datetime(2026, 9, 2, 20, 1, tzinfo=UTC),
+        }
+    )
+    result = OperationalMarketSnapshotService(
+        OperationalRefreshService(
+            QuoteProvider("primary", close),
+            QuoteProvider("secondary", QuoteProviderTimeout()),
+            cache=OperationalCache(tmp_path),
+        ),
+        Bars(),
+    ).build(["AAPL"], analysis_time=analysis_time)
+
+    assert result.quotes == {}
+    assert result.missing_symbols["AAPL"] == "MARKET_DATA_STALE"
+    assert result.research_quotes["AAPL"].freshness_state is FreshnessState.STALE
+    assert result.provider_probes["AAPL"]["research_selection"] == (
+        "LAST_COMPLETED_SESSION_ONLY"
+    )

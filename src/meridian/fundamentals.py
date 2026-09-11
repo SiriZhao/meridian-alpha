@@ -30,6 +30,7 @@ class CanonicalMetric(StrEnum):
     TOTAL_LIABILITIES = "TOTAL_LIABILITIES"
     SHAREHOLDERS_EQUITY = "SHAREHOLDERS_EQUITY"
     LONG_TERM_DEBT = "LONG_TERM_DEBT"
+    SHARES_OUTSTANDING = "SHARES_OUTSTANDING"
 
 
 class FundamentalContextType(StrEnum):
@@ -65,6 +66,7 @@ _DEFINITIONS = (
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.TOTAL_LIABILITIES, raw_concepts=("Liabilities",), expected_units=("USD",), context_type=FundamentalContextType.INSTANT),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.SHAREHOLDERS_EQUITY, raw_concepts=("StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"), expected_units=("USD",), context_type=FundamentalContextType.INSTANT, concept_precedence=("StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest")),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.LONG_TERM_DEBT, raw_concepts=("LongTermDebtCurrent", "LongTermDebtNoncurrent", "LongTermDebtAndFinanceLeaseObligationsCurrent", "LongTermDebtAndFinanceLeaseObligationsNoncurrent"), expected_units=("USD",), context_type=FundamentalContextType.INSTANT, notes="Use a reported total when present; otherwise sum current and non-current components for the same filing/context.", concept_precedence=("LongTermDebtAndFinanceLeaseObligationsCurrent", "LongTermDebtAndFinanceLeaseObligationsNoncurrent", "LongTermDebtCurrent", "LongTermDebtNoncurrent"), component_aggregation="SUM_COMPONENTS"),
+    CanonicalMetricDefinition(canonical_metric=CanonicalMetric.SHARES_OUTSTANDING, raw_concepts=("EntityCommonStockSharesOutstanding", "CommonStocksIncludingAdditionalPaidInCapitalMember"), expected_units=("shares",), context_type=FundamentalContextType.INSTANT, concept_precedence=("EntityCommonStockSharesOutstanding",)),
 )
 
 CANONICAL_METRIC_REGISTRY: Mapping[tuple[str, str], CanonicalMetricDefinition] = {
@@ -681,6 +683,36 @@ def snapshot_to_evidence_items(snapshot: CertifiedFundamentalSnapshot) -> tuple[
     return tuple(items)
 
 
+
+class SECTickerResolver:
+    """Resolve one unambiguous SEC ticker from the official company-tickers feed."""
+    source_uri = "https://www.sec.gov/files/company_tickers.json"
+
+    def __init__(self, *, opener: Callable[..., Any] = urlopen, clock: Callable[[], datetime] | None = None) -> None:
+        self.opener = opener
+        self.clock = clock or (lambda: datetime.now(UTC))
+        self._cache: dict[str, tuple[str, str, str | None, datetime]] = {}
+
+    def resolve(self, ticker: str) -> tuple[str, str, str | None, datetime]:
+        key = ticker.strip().upper()
+        if key in self._cache:
+            return self._cache[key]
+        retrieved = self.clock()
+        raw = self.opener(Request(self.source_uri, headers={"User-Agent": "MeridianAlpha research contact unavailable"}), timeout=10).read()
+        payload = json.loads(raw.decode("utf-8") if isinstance(raw, bytes) else str(raw))
+        rows = payload.values() if isinstance(payload, Mapping) else ()
+        matches = [row for row in rows if isinstance(row, Mapping) and str(row.get("ticker", "")).upper() == key]
+        if len(matches) != 1:
+            raise ValueError("SEC_TICKER_AMBIGUOUS_OR_UNAVAILABLE")
+        row = matches[0]
+        cik = str(row.get("cik_str", "")).zfill(10)
+        name = str(row.get("title", ""))
+        if not cik.isdigit() or not name:
+            raise ValueError("SEC_TICKER_RESOLUTION_MALFORMED")
+        result = (cik, name, None, retrieved)
+        self._cache[key] = result
+        return result
+
 class SECCompanyFactsNumericProvider:
     """Dedicated raw numeric SEC Company Facts lane.
 
@@ -691,31 +723,29 @@ class SECCompanyFactsNumericProvider:
 
     provider_name = "sec-edgar-companyfacts-numeric"
     network_capable = True
-    _ciks: Mapping[str, str] = {
-        "AAPL": "0000320193",
-        "MSFT": "0000789019",
-        "NVDA": "0001045810",
-        "META": "0001326801",
-        "GOOGL": "0001652044",
-    }
-
     def __init__(
         self,
         *,
         opener: Callable[..., Any] = urlopen,
         clock: Callable[[], datetime] | None = None,
         user_agent: str = "MeridianAlpha research contact unavailable",
+        resolver: Any | None = None,
     ) -> None:
         self.opener = opener
         self.clock = clock or (lambda: datetime.now(UTC))
         self.user_agent = user_agent
+        self.resolver = resolver or SECTickerResolver(opener=opener, clock=self.clock)
         self.last_exclusions: tuple[str, ...] = ()
+        self.last_identity: tuple[str, str, str | None, datetime] | None = None
 
     def get_observations(self, ticker: str) -> tuple[SECNumericObservation, ...]:
         normalized_ticker = ticker.upper()
-        cik = self._ciks.get(normalized_ticker)
-        if cik is None:
-            raise ValueError("SEC_CIK_UNAVAILABLE")
+        try:
+            identity = self.resolver.resolve(normalized_ticker)
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            raise ValueError("SEC_CIK_UNAVAILABLE") from error
+        self.last_identity = identity
+        cik = identity[0]
         retrieved_at = self.clock()
         if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
             raise ValueError("SEC clock must be timezone-aware")
@@ -919,3 +949,6 @@ class SECCompanyFactsNumericProvider:
             metadata_provider=metadata_provider,
             decision_as_of=decision_as_of,
         )
+
+
+

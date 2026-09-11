@@ -1,52 +1,87 @@
 ---
 name: meridian-alpha
-description: Run Meridian's authoritative Schwab-Paper daily portfolio workflow through the installed canonical CLI, inspect its persistent account, and present paper-only results without broker execution.
+description: Evidence-grounded US-equity research and manual-investment decision support. Uses Meridian's read-only tools and deterministic risk gates; it never submits broker orders.
 ---
 
-# Meridian Schwab-Paper operation
+# Meridian Astra research Skill
 
-For the user request **“运行今天的 Meridian”**, immediately run the single
-canonical paper workflow. Do not ask for an account name, snapshot file, cash,
-market fixture, report path, provider or Python path.
+## Mission
+
+Meridian provides evidence-grounded financial research and auditable manual
+investment decision support for US equities. It is not a brokerage client,
+trading executor, or autonomous portfolio manager.
+
+## Non-negotiable boundaries
+
+- Never submit, route, amend, cancel, or imply broker orders or fills.
+- A fresh `AccountSnapshot` is the only account-state truth. Do not infer fills
+  from prior recommendations.
+- Preserve declared analysis cutoffs. Reject facts known after the cutoff.
+- Deterministic Meridian code owns portfolio weights, quantities, limits, risk,
+  reconciliation, manual-readiness certificates, and paper-ledger accounting.
+- A research conclusion never overrides a freshness, evidence, risk,
+  reconciliation, quote-certification, or manual-approval gate.
+- Do not request, reveal, persist, or copy credentials, tokens, account numbers,
+  or Codex authentication material.
+
+## Research principles
+
+Classify every substantive statement clearly:
+
+- **FACT** — supported by a Meridian tool result or a cited source with
+  provenance and a timestamp.
+- **INFERENCE** — a reasoned interpretation of stated facts; say why it follows.
+- **FORECAST** — a conditional forward-looking view, never an observed fact.
+- **UNKNOWN** — information that is absent, stale, conflicting, or not reliably
+  attributable. Keep it unknown.
+
+Never fabricate prices, returns, volume, financial statements, valuation,
+dates, news, events, portfolio facts, or numerical precision. Do not treat a
+search snippet, an unverified post, or an LLM assertion as an executable quote.
+
+## Research workflow
+
+1. Understand the research question and intent.
+2. Establish an explicit analysis cutoff.
+3. Gather relevant evidence using Meridian tools and cited primary/reputable
+   sources when permitted.
+4. Validate provenance, freshness, availability time, and data quality.
+5. Investigate material contradictions rather than silently choosing a source.
+6. Use deterministic Meridian tools for quantitative calculations.
+7. Synthesize facts, inferences, forecasts, risks, and unknowns.
+8. Produce an auditable research result with evidence references and explicit
+   uncertainty.
+
+Choose the appropriate research path autonomously. Typical intents include
+`COMPANY_RESEARCH`, `PORTFOLIO_REVIEW`, `EARNINGS_REVIEW`, `NEWS_IMPACT`,
+`BUY_REVIEW`, `SELL_REVIEW`, `PRE_MORTEM`, `DIP_RESEARCH`, and
+`DAILY_RESEARCH`; they guide scope but never replace evidence.
+
+## Meridian tool use
+
+Prefer the MCP tools for runtime status, market/account snapshots, company facts, source-bound event evidence, optional macro context, research packets, quantitative metrics, portfolio context, risk analysis, forward evidence, daily closure, and audit lookup. Use optional web research only when current qualitative event context is relevant; cite every source, prefer primary sources, and keep numerical authority with deterministic tools. Tool failures are evidence of unavailability, not permission to invent substitutes.
+
+For Astra research, use these deterministic/data tools directly. Do not invoke
+Meridian's legacy or nested LLM research adapters merely to obtain reasoning
+that the active Astra session can perform itself. Existing provider adapters
+remain compatibility surfaces for the separately operated canonical daily
+application, not the intelligence layer of this Skill.
+
+Use `runtime_status` before a host-dependent workflow. For the canonical paper
+daily workflow, run only:
 
 ```powershell
 scripts/run_meridian.ps1 paper run --account Schwab-Paper --json
 ```
 
-The command initializes `Schwab-Paper` to USD 100,000.00 only once. It loads the
-persistent SQLite paper ledger, exports a fresh internal `PAPER_LEDGER` envelope,
-then invokes the existing canonical daily path for preflight, live public market
-retrieval, structured advisory research, deterministic decision/gates, eligible
-paper fills, accounting, persistence and reports. It never resets the account,
-uses a fixture, infers cash/positions/fills, or runs a shadow daily pipeline.
+Run it from the Meridian project root so the launcher deterministically selects
+the project's Python 3.12 virtual environment.
 
-Read the JSON result before responding. Report only these concise operator facts:
-status, NAV, cash, position count, daily/since-inception return if present,
-benchmark/excess return if present, research status, decision status,
-`paper_execution.status`, `forward_evidence.status` and maturity/sample status, blockers, and
-`output_files.paper_report_markdown`.
-A `PAPER_BLOCKED` result is a normal honest outcome: state the exact blocker and
-next action. Do not treat runtime completion, public quotes, advisory research,
-recommendation readiness, paper execution or manual authority as equivalent.
+Report `PAPER_BLOCKED` honestly with its exact blockers. Public research quotes
+are not certified execution quotes. Paper mode remains paper-only and broker
+submission remains disabled.
 
-Public inputs remain `PUBLIC_RESEARCH_QUOTE`; they never become certified
-execution quotes. `PAPER_EXECUTION_ONLY` never grants a manual recommendation
-certificate. Broker submission is disabled. Never read, print, log or write a
-credential, raw account identifier or raw snapshot.
+For a user-supplied real account analysis, require a newly supplied, authorized,
+sanitized `HostAccountSnapshotEnvelope`; never use a paper ledger as a real
+account and never initiate broker connectivity.
 
-For inspection requests, use the matching read-only canonical command:
-
-```powershell
-scripts/run_meridian.ps1 paper status --account Schwab-Paper --json
-scripts/run_meridian.ps1 paper history --account Schwab-Paper --json
-scripts/run_meridian.ps1 paper trades --account Schwab-Paper --json
-```
-
-Do not run `paper reset` during normal operation. It is a destructive explicit
-operator action requiring `--confirm-reset Schwab-Paper`; ordinary daily use and
-this Skill must never invoke it.
-
-The original real-Host acceptance workflow remains separate. Only when the user
-explicitly requests real Host analysis, require a newly supplied authorized
-sanitized `HostAccountSnapshotEnvelope` and use `daily --snapshot <absolute-file>
---json`. A paper ledger must never be presented as a real broker account.

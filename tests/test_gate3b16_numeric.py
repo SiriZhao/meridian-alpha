@@ -49,6 +49,12 @@ def companyfacts_payload(cik: str = "0000320193") -> dict[str, object]:
     }
 
 
+class AppleResolver:
+    def resolve(self, ticker: str):
+        assert ticker == "AAPL"
+        return ("0000320193", "Apple Inc.", None, T)
+
+
 def metadata(accepted: datetime = T, accession: str = ACC, cik: str = "0000320193") -> SECFilingMetadata:
     return SECFilingMetadata(
         cik=cik,
@@ -75,7 +81,10 @@ def observation(metric: str, value: str, *, start: date | None, end: date, acces
 
 
 def test_numeric_provider_preserves_values_and_contexts():
-    provider = SECCompanyFactsNumericProvider(opener=lambda *_, **__: Response(companyfacts_payload()), clock=lambda: T)
+    provider = SECCompanyFactsNumericProvider(
+        opener=lambda *_, **__: Response(companyfacts_payload()), clock=lambda: T,
+        resolver=AppleResolver(),
+    )
     observations = provider.get_observations("AAPL")
     assert len(observations) == 3
     assert any(item.value == Decimal("100") and item.raw_concept == "RevenueFromContractWithCustomerExcludingAssessedTax" for item in observations)
@@ -83,7 +92,10 @@ def test_numeric_provider_preserves_values_and_contexts():
 
 
 def test_numeric_provider_rejects_wrong_cik():
-    provider = SECCompanyFactsNumericProvider(opener=lambda *_, **__: Response(companyfacts_payload("0000789019")), clock=lambda: T)
+    provider = SECCompanyFactsNumericProvider(
+        opener=lambda *_, **__: Response(companyfacts_payload("0000789019")), clock=lambda: T,
+        resolver=AppleResolver(),
+    )
     with pytest.raises(ValueError, match="SEC_CIK_MISMATCH"):
         provider.get_observations("AAPL")
 
@@ -93,7 +105,9 @@ def test_unknown_concept_stays_raw_but_is_excluded_from_certified_canonical_anal
     facts = cast(dict[str, object], payload["facts"])
     us_gaap = cast(dict[str, object], facts["us-gaap"])
     us_gaap["AmbiguousCustomConcept"] = {"units": {"USD": [{"val": 7, "start": "2026-04-01", "end": "2026-06-30", "accn": ACC, "form": "10-Q", "filed": "2026-07-01"}]}}
-    provider = SECCompanyFactsNumericProvider(opener=lambda *_, **__: Response(payload), clock=lambda: T)
+    provider = SECCompanyFactsNumericProvider(
+        opener=lambda *_, **__: Response(payload), clock=lambda: T, resolver=AppleResolver(),
+    )
     observations = provider.get_observations("AAPL")
     assert any(item.concept == "AmbiguousCustomConcept" for item in observations)
     class Metadata:

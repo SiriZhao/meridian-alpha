@@ -45,6 +45,8 @@ from meridian.market_status import MarketStatus, market_status
 from meridian.operational_data import FreshnessPolicy
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
 from meridian.paper import DEFAULT_ACCOUNT, DEFAULT_INITIAL_CASH, PaperLedger, PaperSettings
+from meridian.research_agents.audit import write_research_audit
+from meridian.research_agents.preparation import ResearchPreparationService
 from meridian.research_stage import CanonicalResearchStage
 from meridian.research_universe import ResearchUniverseScheduler
 from meridian.runtime import RuntimePaths, policy_directory
@@ -63,6 +65,12 @@ class MeridianApplicationService:
     ) -> None:
         self.paths = paths or RuntimePaths.from_environment()
         self.research_stage = research_stage or CanonicalResearchStage()
+        if (
+            research_stage is None
+            and getattr(self.research_stage, "preparation", None) is None
+            and not bool(getattr(self.research_stage.provider, "_injected_runner", False))
+        ):
+            self.research_stage.preparation = ResearchPreparationService.from_runtime(self.paths)
         self.research_universe_scheduler = (
             research_universe_scheduler or ResearchUniverseScheduler()
         )
@@ -251,6 +259,7 @@ class MeridianApplicationService:
                 quotes = {}
                 market_error = "MARKET_FIXTURE_UNAVAILABLE"
             partial_quotes = dict(quotes)
+            research_quotes = dict(quotes)
             provenance: dict[str, object] = {
                 "data_mode": "FIXTURE",
                 "data_quality_mode": "DATA_DEGRADED",
@@ -270,7 +279,8 @@ class MeridianApplicationService:
                 symbols, analysis_time=cutoff, live=True
             )
             cutoff = operational.information_cutoff
-            partial_quotes = dict(operational.quotes)
+            research_quotes = dict(operational.research_quotes)
+            partial_quotes = dict(research_quotes)
             quotes = operational.quotes if not operational.missing_symbols else {}
             provenance = {
                 "data_mode": operational.data_mode,
@@ -317,17 +327,19 @@ class MeridianApplicationService:
         health = provenance.get("provider_health")
         health = health if isinstance(health, dict) else {}
         input_blockers = closure._gates(account, quotes, cutoff)
-        inputs_ready = not input_blockers
         market_valid = bool(quotes) and not any("MARKET" in reason for reason in input_blockers)
+        research_inputs_ready = bool(research_quotes) and all(
+            quote.timestamp <= cutoff for quote in research_quotes.values()
+        )
         eligible_research_tickers = tuple(
             ticker
-            for ticker in sorted(quotes)
-            if ticker in policies.universe.tickers and inputs_ready
+            for ticker in sorted(research_quotes)
+            if ticker in policies.universe.tickers and research_inputs_ready
         )
         universe_plan = (
             self.research_universe_scheduler.plan(
                 eligible_research_tickers,
-                quotes,
+                research_quotes,
                 policy=settings.budget,
                 existing_holdings=tuple(holding.ticker for holding in account.holdings),
             )
@@ -339,19 +351,51 @@ class MeridianApplicationService:
             if universe_plan is not None
             else eligible_research_tickers
         )
+        total_equity = Decimal(account.total_equity)
+        invested_value = sum(
+            (Decimal(holding.market_value) for holding in account.holdings),
+            Decimal("0"),
+        )
+        portfolio_context = {
+            "currency": account.currency,
+            "as_of": account.as_of.isoformat(),
+            "cash": str(account.cash),
+            "total_equity": str(account.total_equity),
+            "cash_weight": str(
+                Decimal(account.cash) / total_equity if total_equity else Decimal("0")
+            ),
+            "gross_exposure": str(
+                invested_value / total_equity if total_equity else Decimal("0")
+            ),
+            "positions": [
+                {
+                    "ticker": holding.ticker,
+                    "market_value": str(holding.market_value),
+                    "weight": str(
+                        Decimal(holding.market_value) / total_equity
+                        if total_equity
+                        else Decimal("0")
+                    ),
+                }
+                for holding in account.holdings
+            ],
+            "account_identifier_included": False,
+            "persistence_allowed": False,
+        }
         request = DailyResearchInput(parent_run_id=parent_id, analysis_cutoff=cutoff,
             mode="FIXTURE" if market_fixture or snapshot.source_kind == "FIXTURE" else "LIVE",
             snapshot_reference=snapshot.content_hash or "UNAVAILABLE",
-            market_reference=digest({symbol: quote.model_dump(mode="json") for symbol, quote in quotes.items()}),
+            market_reference=digest({symbol: quote.model_dump(mode="json") for symbol, quote in research_quotes.items()}),
             policy_reference=digest({name: value.model_dump(mode="json") for name, value in vars(policies).items()}),
             provider=settings.provider if settings else "UNCONFIGURED", model=settings.model if settings else "UNCONFIGURED",
-            observations=tuple(PublicResearchObservation(ticker=ticker, observed_at=quotes[ticker].timestamp,
-                price=quotes[ticker].last, daily_return=quotes[ticker].daily_return,
-                reference=digest(quotes[ticker].model_dump(mode="json")))
+            observations=tuple(PublicResearchObservation(ticker=ticker, observed_at=research_quotes[ticker].timestamp,
+                price=research_quotes[ticker].last, daily_return=research_quotes[ticker].daily_return,
+                reference=digest(research_quotes[ticker].model_dump(mode="json")))
                 for ticker in research_request_tickers),
-            freshness_status="PASS" if inputs_ready else "BLOCKED",
+            freshness_status="PASS" if research_inputs_ready else "BLOCKED",
             provider_provenance={ticker: json.dumps(health, sort_keys=True) for ticker, health in health.items()},
             universe_plan=universe_plan,
+            portfolio_context=portfolio_context,
         )
         logger.info("run_id=%s stage=research start", parent_id)
         research = self.research_stage.run(request, settings)
@@ -359,6 +403,7 @@ class MeridianApplicationService:
         evaluated_at = datetime.now(UTC)
         result = closure.run(account, quotes, cutoff=cutoff, research=research.context, evaluated_at=evaluated_at)
         result.report.update({"research": research.model_dump(mode="json"), "research_input": request.model_dump(mode="json"),
+            "data_auto_retrieval": research.preparation_diagnostics,
             "research_universe": universe_plan.model_dump(mode="json") if universe_plan else {
                 "eligible_universe": [], "research_universe": [], "deep_analysis_universe": [],
                 "original_count": 0, "research_count": 0, "deep_analysis_count": 0,
@@ -370,6 +415,12 @@ class MeridianApplicationService:
                 {"stage": "decision", "run_id": parent_id, "start": evaluated_at.isoformat(), "finish": datetime.now(UTC).isoformat(), "duration_seconds": (datetime.now(UTC) - evaluated_at).total_seconds(), "status": result.decision.overall_status.value, "error_code": None, "next_action": "Review deterministic policy gates; no manual authority inferred."},
             ]})
         result.report.update(provenance)
+        result.report["research_audit_files"] = write_research_audit(
+            self.paths.logs / "research",
+            parent_id,
+            research=research.model_dump(mode="json"),
+            decision=result.decision.model_dump(mode="json"),
+        )
         # Reuse the selected canonical public observations for any downstream
         # paper-only fill simulation; paper code never performs a shadow fetch.
         market_observations: dict[str, dict[str, object]] = {}
@@ -427,7 +478,7 @@ class MeridianApplicationService:
         result.report.update({
             "timestamp": cutoff.isoformat(),
             "trading_date": cutoff.astimezone(ZoneInfo("America/New_York")).date().isoformat(),
-            "runtime_status": "PASS" if preflight["status"] == "PASS" else "DEGRADED",
+            "runtime_status": "PASS" if preflight["status"] != "FAIL" else "FAILED",
             "database_status": "PASS",
             "startup_diagnostics": startup,
             "market_status": current_market.as_dict(),
@@ -691,8 +742,16 @@ class MeridianApplicationService:
         execution = execution if isinstance(execution, dict) else {}
         research = payload.get("research", {})
         research = research if isinstance(research, dict) else {}
+        research_context = research.get("context", {})
+        research_context = research_context if isinstance(research_context, dict) else {}
+        research_diagnostics = research.get("provider_diagnostics", {})
+        research_diagnostics = research_diagnostics if isinstance(research_diagnostics, dict) else {}
+        research_response = research.get("structured_response", {})
+        research_response = research_response if isinstance(research_response, dict) else {}
         research_universe = payload.get("research_universe", {})
         research_universe = research_universe if isinstance(research_universe, dict) else {}
+        retrieval = payload.get("data_auto_retrieval", {})
+        retrieval = retrieval if isinstance(retrieval, dict) else {}
         forward = payload.get("forward_evidence", {})
         forward = forward if isinstance(forward, dict) else {}
         market = payload.get("market", {})
@@ -709,6 +768,7 @@ class MeridianApplicationService:
         provider = provider if isinstance(provider, dict) else {}
         market_status_summary = startup.get("market_status", {})
         market_status_summary = market_status_summary if isinstance(market_status_summary, dict) else {}
+        evidence_catalog = retrieval.get("evidence_catalog", [])
         lines = [
             "# Meridian Daily — Schwab-Paper",
             "",
@@ -723,6 +783,17 @@ class MeridianApplicationService:
             f"eligible {research_universe.get('original_count', 0)} -> "
             f"research {research_universe.get('research_count', 0)} -> "
             f"deep analysis {research_universe.get('deep_analysis_count', 0)}",
+            "",
+            "## Data auto-retrieval",
+            "",
+            f"Initial completeness: **{retrieval.get('initial_completeness', 'NOT_RUN')}**",
+            f"Final completeness: **{retrieval.get('final_completeness', 'NOT_RUN')}**",
+            f"Quality: **{retrieval.get('quality_grade', 'NOT_RUN')}** "
+            f"({retrieval.get('quality_score', 0)}/100)",
+            f"Requirements: {retrieval.get('requirements', 0)}; "
+            f"retrieved: {retrieval.get('retrieved', 0)}; "
+            f"sources: {retrieval.get('source_count', 0)}.",
+            f"Failed or unresolved: {', '.join(retrieval.get('failed', [])) or 'none'}",
             "",
             "## Portfolio",
             "",
@@ -739,9 +810,20 @@ class MeridianApplicationService:
             f"Excess return: **{performance.get('excess_return', 'NOT_AVAILABLE')}**",
             f"Drawdown: **{performance.get('drawdown', 'NOT_AVAILABLE')}**",
             "",
-            "## Positions",
-            "",
         ]
+        lines.extend(["", "### Evidence sources (expandable)", ""])
+        if isinstance(evidence_catalog, list) and evidence_catalog:
+            lines.extend(
+                f"- {item.get('symbol', '?')} / {item.get('field', '?')}: "
+                f"{item.get('provider', '?')} @ {item.get('source', '?')} "
+                f"(confidence {item.get('confidence', '?')}, "
+                f"validated {item.get('validation_status', '?')})"
+                for item in evidence_catalog
+                if isinstance(item, dict)
+            )
+        else:
+            lines.append("- No evidence catalog was produced.")
+        lines.extend(["", "## Positions", ""])
         positions = portfolio.get("positions", [])
         if isinstance(positions, list) and positions:
             lines.extend(
@@ -786,7 +868,15 @@ class MeridianApplicationService:
                 "",
                 "## Research",
                 "",
-                f"Status: **{research.get('status', 'NOT_RUN')}**; provider/model: {research.get('provider', 'UNKNOWN')}/{research.get('model', 'UNKNOWN')}",
+                "Research: **CODEX / GPT**",
+                f"Status: **{research_context.get('status', 'NOT_RUN')}**",
+                f"Model: **{research_diagnostics.get('model_requested', research.get('model', 'CLI_DEFAULT'))}**",
+                f"Reasoning: **{research_diagnostics.get('reasoning_effort', 'medium')}**",
+                f"Structured validation: **{'PASS' if research_diagnostics.get('schema_valid') else 'FAIL'}**",
+                f"Confidence: **{research_response.get('confidence', 'NOT_AVAILABLE')}**",
+                f"Recommendation: **{research_response.get('recommended_action', 'NO_ACTION')}**",
+                f"Elapsed: **{research_diagnostics.get('elapsed_ms', 0)} ms**",
+                f"Diagnostic: **{research.get('error_code') or 'none'}**",
                 "",
                 "## Forward Evidence",
                 "",
@@ -978,6 +1068,7 @@ class MeridianApplicationService:
                 "quote_certification": "BLOCKED",
             },
             "research": daily.get("research", {"status": research_status}),
+            "data_auto_retrieval": daily.get("data_auto_retrieval", {}),
             "research_universe": daily.get("research_universe", {}),
             "forward_evidence": daily.get("forward_evidence", {"status": "NOT_RUN"}),
             "decision": {
@@ -1054,3 +1145,4 @@ class MeridianApplicationService:
             "execution": "MANUAL",
             "broker_submission": "DISABLED",
         }
+

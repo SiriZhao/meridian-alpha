@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import AwareDatetime, Field, model_validator
 
@@ -25,6 +25,20 @@ class ResearchProviderStatus(StrEnum):
     RATE_LIMITED = "RATE_LIMITED"
     TIMEOUT = "TIMEOUT"
     INVALID_RESPONSE = "INVALID_RESPONSE"
+    NO_ACTION = "NO_ACTION"
+    INSUFFICIENT_DATA = "INSUFFICIENT_DATA"
+    CODEX_NOT_INSTALLED = "CODEX_NOT_INSTALLED"
+    CODEX_AUTH_REQUIRED = "CODEX_AUTH_REQUIRED"
+    CODEX_TIMEOUT = "CODEX_TIMEOUT"
+    CODEX_RATE_LIMITED = "CODEX_RATE_LIMITED"
+    CODEX_PROCESS_ERROR = "CODEX_PROCESS_ERROR"
+    CODEX_SCHEMA_ERROR = "CODEX_SCHEMA_ERROR"
+    CODEX_EMPTY_RESPONSE = "CODEX_EMPTY_RESPONSE"
+    CODEX_OUTPUT_MISSING = "CODEX_OUTPUT_MISSING"
+    CODEX_CONFIG_INVALID = "CODEX_CONFIG_INVALID"
+    GPT_PLANNER_FAILED = "GPT_PLANNER_FAILED"
+    DATA_RETRIEVAL_FAILED = "DATA_RETRIEVAL_FAILED"
+    SOURCE_CONFLICT = "SOURCE_CONFLICT"
     FAILED = "FAILED"
     BLOCKED = "BLOCKED"
 
@@ -53,6 +67,13 @@ class DailyResearchInput(StableModel):
     freshness_status: Literal["PASS", "BLOCKED"] = "BLOCKED"
     provider_provenance: dict[str, str] = Field(default_factory=dict)
     universe_plan: ResearchUniversePlan | None = None
+    evidence_package: dict[str, Any] | None = None
+    # Current account state is supplied only to the local Codex child process. It is
+    # intentionally absent from request dumps, hashes, reports, replay artifacts,
+    # and the persistent retrieval cache/audit trail.
+    portfolio_context: dict[str, Any] | None = Field(
+        default=None, exclude=True, repr=False
+    )
 
     @model_validator(mode="after")
     def temporal_boundary(self) -> DailyResearchInput:
@@ -69,7 +90,9 @@ class DailyResearchInput(StableModel):
     @property
     def input_hash(self) -> str:
         # Run/mode metadata is distinct from reproducible facts and configuration.
-        body = self.model_dump(mode="json", exclude={"parent_run_id", "mode"})
+        body = self.model_dump(
+            mode="json", exclude={"parent_run_id", "mode", "portfolio_context"}
+        )
         return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
 
 
@@ -86,8 +109,37 @@ class DailyResearchOutput(StableModel):
         expected = {item.ticker: item.reference for item in request.observations}
         if len(self.results) != len(expected) or {item.ticker for item in self.results} != set(expected):
             raise ValueError("RESEARCH_SYMBOL_COVERAGE_INVALID")
+        safe_by_symbol: dict[str, set[str]] = {ticker: set() for ticker in expected}
+        if request.evidence_package:
+            raw_evidence = request.evidence_package.get("evidence", [])
+            conflicts = request.evidence_package.get("conflicts", [])
+            conflicted = {
+                str(conflict.get("requirement_key"))
+                for conflict in conflicts
+                if isinstance(conflict, dict) and conflict.get("requirement_key")
+            } if isinstance(conflicts, list) else set()
+            if isinstance(raw_evidence, list):
+                for evidence in raw_evidence:
+                    if not isinstance(evidence, dict):
+                        continue
+                    identifier = evidence.get("evidence_id")
+                    symbol = str(evidence.get("symbol", ""))
+                    requirement_key = str(evidence.get("requirement_key", ""))
+                    validation = evidence.get("validation_status")
+                    if (
+                        identifier
+                        and validation in {"PASS", "DEGRADED"}
+                        and requirement_key not in conflicted
+                    ):
+                        if symbol in safe_by_symbol:
+                            safe_by_symbol[symbol].add(str(identifier))
+                        elif symbol in {"MERIDIAN", "PORTFOLIO"}:
+                            for values in safe_by_symbol.values():
+                                values.add(str(identifier))
         for item in self.results:
-            if not item.cited_evidence_ids or set(item.cited_evidence_ids) != {expected[item.ticker]}:
+            cited = set(item.cited_evidence_ids)
+            allowed = {expected[item.ticker], *safe_by_symbol[item.ticker]}
+            if not cited or expected[item.ticker] not in cited or not cited <= allowed:
                 raise ValueError("RESEARCH_CITATION_INVALID")
 
 
@@ -118,9 +170,12 @@ class ResearchStageResult(StableModel):
     attempts: int = Field(ge=0)
     provider: str
     model: str
-    provenance: Literal["NONE", "LIVE_HTTP", "FIXTURE", "REPLAY"] = "NONE"
+    provenance: Literal["NONE", "CODEX_CLI", "FIXTURE", "REPLAY"] = "NONE"
     error_code: str | None = None
     next_action: str
+    structured_response: dict[str, object] | None = None
+    provider_diagnostics: dict[str, object] = Field(default_factory=dict)
+    preparation_diagnostics: dict[str, object] = Field(default_factory=dict)
 
 
 def validate_replay(request: DailyResearchInput, recorded: ResearchStageResult, *, replay_time: datetime, max_age_seconds: int) -> None:

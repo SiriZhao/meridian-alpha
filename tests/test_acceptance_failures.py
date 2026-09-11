@@ -93,9 +93,14 @@ raise SystemExit(main())
         assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
 
 
-@pytest.mark.parametrize(("kind", "status"), [("ok", "AVAILABLE"), ("missing", "NOT_CONFIGURED"),
-    ("auth", "AUTH_FAILED"), ("timeout", "TIMEOUT"), ("malformed", "INVALID_RESPONSE"),
-    ("schema", "INVALID_RESPONSE")])
+@pytest.mark.parametrize(("kind", "status"), [
+    ("ok", "AVAILABLE"),
+    ("missing", "CODEX_NOT_INSTALLED"),
+    ("auth", "CODEX_AUTH_REQUIRED"),
+    ("timeout", "CODEX_TIMEOUT"),
+    ("malformed", "CODEX_SCHEMA_ERROR"),
+    ("schema", "CODEX_SCHEMA_ERROR"),
+])
 def test_canonical_cli_research_faults(tmp_path: Path, kind: str, status: str):
     from test_daily_closure import market
     now = datetime.now(UTC)
@@ -104,8 +109,10 @@ def test_canonical_cli_research_faults(tmp_path: Path, kind: str, status: str):
     quote_file.write_text(json.dumps({"quotes": [q.model_dump(mode="json") for q in market(timestamp=now).values()]}), encoding="utf-8")
     code = """import json
 from dataclasses import replace
+from pathlib import Path
 import meridian.application as app
 from meridian.application_cli import main
+from meridian.codex_provider import CodexCliProvider, ProcessResult
 from meridian.research_stage import CanonicalResearchStage
 kind = CASE
 load = app.load_policies
@@ -113,17 +120,29 @@ def configured(path):
     p = load(path)
     return replace(p, models=p.models.model_copy(update={'research': p.models.research.model_copy(update={'live_enabled':True,'llm_max_retries':0})}))
 app.load_policies = configured
-def transport(url, headers, body, timeout):
+def runner(command, input_text, environment, cwd, timeout):
+    if kind == 'missing': raise FileNotFoundError('injected')
     if kind == 'timeout': raise TimeoutError('injected')
-    if kind == 'auth': return 401,b'',{}
-    if kind == 'malformed': return 200,b'invalid',{}
-    facts=json.loads(json.loads(body)['messages'][1]['content'])['observations']
-    output={'results':[{'ticker':'AAPL','direction':'NEUTRAL','research_conviction':'0.1',
+    if kind == 'auth': return ProcessResult(returncode=1,stderr='sign in required')
+    path=Path(command[command.index('--output-last-message')+1])
+    if kind == 'malformed':
+        path.write_text('invalid',encoding='utf-8')
+        return ProcessResult(returncode=0)
+    facts=json.loads(input_text)['signals']
+    results=[{'ticker':'AAPL','direction':'NEUTRAL','research_conviction':0.1,
       'thesis':'Regression-only inference','claim_kind':'MODEL_INFERENCE',
-      'cited_evidence_ids':[facts[0]['reference']],'data_limitations':['Synthetic public inputs']}]}
-    if kind == 'schema': del output['results'][0]['direction']
-    return 200,json.dumps({'choices':[{'message':{'content':json.dumps(output)}}]}).encode(),{}
-app.CanonicalResearchStage = lambda: CanonicalResearchStage(transport=transport, credential=lambda: None if kind=='missing' else 'injection-only-secret')
+      'risks':['fixture'],'cited_evidence_ids':[facts[0]['evidence_reference']],
+      'data_limitations':['Synthetic public inputs']}]
+    if kind == 'schema': del results[0]['direction']
+    output={'status':'OK','summary':'bounded','market_regime':'unknown',
+      'evidence':[],'contradictions':[],'risks':[],'data_gaps':[],
+      'confidence':0.1,'recommended_action':'HOLD',
+      'recommended_exposure_change':'MAINTAIN','rationale':'bounded',
+      'assumptions':[],'warnings':[],'results':results}
+    path.write_text(json.dumps(output),encoding='utf-8')
+    return ProcessResult(returncode=0)
+provider=CodexCliProvider(executable='codex-test.exe',runner=runner,environment={})
+app.CanonicalResearchStage = lambda: CanonicalResearchStage(provider=provider)
 raise SystemExit(main())
 """.replace("CASE", repr(kind))
     exit_code, result = cli(tmp_path, ["daily", "--snapshot", str(account), "--market-fixture", str(quote_file), "--json"], code=code)
@@ -134,11 +153,6 @@ raise SystemExit(main())
     assert not result["manual_authority"]["certificate_issued"]
     markdown = Path(result["report_markdown"]).read_text(encoding="utf-8")
     assert "Account freshness" in markdown and "Market freshness" in markdown and status in markdown
-    for file in (tmp_path / "home # 中文").rglob("*"):
-        if file.is_file():
-            assert b"injection-only-secret" not in file.read_bytes()
-
-
 @pytest.mark.parametrize("provider", ["yahoo", "stooq"])
 @pytest.mark.parametrize("fault", ["timeout", "dns", "invalid"])
 def test_public_provider_faults_are_structured(provider: str, fault: str):

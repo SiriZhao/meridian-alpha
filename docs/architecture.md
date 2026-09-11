@@ -1,5 +1,36 @@
 # Architecture
 
+## Current Astra Skill foundation (2026-09-11)
+
+The ChatGPT/Codex-facing intelligence layer is the active GPT-6 Astra session.
+The installed `meridian-alpha` Skill directs Astra to collect evidence through
+Meridian's read-only MCP tools, perform synthesis itself, and return an
+evidence-first `MeridianResearchResult`. Meridian tools provide deterministic
+calculations, validated account/market/fundamental context, forward evidence,
+daily closure, and sanitized audit lookup. They do not call another LLM merely
+to duplicate Astra reasoning.
+
+The Astra MCP surface is:
+
+```text
+runtime_status          market_snapshot       account_snapshot
+company_facts           research_packet       quant_metrics
+portfolio_context       risk_analysis         forward_evidence
+daily_closure           audit_lookup
+```
+
+Every tool is structured-output and read-only. Responses carry source,
+observed/known/cutoff times where applicable, freshness, data quality,
+provenance, errors, warnings, and `execution_authority=NONE`. The canonical
+application and historical research adapters remain separate compatibility
+surfaces. No MCP tool exposes broker authentication or order submission.
+
+Mutable production state is rooted exclusively in `RuntimePaths`: database,
+cache, reports, logs, runs, audit, data, and runtime configuration. Repository
+paths are read-only resources. The project launcher always selects
+`.venv/Scripts/python.exe` (Python 3.12); system Python is not a production
+runtime.
+
 ## Intent
 
 Meridian Alpha assists a user in deciding what **manual limit orders** to enter
@@ -83,7 +114,10 @@ Primary reference: [OpenAI Developers — Plugins](https://developers.openai.com
 
 Account quantities/cash remain brokerage truth; executable NAV is marked from fresh quotes via ValuedAccountState. Timestamp age gates are enforced independently of freshness enums. MCP and CLI use the shared DailyAnalysisService.
 
-## Gate 2 research boundary
+## Historical Gate 2 research boundary
+
+The following section records the superseded pre-Astra provider architecture
+for audit continuity. It is not the current Skill intelligence path.
 
 TradingAgents is an optional research-only adapter behind
 `ResearchOutcome`. It cannot provide sizing, prices, leverage, or execution
@@ -250,15 +284,15 @@ that can satisfy the seven-gate `MANUAL_ENTRY_READY` transition, and MCP
 requires the persisted certificate plus sealed drafts. No draft mutates
 holdings or cash; reconciliation observes only a later Host snapshot.
 
-## Gate 6H/6I V1 freeze
+## Historical Gate 6H/6I V1 freeze
 
 `meridian daily` is the one supported daily application path. Development gate
 scripts are diagnostic/test-only and delegate to project-owned orchestration;
 they do not reimplement alpha arithmetic. Daily packages are sanitized and
 append-only under `runs/<date>/<run_id>/`, with separate forward-outcome rows.
 
-TradingAgents remains a qualitative second opinion. The certified production
-research lane is the DeepSeek/`CertifiedEvidenceView` path. LLM output can
-modify research alpha only; deterministic code owns weights, quantity, risk,
-limit policy, and reconciliation. FinRL-X is deferred post-v1 and may remain
-`MODEL_UNAVAILABLE`.
+TradingAgents and the former DeepSeek lane are retained only as historical or
+compatibility notes. The current Astra Skill does not use them as its
+intelligence layer. Deterministic code continues to own weights, quantity,
+risk, limit policy, and reconciliation. FinRL-X remains optional/deferred and
+may remain `MODEL_UNAVAILABLE`.

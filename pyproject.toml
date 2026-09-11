@@ -20,6 +20,8 @@ dev = [
 
 [project.scripts]
 meridian = "meridian.application_cli:main"
+meridian-mcp = "meridian.mcp_server:main"
+meridian-mcp-http = "meridian.mcp_server:http_main"
 
 [build-system]
 requires = ["hatchling>=1.27"]
@@ -33,6 +35,20 @@ packages = ["src/meridian"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "policies" = "meridian/policies"
+"prompts/codex_research_v1.md" = "meridian/prompts/codex_research_v1.md"
+"prompts/codex_data_gap_planner_v1.md" = "meridian/prompts/codex_data_gap_planner_v1.md"
+"prompts/codex_web_research_v1.md" = "meridian/prompts/codex_web_research_v1.md"
+"schemas/codex_research_response.schema.json" = "meridian/schemas/codex_research_response.schema.json"
+"skills/meridian-alpha/SKILL.md" = "meridian/skills/meridian-alpha/SKILL.md"
+"skills/meridian-alpha/fixtures/test-account.json" = "meridian/skills/meridian-alpha/fixtures/test-account.json"
+"skills/meridian-alpha/references/account-contract.md" = "meridian/skills/meridian-alpha/references/account-contract.md"
+"skills/meridian-alpha/references/order-ticket.md" = "meridian/skills/meridian-alpha/references/order-ticket.md"
+"skills/meridian-alpha/references/runtime-dependencies.md" = "meridian/skills/meridian-alpha/references/runtime-dependencies.md"
+"skills/meridian-alpha/references/safety.md" = "meridian/skills/meridian-alpha/references/safety.md"
+"skills/meridian-alpha/references/workflow.md" = "meridian/skills/meridian-alpha/references/workflow.md"
+"skills/meridian-alpha/scripts/preflight.py" = "meridian/skills/meridian-alpha/scripts/preflight.py"
+"skills/meridian-alpha/scripts/run_daily.py" = "meridian/skills/meridian-alpha/scripts/run_daily.py"
+"skills/meridian-alpha/scripts/validate_package.py" = "meridian/skills/meridian-alpha/scripts/validate_package.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -54,10 +70,3 @@ typeCheckingMode = "basic"
 reportMissingTypeStubs = "none"
 venvPath = '.'
 venv = '.venv'
-
-[project.optional-dependencies]
-# Isolated optional adapter. Use the official TauricResearch repository rather
-# than the unrelated PyPI project that currently shares the package name.
-research-tradingagents = [
-  "tradingagents @ git+https://github.com/TauricResearch/TradingAgents.git@01477f9afb7a47b849ed4c9259d3a9a4738d9fda",
-]

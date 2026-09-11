@@ -753,11 +753,10 @@ def _default_deepseek_http_post(
 
 
 class DeepSeekGroundedResearchNormalizer:
-    """Explicit LIVE_SHADOW-only DeepSeek adapter with a direct compatible transport.
+    """LEGACY / DEPRECATED DeepSeek adapter retained for artifact compatibility.
 
-    The request is built exclusively from the sealed certified evidence packet. The
-    provider response is reduced to a strict JSON payload before any research signal
-    can be created; failures never manufacture a neutral signal.
+    The runtime path is permanently disabled. Historical replay artifacts can
+    still import the type, but no call can reach the former network transport.
     """
 
     provider = "deepseek"
@@ -843,6 +842,16 @@ class DeepSeekGroundedResearchNormalizer:
             )
         if as_of.tzinfo is None or as_of.utcoffset() is None:
             raise ValueError("as_of must be timezone-aware")
+        return _grounded_outcome(
+            ticker=graph_summary.ticker,
+            as_of=as_of,
+            status=GroundedResearchStatus.UNAVAILABLE,
+            provider=self.provider,
+            model=self.model,
+            warnings=("LEGACY_DEEPSEEK_RUNTIME_DISABLED",),
+            error_code="LEGACY_DEEPSEEK_RUNTIME_DISABLED",
+            diagnostics=("NO_NETWORK_REQUEST", "NO_PROVIDER_FALLBACK"),
+        )
         try:
             request = GroundedResearchRequest(
                 graph_summary=graph_summary, evidence_packet=evidence_packet, as_of=as_of

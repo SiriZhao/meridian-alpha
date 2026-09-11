@@ -50,6 +50,7 @@ from meridian.research import (
     ResearchOutcome,
     ResearchStatus,
 )
+from meridian.runtime import RuntimePaths, policy_directory, project_root
 from meridian.schemas import (
     AccountSnapshot,
     AgentSignal,
@@ -235,7 +236,7 @@ def _offline_research_pipeline(as_of: datetime, tickers: tuple[str, ...]):
         for index, ticker in enumerate(tickers)
     }
     return ResearchPipelineService(
-        load_policies(Path.cwd() / "policies").models.research.budget,  # type: ignore[union-attr]
+        load_policies(policy_directory()).models.research.budget,  # type: ignore[union-attr]
         graph_provider=FakeGraphResearchProvider(),
         evidence_builder=builder,
         evidence_providers=providers,
@@ -315,8 +316,10 @@ def main() -> None:
         help="Timezone-aware ISO analysis timestamp",
     )
     args = parser.parse_args()
-    root = Path.cwd()
-    policies = load_policies(root / "policies")
+    root = project_root()
+    runtime = RuntimePaths.from_environment()
+    runtime.ensure_directories()
+    policies = load_policies(policy_directory())
     if args.command == "quote-preflight":
         _load_local_env(root)
         results = provider_preflight(probe=args.probe)
@@ -342,8 +345,8 @@ def main() -> None:
                 security_master=security_master,
                 security_ready=security_master.authoritative_count() == 11,
             )
-            report_json = root / "reports" / "gate4f-host-smoke.json"
-            report_markdown_path = root / "reports" / "gate4f-host-smoke.md"
+            report_json = runtime.reports / "gate4f-host-smoke.json"
+            report_markdown_path = runtime.reports / "gate4f-host-smoke.md"
             write_host_smoke_report(readiness, report_json, report_markdown_path)
             output = {
                 "validation": "VALID",
@@ -443,7 +446,7 @@ def main() -> None:
                 decision,
                 account,
                 profile=profile,
-                root=root,
+                root=runtime.home,
                 policies=policies,
                 session_completed=args.session_completed,
             )
@@ -459,7 +462,7 @@ def main() -> None:
         except (OSError, ValueError) as error:
             raise SystemExit(f"DAILY_REJECTED:{error}") from error
         return
-    store = AuditStore(root / "var" / "meridian.db")
+    store = AuditStore(runtime.db)
     if args.command == "runs":
         if args.runs_command == "list":
             print(json.dumps([run.__dict__ for run in store.list_runs()], indent=2))

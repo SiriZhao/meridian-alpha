@@ -54,19 +54,37 @@ During closure, LAST_COMPLETED_SESSION_ONLY is context, not a freshness override
 ## Optional canonical research
 
 Use the existing `models.yaml` research settings in the selected policy directory
-(`MERIDIAN_POLICY_DIR` if configured): `live_enabled: true`, provider `deepseek`,
-and the configured model. Supply the credential through the environment reference
-`DEEPSEEK_API_KEY`; never include its value in commands, reports or chat.
-No default policy or model was changed by Batch 2.
+(`MERIDIAN_POLICY_DIR` if configured): provider `codex_cli`. Paper runs
+enable the otherwise opt-in research stage locally. Meridian invokes the local
+Codex CLI and relies only on its existing ChatGPT-managed login. Do not set an
+OpenAI, Codex, or DeepSeek API key for this workflow.
+
+Optional runtime overrides are `MERIDIAN_CODEX_MODEL`,
+`MERIDIAN_CODEX_REASONING_EFFORT` and
+`MERIDIAN_CODEX_TIMEOUT_SECONDS`. Omit the model to inherit the Codex CLI
+default. The normal reasoning default is `medium`.
 
 The same daily command invokes the stage only after input validation. The actual
 request is the provider probe. Inspect `research.context.status`, `attempts`,
-`provenance`, `error_code`, and `next_action`. AUTH_FAILED requires correcting the
-credential externally; TIMEOUT/RATE_LIMITED/UNAVAILABLE remain blocked after bounded
-retry. INVALID_RESPONSE is never converted into a neutral or prior-day signal.
+`provenance`, `provider_diagnostics`, `error_code`, and `next_action`.
+`CODEX_AUTH_REQUIRED` requires running `codex login` and signing in with
+ChatGPT. `CODEX_RATE_LIMITED`, `CODEX_TIMEOUT`, `CODEX_PROCESS_ERROR`,
+`CODEX_SCHEMA_ERROR`, `CODEX_EMPTY_RESPONSE`, and
+`CODEX_OUTPUT_MISSING` remain explicit and fail closed. No automatic provider
+fallback exists.
 A missing snapshot prevents the stage entirely. No automatic cached research is used.
 Public advisory success is AVAILABLE, while certified research/manual gates remain
-unmet. See [Batch 2 architecture](adr/ADR-010-canonical-advisory-research.md).
+unmet.
+
+Run the single-call opt-in integration check only when needed:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\smoke_codex_provider.py
+```
+
+It consumes one Codex run, uses a minimal public fixture, validates the output
+schema, and prints only provider diagnostics and hashes. It is not part of
+startup, CI, or the unit suite.
 
 
 ## Failure recovery and acceptance

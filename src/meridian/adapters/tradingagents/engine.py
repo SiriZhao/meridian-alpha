@@ -1,8 +1,10 @@
-"""Isolated TradingAgents research adapter with native DeepSeek support.
+"""LEGACY / DEPRECATED TradingAgents research adapter.
 
 The adapter deliberately exposes only Meridian's normalized research contract.
 TradingAgents (and its OpenAI-compatible transport dependency) never crosses
 into deterministic sizing, risk, reconciliation, or order planning.
+
+It is not configured or installed by the Codex-native production runtime.
 """
 
 from __future__ import annotations
@@ -348,6 +350,16 @@ class TradingAgentsResearchEngine:
                 ResearchStatus.UNAVAILABLE,
                 "TRADINGAGENTS_VERSION_MISMATCH",
                 "Installed TradingAgents version does not match the pinned release.",
+            )
+        if not self._injected_runner and not self._injected_graph_runner:
+            return self._outcome(
+                ticker,
+                as_of,
+                started,
+                ResearchStatus.UNAVAILABLE,
+                "LEGACY_DEEPSEEK_RUNTIME_DISABLED",
+                "The historical DeepSeek TradingAgents runtime is disabled; "
+                "canonical research uses Codex CLI.",
             )
 
         runner = (

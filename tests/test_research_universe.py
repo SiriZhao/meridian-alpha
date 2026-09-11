@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
+from meridian.codex_provider import CodexCliProvider, ProcessResult
 from meridian.config import ResearchBudgetPolicy, load_policies
 from meridian.daily_research import DailyResearchInput, PublicResearchObservation
 from meridian.research_stage import CanonicalResearchStage
@@ -144,29 +146,38 @@ def test_reduced_universe_reaches_provider_instead_of_budget_block() -> None:
     )
     calls = 0
 
-    def transport(*args):
+    def runner(command, input_text, environment, cwd, timeout):
         nonlocal calls
         calls += 1
-        body = json.loads(args[2])
-        supplied = json.loads(body["messages"][1]["content"])["observations"]
+        supplied = json.loads(input_text)["signals"]
         results = [
             {
                 "ticker": item["ticker"],
                 "direction": "NEUTRAL",
                 "research_conviction": "0.2",
                 "thesis": "Price-only model inference",
-                "cited_evidence_ids": [item["reference"]],
+                "risks": ["Price-only evidence"],
+                "cited_evidence_ids": [item["evidence_reference"]],
                 "claim_kind": "MODEL_INFERENCE",
                 "data_limitations": ["No fundamental evidence"],
             }
             for item in supplied
         ]
-        response = {"choices": [{"message": {"content": json.dumps({"results": results})}}]}
-        return 200, json.dumps(response).encode(), {}
+        response = {
+            "status": "OK", "summary": "Bounded", "market_regime": "Unknown",
+            "evidence": [], "contradictions": [], "risks": [], "data_gaps": [],
+            "confidence": 0.2, "recommended_action": "HOLD",
+            "recommended_exposure_change": "MAINTAIN", "rationale": "Bounded",
+            "assumptions": [], "warnings": [], "results": results,
+        }
+        output = Path(command[command.index("--output-last-message") + 1])
+        output.write_text(json.dumps(response), encoding="utf-8")
+        return ProcessResult(returncode=0)
 
-    result = CanonicalResearchStage(
-        transport=transport, credential=lambda: "test-secret"
-    ).run(request, settings)
+    provider = CodexCliProvider(
+        executable="codex-test.exe", runner=runner, environment={}
+    )
+    result = CanonicalResearchStage(provider=provider).run(request, settings)
 
     assert calls == 1
     assert result.context.status == "AVAILABLE"

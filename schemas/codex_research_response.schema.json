@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "status": {"type": "string", "enum": ["OK", "NO_ACTION", "INSUFFICIENT_DATA"]},
+    "summary": {"type": "string"},
+    "market_regime": {"type": "string"},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {"type": "string", "enum": ["FACT", "INFERENCE", "UNCERTAINTY"]},
+          "statement": {"type": "string"},
+          "references": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["kind", "statement", "references"]
+      }
+    },
+    "contradictions": {"type": "array", "items": {"type": "string"}},
+    "risks": {"type": "array", "items": {"type": "string"}},
+    "data_gaps": {"type": "array", "items": {"type": "string"}},
+    "confidence": {"type": "number"},
+    "recommended_action": {"type": "string", "enum": ["BUY", "SELL", "HOLD", "REBALANCE", "NO_ACTION"]},
+    "recommended_exposure_change": {"type": "string"},
+    "rationale": {"type": "string"},
+    "assumptions": {"type": "array", "items": {"type": "string"}},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {"type": "string"},
+          "direction": {"type": "string", "enum": ["BULLISH", "BEARISH", "NEUTRAL"]},
+          "research_conviction": {"type": "number"},
+          "thesis": {"type": "string"},
+          "risks": {"type": "array", "items": {"type": "string"}},
+          "cited_evidence_ids": {"type": "array", "items": {"type": "string"}},
+          "claim_kind": {"type": "string", "enum": ["MODEL_INFERENCE"]},
+          "data_limitations": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["ticker", "direction", "research_conviction", "thesis", "risks", "cited_evidence_ids", "claim_kind", "data_limitations"]
+      }
+    }
+  },
+  "required": ["status", "summary", "market_regime", "evidence", "contradictions", "risks", "data_gaps", "confidence", "recommended_action", "recommended_exposure_change", "rationale", "assumptions", "warnings", "results"]
+}

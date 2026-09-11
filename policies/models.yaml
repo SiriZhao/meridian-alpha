@@ -1,18 +1,18 @@
 example_defaults: true
-tradingagents_provider: deepseek
-tradingagents_model: deepseek-v4-flash
+tradingagents_provider: legacy-disabled
+tradingagents_model: legacy-disabled
 timeout_seconds: 30
 retry_budget: 1
 debate_rounds: 1
 allocator_selection: finrlx
 research:
-  provider: deepseek
-  model: deepseek-v4-flash
-  quick_model: deepseek-v4-flash
-  deep_model: deepseek-v4-flash
-  endpoint: https://api.deepseek.com
-  thinking_mode: minimal
-  timeout_seconds: 30
+  provider: codex_cli
+  model: codex-default
+  quick_model: codex-default
+  deep_model: codex-default
+  thinking_mode: medium
+  reasoning_effort: medium
+  timeout_seconds: 180
   max_retries: 1
   llm_max_retries: 1
   graph_max_retries: 0

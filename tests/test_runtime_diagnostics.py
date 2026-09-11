@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any, cast
 
 from meridian.runtime import RuntimePaths
 from meridian.runtime_diagnostics import report
@@ -36,7 +37,7 @@ def test_doctor_json_is_secret_safe_and_network_free(tmp_path: Path, monkeypatch
     monkeypatch.setenv("DEEPSEEK_API_KEY", "this-value-must-not-appear")
     payload = report()
     encoded = json.dumps(payload)
-    assert payload["schema_version"] == "meridian-doctor.v1"
+    assert payload["schema_version"] == "meridian-doctor.v2"
     assert payload["network_accessed"] is False
     assert "this-value-must-not-appear" not in encoded
 
@@ -47,3 +48,9 @@ def test_doctor_module_startup_smoke(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert payload["network_accessed"] is False
     assert payload["elapsed_ms"] < 10_000
+
+
+def test_read_only_runtime_report_does_not_claim_a_write_probe(tmp_path: Path) -> None:
+    payload = cast(dict[str, Any], report(RuntimePaths(tmp_path), probe_writes=False))
+    assert payload["cache"]["status"] == "NOT_PROBED_READ_ONLY_HOST"
+    assert any(check["name"] == "runtime_write" and check["status"] == "SKIPPED" for check in payload["checks"])

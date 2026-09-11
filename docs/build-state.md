@@ -1,5 +1,9 @@
 # Build state — Gate 2 (DeepSeek provider)
 
+> Superseded for the active Skill runtime on 2026-09-11 by the GPT-6
+> Astra-native foundation. This document remains historical build provenance;
+> see `reports/meridian-astra-foundation.md` for current runtime status.
+
 > Historical Gate 2 notes below are retained for provenance. Current Gate 6A
 > status: TradingAgents is qualitative context only; DeepSeek grounded research
 > consumes certified evidence; production AlphaFusion, allocation, risk, and

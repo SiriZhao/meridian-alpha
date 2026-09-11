@@ -1,0 +1,12 @@
+{
+  "schema_version": "meridian-strategy-profile.v1",
+  "strategy": "long-only",
+  "investment_horizon": {
+    "tactical": "days_to_weeks",
+    "core": "months_to_years"
+  },
+  "decision_frequency": "daily",
+  "execution": "manual_confirmation",
+  "automatic_broker_execution": false,
+  "benchmarks": ["SPY", "QQQ"]
+}

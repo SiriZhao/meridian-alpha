@@ -53,7 +53,14 @@ def test_distinct_certified_provider_emits_only_accession_certified_evidence() -
             assert cik == "0000320193" and accession == ACC
             return metadata()
 
-    items = SECAccessionCertifiedFactsProvider(facts_provider=Facts(), metadata_provider=Metadata()).get_evidence("AAPL", T)
+    class Resolver:
+        def resolve(self, ticker: str):
+            assert ticker == "AAPL"
+            return ("0000320193", "Apple Inc.", None, T)
+
+    items = SECAccessionCertifiedFactsProvider(
+        facts_provider=Facts(), metadata_provider=Metadata(), resolver=Resolver()
+    ).get_evidence("AAPL", T)
     assert len(items) == 1
     assert items[0].provider == "sec-edgar-accession-certified"
     assert items[0].point_in_time_status is EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT

@@ -11,7 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Protocol
@@ -27,6 +27,7 @@ from meridian.operational_data import (
     FreshnessPolicy,
     OperationalCache,
     OperationalProviderStatus,
+    OperationalQuote,
     OperationalRefreshService,
     OperationalSnapshot,
 )
@@ -62,6 +63,7 @@ class OperationalMarketSnapshot:
     data_mode: str = "OPERATIONAL_PUBLIC"
     data_quality_mode: str = "NORMAL"
     provider_probes: dict[str, dict[str, object]] = field(default_factory=dict)
+    research_quotes: dict[str, MarketSnapshot] = field(default_factory=dict)
 
     @property
     def snapshot_hash(self) -> str:
@@ -70,6 +72,10 @@ class OperationalMarketSnapshot:
             "information_cutoff": self.information_cutoff.isoformat(),
             "quotes": {
                 key: value.model_dump(mode="json") for key, value in sorted(self.quotes.items())
+            },
+            "research_quotes": {
+                key: value.model_dump(mode="json")
+                for key, value in sorted(self.research_quotes.items())
             },
             "provider_health": self.provider_health,
             "provider_probes": self.provider_probes,
@@ -105,8 +111,8 @@ class OperationalMarketSnapshot:
             else "STALE_OR_UNAVAILABLE",
             "latest_daily_bar": "FRESH" if self.quotes and not self.missing_symbols else "UNKNOWN",
             "operational": self.status,
-            "research": "RESEARCH_BLOCKED",
-            "historical_universe": "BLOCKED",
+            "research": "RESEARCH_READY" if self.research_quotes else "RESEARCH_BLOCKED",
+            "historical_universe": "AVAILABLE" if self.research_quotes else "BLOCKED",
             "certification": "OPERATIONAL_DATA_IS_NOT_CERTIFIED_RESEARCH",
             "data_mode": self.data_mode,
             "data_quality_mode": self.data_quality_mode,
@@ -166,6 +172,7 @@ class OperationalMarketSnapshotService:
         missing: dict[str, str] = {}
         probes: dict[str, dict[str, object]] = {}
         observations: dict[str, OperationalSnapshot] = {}
+        research_quotes: dict[str, MarketSnapshot] = {}
         data_quality_mode = "NORMAL"
         for symbol in requested:
             refresh = self.refresh.refresh(symbol, analysis_time=analysis_time, live=True) if live else self.refresh.refresh(symbol, analysis_time=analysis_time)
@@ -196,7 +203,31 @@ class OperationalMarketSnapshotService:
                 missing[symbol] = "MARKET_DATA_CONFLICT"
                 continue
             if refresh.selected is None:
-                missing[symbol] = self._missing_code(refresh)
+                candidate, conflict = self._research_candidate(refresh, analysis_time)
+                if conflict:
+                    conflicts[symbol] = "MARKET_DATA_CONFLICT"
+                    missing[symbol] = "MARKET_DATA_CONFLICT"
+                    continue
+                if candidate is None:
+                    missing[symbol] = self._missing_code(refresh)
+                    continue
+                try:
+                    research_quotes[symbol] = self._market_snapshot(
+                        symbol,
+                        replace(refresh, selected=candidate),
+                        analysis_time,
+                        live=live,
+                        diagnostic=probes[symbol],
+                        research_only=True,
+                    )
+                    probes[symbol]["research_selection"] = "LAST_COMPLETED_SESSION_ONLY"
+                    missing[symbol] = "MARKET_DATA_STALE"
+                except (HistoricalProviderError, OSError, ValueError) as error:
+                    missing[symbol] = self._historical_code(error)
+                    probes[symbol]["history"] = {
+                        "status": "BLOCKED",
+                        "code": missing[symbol],
+                    }
                 continue
             if (
                 self.policy.quote_status(refresh.selected, as_of=analysis_time)
@@ -206,6 +237,7 @@ class OperationalMarketSnapshotService:
                 continue
             try:
                 quotes[symbol] = self._market_snapshot(symbol, refresh, analysis_time, live=live, diagnostic=probes[symbol])
+                research_quotes[symbol] = quotes[symbol]
             except (HistoricalProviderError, OSError, ValueError) as error:
                 missing[symbol] = self._historical_code(error)
                 probes[symbol]["history"] = {"status": "BLOCKED", "code": missing[symbol]}
@@ -239,14 +271,17 @@ class OperationalMarketSnapshotService:
             conflicts=conflicts,
             missing_symbols=missing,
             data_quality_mode="DATA_DEGRADED" if missing else data_quality_mode,
+            research_quotes=research_quotes,
         )
 
     def _market_snapshot(
-        self, symbol: str, refresh: OperationalSnapshot, analysis_time: datetime, *, live: bool = False, diagnostic: dict[str, object] | None = None
+        self, symbol: str, refresh: OperationalSnapshot, analysis_time: datetime, *, live: bool = False, diagnostic: dict[str, object] | None = None, research_only: bool = False
     ) -> MarketSnapshot:
         selected = refresh.selected
         if selected is None:
             raise ValueError("SYMBOL_MISSING")
+        if live:
+            analysis_time = datetime.now(UTC)
         series = self.historical.get_series(
             symbol,
             analysis_time.date() - timedelta(days=self.lookback_days),
@@ -254,8 +289,6 @@ class OperationalMarketSnapshotService:
             as_of=analysis_time,
             live=live,
         )
-        if live:
-            analysis_time = datetime.now(UTC)
         bars = tuple(bar for bar in series.bars if bar.available_at <= analysis_time and bar.retrieved_at <= analysis_time)
         completed = latest_completed_session(analysis_time)
         completed_bars = tuple(bar for bar in bars if bar.session <= completed)
@@ -284,8 +317,25 @@ class OperationalMarketSnapshotService:
             ask=None,
             daily_return=(selected.price / previous.close) - Decimal("1"),
             gap_percent=(latest.open / previous.close) - Decimal("1"),
-            freshness_state=FreshnessState.VERIFIED,
+            freshness_state=(
+                FreshnessState.STALE if research_only else FreshnessState.VERIFIED
+            ),
         )
+
+    def _research_candidate(
+        self, refresh: OperationalSnapshot, analysis_time: datetime
+    ) -> tuple[OperationalQuote | None, bool]:
+        candidates = tuple(
+            result.quote
+            for result in (refresh.primary, refresh.secondary)
+            if result.quote is not None
+            and self.policy.research_quote_eligible(result.quote, as_of=analysis_time)
+        )
+        if len(candidates) > 1:
+            difference = abs(candidates[0].price - candidates[1].price) / candidates[0].price
+            if difference > self.refresh.discrepancy_tolerance_percent:
+                return None, True
+        return (candidates[0] if candidates else None), False
 
     @staticmethod
     def _atr(bars: tuple[HistoricalBar, ...]) -> Decimal | None:

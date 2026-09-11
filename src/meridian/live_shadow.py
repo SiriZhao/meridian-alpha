@@ -1,7 +1,7 @@
-"""Bounded, explicit DeepSeek grounding shadow runner.
+"""LEGACY / DEPRECATED bounded DeepSeek grounding shadow runner.
 
 This module has no account, broker, order, allocation, or execution dependency.
-It is inert unless its caller provides an enabled LiveResearchShadowOptIn.
+Its retained normalizer is permanently network-disabled and fails closed.
 """
 
 from __future__ import annotations

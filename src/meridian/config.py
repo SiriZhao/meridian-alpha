@@ -123,6 +123,7 @@ class ResearchSettings(PolicyModel):
     deep_model: str | None = Field(default=None, min_length=1)
     endpoint: str | None = Field(default=None, min_length=1)
     thinking_mode: str | None = Field(default=None, min_length=1)
+    reasoning_effort: str = Field(default="medium", pattern=r"^(minimal|low|medium|high|xhigh)$")
     timeout_seconds: int = Field(ge=1, le=600)
     # ``max_retries`` is retained as a compatibility alias for existing
     # callers. New code should use the explicit LLM/graph budgets below.
@@ -154,10 +155,8 @@ class ResearchSettings(PolicyModel):
         ):
             if value is not None and not value.strip():
                 raise ValueError(f"research {name} must not be blank")
-        if self.provider.lower() == "deepseek":
-            endpoint = self.endpoint or "https://api.deepseek.com"
-            if endpoint.rstrip("/") != "https://api.deepseek.com":
-                raise ValueError("DeepSeek endpoint must be https://api.deepseek.com")
+        if self.provider.lower() in {"codex", "codex_cli"} and self.endpoint is not None:
+            raise ValueError("Codex CLI research must not configure an HTTP endpoint")
         return self
 
     @property
