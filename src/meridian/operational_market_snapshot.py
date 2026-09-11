@@ -15,6 +15,7 @@ from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Protocol
+from zoneinfo import ZoneInfo
 
 from meridian.historical import (
     HistoricalBar,
@@ -289,6 +290,10 @@ class OperationalMarketSnapshotService:
             as_of=analysis_time,
             live=live,
         )
+        if live:
+            # Live collection binds its cutoff after receipt, as build() does.
+            # Replay keeps the caller's immutable cutoff and rejects late rows.
+            analysis_time = datetime.now(UTC)
         bars = tuple(bar for bar in series.bars if bar.available_at <= analysis_time and bar.retrieved_at <= analysis_time)
         completed = latest_completed_session(analysis_time)
         completed_bars = tuple(bar for bar in bars if bar.session <= completed)
@@ -299,7 +304,9 @@ class OperationalMarketSnapshotService:
             raise ValueError("HISTORICAL_DATA_STALE")
         if diagnostic is not None:
             diagnostic["history"] = {"status": "PASS", "provider": series.provider, "latest_session": latest.session.isoformat(), "received_at": latest.retrieved_at.isoformat(), "available_at": latest.available_at.isoformat(), "cutoff": analysis_time.isoformat(), "certification": "UNVERIFIED"}
-        previous = completed_bars[-2] if latest.session == completed else latest
+        quote_session = selected.timestamp.astimezone(ZoneInfo(DEFAULT_SECURITY_MASTER.resolve(symbol).timezone)).date()
+        same_session = quote_session == latest.session
+        previous = completed_bars[-2] if same_session else latest
         if previous.close <= 0:
             raise ValueError("INVALID_RESPONSE")
         atr = self._atr(completed_bars)
@@ -316,7 +323,7 @@ class OperationalMarketSnapshotService:
             bid=None,
             ask=None,
             daily_return=(selected.price / previous.close) - Decimal("1"),
-            gap_percent=(latest.open / previous.close) - Decimal("1"),
+            gap_percent=(latest.open / previous.close) - Decimal("1") if same_session else None,
             freshness_state=(
                 FreshnessState.STALE if research_only else FreshnessState.VERIFIED
             ),

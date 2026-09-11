@@ -791,7 +791,9 @@ class SECCompanyFactsNumericProvider:
         try:
             identity = self.resolver.resolve(normalized_ticker)
         except (OSError, ValueError, json.JSONDecodeError) as error:
-            raise ValueError("SEC_CIK_UNAVAILABLE") from error
+            code = getattr(error, "code", None)
+            detail = f":HTTP_{code}" if isinstance(code, int) else f":{type(error).__name__}"
+            raise ValueError("SEC_CIK_UNAVAILABLE" + detail) from error
         self.last_identity = identity
         cik = identity[0]
         retrieved_at = self.clock()

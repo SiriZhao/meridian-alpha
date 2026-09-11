@@ -171,3 +171,54 @@ def test_sec_provider_rejects_timezone_less_acceptance():
     provider = SECSubmissionMetadataProvider(opener=lambda *args, **kwargs: Response())
     with pytest.raises(ValueError, match='SEC_ACCEPTANCE_TIMEZONE_REQUIRED'):
         provider.get_metadata('0000320193', '0000320193-26-000001')
+
+
+def test_live_history_uses_completion_clock_but_replay_cutoff_is_immutable(monkeypatch):
+    from meridian.operational_data import OperationalRefreshService
+    from meridian.operational_market_snapshot import OperationalMarketSnapshotService
+    from tests.test_operational_market_snapshot import NOW as START
+    from tests.test_operational_market_snapshot import Bars, QuoteProvider, observation
+
+    class Clock(datetime):
+        current = START
+
+        @classmethod
+        def now(cls, tz=None):
+            return cls.current
+
+    class ReceivedBars(Bars):
+        def get_series(self, *args, **kwargs):
+            series = super().get_series(*args, **kwargs)
+            Clock.current = START + timedelta(seconds=2)
+            return series.model_copy(update={'bars': tuple(bar.model_copy(update={
+                'available_at': START + timedelta(seconds=1), 'retrieved_at': START + timedelta(seconds=1)}) for bar in series.bars)})
+
+    monkeypatch.setattr('meridian.operational_market_snapshot.datetime', Clock)
+    refresh = OperationalRefreshService(QuoteProvider('primary', observation()), QuoteProvider('secondary', observation()))
+    snapshot = refresh.refresh('AAPL', analysis_time=START)
+    service = OperationalMarketSnapshotService(refresh, ReceivedBars())
+    diagnostics = {}
+    assert service._market_snapshot('AAPL', snapshot, START, live=True, diagnostic=diagnostics).last == Decimal('101')
+    assert diagnostics['history']['cutoff'] == Clock.current.isoformat()
+    with pytest.raises(ValueError, match='SYMBOL_MISSING'):
+        service._market_snapshot('AAPL', snapshot, START, live=False)
+
+
+def test_intraday_return_uses_last_completed_close_and_unknown_open_gap():
+    from meridian.operational_data import OperationalRefreshService
+    from meridian.operational_market_snapshot import OperationalMarketSnapshotService
+    from tests.test_operational_market_snapshot import Bars, QuoteProvider, observation
+    cutoff = datetime(2026, 9, 3, 16, tzinfo=UTC)
+
+    class DistinctCloses(Bars):
+        def get_series(self, *args, **kwargs):
+            series = super().get_series(*args, **kwargs)
+            return series.model_copy(update={'bars': (*series.bars[:-1], series.bars[-1].model_copy(update={'close': Decimal('120')}))})
+
+    quote = observation('150').model_copy(update={'observed_at': cutoff, 'available_at': cutoff, 'retrieved_at': cutoff})
+    refresh = OperationalRefreshService(QuoteProvider('primary', quote), QuoteProvider('secondary', quote))
+    service = OperationalMarketSnapshotService(refresh, DistinctCloses())
+    result = service._market_snapshot('AAPL', refresh.refresh('AAPL', analysis_time=cutoff), cutoff)
+    assert result.previous_close == Decimal('120')
+    assert result.daily_return == Decimal('0.25')
+    assert result.gap_percent is None

@@ -392,13 +392,14 @@ def market_snapshot(symbols: list[str], analysis_cutoff: datetime) -> dict[str, 
         "quotes": {key: value.model_dump(mode="json") for key, value in quotes.items()},
         "missing_symbols": snapshot.missing_symbols,
         "provider_probes": snapshot.provider_probes,
+        "collection_completed_at": snapshot.analysis_time.isoformat(),
         **_tool_metadata(source="operational-market-provider-chain",
                          observed_at=max((item.timestamp for item in quotes.values()), default=None),
                          analysis_cutoff=analysis_cutoff,
                          freshness="FRESH" if snapshot.status == "OPERATIONAL_READY" else "STALE_OR_UNAVAILABLE",
                          data_quality=snapshot.data_quality_mode,
                          provenance=snapshot.snapshot_hash,
-                         errors=errors),
+                         errors=errors, warnings=["PUBLIC_RESEARCH_DATA_NOT_HISTORICAL_PIT_CERTIFIED"]),
     }
 
 
