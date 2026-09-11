@@ -1,0 +1,25 @@
+{
+  "schema_version": "meridian-financial-research-v2-market-data.v1",
+  "generated_at": "2026-09-11T11:26:00+08:00",
+  "status": "PARTIAL",
+  "implementation": {
+    "contracts": "provider-neutral provenance-bearing existing contracts retained",
+    "historical_chain": ["local_cache", "yahoo_historical", "stooq_historical", "registered_structured_provider"],
+    "new_deterministic_features": ["return_1d", "return_5d", "return_20d", "return_60d", "return_ytd", "return_1y", "sma20", "sma50", "sma200", "ema20", "ema50", "rsi14", "atr14", "realized_volatility_20d", "realized_volatility_60d", "average_volume_20d", "relative_volume", "drawdown", "max_drawdown", "distance_52w_high", "distance_52w_low", "gap", "relative_performance_spy_20d", "relative_performance_spy_60d", "relative_performance_qqq_20d", "relative_performance_qqq_60d", "beta_60d", "rolling_correlation_60d"],
+    "mcp": {"extended_tool": "quant_metrics", "raw_series_returned": false, "execution_authority": "NONE"}
+  },
+  "validation": {"pytest": "442 passed", "ruff": "PASS", "pyright": "0 errors, 0 warnings"},
+  "real_astra_smoke": {
+    "session_id": "01a09036-949d-7832-a389-90d27f8b1c8e",
+    "model": "gpt-6-astra",
+    "reasoning_effort": "high",
+    "skill_discovered": true,
+    "tools_invoked": ["runtime_status", "market_snapshot", "company_facts", "get_provider_health"],
+    "status": "BLOCKED_MARKET_DATA",
+    "provider_errors": ["YAHOO_STALE", "STOOQ_HTTP_404", "SYMBOL_MISSING"],
+    "known_company_evidence": "SEC companyfacts",
+    "market_values_fabricated": false,
+    "execution_authority": "NONE"
+  },
+  "pass_blocker": "REAL_FRESH_MARKET_DATA_UNAVAILABLE_OR_STALE"
+}
