@@ -4,7 +4,7 @@
 
 - Real portfolio acceptance needs a newly supplied sanitized Host snapshot.
 - Live recommendation acceptance needs fresh market data. The observed Sunday
-  run returned stale Yahoo quotes and unavailable Stooq; it correctly persisted
+  run returned stale Yahoo quotes; it correctly persisted
   a blocked report. Recheck during a supported fresh-data session.
 
 ## P1 — reliability closure

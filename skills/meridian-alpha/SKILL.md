@@ -59,7 +59,11 @@ Choose the appropriate research path autonomously. Typical intents include
 
 ## Meridian tool use
 
-Prefer the MCP tools for runtime status, market/account snapshots, company facts, source-bound event evidence, optional macro context, research packets, quantitative metrics, portfolio context, risk analysis, forward evidence, daily closure, and audit lookup. Use optional web research only when current qualitative event context is relevant; cite every source, prefer primary sources, and keep numerical authority with deterministic tools. Tool failures are evidence of unavailability, not permission to invent substitutes.
+Prefer the MCP tools for runtime status, market/account snapshots, company facts, source-bound event evidence, optional macro context, research packets, quantitative metrics, portfolio context, risk analysis, forward evidence, daily closure, audit lookup, and `validate_market_evidence`. The active market path is **LOCAL CACHE → YAHOO STRUCTURED DATA → ASTRA TRUSTED WEB EVIDENCE → UNKNOWN**. Stooq is not an active Meridian provider.
+
+When `market_snapshot` is fresh and sufficient, use it directly. When it is missing, stale, or incomplete, use the host web capability only as needed: retrieve compact market facts from trusted sources, cite every URL, then submit them to `validate_market_evidence`. Do not submit search snippets, unsupported narrative prices, or a model-generated value. A Tier A source may establish an important scalar fact; otherwise use two independent Tier A/B sources. Conflicts are evidence, never values to average.
+
+Historical OHLCV requires an explicit machine-readable table, CSV, or JSON source. Never reconstruct bars from prose. If such a source is unavailable, report `HISTORICAL_DATA_UNAVAILABLE`, retain qualitative evidence separately, and do not claim calculated returns or technical values. Yahoo and validated web evidence are research-only; neither is an execution quote.
 
 For Astra research, use these deterministic/data tools directly. Do not invoke
 Meridian's legacy or nested LLM research adapters merely to obtain reasoning

@@ -47,6 +47,7 @@ from meridian.schemas import (
     MarketSnapshot,
     RunStatus,
 )
+from meridian.trusted_web_market import TrustedWebMarketEvidence, validate_trusted_market_evidence
 
 ROOT = Path(__file__).parents[2]
 
@@ -63,7 +64,7 @@ READ_ONLY = ToolAnnotations(
 ASTRA_TOOL_NAMES = frozenset({
     "runtime_status", "market_snapshot", "account_snapshot", "company_facts",
     "event_evidence", "macro_context", "research_packet", "quant_metrics", "portfolio_context", "risk_analysis",
-    "forward_evidence", "daily_closure", "audit_lookup",
+    "forward_evidence", "daily_closure", "audit_lookup", "validate_market_evidence",
 })
 
 
@@ -403,6 +404,25 @@ def market_snapshot(symbols: list[str], analysis_cutoff: datetime) -> dict[str, 
     }
 
 
+@mcp.tool(title="Validate trusted web market evidence", annotations=READ_ONLY, structured_output=True)
+def validate_market_evidence(evidence: list[TrustedWebMarketEvidence]) -> dict[str, Any]:
+    """Validate compact web facts found by Astra; this tool never browses or calls an LLM."""
+    result = validate_trusted_market_evidence(tuple(evidence))
+    return {
+        **result,
+        **_tool_metadata(
+            source="outer-astra-trusted-web-evidence-validation",
+            observed_at=max((item.observed_at for item in evidence), default=None),
+            analysis_cutoff=min((item.analysis_cutoff for item in evidence), default=None),
+            freshness="VALIDATED_INPUT" if result["status"] == "ACCEPTED" else "UNAVAILABLE",
+            data_quality=str(result["status"]),
+            provenance="TrustedSourcePolicy + per-item source URL/provenance ID",
+            errors=[] if result["status"] == "ACCEPTED" else [str(result["status"])],
+            warnings=["WEB_EVIDENCE_RESEARCH_ONLY_NOT_EXECUTION_QUOTE"],
+        ),
+    }
+
+
 @mcp.tool(title="Account snapshot", annotations=READ_ONLY, structured_output=True)
 def account_snapshot(account: AccountSnapshot, analysis_cutoff: datetime) -> dict[str, Any]:
     errors: list[str] = []
@@ -553,7 +573,8 @@ def macro_context(observations: list[MacroObservation], analysis_cutoff: datetim
 
 @mcp.tool(title="Research packet", annotations=READ_ONLY, structured_output=True)
 def research_packet(package: ResearchEvidencePackage | None = None, symbol: str | None = None,
-                    analysis_cutoff: datetime | None = None) -> dict[str, Any]:
+                    analysis_cutoff: datetime | None = None,
+                    trusted_web_evidence: list[TrustedWebMarketEvidence] | None = None) -> dict[str, Any]:
     """Retrieve evidence by symbol, or inspect a supplied validated package."""
     if package is None:
         cutoff = analysis_cutoff or datetime.now(UTC)
@@ -561,8 +582,21 @@ def research_packet(package: ResearchEvidencePackage | None = None, symbol: str 
             return {"status": "REJECTED", "errors": ["SYMBOL_OR_PACKAGE_REQUIRED"], "execution_authority": "NONE"}
         facts = company_facts(symbol, cutoff)
         market = market_snapshot([symbol], cutoff)
+        supplied_web = tuple(trusted_web_evidence or [])
+        mismatched = [item.provenance_id for item in supplied_web if item.symbol != symbol.upper()]
+        validated_web = validate_trusted_market_evidence(
+            tuple(item for item in supplied_web if item.symbol == symbol.upper())
+        )
+        if mismatched:
+            validated_web["status"] = "REJECTED"
+            validated_web["rejected"] = [*validated_web["rejected"], *[
+                {"provenance_id": identifier or "", "reason": "SYMBOL_MISMATCH"}
+                for identifier in mismatched
+            ]]
         return {"status": "DATA_DEGRADED", "symbol": symbol.upper(),
                 "company_facts": facts, "market": market,
+                "trusted_web_market_evidence": validated_web,
+                "data_gaps": ["HISTORICAL_DATA_UNAVAILABLE"] if not market.get("quotes") else [],
                 "unknowns": ["NEWS_NOT_RETRIEVED", "MACRO_NOT_RETRIEVED", "VALUATION_INPUTS_REQUIRE_VALIDATION"],
                 **_tool_metadata(source="meridian-deterministic-research-packet", observed_at=None,
                                  analysis_cutoff=cutoff, freshness="SEE_COMPONENTS", data_quality="SEE_COMPONENTS",

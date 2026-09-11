@@ -1,6 +1,6 @@
 """Execution-quote certification contracts.
 
-Yahoo/Stooq observations remain research-shadow data.  The types in this
+Yahoo public observations remain research-shadow data.  The types in this
 module are intentionally disjoint from those observations and require a
 provider capability certificate before a manual-ticket quote can be created.
 There are no trade, account, or broker methods here.

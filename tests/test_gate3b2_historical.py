@@ -27,7 +27,7 @@ AS_OF = datetime(2026, 8, 28, 23, 0, tzinfo=UTC)
 
 def _row(session: str = "2026-08-28", **updates: object) -> dict[str, object]:
     value: dict[str, object] = {
-        "provider_symbol": "aapl.us",
+        "provider_symbol": "AAPL",
         "session": session,
         "observed_at": f"{session}T21:00:00+00:00",
         "available_at": f"{session}T21:00:00+00:00",
@@ -44,7 +44,7 @@ def _row(session: str = "2026-08-28", **updates: object) -> dict[str, object]:
 
 
 def test_historical_bar_normalization_and_raw_execution_boundary() -> None:
-    series = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="stooq").normalize(
+    series = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="yahoo").normalize(
         [_row()], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED,
         adjustment_status=HistoricalAdjustmentStatus.RAW,
         certification=HistoricalBarCertification.CERTIFIED_MARKET_SESSION,
@@ -53,7 +53,7 @@ def test_historical_bar_normalization_and_raw_execution_boundary() -> None:
     assert series.bars[0].execution_price_eligible is False
     assert series.bars[0].session == date(2026, 8, 28)
     assert series.content_hash is not None
-    repeat = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="stooq").normalize(
+    repeat = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="yahoo").normalize(
         [_row()], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED,
         adjustment_status=HistoricalAdjustmentStatus.RAW,
         certification=HistoricalBarCertification.CERTIFIED_MARKET_SESSION,
@@ -63,7 +63,7 @@ def test_historical_bar_normalization_and_raw_execution_boundary() -> None:
 
 
 def test_impossible_ohlc_and_future_session_rejected() -> None:
-    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="stooq")
+    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="yahoo")
     with pytest.raises(ValueError, match="high"):
         normalizer.normalize([_row(high="98")], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED)
     with pytest.raises(ValueError, match="after as_of"):
@@ -71,7 +71,7 @@ def test_impossible_ohlc_and_future_session_rejected() -> None:
 
 
 def test_weekend_session_and_wrong_symbol_fail_closed() -> None:
-    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="stooq")
+    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="yahoo")
     with pytest.raises(ValueError, match="trading session"):
         normalizer.normalize([_row("2026-08-29")], symbol="AAPL", as_of=datetime(2026, 9, 1, tzinfo=UTC), retrieved_at=datetime(2026, 9, 1, tzinfo=UTC))
     with pytest.raises(Exception, match="SECURITY_IDENTITY_UNAVAILABLE"):
@@ -79,7 +79,7 @@ def test_weekend_session_and_wrong_symbol_fail_closed() -> None:
 
 
 def test_adjusted_prices_are_explicitly_non_execution() -> None:
-    series = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="stooq").normalize(
+    series = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="yahoo").normalize(
         [_row()], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED,
         adjustment_status=HistoricalAdjustmentStatus.ADJUSTED_CLOSE,
     )
@@ -88,7 +88,7 @@ def test_adjusted_prices_are_explicitly_non_execution() -> None:
 
 
 def test_quality_missing_sessions_and_provider_conflict() -> None:
-    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="stooq")
+    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="yahoo")
     first = normalizer.normalize([_row()], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED)
     second = normalizer.normalize([_row(close="104", high="107")], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED)
     diagnostics = inspect_series(first, expected_sessions=(date(2026, 8, 27),))
@@ -100,7 +100,7 @@ def test_quality_missing_sessions_and_provider_conflict() -> None:
 
 
 def test_shadow_features_are_lineaged_and_cutoff_bounded() -> None:
-    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="stooq")
+    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="yahoo")
     series = normalizer.normalize(
         [_row("2026-08-27"), _row("2026-08-28")], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED
     )
@@ -146,7 +146,7 @@ def test_first_seen_ledger_never_backdates() -> None:
 
 
 def test_future_available_at_and_late_announcement_cannot_enter_cutoff() -> None:
-    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="stooq")
+    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="yahoo")
     with pytest.raises(ValueError, match="after as_of"):
         normalizer.normalize(
             [_row(available_at="2026-08-29T00:00:00+00:00")],
@@ -163,7 +163,7 @@ def test_future_available_at_and_late_announcement_cannot_enter_cutoff() -> None
 
 
 def test_incomplete_current_session_excluded_from_shadow_features() -> None:
-    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="stooq")
+    normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="yahoo")
     series = normalizer.normalize(
         [_row("2026-08-27"), _row("2026-08-28", available_at="2026-08-28T17:00:00+00:00")],
         symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED,
@@ -174,7 +174,7 @@ def test_incomplete_current_session_excluded_from_shadow_features() -> None:
 
 def test_certified_market_bar_requires_verified_quality() -> None:
     with pytest.raises(ValueError, match="VERIFIED quality"):
-        HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="stooq").normalize(
+        HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="yahoo").normalize(
             [_row()], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED,
             certification=HistoricalBarCertification.CERTIFIED_MARKET_SESSION,
             quality=HistoricalQuality.UNVERIFIED,

@@ -11,6 +11,16 @@ must be supplied with sources. Missing inputs stay unknown. The legacy
 daily-analysis tools are no longer registered with MCP; paper remains a
 separate explicit CLI workflow.
 
+For market research, use `market_snapshot` first. The active fallback sequence
+is local cache, Yahoo structured data, Astra trusted-web evidence, then
+UNKNOWN. When Yahoo is stale or unavailable, Astra may browse trusted sources
+and call `validate_market_evidence`; Meridian never performs that browse or
+starts another model. Submit a compact URL-backed scalar fact, not a snippet or
+model estimate. Keep source conflicts visible. Historical indicators require a
+machine-readable table, CSV, or JSON source; otherwise report
+`HISTORICAL_DATA_UNAVAILABLE`. All such inputs remain research-only and
+`execution_authority=NONE`.
+
 As of the final 2026-09-11 review, local/runtime and clean-install checks pass,
 but real fresh Astra acceptance is `BLOCKED_WITH_EVIDENCE / CODEX_RATE_LIMITED`.
 Do not retry a quota failure in a loop. SEC HTTP 403 is a separate provider

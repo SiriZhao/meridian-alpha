@@ -4,6 +4,7 @@ param(
     [string[]]$MeridianArgs
 )
 $ErrorActionPreference = 'Stop'
+$OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $root = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $root '.venv\Scripts\python.exe'
 if (-not (Test-Path -LiteralPath $python)) {

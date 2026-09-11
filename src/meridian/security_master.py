@@ -166,7 +166,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-EQ-AAPL",
         canonical_symbol="AAPL",
-        provider_symbols={"stooq": "aapl.us", "yahoo": "AAPL"},
+        provider_symbols={"yahoo": "AAPL"},
         asset_type=AssetType.EQUITY,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -187,7 +187,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-EQ-MSFT",
         canonical_symbol="MSFT",
-        provider_symbols={"stooq": "msft.us", "yahoo": "MSFT"},
+        provider_symbols={"yahoo": "MSFT"},
         asset_type=AssetType.EQUITY,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -200,7 +200,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-EQ-NVDA",
         canonical_symbol="NVDA",
-        provider_symbols={"stooq": "nvda.us", "yahoo": "NVDA"},
+        provider_symbols={"yahoo": "NVDA"},
         asset_type=AssetType.EQUITY,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -213,7 +213,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-EQ-META",
         canonical_symbol="META",
-        provider_symbols={"stooq": "meta.us", "yahoo": "META"},
+        provider_symbols={"yahoo": "META"},
         asset_type=AssetType.EQUITY,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -226,7 +226,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-EQ-GOOGL",
         canonical_symbol="GOOGL",
-        provider_symbols={"stooq": "googl.us", "yahoo": "GOOGL"},
+        provider_symbols={"yahoo": "GOOGL"},
         asset_type=AssetType.EQUITY,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -239,7 +239,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-ETF-SPY",
         canonical_symbol="SPY",
-        provider_symbols={"stooq": "spy.us", "yahoo": "SPY"},
+        provider_symbols={"yahoo": "SPY"},
         asset_type=AssetType.ETF,
         primary_exchange="NYSEARCA",
         trading_calendar="US_EQUITY",
@@ -252,7 +252,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-ETF-QQQ",
         canonical_symbol="QQQ",
-        provider_symbols={"stooq": "qqq.us", "yahoo": "QQQ"},
+        provider_symbols={"yahoo": "QQQ"},
         asset_type=AssetType.ETF,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -265,7 +265,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-ETF-SGOV",
         canonical_symbol="SGOV",
-        provider_symbols={"stooq": "sgov.us", "yahoo": "SGOV"},
+        provider_symbols={"yahoo": "SGOV"},
         asset_type=AssetType.ETF,
         primary_exchange="NYSEARCA",
         trading_calendar="US_EQUITY",
@@ -278,7 +278,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-ETF-GLD",
         canonical_symbol="GLD",
-        provider_symbols={"stooq": "gld.us", "yahoo": "GLD"},
+        provider_symbols={"yahoo": "GLD"},
         asset_type=AssetType.ETF,
         primary_exchange="NYSEARCA",
         trading_calendar="US_EQUITY",
@@ -291,7 +291,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-ETF-TLT",
         canonical_symbol="TLT",
-        provider_symbols={"stooq": "tlt.us", "yahoo": "TLT"},
+        provider_symbols={"yahoo": "TLT"},
         asset_type=AssetType.ETF,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -304,7 +304,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-INDEX-VIX",
         canonical_symbol="VIX",
-        provider_symbols={"stooq": "^vix", "yahoo": "^VIX"},
+        provider_symbols={"yahoo": "^VIX"},
         asset_type=AssetType.INDEX,
         primary_exchange="CBOE",
         trading_calendar="CBOE_VIX",

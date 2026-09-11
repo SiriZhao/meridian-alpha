@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import csv
-import io
 import json
 import time as _time
 from collections.abc import Callable, Mapping
@@ -255,79 +253,6 @@ class QuoteNormalizer:
         return result
 
 
-class StooqQuoteProvider:
-    """Free public last-price adapter for shadow observation only.
-
-    Stooq supplies delayed/last data in a compact CSV response and does not
-    expose a dependable bid/ask stream here; the capability certificate is
-    therefore explicitly non-execution-grade.
-    """
-
-    provider_name = "stooq-public"
-    network_capable = True
-    capabilities = MarketDataCapabilityCertificate(
-        provider_name=provider_name,
-        supports_live=False,
-        supports_historical=False,
-        supports_point_in_time=False,
-        supports_last=True,
-        timestamp_semantics="provider quote date/time; freshness must be measured locally",
-        authentication_required=False,
-        research_grade=False,
-        execution_quote_grade=False,
-    )
-
-    def __init__(
-        self,
-        security_master: SecurityMaster,
-        *,
-        timeout_seconds: float = 10.0,
-        opener: Callable[..., Any] = urlopen,
-        clock: Callable[[], datetime] | None = None,
-    ) -> None:
-        self.security_master = security_master
-        self.timeout_seconds = timeout_seconds
-        self.opener = opener
-        self.clock = clock or (lambda: datetime.now(UTC))
-
-    def get_quote(self, symbol: str, *, as_of: datetime | None = None) -> QuoteObservation:
-        security = self.security_master.resolve(symbol)
-        provider_symbol = security.provider_symbols.get(self.provider_name.removesuffix("-public"))
-        if provider_symbol is None:
-            provider_symbol = security.provider_symbols.get("stooq")
-        if not provider_symbol:
-            raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:stooq-symbol")
-        url = f"https://stooq.com/q/l/?s={url_quote(provider_symbol)}&f=sd2t2ohlcv&h&e=csv"
-        request = Request(url, headers={"User-Agent": "MeridianAlpha/0.1 shadow-data"})
-        started = _time.monotonic()
-        try:
-            response = self.opener(request, timeout=self.timeout_seconds)
-            payload = response.read()
-        except TimeoutError as error:
-            raise QuoteProviderTimeout("Stooq request timed out") from error
-        except OSError as error:
-            raise QuoteProviderError("Stooq request failed") from error
-        if _time.monotonic() - started > self.timeout_seconds * 2:
-            raise QuoteProviderTimeout("Stooq response exceeded timeout budget")
-        try:
-            text = payload.decode("utf-8") if isinstance(payload, bytes) else str(payload)
-            row = next(csv.DictReader(io.StringIO(text)))
-            if not row or row.get("Close") in {None, "N/D", ""}:
-                raise ValueError("missing Stooq close")
-            quote_time = datetime.fromisoformat(f"{row['Date']}T{row['Time']}").replace(tzinfo=UTC)
-        except (StopIteration, KeyError, ValueError) as error:
-            raise QuoteProviderMalformed("Stooq response is malformed") from error
-        retrieved = self.clock()
-        return QuoteNormalizer(self.security_master).normalize(
-            {"provider_symbol": provider_symbol, "observed_at": quote_time, "last": row["Close"], "currency": security.currency},
-            symbol=symbol,
-            provider="stooq",
-            retrieved_at=retrieved,
-            source="stooq-public-csv",
-            as_of=as_of,
-        )
-
-
 class QuoteComparison(StableModel):
     symbol: str
     providers: tuple[str, ...]
@@ -471,7 +396,7 @@ class YahooChartQuoteProvider:
 
 
 # Gate 4G keeps execution quotes in a separate module/type hierarchy. These
-# aliases are convenience imports only; Yahoo/Stooq observations remain
+# aliases are convenience imports only; Yahoo public observations remain
 # research-shadow and cannot be converted implicitly.
 from meridian.execution_quotes import (  # noqa: E402,F401
     ExecutionQuote,

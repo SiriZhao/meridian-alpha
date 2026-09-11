@@ -22,6 +22,7 @@ company_facts           research_packet       quant_metrics
 portfolio_context       risk_analysis         forward_evidence
 daily_closure           audit_lookup
 event_evidence          macro_context
+validate_market_evidence
 ```
 
 Every tool is structured-output and read-only. Responses carry source,
@@ -49,6 +50,26 @@ corporate-action adjustments. Live collection binds its receipt cutoff after
 the provider returns; replay retains the requested cutoff. MCP filters quote
 timestamps against the requested cutoff and reports collection completion
 separately. Research data never certifies execution pricing.
+
+## Trusted web market evidence
+
+The active research path is **LOCAL CACHE → YAHOO STRUCTURED DATA → ASTRA
+TRUSTED WEB EVIDENCE → UNKNOWN**. Meridian itself neither browses nor calls a
+second model. When Yahoo is stale, missing, or incomplete, the outer Astra host
+may discover sources and submit compact `TrustedWebMarketEvidence` to the
+read-only `validate_market_evidence` tool.
+
+`TrustedSourcePolicy` classifies configured Tier A, Tier B and discovery-only
+domains. The validator rejects invalid source URLs, future or post-cutoff facts,
+untrusted domains, duplicate source submissions and malformed historical rows.
+It accepts an important scalar only with one Tier A source or two independent
+Tier A/B sources, and represents disagreement as `SOURCE_CONFLICT`; it never
+averages values. Every result remains research-only with
+`execution_authority=NONE`.
+
+Historical OHLCV requires an explicit machine-readable table, CSV, or JSON
+source. Narrative web evidence cannot create bars or deterministic technical
+metrics. Missing structured history remains `HISTORICAL_DATA_UNAVAILABLE`.
 
 Mutable production state is rooted exclusively in `RuntimePaths`: database,
 cache, reports, logs, runs, audit, data, and runtime configuration. Repository

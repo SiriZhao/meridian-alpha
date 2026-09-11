@@ -267,7 +267,7 @@ class OperationalCache:
 class OperationalRefreshService:
     """One bounded refresh boundary; downstream code receives only its snapshot."""
 
-    def __init__(self, primary: OperationalQuoteProvider, secondary: OperationalQuoteProvider, *, policy: FreshnessPolicy | None = None, cache: OperationalCache | None = None, discrepancy_tolerance_percent: Decimal = Decimal("0.02")) -> None:
+    def __init__(self, primary: OperationalQuoteProvider, secondary: OperationalQuoteProvider | None = None, *, policy: FreshnessPolicy | None = None, cache: OperationalCache | None = None, discrepancy_tolerance_percent: Decimal = Decimal("0.02")) -> None:
         if discrepancy_tolerance_percent < 0:
             raise ValueError("discrepancy tolerance must be non-negative")
         self.primary, self.secondary, self.policy, self.cache, self.discrepancy_tolerance_percent = primary, secondary, policy or FreshnessPolicy(), cache, discrepancy_tolerance_percent
@@ -275,7 +275,7 @@ class OperationalRefreshService:
     def refresh(self, symbol: str, *, analysis_time: datetime, live: bool = False) -> OperationalSnapshot:
         _aware(analysis_time, "analysis_time")
         primary = self._fetch(self.primary, symbol, analysis_time, live=live)
-        secondary = self._fetch(self.secondary, symbol, analysis_time, live=live)
+        secondary = self._fetch(self.secondary, symbol, analysis_time, live=live) if self.secondary else ProviderResult("trusted-web-evidence", OperationalProviderStatus.UNAVAILABLE, "OUTER_ASTRA_VALIDATION_REQUIRED")
         if live:
             analysis_time = datetime.now(UTC)
             primary = replace(primary, status=self.policy.quote_status(primary.quote, as_of=analysis_time)) if primary.quote is not None else primary
@@ -287,6 +287,8 @@ class OperationalRefreshService:
         if selected is None and self.cache is not None:
             cache_status = "MISS"
             for provider in (self.primary, self.secondary):
+                if provider is None:
+                    continue
                 cached = self.cache.load(symbol, provider.provider_name)
                 if cached is not None and cached.symbol == symbol and self.policy.quote_status(cached, as_of=analysis_time) is OperationalProviderStatus.OK:
                     selected, cache_hit = cached, True

@@ -33,6 +33,17 @@ Policies come from the checkout (or the installed wheel); `MERIDIAN_POLICY_DIR`
 selects an explicit policy directory. Do not put credentials or raw account
 identifiers in configuration or input files.
 
+## Market research evidence
+
+The active market-research path is **local cache → Yahoo structured data →
+Astra trusted-web evidence → UNKNOWN**. Yahoo public data and Astra-supplied
+web evidence are research-only and never execution quotes. When Yahoo is stale
+or unavailable, Astra may browse trusted sources and submit compact facts to
+the read-only `validate_market_evidence` tool. Meridian validates source URLs,
+source tier, timestamps, currency, corroboration and conflicts; it does not
+browse or call another model. Historical OHLCV needs an explicit machine-readable
+table, CSV or JSON source. Narrative text cannot create bars or technical metrics.
+
 ## Doctor
 
 ```powershell

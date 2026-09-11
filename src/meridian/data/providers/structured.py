@@ -2,15 +2,11 @@
 
 from __future__ import annotations
 
-import csv
-import io
 import json
-import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
-from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -24,16 +20,10 @@ from meridian.data.models import (
 from meridian.data.providers.base import RetrievalProviderError
 from meridian.fundamentals import SECCompanyFactsNumericProvider, certified_company_snapshot
 from meridian.historical import (
-    HistoricalAdjustmentStatus,
-    HistoricalBarCertification,
     HistoricalBarSeries,
-    HistoricalDataNormalizer,
     HistoricalProviderError,
     HistoricalProviderMalformed,
-    HistoricalQuality,
 )
-from meridian.security_master import DEFAULT_SECURITY_MASTER, SecurityMaster
-from meridian.trading_calendar import TradingCalendarName, session_close
 
 
 def _lookback_start(as_of: datetime, lookback: str | None) -> date:
@@ -120,101 +110,6 @@ class HistoricalSeriesRetrievalProvider:
                 raw_reference=series.content_hash or series.stable_hash,
                 validation_status=ValidationStatus.PASS,
             ),
-        )
-
-
-class StooqHistoricalProvider:
-    """Stooq daily CSV history adapter used as a bounded fallback lane."""
-
-    provider_name = "stooq-historical"
-
-    def __init__(
-        self,
-        security_master: SecurityMaster = DEFAULT_SECURITY_MASTER,
-        *,
-        opener: Callable[..., Any] = urlopen,
-        timeout_seconds: float = 8.0,
-        clock: Callable[[], datetime] | None = None,
-    ) -> None:
-        self.security_master = security_master
-        self.opener = opener
-        self.timeout_seconds = timeout_seconds
-        self.clock = clock or (lambda: datetime.now(UTC))
-
-    def get_series(
-        self,
-        symbol: str,
-        start: date,
-        end: date,
-        *,
-        as_of: datetime,
-        live: bool = False,
-    ) -> HistoricalBarSeries:
-        security = self.security_master.resolve(symbol)
-        provider_symbol = security.provider_symbols.get("stooq")
-        if not provider_symbol:
-            raise HistoricalProviderError("STOOQ_SYMBOL_NOT_FOUND")
-        query = urlencode(
-            {
-                "s": provider_symbol,
-                "d1": start.strftime("%Y%m%d"),
-                "d2": end.strftime("%Y%m%d"),
-                "i": "d",
-            }
-        )
-        url = f"https://stooq.com/q/d/l/?{query}"
-        request = Request(url, headers={"User-Agent": "MeridianAlpha/0.1 research-data"})
-        started = time.monotonic()
-        try:
-            response = self.opener(request, timeout=self.timeout_seconds)
-            payload = response.read()
-        except HTTPError as error:
-            if error.code == 404:
-                raise HistoricalProviderError("STOOQ_SYMBOL_NOT_FOUND") from error
-            raise HistoricalProviderError(f"STOOQ_HTTP_{error.code}") from error
-        except TimeoutError as error:
-            raise HistoricalProviderError("STOOQ_TIMEOUT") from error
-        except OSError as error:
-            raise HistoricalProviderError("STOOQ_UNAVAILABLE") from error
-        if time.monotonic() - started > self.timeout_seconds * 2:
-            raise HistoricalProviderError("STOOQ_TIMEOUT")
-        text = payload.decode("utf-8") if isinstance(payload, bytes) else str(payload)
-        rows: list[Mapping[str, Any]] = []
-        try:
-            for row in csv.DictReader(io.StringIO(text)):
-                session = date.fromisoformat(str(row["Date"]))
-                observed_at = session_close(session, TradingCalendarName(security.trading_calendar))
-                if observed_at > as_of:
-                    continue
-                rows.append(
-                    {
-                        "provider_symbol": provider_symbol,
-                        "session": session,
-                        "open": row["Open"],
-                        "high": row["High"],
-                        "low": row["Low"],
-                        "close": row["Close"],
-                        "volume": row["Volume"],
-                        "currency": security.currency,
-                        "observed_at": observed_at,
-                        "available_at": observed_at,
-                        "source": url,
-                    }
-                )
-        except (KeyError, ValueError) as error:
-            raise HistoricalProviderMalformed("STOOQ_HISTORY_MALFORMED") from error
-        if not rows:
-            raise HistoricalProviderError("STOOQ_SYMBOL_NOT_FOUND")
-        retrieved_at = self.clock()
-        return HistoricalDataNormalizer(self.security_master, provider="stooq").normalize(
-            rows,
-            symbol=symbol,
-            as_of=max(as_of, retrieved_at) if live else as_of,
-            retrieved_at=retrieved_at,
-            adjustment_status=HistoricalAdjustmentStatus.RAW,
-            certification=HistoricalBarCertification.UNVERIFIED,
-            quality=HistoricalQuality.UNVERIFIED,
-            source_mode="LIVE_SHADOW",
         )
 
 

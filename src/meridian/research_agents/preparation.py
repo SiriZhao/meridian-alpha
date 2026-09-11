@@ -27,7 +27,6 @@ from meridian.data.models import (
 from meridian.data.providers.structured import (
     HistoricalSeriesRetrievalProvider,
     SecFundamentalRetrievalProvider,
-    StooqHistoricalProvider,
     YahooMacroRetrievalProvider,
 )
 from meridian.data.retrieval_orchestrator import (
@@ -37,7 +36,6 @@ from meridian.data.retrieval_orchestrator import (
 )
 from meridian.historical import YahooChartHistoricalProvider
 from meridian.research_agents.data_gap_planner import DataGapPlan, DataGapPlanner, GapPlanner
-from meridian.research_agents.web_research_agent import WebResearchAgent
 from meridian.runtime import RuntimePaths
 from meridian.schemas import StableModel
 from meridian.security_master import DEFAULT_SECURITY_MASTER
@@ -78,10 +76,8 @@ class ResearchPreparationService:
         yahoo = YahooChartHistoricalProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=8.0)
         providers = (
             HistoricalSeriesRetrievalProvider(yahoo),
-            HistoricalSeriesRetrievalProvider(StooqHistoricalProvider()),
             SecFundamentalRetrievalProvider(),
             YahooMacroRetrievalProvider(),
-            WebResearchAgent(),
         )
         return cls(
             DataGapPlanner(),
@@ -266,7 +262,8 @@ class ResearchPreparationService:
                         lookback="1y",
                         frequency="1d",
                         freshness_requirement="1d",
-                        preferred_sources=("yahoo", "stooq"),
+                        preferred_sources=("yahoo", "trusted_web_outer_astra"),
+                        allow_web_fallback=True,
                         reason="Blocking trend, volume, and risk history",
                     ),
                     ResearchDataRequirement(
@@ -312,7 +309,8 @@ class ResearchPreparationService:
                     required=False,
                     lookback="1y",
                     frequency="1d",
-                    preferred_sources=("yahoo", "stooq"),
+                    preferred_sources=("yahoo", "trusted_web_outer_astra"),
+                    allow_web_fallback=True,
                     reason="Optional benchmark-relative analysis",
                 ),
                 ResearchDataRequirement(

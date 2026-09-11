@@ -32,7 +32,7 @@ from meridian.operational_data import (
     OperationalRefreshService,
     OperationalSnapshot,
 )
-from meridian.quotes import StooqQuoteProvider, YahooChartQuoteProvider
+from meridian.quotes import YahooChartQuoteProvider
 from meridian.runtime import RuntimePaths
 from meridian.schemas import FreshnessState, MarketSnapshot
 from meridian.security_master import DEFAULT_SECURITY_MASTER
@@ -151,9 +151,8 @@ class OperationalMarketSnapshotService:
     ) -> OperationalMarketSnapshotService:
         policy = policy or FreshnessPolicy()
         primary = YahooChartQuoteProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=timeout_seconds)
-        secondary = StooqQuoteProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=timeout_seconds)
         refresh = OperationalRefreshService(
-            primary, secondary, policy=policy, cache=OperationalCache(paths.cache)
+            primary, policy=policy, cache=OperationalCache(paths.cache)
         )
         historical = YahooChartHistoricalProvider(
             DEFAULT_SECURITY_MASTER, timeout_seconds=timeout_seconds

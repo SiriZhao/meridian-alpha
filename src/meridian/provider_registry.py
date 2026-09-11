@@ -78,17 +78,6 @@ _PROVIDER_RECORDS = (
         rate_limit="SEC fair-access policy; bounded requests only",
         current_certification="PIT_CAPABLE_PER_OBSERVATION",
         failure_behavior="missing/mismatched/late acceptance metadata emits no certified item",
-    ),    ProviderCertificationRecord(
-        provider_name="stooq-public",
-        domain="market_quote",
-        network_capable=True,
-        supports_last=True,
-        timestamp_semantics="CSV date/time semantics unverified; current endpoint returned HTTP 404",
-        provenance_semantics="public CSV URI",
-        authentication="none",
-        rate_limit="UNVERIFIED",
-        current_certification="DIAGNOSTIC_ONLY",
-        failure_behavior="HTTP/malformed response fails closed",
     ),
     ProviderCertificationRecord(
         provider_name="polygon-read-only-candidate",

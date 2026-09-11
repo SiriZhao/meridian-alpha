@@ -15,6 +15,7 @@ meridian-alpha-source-review*.zip
 coverage.xml
 htmlcov/
 .pytest_tmp/
+.pytest_tmp*/
 
 artifacts/
 

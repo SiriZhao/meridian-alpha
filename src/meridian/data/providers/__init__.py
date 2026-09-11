@@ -4,7 +4,6 @@ from meridian.data.providers.base import RetrievalProvider, RetrievalProviderErr
 from meridian.data.providers.structured import (
     HistoricalSeriesRetrievalProvider,
     SecFundamentalRetrievalProvider,
-    StooqHistoricalProvider,
     YahooMacroRetrievalProvider,
 )
 
@@ -13,6 +12,5 @@ __all__ = [
     "RetrievalProvider",
     "RetrievalProviderError",
     "SecFundamentalRetrievalProvider",
-    "StooqHistoricalProvider",
     "YahooMacroRetrievalProvider",
 ]

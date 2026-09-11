@@ -12,6 +12,7 @@ from typing import Any
 from pydantic import AwareDatetime, Field, model_validator
 
 from meridian.schemas import StableModel
+from meridian.trusted_web_market import TrustedWebMarketEvidence
 
 
 class DataCategory(StrEnum):
@@ -225,6 +226,9 @@ class ResearchEvidencePackage(StableModel):
     rounds: int = Field(default=0, ge=0, le=3)
     planner_summary: str = ""
     unresolved: tuple[str, ...] = ()
+    structured_market_evidence: tuple[str, ...] = ()
+    trusted_web_market_evidence: tuple[TrustedWebMarketEvidence, ...] = ()
+    data_gaps: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def validate_packet_evidence(self) -> ResearchEvidencePackage:
@@ -274,6 +278,9 @@ class ResearchEvidencePackage(StableModel):
             "sections": sections,
             "conflicts": [item.model_dump(mode="json") for item in self.conflicts],
             "unresolved": list(self.unresolved),
+            "structured_market_evidence": list(self.structured_market_evidence),
+            "trusted_web_market_evidence": [item.model_dump(mode="json") for item in self.trusted_web_market_evidence],
+            "data_gaps": list(self.data_gaps),
         }
 
     def research_view(self) -> dict[str, Any]:

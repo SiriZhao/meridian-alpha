@@ -153,15 +153,13 @@ raise SystemExit(main())
     assert not result["manual_authority"]["certificate_issued"]
     markdown = Path(result["report_markdown"]).read_text(encoding="utf-8")
     assert "Account freshness" in markdown and "Market freshness" in markdown and status in markdown
-@pytest.mark.parametrize("provider", ["yahoo", "stooq"])
 @pytest.mark.parametrize("fault", ["timeout", "dns", "invalid"])
-def test_public_provider_faults_are_structured(provider: str, fault: str):
+def test_yahoo_provider_faults_are_structured(fault: str):
     from test_operational_data import NOW, Provider
 
     from meridian.operational_data import OperationalRefreshService
     from meridian.quotes import (
         QuoteProviderTimeout,
-        StooqQuoteProvider,
         YahooChartQuoteProvider,
     )
     from meridian.security_master import DEFAULT_SECURITY_MASTER
@@ -175,8 +173,7 @@ def test_public_provider_faults_are_structured(provider: str, fault: str):
             def read(self):
                 return b"invalid payload"
         return Invalid()
-    adapter = YahooChartQuoteProvider if provider == "yahoo" else StooqQuoteProvider
-    result = OperationalRefreshService(adapter(DEFAULT_SECURITY_MASTER, opener=opener),
+    result = OperationalRefreshService(YahooChartQuoteProvider(DEFAULT_SECURITY_MASTER, opener=opener),
         Provider("secondary", QuoteProviderTimeout())).refresh("AAPL", analysis_time=NOW)
     assert result.selected is None
     assert result.primary.status.value in {"UNAVAILABLE", "INVALID_RESPONSE"}

@@ -1,0 +1,51 @@
+{
+  "schema_version": "meridian-trusted-web-market-data.v1",
+  "date": "2026-09-11",
+  "status": "BLOCKED_WITH_EVIDENCE",
+  "implementation_status": "PASS",
+  "active_strategy": [
+    "LOCAL_CACHE",
+    "YAHOO_STRUCTURED_DATA",
+    "ASTRA_TRUSTED_WEB_EVIDENCE",
+    "UNKNOWN"
+  ],
+  "stooq": {
+    "active_provider_chain": false,
+    "runtime_registry": false,
+    "research_preparation": false,
+    "security_provider_symbols": false,
+    "historical_reports_preserved": true
+  },
+  "trusted_web": {
+    "outer_astra_browses": true,
+    "meridian_browses": false,
+    "nested_llm": false,
+    "validator": "validate_market_evidence",
+    "source_policy": ["TIER_A_PRIMARY", "TIER_B_ESTABLISHED", "DISCOVERY_ONLY"],
+    "corroboration": "one Tier A source or two independent Tier A/B sources",
+    "conflicts_averaged": false,
+    "historical_bars": "machine-readable table only",
+    "execution_authority": "NONE"
+  },
+  "validation": {
+    "pytest": "474 passed in 63.25s",
+    "trusted_web_tests": "9 passed",
+    "ruff": "PASS",
+    "pyright": "PASS: 0 errors, 0 warnings",
+    "dependency_integrity": "PASS",
+    "doctor": "PASS"
+  },
+  "astra_acceptance": {
+    "attempts": 1,
+    "thread_id": "01a090cf-60cd-79b0-a9e0-70f61cfcab8e",
+    "model_requested": "gpt-6-astra",
+    "reasoning_effort_requested": "medium",
+    "result": "CODEX_RATE_LIMITED",
+    "skill_discovered": false,
+    "mcp_tools_called": [],
+    "trusted_web_sources": [],
+    "research_completed": false,
+    "retries": 0
+  },
+  "remaining_blocker": "Codex/Astra usage limit prevented the required real web retrieval proof."
+}

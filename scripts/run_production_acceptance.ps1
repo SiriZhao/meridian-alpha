@@ -118,7 +118,7 @@ if ($market.payload.latest_quote -ne 'FRESH') {
 if (-not $daily) {
     $nextActions += 'Canonical daily was intentionally not invoked because its real-input or regular-session prerequisites were not met.'
 }
-$nextActions += 'Public Yahoo/Stooq observations remain uncertified execution quotes; manual authority remains blocked.'
+$nextActions += 'Public Yahoo observations and validated Astra trusted-web evidence remain research-only; manual authority remains blocked.'
 $acceptanceMatrix = @(
     [ordered]@{ item = 'baseline'; status = $baselineStatus; evidence = 'baseline.checks' }
     [ordered]@{ item = 'doctor'; status = if ($doctor.payload.status -eq 'PASS') { 'VERIFIED' } else { 'BLOCKED' }; evidence = 'doctor.payload' }
@@ -148,10 +148,10 @@ $artifact = [ordered]@{
     providers = [ordered]@{
         status = if ($market.payload.latest_quote -eq 'FRESH') { 'VERIFIED' } else { 'DEGRADED' }
         canonical_probes = $market.payload.provider_probes
-        stooq_404_investigation = [ordered]@{
-            status = 'DEGRADED'
-            conclusion = 'UPSTREAM_UNAVAILABLE_OR_ENDPOINT_CHANGED'
-            evidence = 'Canonical probes returned http_404 for Stooq across the configured universe; direct bounded diagnostics confirmed Stooq 404 responses for configured URL and documented URL variants.'
+        trusted_web_market_evidence = [ordered]@{
+            status = 'OUTER_ASTRA_ONLY'
+            conclusion = 'When Yahoo is stale or unavailable, Astra may discover trusted sources and submit compact evidence to Meridian validation.'
+            evidence = 'The acceptance script does not browse, invoke an LLM, or treat web research as an execution quote.'
         }
     }
     research = [ordered]@{ status = $researchStatus; canonical_status = if ($daily) { $daily.payload.research_status } else { 'NOT_RUN' }; invocation = if ($daily) { 'CANONICAL_DAILY' } else { 'NOT_INVOKED' }; configuration = [ordered]@{ policy_live_enabled = $researchPolicy; credential_reference = 'UNPROBED_NOT_INSPECTED'; policy_path = $modelsPolicy } }
