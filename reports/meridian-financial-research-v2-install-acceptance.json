@@ -1,0 +1,38 @@
+{
+  "status": "BLOCKED_WITH_EVIDENCE",
+  "acceptance_date": "2026-09-11",
+  "branch": "astra/canonical-production-workflow",
+  "head": "066e09f6bba5cf38881c37fc6f0a297ab755c3ac",
+  "worktree_dirty": true,
+  "python": "3.12.10",
+  "codex_cli": "codex-cli 0.154.0",
+  "skill": {
+    "source_path": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\skills\\meridian-alpha",
+    "installed_path": "C:\\Users\\YOGA Pro16\\.codex\\skills\\meridian-alpha",
+    "file_count": 10,
+    "source_hash": "b0ce2f4f39378592f2499c55361234fe159847d7d22aa39cceecb6045b916b32",
+    "installed_hash_match": true
+  },
+  "tests": {"pytest": "449 passed in 62.74s", "ruff": "PASS", "pyright": "PASS: 0 errors"},
+  "artifact": {
+    "wheel": "meridian_alpha-0.0.0-py3-none-any.whl",
+    "sha256": "884b8737750d1643ffdcc5c52753fe6ecc05b3827ca785af40690d25fe02fe3b",
+    "clean_room_venv": "E:\\MeridianCleanRoomVenv312System",
+    "runtime_home": "E:\\MeridianCleanRoomRuntime2",
+    "import_smoke": "PASS",
+    "packaged_skill_tree": "PASS"
+  },
+  "doctor": {"status": "PASS", "database": "CURRENT", "schema_version": 3, "mcp_discovery": "PASS", "auth_mode": "CHATGPT_MANAGED_CODEX"},
+  "mcp": {"transport": "stdio", "tools_listed": 29, "invoked": ["runtime_status", "quant_metrics"], "structured_outputs": true, "execution_authority": "NONE", "broker_execution_surface": false},
+  "fresh_astra": {
+    "attempted": true,
+    "model": "gpt-6-astra",
+    "reasoning_effort": "high",
+    "result": "CODEX_RATE_LIMITED",
+    "research_completed": false,
+    "message": "You've hit your usage limit; no fresh-host MCP research evidence was returned."
+  },
+  "remaining_blockers": ["Codex/Astra quota exhaustion", "mandatory six-intent fresh-host research and restart proof pending"],
+  "installation_paths": {"source": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha", "runtime": "E:\\MeridianCleanRoomRuntime2", "clean_room": "E:\\MeridianCleanRoomVenv312System"}
+}
+
