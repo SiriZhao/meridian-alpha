@@ -1,0 +1,46 @@
+{
+  "schema_version": "meridian-astra-smoke.v2",
+  "generated_at": "2026-09-11T11:14:00+08:00",
+  "status": "PARTIAL",
+  "project": {
+    "path": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha",
+    "branch": "astra/canonical-production-workflow",
+    "baseline_head": "7a7eff5410febc78fb210be249c88f892cecebef",
+    "dirty_worktree_preserved": true
+  },
+  "runtime": {
+    "doctor_status": "PASS",
+    "project_python": "3.12.10",
+    "system_python_not_selected": "3.14.3",
+    "codex_cli_host_version": "0.154.0",
+    "codex_native_version": "0.153.4",
+    "minimum_codex_version": "0.153.0",
+    "runtime_paths_writable_by_doctor": true,
+    "database_schema": 3
+  },
+  "skill": {
+    "source_hash": "c54bf6b3bf19cf0c44487d4fdb6f1849f664f8b9459ac03d4c3e9e68204dbc72",
+    "installed_hash": "c54bf6b3bf19cf0c44487d4fdb6f1849f664f8b9459ac03d4c3e9e68204dbc72",
+    "hash_match": true,
+    "fresh_host_discovered": true,
+    "fresh_host_skill_file_read": false,
+    "limitation": "Host supplied the Skill catalog description but no non-shell full-SKILL.md reader."
+  },
+  "host_smoke": {
+    "fresh_session_id": "01a0902b-02fa-7633-8fc6-8bea25581505",
+    "model": "gpt-6-astra",
+    "reasoning_effort": "high",
+    "sandbox": "read-only",
+    "execution_authority": "NONE",
+    "mcp_tools_invoked": ["runtime_status", "company_facts", "market_snapshot", "forward_evidence", "portfolio_context", "risk_analysis", "quant_metrics", "account_snapshot", "validate_account_snapshot", "validate_host_account_snapshot"]
+  },
+  "scenarios": {
+    "runtime_diagnosis": {"status": "PASS", "cache": "NOT_PROBED_READ_ONLY_HOST", "cache_io_error": null},
+    "simple_company_research": {"ticker": "MSFT", "fundamentals": "AVAILABLE", "market": "BLOCKED_MARKET_DATA", "unknowns_preserved": true},
+    "evidence_backed_company_research": {"official_sec_evidence": true, "contradictions": "UNKNOWN", "forward_evidence": "INSUFFICIENT_FORWARD_EVIDENCE"},
+    "portfolio_aware_research": {"sanitized_in_memory_only": true, "execution_authority": "NONE"},
+    "stale_data": {"account_snapshot_valid": false, "validate_account_snapshot_valid": false, "validate_host_account_snapshot_valid": false, "error": "ACCOUNT_SNAPSHOT_STALE", "execution_authority": "NONE"}
+  },
+  "tests": {"pytest": "439 passed", "ruff": "PASS", "pyright": "0 errors, 0 warnings"},
+  "blockers": ["FULL_INSTALLED_SKILL_FILE_READ_NOT_EXPOSED_BY_FRESH_HOST", "CURRENT_MARKET_DATA_STALE_OR_UNAVAILABLE", "NO_FRESH_VERIFIED_REAL_ACCOUNT_CONTEXT", "FORWARD_EVIDENCE_INSUFFICIENT"]
+}
