@@ -124,6 +124,7 @@ class DataQualityGate:
     ) -> tuple[DataQualityScore, DataStatus]:
         accepted = tuple(
             item for item in evidence if item.validation_status is not ValidationStatus.REJECTED
+            and item.timestamp <= as_of and (item.expires_at is None or item.expires_at > as_of)
         )
         keys = {item.requirement_key for item in accepted}
         required = tuple(item for item in requirements if item.required)
@@ -136,7 +137,7 @@ class DataQualityGate:
         fresh = tuple(
             item
             for item in accepted
-            if item.expires_at is None or item.expires_at > item.retrieved_at
+            if item.expires_at is None or item.expires_at > as_of
         )
         freshness = Decimal(len(fresh)) / Decimal(len(accepted)) if accepted else Decimal("0")
         source_quality = (
@@ -430,7 +431,7 @@ class RetrievalOrchestrator:
         for attempt in range(1, self.max_retries + 2):
             try:
                 records = provider.retrieve(requirement, as_of=as_of)
-                if not records or any(item.requirement_key != requirement.key for item in records):
+                if not records or any(item.requirement_key != requirement.key or item.timestamp > as_of for item in records):
                     raise RetrievalProviderError("PROVIDER_INVALID_RESPONSE")
                 self._failures[provider.provider_name] = 0
                 self._last_success[provider.provider_name] = self.clock()
@@ -451,6 +452,9 @@ class RetrievalOrchestrator:
                 if attempt > self.max_retries:
                     break
                 self.sleeper(0.1 * (2 ** (attempt - 1)))
+            except (ValueError, TypeError, KeyError, AttributeError):
+                last_error = RetrievalProviderError("PROVIDER_MALFORMED_RESPONSE")
+                break
         self._failures[provider.provider_name] = self._failures.get(provider.provider_name, 0) + 1
         completed = self.clock()
         return ProviderResult(
@@ -538,7 +542,7 @@ class RetrievalOrchestrator:
                 and isinstance(item.value, list)
             ):
                 histories.setdefault(item.symbol, item)
-        benchmark_record = histories.get("SPY") or histories.get("QQQ")
+        benchmark_record = histories.get("SPY")
 
         def bars(record: EvidenceRecord | None) -> tuple[Bar, ...]:
             if record is None or not isinstance(record.value, list):
@@ -572,6 +576,7 @@ class RetrievalOrchestrator:
                 source_bars,
                 as_of=as_of,
                 benchmark_bars=benchmark_bars if symbol not in {"SPY", "QQQ"} else (),
+                qqq_bars=bars(histories.get("QQQ")) if symbol != "QQQ" else (),
             )
             for field, value in features.items():
                 if value is None:
@@ -589,7 +594,7 @@ class RetrievalOrchestrator:
                         field=field,
                         category=category,
                         value=str(value),
-                        unit="RATIO" if field != "atr14" and field != "average_volume_20d" else "PRICE" if field == "atr14" else "SHARES",
+                        unit="PRICE" if field.startswith(("sma", "ema", "atr")) else "SHARES" if field == "average_volume_20d" else "OSCILLATOR_0_100" if field == "rsi14" else "RATIO",
                         symbol=symbol,
                         timestamp=source_bars[-1].timestamp,
                         as_of=as_of,
@@ -598,7 +603,7 @@ class RetrievalOrchestrator:
                         retrieved_at=datetime.now(UTC),
                         provider="meridian-derived-market-features-v1",
                         confidence=history.confidence,
-                        raw_reference=history.evidence_id or history.raw_reference,
+                        raw_reference="|".join(item.evidence_id or item.raw_reference for item in (history, *([benchmark_record] if benchmark_record else []), *([histories["QQQ"]] if "QQQ" in histories else []))),
                         validation_status=ValidationStatus.PASS,
                     )
                 )

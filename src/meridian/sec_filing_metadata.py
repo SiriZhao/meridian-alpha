@@ -148,7 +148,10 @@ class SECSubmissionMetadataProvider:
         primary_document = value("primaryDocument")
         if accepted is None or form is None or filing_date is None or primary_document is None:
             return None
-        acceptance = datetime.fromisoformat(accepted.replace("Z", "+00:00")).astimezone(UTC)
+        acceptance = datetime.fromisoformat(accepted.replace("Z", "+00:00"))
+        if acceptance.tzinfo is None or acceptance.utcoffset() is None:
+            raise ValueError("SEC_ACCEPTANCE_TIMEZONE_REQUIRED")
+        acceptance = acceptance.astimezone(UTC)
         retrieved = self.clock()
         return SECFilingMetadata(
             cik=normalized_cik, accession_number=accession_number, form=form,

@@ -31,9 +31,11 @@ def compact_macro_context(observations: tuple[MacroObservation, ...], cutoff: da
     selected: dict[str, tuple[MacroObservation, datetime]] = {}
     for item in observations:
         available = item.available_at or item.release_at
-        if available is None or available > cutoff:
+        if available is None or available > cutoff or (item.release_at and item.release_at > cutoff) or item.observation_period > cutoff.date():
             continue
         prior = selected.get(item.series_id)
+        if prior is not None and prior[1] == available and prior[0].value != item.value:
+            raise ValueError("MACRO_SOURCE_CONFLICT")
         if prior is None or prior[1] < available:
             selected[item.series_id] = (item, available)
     return {

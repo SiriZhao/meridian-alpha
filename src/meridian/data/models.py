@@ -226,6 +226,16 @@ class ResearchEvidencePackage(StableModel):
     planner_summary: str = ""
     unresolved: tuple[str, ...] = ()
 
+    @model_validator(mode="after")
+    def validate_packet_evidence(self) -> ResearchEvidencePackage:
+        if any(item.timestamp > self.as_of for item in self.evidence):
+            raise ValueError("PACKET_EVIDENCE_AFTER_CUTOFF")
+        if len(self.evidence_ids) != len(self.evidence):
+            raise ValueError("PACKET_DUPLICATE_EVIDENCE_ID")
+        if any(not set(item.evidence_ids) <= self.evidence_ids for item in self.conflicts):
+            raise ValueError("PACKET_CONFLICT_EVIDENCE_UNKNOWN")
+        return self
+
     @property
     def evidence_ids(self) -> set[str]:
         return {item.evidence_id or "" for item in self.evidence}
@@ -282,7 +292,7 @@ class ResearchEvidencePackage(StableModel):
                     "account_identifier_included": False,
                     "persistence_allowed": False,
                 }
-            if not isinstance(item.value, list):
+            if not isinstance(item.value, list) or item.category not in {DataCategory.PRICE_HISTORY, DataCategory.VOLUME_HISTORY, DataCategory.BENCHMARK}:
                 return item.value
             sessions = [
                 str(row.get("session") or row.get("observed_at"))
@@ -309,6 +319,7 @@ class ResearchEvidencePackage(StableModel):
                 "timestamp": item.timestamp.isoformat(),
                 "as_of": item.as_of.isoformat(),
                 "source": item.source,
+                "raw_reference": item.raw_reference,
                 "source_type": item.source_type.value,
                 "retrieved_at": item.retrieved_at.isoformat(),
                 "provider": item.provider,

@@ -67,15 +67,20 @@ that the active Astra session can perform itself. Existing provider adapters
 remain compatibility surfaces for the separately operated canonical daily
 application, not the intelligence layer of this Skill.
 
-Use `runtime_status` before a host-dependent workflow. For the canonical paper
-daily workflow, run only:
+Use `runtime_status` before a host-dependent workflow. `research_packet` accepts
+a symbol and cutoff to retrieve a compact evidence packet. `company_facts`
+includes fact IDs, comparable facts, and derived-metric input IDs. Resolve
+citations against those returned records. Caller-supplied bars and events are
+not independently verified sources. Missing known-at times remain UNKNOWN.
+
+For the separately operated paper daily workflow, use the installed CLI:
 
 ```powershell
-scripts/run_meridian.ps1 paper run --account Schwab-Paper --json
+meridian paper run --account Schwab-Paper --json
 ```
 
-Run it from the Meridian project root so the launcher deterministically selects
-the project's Python 3.12 virtual environment.
+Use the Python 3.12 environment where Meridian is installed. In a source
+checkout, `scripts/run_meridian.ps1` selects the project environment.
 
 Report `PAPER_BLOCKED` honestly with its exact blockers. Public research quotes
 are not certified execution quotes. Paper mode remains paper-only and broker

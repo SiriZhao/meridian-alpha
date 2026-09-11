@@ -83,6 +83,8 @@ CONCEPT_REGISTRY: Mapping[str, CanonicalMetric] = {
 
 
 def canonical_definition(taxonomy: str, concept: str) -> CanonicalMetricDefinition | None:
+    if taxonomy == "dei" and concept == "EntityCommonStockSharesOutstanding":
+        return CANONICAL_METRIC_REGISTRY[("us-gaap", concept)]
     return CANONICAL_METRIC_REGISTRY.get((taxonomy, concept))
 
 
@@ -163,6 +165,7 @@ class CertifiedFundamentalFact(StableModel):
     provider: str
     point_in_time_status: EvidencePointInTimeStatus
     supersedes_fact_id: str | None = None
+    component_fact_ids: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def pit(self) -> CertifiedFundamentalFact:
@@ -195,8 +198,8 @@ def classify_context(
     start = period_start.date() if isinstance(period_start, datetime) else period_start
     end = period_end.date() if isinstance(period_end, datetime) else period_end
     days = (end - start).days + 1
-    fp = (fiscal_period or "").upper()
-    if fp == "FY" or (form.upper() in {"10-K", "10-K/A"} and days >= 300):
+    # SEC fp describes the filing, not each comparative fact's duration.
+    if days >= 300:
         return FundamentalContextType.ANNUAL
     if days <= 120:
         return FundamentalContextType.QUARTER
@@ -270,6 +273,8 @@ class CertifiedFundamentalSnapshot(StableModel):
     latest_source_uri: str | None = None
     facts: tuple[CertifiedFundamentalFact, ...] = ()
     comparable_facts: tuple[CertifiedFundamentalFact, ...] = ()
+    quarterly_history: tuple[CertifiedFundamentalFact, ...] = ()
+    component_facts: tuple[CertifiedFundamentalFact, ...] = ()
     comparable_series: tuple[ComparableFundamentalSeries, ...] = ()
     derived: tuple[DerivedFundamentalMetric, ...] = ()
     missing_metrics: tuple[str, ...] = ()
@@ -314,7 +319,7 @@ def _comparable_prior(
 ) -> CertifiedFundamentalFact | None:
     eligible = [
         item for item in candidates
-        if item.period_end < current.period_end and contexts_compatible(current, item)
+        if 330 <= (current.period_end - item.period_end).days <= 400 and contexts_compatible(current, item)
     ]
     if not eligible:
         return None
@@ -366,7 +371,7 @@ def build_snapshot(
         fact
         for fact in facts
         if fact.ticker == normalized_ticker
-        and fact.available_at <= cutoff
+        and fact.available_at <= cutoff and fact.period_end <= cutoff
         and fact.point_in_time_status is EvidencePointInTimeStatus.CERTIFIED_HISTORICAL_PIT
     )
     by_metric: dict[CanonicalMetric, list[CertifiedFundamentalFact]] = {}
@@ -384,6 +389,7 @@ def build_snapshot(
     selected: dict[CanonicalMetric, CertifiedFundamentalFact] = {}
     ambiguous: list[str] = []
     non_comparable: list[str] = []
+    components: list[CertifiedFundamentalFact] = []
     instant_metrics = {
         CanonicalMetric.CASH_AND_EQUIVALENTS,
         CanonicalMetric.TOTAL_ASSETS,
@@ -421,10 +427,21 @@ def build_snapshot(
         if definition is not None and definition.component_aggregation == "SUM_COMPONENTS":
             top_period = candidates[0].period_end
             top_context = _fact_context(candidates[0])
-            same_context = [item for item in candidates if item.period_end == top_period and _fact_context(item) is top_context]
+            same_context = [item for item in candidates if item.period_end == top_period and _fact_context(item) is top_context and item.accession_number == candidates[0].accession_number]
             component_names = {item.raw_concept or item.concept for item in same_context}
             has_reported_total = any("AndFinanceLeaseObligations" in name and not name.endswith(("Current", "Noncurrent")) for name in component_names)
-            debt_components = [item for item in same_context if (item.raw_concept or item.concept).endswith(("Current", "Noncurrent"))]
+            # Choose one coherent taxonomy pair from one filing, never sum
+            # repetitions, restatements, or overlapping lease/debt concepts.
+            debt_components = []
+            for prefix in ("LongTermDebtAndFinanceLeaseObligations", "LongTermDebt"):
+                pair = []
+                for suffix in ("Current", "Noncurrent"):
+                    matches = [item for item in same_context if (item.raw_concept or item.concept) == prefix + suffix]
+                    if matches and len({item.value for item in matches}) == 1:
+                        pair.append(matches[0])
+                if len(pair) == 2:
+                    debt_components = pair
+                    break
             if len(debt_components) >= 2 and not has_reported_total and sum(1 for item in debt_components if item.period_start is None) == len(debt_components):
                 seed = debt_components[0]
                 value = sum((item.value for item in debt_components), Decimal("0"))
@@ -435,14 +452,18 @@ def build_snapshot(
                     "raw_concept": "LongTermDebtComponents",
                     "value": value,
                     "source_hash": digest,
+                    "component_fact_ids": tuple(item.fact_id for item in debt_components),
                 })
+                components.extend(debt_components)
                 for duplicate in candidates:
                     if duplicate.fact_id not in {item.fact_id for item in debt_components}:
                         non_comparable.append(f"{duplicate.fact_id}:NON_COMPARABLE_CONTEXT")
                 continue
+            excluded.append(f"{metric.value}:INCOMPLETE_OR_CONFLICTING_DEBT_COMPONENTS")
+            continue
         if definition is not None and definition.concept_precedence:
             precedence = {name: index for index, name in enumerate(definition.concept_precedence)}
-            candidates = sorted(candidates, key=lambda item: precedence.get(item.raw_concept or item.concept, len(precedence)))
+            candidates = sorted(candidates, key=lambda item: (item.period_end, context_rank[_fact_context(item)], item.available_at, -precedence.get(item.raw_concept or item.concept, len(precedence))), reverse=True)
         selected[metric] = candidates[0]
         top = selected[metric]
         top_concept = top.raw_concept or top.concept
@@ -494,6 +515,31 @@ def build_snapshot(
         )
 
     derived: list[DerivedFundamentalMetric] = []
+    quarterly_history: list[CertifiedFundamentalFact] = []
+    for metric, values in by_metric.items():
+        quarters: dict[tuple[datetime | None, datetime], CertifiedFundamentalFact] = {}
+        for item in sorted(values, key=lambda item: (item.available_at, item.fact_id)):
+            if _fact_context(item) is FundamentalContextType.QUARTER:
+                quarters[(item.period_start, item.period_end)] = item
+        ordered_quarters = sorted(quarters.values(), key=lambda item: item.period_end)[-8:]
+        quarterly_history.extend(ordered_quarters)
+        if len(ordered_quarters) < 2:
+            continue
+        previous, current = ordered_quarters[-2:]
+        contiguous = current.period_start is not None and 1 <= (current.period_start - previous.period_end).days <= 4
+        if contiguous and previous.unit == current.unit and previous.value != 0:
+            derived.append(_derived(f"{metric.value}_QOQ", (current.value - previous.value) / abs(previous.value),
+                (current.fact_id, previous.fact_id), "(current - prior_quarter) / abs(prior_quarter)", cutoff,
+                period_end=current.period_end, available_at=max(current.available_at, previous.available_at)))
+        four = ordered_quarters[-4:]
+        if len(four) == 4 and len({item.unit for item in four}) == 1 and all(
+            right.period_start is not None and 1 <= (right.period_start - left.period_end).days <= 4
+            for left, right in zip(four, four[1:], strict=False)
+        ):
+            derived.append(_derived(f"{metric.value}_TTM", sum((item.value for item in four), Decimal("0")),
+                tuple(item.fact_id for item in four), "sum(four nonoverlapping consecutive fiscal quarters)", cutoff,
+                period_start=four[0].period_start, period_end=four[-1].period_end,
+                available_at=max(item.available_at for item in four)))
     for item in series:
         if item.yoy_change is not None:
             derived.append(
@@ -575,6 +621,8 @@ def build_snapshot(
         latest_source_uri=latest.source_uri if latest else None,
         facts=tuple(sorted(selected_values, key=lambda item: item.canonical_metric.value if item.canonical_metric else "")),
         comparable_facts=tuple(sorted(comparable, key=lambda item: item.fact_id)),
+        quarterly_history=tuple(quarterly_history),
+        component_facts=tuple(components),
         comparable_series=tuple(sorted(series, key=lambda item: item.metric.value)),
         derived=tuple(sorted(derived, key=lambda item: item.metric)),
         missing_metrics=missing,
@@ -951,4 +999,43 @@ class SECCompanyFactsNumericProvider:
         )
 
 
+
+
+
+def certified_company_snapshot(
+    symbol: str,
+    analysis_cutoff: datetime,
+    *,
+    provider: SECCompanyFactsNumericProvider | None = None,
+    metadata_provider: Any | None = None,
+):
+    """Return only exact-accession, acceptance-time certified SEC facts.
+
+    Company Facts filing dates are deliberately not treated as a known-at time.
+    The bounded candidate set is joined to SEC submissions metadata before the
+    Skill receives a numerical observation.
+    """
+    from meridian.sec_filing_metadata import SECSubmissionMetadataProvider
+
+    numeric = provider or SECCompanyFactsNumericProvider()
+    observations = numeric.get_observations(symbol.upper())
+    candidates = [
+        item for item in observations
+        if item.filed_at <= analysis_cutoff.date()
+        and canonical_definition(item.taxonomy, item.raw_concept or item.concept) is not None
+    ]
+    # Preserve a bounded multi-quarter history while avoiding metadata requests
+    # for every Company Facts row.  The latest twelve filings cover TTM and
+    # comparable quarterly/annual context; all remaining values stay UNKNOWN.
+    accessions = sorted(
+        {item.accession_number for item in candidates},
+        reverse=True,
+    )[:12]
+    bounded = tuple(item for item in candidates if item.accession_number in set(accessions))
+    certified = numeric.certify_observations(
+        bounded,
+        metadata_provider=metadata_provider or SECSubmissionMetadataProvider(),
+        decision_as_of=analysis_cutoff,
+    )
+    return numeric, build_snapshot(symbol.upper(), certified, analysis_cutoff)
 

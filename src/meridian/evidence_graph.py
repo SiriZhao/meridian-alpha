@@ -55,6 +55,7 @@ class EvidenceGraphClaim(StableModel):
     contradicting_evidence_ids: tuple[str, ...] = ()
     assumption_ids: tuple[str, ...] = ()
     unknown_ids: tuple[str, ...] = ()
+    contradiction_resolution: str | None = None
 
 
 class EvidenceGraph(StableModel):
@@ -82,4 +83,35 @@ class EvidenceGraph(StableModel):
                 raise ValueError("EVIDENCE_GRAPH_DANGLING_ASSUMPTION_ID")
             if not set(claim.unknown_ids) <= unknowns:
                 raise ValueError("EVIDENCE_GRAPH_DANGLING_UNKNOWN_ID")
+            if (claim.claim_type == "FACT" or claim.confidence > 0) and not claim.supporting_evidence_ids:
+                raise ValueError("EVIDENCE_GRAPH_UNSUPPORTED_CLAIM")
+            if claim.contradicting_evidence_ids and not (claim.contradiction_resolution or claim.unknown_ids):
+                raise ValueError("EVIDENCE_GRAPH_CONTRADICTION_UNRESOLVED")
+        nodes = {node.node_id: node for node in self.nodes}
+        adjacency: dict[str, list[str]] = {node_id: [] for node_id in nodes}
+        seen_edges: set[tuple[str, str, EvidenceRelationType]] = set()
+        for edge in self.relationships:
+            key = (edge.from_node_id, edge.to_node_id, edge.relation)
+            if key in seen_edges:
+                raise ValueError("EVIDENCE_GRAPH_DUPLICATE_RELATION")
+            seen_edges.add(key)
+            if edge.relation in {EvidenceRelationType.SUPPORTED_BY, EvidenceRelationType.CONTRADICTED_BY} and nodes[edge.to_node_id].node_type is not EvidenceNodeType.EVIDENCE:
+                raise ValueError("EVIDENCE_GRAPH_RELATION_TYPE_MISMATCH")
+            adjacency[edge.from_node_id].append(edge.to_node_id)
+        visiting: set[str] = set()
+        visited: set[str] = set()
+
+        def visit(node_id: str) -> None:
+            if node_id in visiting:
+                raise ValueError("EVIDENCE_GRAPH_CYCLE")
+            if node_id in visited:
+                return
+            visiting.add(node_id)
+            for target in adjacency[node_id]:
+                visit(target)
+            visiting.remove(node_id)
+            visited.add(node_id)
+
+        for node_id in nodes:
+            visit(node_id)
         return self

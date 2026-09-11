@@ -29,9 +29,7 @@ from meridian.event_evidence import QualitativeEventEvidence
 from meridian.evidence_foundation import MacroObservation
 from meridian.execution_quote_providers import provider_preflight
 from meridian.fundamentals import (
-    SECCompanyFactsNumericProvider,
-    build_snapshot,
-    canonical_definition,
+    certified_company_snapshot,
 )
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.host_readiness import evaluate_host_readiness
@@ -49,7 +47,6 @@ from meridian.schemas import (
     MarketSnapshot,
     RunStatus,
 )
-from meridian.sec_filing_metadata import SECSubmissionMetadataProvider
 
 ROOT = Path(__file__).parents[2]
 
@@ -80,11 +77,12 @@ def _tool_metadata(*, source: str, observed_at: datetime | None,
                    analysis_cutoff: datetime | None, freshness: str,
                    data_quality: str, provenance: str,
                    errors: list[str] | None = None,
-                   warnings: list[str] | None = None) -> dict[str, Any]:
+                   warnings: list[str] | None = None, known_at: datetime | None = None) -> dict[str, Any]:
     return {
         "source": source,
         "observed_at": observed_at.isoformat() if observed_at else None,
-        "known_at": datetime.now(UTC).isoformat(),
+        "known_at": known_at.isoformat() if known_at else None,
+        "retrieved_at": datetime.now(UTC).isoformat(),
         "analysis_cutoff": analysis_cutoff.isoformat() if analysis_cutoff else None,
         "freshness": freshness,
         "data_quality": data_quality,
@@ -129,12 +127,6 @@ def validate_account_snapshot(account_snapshot: AccountSnapshot) -> dict[str, An
     }
 
 
-@mcp.tool(
-    title="Run daily analysis",
-    description="Use this after validating a current AccountSnapshot from an authorized account-data source. It only calculates and never submits an order.",
-    annotations=READ_ONLY,
-    structured_output=True,
-)
 def run_daily_analysis(account_snapshot: AccountSnapshot, run_date: datetime) -> dict[str, Any]:
     """Retired: a canonical daily run requires an envelope and its provenance."""
     _ = account_snapshot, run_date
@@ -173,12 +165,6 @@ def validate_host_account_snapshot(envelope: HostAccountSnapshotEnvelope) -> dic
     }
 
 
-@mcp.tool(
-    title="Run host daily analysis",
-    description="Run the same read-only daily-analysis service from a sanitized HostAccountSnapshotEnvelope. It never connects to an account source or submits an order.",
-    annotations=READ_ONLY,
-    structured_output=True,
-)
 def run_host_daily_analysis(envelope: HostAccountSnapshotEnvelope, run_date: datetime) -> dict[str, Any]:
     """Run the one canonical application path using a short-lived envelope file."""
     _ = run_date  # Canonical daily binds its own UTC cutoff; caller time cannot override it.
@@ -398,18 +384,21 @@ def market_snapshot(symbols: list[str], analysis_cutoff: datetime) -> dict[str, 
         policy=FreshnessPolicy(quote_max_age_seconds=policies.data.quote_max_age_seconds,
                                account_max_age_seconds=policies.data.account_snapshot_max_age_seconds),
     ).build(symbols, analysis_time=analysis_cutoff, live=True)
+    quotes = {key: value for key, value in snapshot.research_quotes.items() if value.timestamp <= analysis_cutoff}
+    excluded = set(snapshot.research_quotes) - set(quotes)
+    errors = [*snapshot.missing_symbols.values(), *[f"QUOTE_AFTER_CUTOFF:{key}" for key in sorted(excluded)]]
     return {
-        "status": snapshot.status,
-        "quotes": {key: value.model_dump(mode="json") for key, value in snapshot.research_quotes.items()},
+        "status": "REJECTED" if excluded else snapshot.status,
+        "quotes": {key: value.model_dump(mode="json") for key, value in quotes.items()},
         "missing_symbols": snapshot.missing_symbols,
         "provider_probes": snapshot.provider_probes,
         **_tool_metadata(source="operational-market-provider-chain",
-                         observed_at=snapshot.analysis_time,
+                         observed_at=max((item.timestamp for item in quotes.values()), default=None),
                          analysis_cutoff=analysis_cutoff,
                          freshness="FRESH" if snapshot.status == "OPERATIONAL_READY" else "STALE_OR_UNAVAILABLE",
                          data_quality=snapshot.data_quality_mode,
                          provenance=snapshot.snapshot_hash,
-                         errors=list(snapshot.missing_symbols.values())),
+                         errors=errors),
     }
 
 
@@ -418,6 +407,8 @@ def account_snapshot(account: AccountSnapshot, analysis_cutoff: datetime) -> dic
     errors: list[str] = []
     if account.as_of > analysis_cutoff:
         errors.append("ACCOUNT_AFTER_CUTOFF")
+    elif (analysis_cutoff - account.as_of).total_seconds() > load_policies(policy_directory()).data.account_snapshot_max_age_seconds and account.freshness_state in {FreshnessState.VERIFIED, FreshnessState.RECENT}:
+        errors.append("ACCOUNT_SNAPSHOT_STALE")
     if account.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT}:
         errors.append("ACCOUNT_SNAPSHOT_STALE")
     if account.sync_state is not AccountSyncState.SYNCED:
@@ -436,47 +427,12 @@ def account_snapshot(account: AccountSnapshot, analysis_cutoff: datetime) -> dic
     }
 
 
-def _certified_company_snapshot(
-    symbol: str,
-    analysis_cutoff: datetime,
-    *,
-    provider: SECCompanyFactsNumericProvider | None = None,
-    metadata_provider: Any | None = None,
-):
-    """Return only exact-accession, acceptance-time certified SEC facts.
-
-    Company Facts filing dates are deliberately not treated as a known-at time.
-    The bounded candidate set is joined to SEC submissions metadata before the
-    Skill receives a numerical observation.
-    """
-    numeric = provider or SECCompanyFactsNumericProvider()
-    observations = numeric.get_observations(symbol.upper())
-    candidates = [
-        item for item in observations
-        if item.filed_at <= analysis_cutoff.date()
-        and canonical_definition(item.taxonomy, item.raw_concept or item.concept) is not None
-    ]
-    # Preserve a bounded multi-quarter history while avoiding metadata requests
-    # for every Company Facts row.  The latest twelve filings cover TTM and
-    # comparable quarterly/annual context; all remaining values stay UNKNOWN.
-    accessions = sorted(
-        {item.accession_number for item in candidates},
-        reverse=True,
-    )[:12]
-    bounded = tuple(item for item in candidates if item.accession_number in set(accessions))
-    certified = numeric.certify_observations(
-        bounded,
-        metadata_provider=metadata_provider or SECSubmissionMetadataProvider(),
-        decision_as_of=analysis_cutoff,
-    )
-    return numeric, build_snapshot(symbol.upper(), certified, analysis_cutoff)
-
 
 def _fundamental_trends(snapshot: Any) -> dict[str, Any]:
     """Machine-readable deterministic trend facts; no LLM interpretation."""
     trend_metrics = {
         "revenue_growth_trend": "REVENUE",
-        "margin_trend": "OPERATING_INCOME",
+        "operating_income_trend": "OPERATING_INCOME",
         "fcf_trend": "FREE_CASH_FLOW",
         "capex_trend": "CAPEX",
         "share_count_trend": "SHARES_OUTSTANDING",
@@ -489,7 +445,7 @@ def _fundamental_trends(snapshot: Any) -> dict[str, Any]:
         if item is None or item.yoy_change is None:
             result[name] = {"status": "UNKNOWN", "reason": "NO_COMPARABLE_CERTIFIED_PERIOD"}
             continue
-        direction = "IMPROVING" if item.yoy_change > 0 else "DETERIORATING" if item.yoy_change < 0 else "STABLE"
+        direction = "INCREASING" if item.yoy_change > 0 else "DECREASING" if item.yoy_change < 0 else "STABLE"
         result[name] = {
             "status": "AVAILABLE",
             "direction": direction,
@@ -504,7 +460,7 @@ def _fundamental_trends(snapshot: Any) -> dict[str, Any]:
 def company_facts(symbol: str, analysis_cutoff: datetime) -> dict[str, Any]:
     """Certified, point-in-time SEC fundamentals for Astra research only."""
     try:
-        numeric, snapshot = _certified_company_snapshot(symbol, analysis_cutoff)
+        numeric, snapshot = certified_company_snapshot(symbol, analysis_cutoff)
     except (OSError, ValueError, json.JSONDecodeError) as error:
         return {"status": "UNAVAILABLE", "facts": [], **_tool_metadata(
             source="sec-edgar-companyfacts-and-submissions", observed_at=None,
@@ -537,6 +493,9 @@ def company_facts(symbol: str, analysis_cutoff: datetime) -> dict[str, Any]:
                      "exchange": identity[2], "resolution_source": "SEC company_tickers.json",
                      "resolved_at": identity[3].isoformat() if identity[3] else None},
         "facts": [fact.model_dump(mode="json") for fact in snapshot.facts],
+        "comparable_facts": [fact.model_dump(mode="json") for fact in snapshot.comparable_facts],
+        "quarterly_history": [fact.model_dump(mode="json") for fact in snapshot.quarterly_history],
+        "component_facts": [fact.model_dump(mode="json") for fact in snapshot.component_facts],
         "financial_history": [item.model_dump(mode="json") for item in snapshot.comparable_series],
         "derived_metrics": [item.model_dump(mode="json") for item in snapshot.derived],
         "trends": _fundamental_trends(snapshot),
@@ -548,7 +507,7 @@ def company_facts(symbol: str, analysis_cutoff: datetime) -> dict[str, Any]:
             "excluded": list(snapshot.excluded), "missing_metrics": list(snapshot.missing_metrics),
         },
         **_tool_metadata(source="SEC EDGAR: Company Facts + submissions acceptance metadata",
-                         observed_at=latest, analysis_cutoff=analysis_cutoff,
+                         observed_at=latest, known_at=latest, analysis_cutoff=analysis_cutoff,
                          freshness="AS_OF_CUTOFF", data_quality="PASS" if not snapshot.quality_flags else "DEGRADED",
                          provenance=snapshot.content_hash,
                          warnings=list(snapshot.quality_flags), errors=[]),
@@ -557,7 +516,8 @@ def company_facts(symbol: str, analysis_cutoff: datetime) -> dict[str, Any]:
 @mcp.tool(title="Event evidence", annotations=READ_ONLY, structured_output=True)
 def event_evidence(events: list[QualitativeEventEvidence], analysis_cutoff: datetime) -> dict[str, Any]:
     """Return source-bound qualitative events only; no market-value authority."""
-    valid = [item for item in events if item.published_at <= analysis_cutoff]
+    valid = list({item.event_id: item for item in events if item.published_at <= analysis_cutoff}.values())[:100]
+    excluded = sum(item.published_at > analysis_cutoff for item in events)
     return {
         "status": "AVAILABLE" if valid else "UNAVAILABLE",
         "events": [item.model_dump(mode="json") for item in valid],
@@ -566,7 +526,7 @@ def event_evidence(events: list[QualitativeEventEvidence], analysis_cutoff: date
                          data_quality="PASS" if valid else "MISSING",
                          provenance="QualitativeEventEvidence source_reference + provenance",
                          errors=[] if valid else ["EVENT_EVIDENCE_MISSING"],
-                         warnings=["QUALITATIVE_EVIDENCE_NOT_EXECUTION_QUOTE_AUTHORITY"]),
+                         warnings=["QUALITATIVE_EVIDENCE_NOT_EXECUTION_QUOTE_AUTHORITY", "SOURCE_AND_CURRENT_RELEVANCE_NOT_INDEPENDENTLY_VERIFIED", *([f"EVENTS_AFTER_CUTOFF:{excluded}"] if excluded else [])]),
     }
 
 
@@ -591,7 +551,21 @@ def macro_context(observations: list[MacroObservation], analysis_cutoff: datetim
     }
 
 @mcp.tool(title="Research packet", annotations=READ_ONLY, structured_output=True)
-def research_packet(package: ResearchEvidencePackage) -> dict[str, Any]:
+def research_packet(package: ResearchEvidencePackage | None = None, symbol: str | None = None,
+                    analysis_cutoff: datetime | None = None) -> dict[str, Any]:
+    """Retrieve evidence by symbol, or inspect a supplied validated package."""
+    if package is None:
+        cutoff = analysis_cutoff or datetime.now(UTC)
+        if not symbol:
+            return {"status": "REJECTED", "errors": ["SYMBOL_OR_PACKAGE_REQUIRED"], "execution_authority": "NONE"}
+        facts = company_facts(symbol, cutoff)
+        market = market_snapshot([symbol], cutoff)
+        return {"status": "DATA_DEGRADED", "symbol": symbol.upper(),
+                "company_facts": facts, "market": market,
+                "unknowns": ["NEWS_NOT_RETRIEVED", "MACRO_NOT_RETRIEVED", "VALUATION_INPUTS_REQUIRE_VALIDATION"],
+                **_tool_metadata(source="meridian-deterministic-research-packet", observed_at=None,
+                                 analysis_cutoff=cutoff, freshness="SEE_COMPONENTS", data_quality="SEE_COMPONENTS",
+                                 provenance="component source hashes and fact IDs", errors=[*facts.get("errors", []), *market.get("errors", [])])}
     return {"status": package.status.value, "packet": package.research_view(),
             **_tool_metadata(source="meridian-research-evidence-package",
                              observed_at=package.created_at, analysis_cutoff=package.as_of,
@@ -620,16 +594,24 @@ def quant_metrics(
 
     try:
         parsed, parsed_spy, parsed_qqq = parse(bars), parse(spy_bars or []), parse(qqq_bars or [])
-    except (KeyError, ValueError, ArithmeticError):
+    except (KeyError, ValueError, ArithmeticError, TypeError):
         return {"status": "REJECTED", "metrics": {}, **_tool_metadata(
             source="caller-supplied-provenance-bearing-bars", observed_at=None,
             analysis_cutoff=analysis_cutoff, freshness="UNKNOWN", data_quality="REJECTED",
             provenance="none", errors=["MALFORMED_BAR_SERIES"])}
-    if not parsed or any(item.timestamp > analysis_cutoff for item in [*parsed, *parsed_spy, *parsed_qqq]):
+    if analysis_cutoff.tzinfo is None or not parsed or any(item.timestamp > analysis_cutoff for item in [*parsed, *parsed_spy, *parsed_qqq]):
         return {"status": "REJECTED", "metrics": {}, **_tool_metadata(
             source="caller-supplied-provenance-bearing-bars", observed_at=None,
             analysis_cutoff=analysis_cutoff, freshness="UNKNOWN", data_quality="REJECTED",
             provenance="none", errors=["BAR_AFTER_CUTOFF_OR_EMPTY"])}
+    for series in (parsed, parsed_spy, parsed_qqq):
+        series.sort(key=lambda item: item.timestamp)
+        if len({item.timestamp.date() for item in series}) != len(series) or any(
+            not all(value.is_finite() and value > 0 for value in (item.open, item.high, item.low, item.close))
+            or item.low > min(item.open, item.close) or item.high < max(item.open, item.close)
+            for item in series
+        ):
+            return {"status": "REJECTED", "metrics": {}, "errors": ["INVALID_OR_DUPLICATE_BAR"], "execution_authority": "NONE"}
     metrics = derive_market_features(tuple(parsed), as_of=analysis_cutoff,
                                      benchmark_bars=tuple(parsed_spy), qqq_bars=tuple(parsed_qqq))
     return {"status": "AVAILABLE", "symbol": symbol.upper(),
@@ -639,19 +621,14 @@ def quant_metrics(
                               "spy_observation_count": len(parsed_spy), "qqq_observation_count": len(parsed_qqq)},
             **_tool_metadata(source="meridian-derived-market-features-v2",
                              observed_at=parsed[-1].timestamp, analysis_cutoff=analysis_cutoff,
-                             freshness="AS_OF_CUTOFF", data_quality="PASS",
-                             provenance="deterministic calculation from supplied provenance-bearing bars")}
+                             freshness="HISTORICAL_UNVERIFIED", data_quality="UNVERIFIED_INPUT",
+                             warnings=["CALLER_SUPPLIED_BARS_NOT_SOURCE_VERIFIED"],
+                             provenance="deterministic calculation from caller-supplied bars; no source certification")}
 
 @mcp.tool(title="Portfolio context", annotations=READ_ONLY, structured_output=True)
 def portfolio_context(account: AccountSnapshot, analysis_cutoff: datetime) -> dict[str, Any]:
     total = Decimal(account.total_equity)
-    errors: list[str] = []
-    if account.as_of > analysis_cutoff:
-        errors.append("ACCOUNT_AFTER_CUTOFF")
-    if account.freshness_state not in {FreshnessState.VERIFIED, FreshnessState.RECENT}:
-        errors.append("ACCOUNT_SNAPSHOT_STALE")
-    if account.sync_state is not AccountSyncState.SYNCED:
-        errors.append("ACCOUNT_SNAPSHOT_NOT_SYNCED")
+    errors = account_snapshot(account, analysis_cutoff)["errors"]
     return {"status": "AVAILABLE" if not errors else "DEGRADED",
             "cash": str(account.cash), "total_equity": str(account.total_equity),
             "cash_weight": str(Decimal(account.cash) / total if total else Decimal("0")),
@@ -667,14 +644,15 @@ def portfolio_context(account: AccountSnapshot, analysis_cutoff: datetime) -> di
 
 @mcp.tool(title="Risk analysis", annotations=READ_ONLY, structured_output=True)
 def risk_analysis(account: AccountSnapshot, analysis_cutoff: datetime) -> dict[str, Any]:
+    errors = account_snapshot(account, analysis_cutoff)["errors"]
     total = Decimal(account.total_equity)
     gross = sum((Decimal(item.market_value) for item in account.holdings), Decimal("0"))
-    return {"status": "ACCOUNT_CONTEXT_ONLY", "gross_exposure": str(gross / total if total else Decimal("0")),
+    return {"status": "REJECTED" if errors else "ACCOUNT_CONTEXT_ONLY", "gross_exposure": None if errors else str(gross / total if total else Decimal("0")),
             "warning": "A proposed deterministic target portfolio is required for order-level risk approval.",
             **_tool_metadata(source="meridian-deterministic-risk-context", observed_at=account.as_of,
                              analysis_cutoff=analysis_cutoff, freshness=account.freshness_state.value,
                              data_quality="DEGRADED", provenance="AccountSnapshot only; no target supplied",
-                             warnings=["NO_TARGET_PORTFOLIO_NO_ORDER_RISK_APPROVAL"])}
+                             errors=errors, warnings=["NO_TARGET_PORTFOLIO_NO_ORDER_RISK_APPROVAL"])}
 
 
 @mcp.tool(title="Forward evidence", annotations=READ_ONLY, structured_output=True)

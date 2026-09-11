@@ -13,6 +13,7 @@ from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 from pathlib import Path
+from typing import Literal
 
 from pydantic import AwareDatetime, Field, model_validator
 
@@ -76,7 +77,7 @@ class AuditMetadata(StableModel):
     model: str = "gpt-6-astra"
     skill_version: str = "meridian-astra-v1"
     audit_reference: str | None = None
-    execution_authority: str = "NONE"
+    execution_authority: Literal["NONE"] = "NONE"
 
 
 class MeridianResearchResult(StableModel):
@@ -109,7 +110,17 @@ class MeridianResearchResult(StableModel):
 
     @model_validator(mode="after")
     def cited_evidence_is_known(self) -> MeridianResearchResult:
-        identifiers = {item.evidence_id for item in (*self.evidence, *self.contradicting_evidence)}
+        items = (*self.evidence, *self.contradicting_evidence)
+        identifiers = {item.evidence_id for item in items}
+        if len(identifiers) != len(items):
+            raise ValueError("RESEARCH_DUPLICATE_EVIDENCE_ID")
+        if any(item.known_at > self.analysis_cutoff or item.observed_at > self.analysis_cutoff for item in items):
+            raise ValueError("RESEARCH_RESULT_EVIDENCE_AFTER_CUTOFF")
+        for claims, kind in ((self.facts, ClaimKind.FACT), (self.inferences, ClaimKind.INFERENCE), (self.forecasts, ClaimKind.FORECAST)):
+            if any(claim.kind is not kind for claim in claims):
+                raise ValueError("RESEARCH_CLAIM_SECTION_MISMATCH")
+        if not items and (self.confidence or self.evidence_coverage):
+            raise ValueError("RESEARCH_CONFIDENCE_REQUIRES_EVIDENCE")
         for claim in (*self.facts, *self.inferences, *self.forecasts):
             if not set(claim.evidence_ids) <= identifiers:
                 raise ValueError("RESEARCH_CITATION_UNKNOWN")

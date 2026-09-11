@@ -22,7 +22,7 @@ from meridian.data.models import (
     ValidationStatus,
 )
 from meridian.data.providers.base import RetrievalProviderError
-from meridian.fundamentals import SECCompanyFactsNumericProvider
+from meridian.fundamentals import SECCompanyFactsNumericProvider, certified_company_snapshot
 from meridian.historical import (
     HistoricalAdjustmentStatus,
     HistoricalBarCertification,
@@ -237,26 +237,15 @@ class SecFundamentalRetrievalProvider:
         self, requirement: ResearchDataRequirement, *, as_of: datetime
     ) -> tuple[EvidenceRecord, ...]:
         try:
-            observations = self.provider.get_observations(requirement.symbol)
+            _, snapshot = certified_company_snapshot(requirement.symbol, as_of, provider=self.provider)
         except (OSError, ValueError) as error:
             raise RetrievalProviderError("SEC_COMPANYFACTS_UNAVAILABLE", retryable=True) from error
-        eligible = [item for item in observations if item.filed_at <= as_of.date()]
-        if not eligible:
-            raise RetrievalProviderError("FUNDAMENTAL_DATA_MISSING")
-        selected = sorted(eligible, key=lambda item: (item.filed_at, item.period_end))[-40:]
-        value = [
-            {
-                "concept": item.concept,
-                "value": str(item.value),
-                "unit": item.unit,
-                "period_end": item.period_end.isoformat(),
-                "filed_at": item.filed_at.isoformat(),
-                "accession": item.accession_number,
-            }
-            for item in selected
-        ]
+        selected = snapshot.facts
+        if not selected or snapshot.latest_accepted_at is None:
+            raise RetrievalProviderError("CERTIFIED_FUNDAMENTAL_DATA_MISSING")
+        value = [item.model_dump(mode="json") for item in selected]
         source_uri = selected[-1].source_uri
-        timestamp = datetime.combine(selected[-1].filed_at, datetime.min.time(), tzinfo=UTC)
+        timestamp = snapshot.latest_accepted_at
         return (
             EvidenceRecord(
                 requirement_key=requirement.key,

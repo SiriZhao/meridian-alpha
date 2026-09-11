@@ -37,7 +37,7 @@ def _returns(bars: tuple[Bar, ...], window: int | None = None) -> tuple[Decimal,
 
 def _realized_volatility(bars: tuple[Bar, ...], window: int) -> Decimal | None:
     values = _returns(bars, window)
-    if len(values) < 2:
+    if len(values) < window:
         return None
     mean = sum(values, Decimal("0")) / Decimal(len(values))
     variance = sum(((value - mean) ** 2 for value in values), Decimal("0")) / Decimal(
@@ -79,7 +79,7 @@ def _paired_returns(asset: tuple[Bar, ...], benchmark: tuple[Bar, ...], window: 
 
 def _relative_performance(asset: tuple[Bar, ...], benchmark: tuple[Bar, ...], sessions: int) -> Decimal | None:
     asset_returns, benchmark_returns = _paired_returns(asset, benchmark, sessions)
-    if not asset_returns or not benchmark_returns:
+    if len(asset_returns) != sessions or len(benchmark_returns) != sessions:
         return None
     asset_total = Decimal("1")
     benchmark_total = Decimal("1")
@@ -119,22 +119,24 @@ def derive_market_features(
 
     close = eligible[-1].close
     window_52w = eligible[-252:]
-    maximum = max(bar.close for bar in window_52w)
-    minimum = min(bar.close for bar in window_52w)
-    ytd = tuple(bar for bar in eligible if bar.timestamp.year == as_of.year)
-    ytd_return = close / ytd[0].close - Decimal("1") if len(ytd) >= 2 and ytd[0].close > 0 else None
+    maximum = max(bar.high for bar in window_52w)
+    minimum = min(bar.low for bar in window_52w)
+    prior_year = tuple(bar for bar in eligible if bar.timestamp.year < as_of.year)
+    ytd_return = close / prior_year[-1].close - Decimal("1") if prior_year and eligible[-1].timestamp.year == as_of.year and prior_year[-1].close > 0 else None
     prior_volume = eligible[-21:-1]
-    adv20 = sum((Decimal(bar.volume) for bar in prior_volume), Decimal("0")) / Decimal(len(prior_volume)) if prior_volume else None
+    adv20 = sum((Decimal(bar.volume) for bar in prior_volume), Decimal("0")) / Decimal(20) if len(prior_volume) == 20 else None
     relative_volume = Decimal(eligible[-1].volume) / adv20 if adv20 and adv20 > 0 else None
     spy = tuple(sorted((bar for bar in benchmark_bars if bar.timestamp <= as_of), key=lambda x: x.timestamp))
     qqq = tuple(sorted((bar for bar in qqq_bars if bar.timestamp <= as_of), key=lambda x: x.timestamp))
     asset_returns, spy_returns = _paired_returns(eligible, spy, 60)
+    if len(asset_returns) != 60:
+        asset_returns, spy_returns = (), ()
     covariance = _sample_covariance(asset_returns, spy_returns)
     spy_variance = _sample_covariance(spy_returns, spy_returns)
     asset_variance = _sample_covariance(asset_returns, asset_returns)
     beta = (covariance / spy_variance if covariance is not None and spy_variance is not None and spy_variance != 0 else None)
     correlation = (covariance / (asset_variance * spy_variance).sqrt() if covariance is not None and asset_variance and spy_variance and asset_variance > 0 and spy_variance > 0 else None)
-    gap = close / eligible[-2].close - Decimal("1") if len(eligible) >= 2 and eligible[-2].close > 0 else None
+    gap = eligible[-1].open / eligible[-2].close - Decimal("1") if len(eligible) >= 2 and eligible[-2].close > 0 else None
 
     return {
         "return_1d": _return(eligible, 1), "return_5d": _return(eligible, 5),
@@ -146,10 +148,10 @@ def derive_market_features(
         "realized_volatility_20d": _realized_volatility(eligible, 20),
         "realized_volatility_60d": _realized_volatility(eligible, 60),
         "average_volume_20d": adv20, "relative_volume": relative_volume,
-        "drawdown": close / maximum - Decimal("1") if maximum > 0 else None,
+        "drawdown": close / max(bar.close for bar in window_52w) - Decimal("1"),
         "max_drawdown": _max_drawdown(window_52w),
-        "distance_52w_high": close / maximum - Decimal("1") if maximum > 0 else None,
-        "distance_52w_low": close / minimum - Decimal("1") if minimum > 0 else None,
+        "distance_52w_high": close / maximum - Decimal("1") if len(window_52w) == 252 and maximum > 0 else None,
+        "distance_52w_low": close / minimum - Decimal("1") if len(window_52w) == 252 and minimum > 0 else None,
         "gap": gap, "beta_60d": beta, "rolling_correlation_60d": correlation,
         "relative_performance_spy_20d": _relative_performance(eligible, spy, 20),
         "relative_performance_spy_60d": _relative_performance(eligible, spy, 60),
