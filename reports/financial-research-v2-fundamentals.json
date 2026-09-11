@@ -1,0 +1,34 @@
+{
+  "phase": "MERIDIAN_FINANCIAL_RESEARCH_V2_PHASE_2",
+  "status": "BLOCKED_WITH_EVIDENCE",
+  "implementation": {
+    "security_resolution": "SEC company_tickers.json exact-match resolver; cached; ambiguous/missing symbols rejected",
+    "fundamentals": "SEC Company Facts joined to exact SEC submissions acceptance metadata before Skill exposure",
+    "metrics": ["revenue", "operating_income", "net_income", "diluted_eps", "operating_cash_flow", "capex", "cash", "debt", "shares_outstanding"],
+    "valuation_policy": "missing certified price, forward estimate, or EBITDA remains NOT_AVAILABLE",
+    "execution_authority": "NONE"
+  },
+  "local_verification": {
+    "focused_pytest": {"status": "PASS", "count": 10},
+    "ruff": "PASS",
+    "pyright": "PASS: 0 errors, 0 warnings",
+    "full_pytest_collection": {"status": "PASS", "count": 445},
+    "full_pytest_execution": {"status": "UNVERIFIED", "reason": "host execution helper ended at sandbox ACL boundary without result"}
+  },
+  "astra_smoke": {
+    "attempted": true,
+    "model": "gpt-6-astra",
+    "reasoning_effort": "high",
+    "codex_version": "0.154.0",
+    "requested_symbols": ["GOOGL", "NVDA", "META"],
+    "analysis_cutoff": "2026-09-11T00:00:00+00:00",
+    "result": "BLOCKED_WITH_EVIDENCE",
+    "errors": [
+      "helper_unknown_error: apply deny-read ACLs while reading Skill",
+      "unknown MCP server 'meridian_alpha' during resource discovery",
+      "company_facts calls started without returned results"
+    ],
+    "fabricated_data_used": false,
+    "execution_authority": "NONE"
+  }
+}
