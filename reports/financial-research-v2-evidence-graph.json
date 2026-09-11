@@ -1,0 +1,34 @@
+{
+  "phase": "MERIDIAN_FINANCIAL_RESEARCH_V2_PHASE_3",
+  "status": "PARTIAL",
+  "components": {
+    "qualitative_event_evidence": "implemented; source/time/provenance/cutoff validated",
+    "macro_context": "implemented; cutoff-safe compact selection",
+    "evidence_graph": "implemented; dangling references rejected",
+    "research_result": "compatible extension with inferences, forecasts, evidence_graph",
+    "mcp_tools": ["event_evidence", "macro_context"],
+    "execution_authority": "NONE"
+  },
+  "evaluations": {
+    "coverage": ["unsupported_claim", "citation_validity", "contradiction_discovery", "unknown_reporting", "temporal_safety", "research_completeness", "tool_selection", "recommendation_consistency"],
+    "fixture_count": 14
+  },
+  "verification": {
+    "focused_pytest": {"status": "PASS", "count": 18},
+    "ruff": "PASS",
+    "pyright": "PASS: 0 errors, 0 warnings",
+    "full_collection": {"status": "PASS", "count": 449},
+    "full_pytest": {
+      "status": "FAIL",
+      "first_failure": "tests/test_acceptance_failures.py::test_canonical_cli_research_faults[ok-AVAILABLE]",
+      "detail": "expected runtime_status PASS; received DEGRADED",
+      "passed_before_failure": 8
+    }
+  },
+  "safety": {
+    "broker_surface_added": false,
+    "fabricated_numerical_data_allowed": false,
+    "future_information_allowed": false,
+    "qualitative_evidence_is_execution_quote_authority": false
+  }
+}
