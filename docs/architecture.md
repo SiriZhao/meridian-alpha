@@ -2,6 +2,10 @@
 
 ## Current Astra Skill foundation (2026-09-11)
 
+Acceptance is **BLOCKED_WITH_EVIDENCE**, not production-ready; see
+`reports/meridian-astra-final-review.md`. The current implementation is described
+here; subsequent Gate sections are historical architecture provenance.
+
 The ChatGPT/Codex-facing intelligence layer is the active GPT-6 Astra session.
 The installed `meridian-alpha` Skill directs Astra to collect evidence through
 Meridian's read-only MCP tools, perform synthesis itself, and return an
@@ -17,6 +21,7 @@ runtime_status          market_snapshot       account_snapshot
 company_facts           research_packet       quant_metrics
 portfolio_context       risk_analysis         forward_evidence
 daily_closure           audit_lookup
+event_evidence          macro_context
 ```
 
 Every tool is structured-output and read-only. Responses carry source,
@@ -24,6 +29,26 @@ observed/known/cutoff times where applicable, freshness, data quality,
 provenance, errors, warnings, and `execution_authority=NONE`. The canonical
 application and historical research adapters remain separate compatibility
 surfaces. No MCP tool exposes broker authentication or order submission.
+
+`run_daily_analysis` and `run_host_daily_analysis` are no longer registered
+tools: their legacy Python functions remain for compatibility. The canonical
+daily and paper CLI can invoke their separate Codex pipeline, whereas the
+Astra Skill uses deterministic tools directly. See ADR 0020.
+
+`research_packet(symbol, analysis_cutoff)` composes market and certified SEC
+data without an LLM. News and macro tools validate caller-supplied evidence;
+they are not live news feeds. `quant_metrics` calculates from caller-supplied
+bars and labels their provenance unverified. `company_facts` exposes current,
+comparable, quarterly and debt-component facts so derived input IDs resolve.
+QoQ and TTM require compatible consecutive reported quarters; missing quarters
+and unavailable valuation inputs remain unknown.
+
+`retrieved_at` is tool receipt time; missing source `known_at` remains null.
+Public history remains unverified for historical information availability and
+corporate-action adjustments. Live collection binds its receipt cutoff after
+the provider returns; replay retains the requested cutoff. MCP filters quote
+timestamps against the requested cutoff and reports collection completion
+separately. Research data never certifies execution pricing.
 
 Mutable production state is rooted exclusively in `RuntimePaths`: database,
 cache, reports, logs, runs, audit, data, and runtime configuration. Repository
@@ -141,7 +166,7 @@ sealed `CertifiedEvidenceView` consumed by DeepSeek. Only a
 `CertifiedAgentSignal` may reach Alpha Fusion; LLM output never owns sizing,
 quantity, cash, risk, or price.
 
-## Intended future research pipeline
+## Historical intended research pipeline
 
 ```text
 Account

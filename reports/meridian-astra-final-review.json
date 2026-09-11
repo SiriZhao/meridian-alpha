@@ -1,0 +1,434 @@
+{
+  "schema_version": "meridian-astra-final-review.v1",
+  "generated_at": "2026-09-11T13:29:33.725264+00:00",
+  "final_status": "BLOCKED_WITH_EVIDENCE",
+  "production_ready": false,
+  "starting_branch": "astra/canonical-production-workflow",
+  "starting_commit": "3f6bdac",
+  "ending_branch": "astra/canonical-production-workflow",
+  "ending_commit": "fd358330003d2ff6413c3b63b0aaf3263554f15c",
+  "ending_commit_scope": "Last accepted implementation commit; the subsequent report-only commit is identified in the final handoff and git log for this report.",
+  "checkpoint_commit": "ef90bd0",
+  "implementation_commits": [
+    "3fbfe0f",
+    "fd358330003d2ff6413c3b63b0aaf3263554f15c"
+  ],
+  "Terra_evidence_commits_reviewed": [
+    "3f6bdac",
+    "066e09f",
+    "72b6d46",
+    "0b55cde",
+    "db36ff2",
+    "7a7eff5"
+  ],
+  "dirty_worktree_handling": "Checkpointed 82 inherited implementation/source/doc/test files before repairs. The unrelated modified reports/gate6g-quote-preflight.json and pre-existing .acceptance-dist* directories remain untouched and uncommitted. No push or release tag.",
+  "files_changed_after_checkpoint": [
+    "docs/adr/0020-astra-read-only-acceptance.md",
+    "scripts/final_clean_cli_acceptance.py",
+    "scripts/final_mcp_acceptance.py",
+    "skills/meridian-alpha/SKILL.md",
+    "src/meridian/analytics/derived_market_features.py",
+    "src/meridian/astra_research.py",
+    "src/meridian/data/models.py",
+    "src/meridian/data/providers/structured.py",
+    "src/meridian/data/retrieval_orchestrator.py",
+    "src/meridian/evidence_graph.py",
+    "src/meridian/fundamentals.py",
+    "src/meridian/macro_context.py",
+    "src/meridian/mcp_server.py",
+    "src/meridian/operational_market_snapshot.py",
+    "src/meridian/sec_filing_metadata.py",
+    "tests/test_final_acceptance_regressions.py"
+  ],
+  "defects_found": 24,
+  "defects_fixed": 24,
+  "defects": [
+    {
+      "id": "D01",
+      "defect": "Result cutoff bypass",
+      "repair": "Validate every evidence timestamp against the result cutoff, not only the evidence-local cutoff.",
+      "file": "src/meridian/astra_research.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D02",
+      "defect": "Result identity, type and authority spoofing",
+      "repair": "Reject duplicate evidence IDs, claim-section mismatch and unsupported confidence; constrain authority to NONE.",
+      "file": "src/meridian/astra_research.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D03",
+      "defect": "Decorative graph validation",
+      "repair": "Reject cycles, duplicate edges, mistyped support edges, unsupported confident claims and unacknowledged contradictions.",
+      "file": "src/meridian/evidence_graph.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D04",
+      "defect": "Incorrect YTD and opening gap",
+      "repair": "Use the prior-year close for YTD and current open versus prior close for gap.",
+      "file": "src/meridian/analytics/derived_market_features.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D05",
+      "defect": "Partial histories mislabeled as full windows",
+      "repair": "Require complete volatility/volume/relative-performance/beta windows; use high/low extrema for 252-session distances.",
+      "file": "src/meridian/analytics/derived_market_features.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D06",
+      "defect": "SEC filing label/context confusion",
+      "repair": "Classify by duration rather than filing FY label and resolve the dei shares-outstanding concept.",
+      "file": "src/meridian/fundamentals.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D07",
+      "defect": "Incorrect YoY/current fact selection",
+      "repair": "Bound annual comparables to 330–400 days and make period/availability outrank concept precedence.",
+      "file": "src/meridian/fundamentals.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D08",
+      "defect": "Debt double counting and lost components",
+      "repair": "Deduplicate a coherent debt pair from one accession; reject incomplete/conflicting pairs and retain component IDs/records.",
+      "file": "src/meridian/fundamentals.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D09",
+      "defect": "Missing quarterly and TTM context",
+      "repair": "Expose bounded quarterly history and derive QoQ/TTM only for compatible consecutive reported quarters.",
+      "file": "src/meridian/fundamentals.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D10",
+      "defect": "Packet reference and cutoff gaps",
+      "repair": "Reject packet-level future evidence, duplicate IDs and unresolved conflict IDs.",
+      "file": "src/meridian/data/models.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D11",
+      "defect": "Fundamentals erased by OHLCV compaction",
+      "repair": "Compact only historical price/volume/benchmark arrays and preserve raw source references.",
+      "file": "src/meridian/data/models.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D12",
+      "defect": "SEC retrieval bypassed acceptance certification",
+      "repair": "Route the numerical retrieval adapter through the same certified snapshot service as company_facts.",
+      "file": "src/meridian/data/providers/structured.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D13",
+      "defect": "Tool receipt time presented as known-at",
+      "repair": "Report receipt separately; leave unavailable known-at null and provide certified SEC acceptance time where known.",
+      "file": "src/meridian/mcp_server.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D14",
+      "defect": "Unvalidated bars claimed source provenance",
+      "repair": "Reject malformed/nonfinite/duplicate/impossible bars, sort before reporting and mark supplied inputs unverified.",
+      "file": "src/meridian/mcp_server.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D15",
+      "defect": "Account freshness/risk wrapper gaps",
+      "repair": "Check elapsed account age against configured policy and reject stale/future risk inputs.",
+      "file": "src/meridian/mcp_server.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D16",
+      "defect": "Event duplicates and macro temporal conflicts",
+      "repair": "Deduplicate bounded events, disclose exclusions and reject future macro release/period or equal-time numerical conflict.",
+      "file": "src/meridian/macro_context.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D17",
+      "defect": "Nested writing daily path exposed as read-only",
+      "repair": "Remove two legacy daily functions from MCP registration while preserving Python compatibility and explicit CLI operation.",
+      "file": "docs/adr/0020-astra-read-only-acceptance.md",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D18",
+      "defect": "Research packet could not retrieve by subject",
+      "repair": "Extend the existing tool to compose a bounded deterministic symbol/cutoff packet.",
+      "file": "src/meridian/mcp_server.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D19",
+      "defect": "Provider and quality fail-closed gaps",
+      "repair": "Preserve malformed-provider errors, reject post-cutoff results and evaluate expiry against the analysis time.",
+      "file": "src/meridian/data/retrieval_orchestrator.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D20",
+      "defect": "Benchmark identity, units and lineage errors",
+      "repair": "Do not substitute QQQ for SPY; pass QQQ separately, retain benchmark IDs and label price/volume/oscillator units correctly.",
+      "file": "src/meridian/data/retrieval_orchestrator.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D21",
+      "defect": "Live historical receipt clock defect",
+      "repair": "Bind live collection time after history receipt; replay retains its immutable cutoff.",
+      "file": "src/meridian/operational_market_snapshot.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D22",
+      "defect": "Intraday return used two-session-old close",
+      "repair": "Use latest completed close for a current-session quote; keep opening gap unknown without that session open.",
+      "file": "src/meridian/operational_market_snapshot.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D23",
+      "defect": "SEC timezone inference and hidden HTTP failure",
+      "repair": "Reject timezone-less acceptance data before conversion and preserve HTTP status in identity failure diagnostics.",
+      "file": "src/meridian/sec_filing_metadata.py",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D24",
+      "defect": "Installed Skill required checkout-relative launcher",
+      "repair": "Document installed CLI operation and tool provenance/packet behavior; synchronize the canonical Skill.",
+      "file": "skills/meridian-alpha/SKILL.md",
+      "status": "REPAIRED"
+    }
+  ],
+  "architecture_findings": {
+    "ACTIVE": "Astra -> installed Skill -> read-only MCP -> deterministic Python/data services",
+    "LEGACY": "Separate canonical daily/paper Codex pipeline and optional isolated provider adapters",
+    "HISTORICAL": "Earlier Gate/DeepSeek/TradingAgents reports retained as provenance",
+    "TEST_ONLY": "Synthetic fixtures, replay providers and clean CLI daily fixture; not live research evidence",
+    "no_broker_surface": true,
+    "no_second_LLM_in_primary_Astra_tools": true,
+    "execution_authority": "NONE"
+  },
+  "documentation_drift": [
+    "Prior install report did not prove fresh-host research and used high reasoning; this run used medium and remains blocked.",
+    "Previous 29-tool report differs from actual initial 28 tools and final 26 tools.",
+    "Prior research claims overstated YoY/debt/known-at correctness and input verification; repaired contracts and limitations are now documented."
+  ],
+  "validation": {
+    "baseline_pytest": {
+      "passed": 449,
+      "seconds": 65.25
+    },
+    "final_pytest": {
+      "passed": 471,
+      "failed": 0,
+      "seconds": 63.72
+    },
+    "new_regression_tests": 22,
+    "regression_file": "tests/test_final_acceptance_regressions.py",
+    "ruff": "PASS",
+    "pyright": "PASS: 0 errors, 0 warnings",
+    "source_dependency_integrity": "PASS: pip check",
+    "clean_dependency_integrity": "PASS: uv pip check, 41 compatible installed packages",
+    "compile_import_smoke": "PASS",
+    "doctor": "PASS",
+    "database_schema": 3,
+    "commands": [
+      ".venv/Scripts/uv.exe run pytest -q",
+      ".venv/Scripts/uv.exe run ruff check .",
+      ".venv/Scripts/uv.exe run pyright",
+      ".venv/Scripts/python.exe -m pip check",
+      ".venv/Scripts/python.exe -m compileall -q src",
+      ".venv/Scripts/python.exe -m meridian doctor --json"
+    ]
+  },
+  "skill": {
+    "source": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\skills\\meridian-alpha",
+    "installed": "C:\\Users\\YOGA Pro16\\.codex\\skills\\meridian-alpha",
+    "source_hash": "ddc1dc3c2ac6d430a4244f0702836b9bde3f5286cbf0f7c57cf971d8994af9aa",
+    "installed_hash": "ddc1dc3c2ac6d430a4244f0702836b9bde3f5286cbf0f7c57cf971d8994af9aa",
+    "hash_match": true,
+    "file_count": 10
+  },
+  "mcp": {
+    "status": "TRANSPORT_AND_CONTRACT_PASS",
+    "registered_tools": [
+      "validate_account_snapshot",
+      "validate_host_account_snapshot",
+      "get_provider_health",
+      "get_run",
+      "get_daily_report",
+      "inspect_evidence",
+      "inspect_research",
+      "inspect_target_portfolio",
+      "inspect_portfolio_target",
+      "inspect_manual_draft",
+      "provider_health",
+      "get_order_ticket",
+      "explain_decision",
+      "runtime_status",
+      "market_snapshot",
+      "account_snapshot",
+      "company_facts",
+      "event_evidence",
+      "macro_context",
+      "research_packet",
+      "quant_metrics",
+      "portfolio_context",
+      "risk_analysis",
+      "forward_evidence",
+      "daily_closure",
+      "audit_lookup"
+    ],
+    "tool_count": 26,
+    "configured_command": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.venv\\Scripts\\python.exe",
+    "configured_args": [
+      "-m",
+      "meridian.mcp_server"
+    ],
+    "protocol_version": "2025-11-25",
+    "all_read_only": true,
+    "all_structured_schemas": true,
+    "calls": {
+      "runtime_status": {
+        "status": "PASS",
+        "errors": [],
+        "execution_authority": "NONE"
+      },
+      "market_snapshot": {
+        "status": "BLOCKED_MARKET_DATA",
+        "errors": [
+          "MARKET_DATA_STALE"
+        ],
+        "execution_authority": "NONE"
+      },
+      "company_facts": {
+        "status": "UNAVAILABLE",
+        "errors": [
+          "SEC_CIK_UNAVAILABLE:HTTP_403"
+        ],
+        "execution_authority": "NONE"
+      },
+      "quant_metrics": {
+        "status": "REJECTED",
+        "errors": [
+          "BAR_AFTER_CUTOFF_OR_EMPTY"
+        ],
+        "execution_authority": "NONE"
+      },
+      "research_packet": {
+        "status": "DATA_DEGRADED",
+        "errors": [
+          "SEC_CIK_UNAVAILABLE:HTTP_403",
+          "MARKET_DATA_STALE"
+        ],
+        "execution_authority": "NONE"
+      }
+    },
+    "quant_positive_test": "Real stdio synthetic 100 -> 110 yields return_1d 0.1; labeled UNVERIFIED_INPUT, not live research proof",
+    "evidence": {
+      "path": "E:\\Meridian Final Acceptance 20260911\\configured-mcp-final.json",
+      "sha256": "943ec67ec097693e87d3e45a4f955ccb98929ba4a1368d46c9bf177d68e21e00"
+    },
+    "clean_evidence": {
+      "path": "E:\\Meridian Final Acceptance 20260911\\clean-mcp-final.json",
+      "sha256": "5fefcb7020147c33c9c58d5e550b5af96010959244f4da10bf324d6b788cafc3"
+    }
+  },
+  "fresh_Astra": {
+    "status": "BLOCKED_WITH_EVIDENCE",
+    "error_code": "CODEX_RATE_LIMITED",
+    "attempts": 1,
+    "model_requested": "gpt-6-astra",
+    "reasoning_effort_requested": "medium",
+    "model_execution_verified": false,
+    "provider_requested": "openai",
+    "fresh_session_id": "01a090a1-cb92-7702-963e-6520e896b9f0",
+    "working_directory": "E:\\Meridian Final Acceptance 20260911\\fresh Astra host",
+    "repository_preloaded": false,
+    "prompt": "Use Meridian to research GOOGL as a long-term investment. Separate facts, inference, forecast and unknowns. Show supporting evidence, contradicting evidence, major risks, invalidation conditions and remaining unknowns.",
+    "exit_code": 1,
+    "actual_error": "You've hit your usage limit.",
+    "skill_discovered": false,
+    "skill_read_verified": false,
+    "mcp_tools_called": [],
+    "research_completed": false,
+    "evidence_references": [],
+    "execution_authority": "NONE",
+    "execution_authority_scope": "Meridian tools and acceptance boundary; no model result was produced",
+    "followups": "NOT_RUN: quota stop rule",
+    "events": {
+      "path": "E:\\Meridian Final Acceptance 20260911\\astra-events.jsonl",
+      "sha256": "fbadf97d44f7fad918a303fb4a620525f34627e0687478e7d48d77cec455783f"
+    }
+  },
+  "research_quality_acceptance": {
+    "status": "NOT_EVALUATED",
+    "company_research": "BLOCKED",
+    "news_or_earnings": "NOT_RUN",
+    "portfolio_review": "NOT_RUN_IN_MODEL; sanitized deterministic tests passed",
+    "insufficient_data": "LOCAL_FAIL_CLOSED_PASS; model followup not run",
+    "material_unsupported_claims": "NO_MODEL_OUTPUT_TO_EVALUATE; not a quality PASS"
+  },
+  "adversarial_results": {
+    "missing_market_data": "PASS: empty-bar rejection and missing-provider regressions",
+    "stale_market_data": "PASS: real GOOGL quote remains STALE / MARKET_DATA_STALE",
+    "future_market_data": "PASS: test_operational_market_snapshot and cutoff regressions",
+    "provider_timeout": "PASS: provider adapter and final regression tests",
+    "provider_malformed_response": "PASS: final ValueError/TypeError regressions preserve failures",
+    "provider_disagreement": "PASS: test_source_conflict and operational quote conflict tests",
+    "missing_historical_data": "PASS: incomplete-window metrics remain null and empty input is rejected",
+    "missing_fundamental_field": "PASS: existing numeric tests and certified empty snapshot regression",
+    "future_SEC_filing": "PASS: test_sec_filing_metadata and test_fundamentals",
+    "duplicated_fundamental_facts": "PASS: debt duplicate regression; component lineage retained",
+    "conflicting_numerical_sources": "PASS: test_source_conflict",
+    "unavailable_news_provider": "PASS: missing evidence remains explicit; no autonomous live feed is claimed",
+    "unavailable_macro_provider": "PASS: empty macro tool returns MACRO_CONTEXT_MISSING",
+    "malformed_evidence": "PASS: schema and graph regressions",
+    "unknown_evidence_ID": "PASS: test_astra_foundation and test_evidence_graph",
+    "contradictory_evidence": "PASS at contract level; model contradiction quality NOT_EVALUATED",
+    "insufficient_evidence": "PASS at schema/provider level; real model synthesis NOT_RUN",
+    "stale_account_snapshot": "PASS: age and freshness regressions",
+    "future_account_snapshot": "PASS: account and risk regressions",
+    "MCP_unavailable": "NOT_INJECTED in real Astra host; stdio availability/reconnection actually passed",
+    "Codex_unavailable": "PASS: test_executable_missing_is_explicit_and_not_retried",
+    "Codex_quota_limited": "PASS: real fresh session failed explicitly; no retry or substitute model"
+  },
+  "restart": {
+    "CLI": "PASS",
+    "MCP_clean_wheel": "PASS",
+    "MCP_configured_host": "PASS",
+    "database": "PASS: integrity ok, schema 3 remains current",
+    "Skill_disk_hash": "PASS",
+    "fresh_Astra_rediscovery": "BLOCKED: no additional model run after quota error"
+  },
+  "limitations": [
+    "Fresh Astra discovery, tool selection, full company research, citation resolution and substantive research quality remain unverified because the only session was quota-limited.",
+    "SEC ticker retrieval returned HTTP 403; certified live GOOGL fundamentals could not be evaluated. No alternative values or identity were invented.",
+    "Pre-market GOOGL last-session public quote remained stale. Stooq returned HTTP 404. Neither source is execution-grade.",
+    "News and macro MCP tools accept source-bound input; this is not a verified comprehensive live news/macro feed. The symbol packet explicitly leaves those unknown.",
+    "Quarterly/TTM coverage requires reported compatible consecutive quarters. Missing quarter extraction, forward estimates and valid valuation inputs are not fabricated.",
+    "Public historical corporate-action adjustments and information-event PIT certification remain unverified. 52-week distances use a 252-session proxy; RSI/ATR retain the existing rolling-average formulas.",
+    "Evidence contracts check structure/identity/timing, not the semantic truth of arbitrary source prose. Model-level unsupported-claim and contradiction acceptance is NOT_EVALUATED.",
+    "No literal OS reboot or second Astra session was run; CLI/MCP process restart and DB/Skill disk persistence were verified. Fresh-model rediscovery after restart is blocked by the quota rule.",
+    "Current Codex MCP registration still points to the project Python environment. That exact configuration and a separately installed wheel server were both tested; no configuration or credentials were migrated."
+  ],
+  "external_blockers": [
+    "CODEX_RATE_LIMITED",
+    "SEC_HTTP_403",
+    "STALE_PUBLIC_MARKET_DATA / STOOQ_HTTP_404"
+  ],
+  "next_action": "After quota is available and SEC access is restored, run one fresh medium-effort Astra company research acceptance, bounded same-session followups and minimal rediscovery. Do not label production-ready before reviewing real evidence and citations."
+}

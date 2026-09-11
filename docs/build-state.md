@@ -1,5 +1,10 @@
 # Build state — Gate 2 (DeepSeek provider)
 
+Current acceptance: see `reports/meridian-astra-final-review.md` and
+`reports/meridian-clean-install-acceptance.md`. On 2026-09-11, 471 tests and
+clean installation passed; fresh Astra research remained quota-blocked.
+The remainder of this file records historical gates.
+
 > Superseded for the active Skill runtime on 2026-09-11 by the GPT-6
 > Astra-native foundation. This document remains historical build provenance;
 > see `reports/meridian-astra-foundation.md` for current runtime status.

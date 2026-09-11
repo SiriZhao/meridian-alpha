@@ -2,6 +2,26 @@
 
 Follow the canonical Windows command in [README](../README.md).
 
+## Astra Skill research and acceptance
+
+Use the installed `meridian-alpha` Skill for evidence-grounded research.
+The Skill uses read-only MCP tools and Astra performs synthesis itself.
+`research_packet` accepts a symbol and cutoff; optional news/macro evidence
+must be supplied with sources. Missing inputs stay unknown. The legacy
+daily-analysis tools are no longer registered with MCP; paper remains a
+separate explicit CLI workflow.
+
+As of the final 2026-09-11 review, local/runtime and clean-install checks pass,
+but real fresh Astra acceptance is `BLOCKED_WITH_EVIDENCE / CODEX_RATE_LIMITED`.
+Do not retry a quota failure in a loop. SEC HTTP 403 is a separate provider
+access blocker, not missing corporate fundamentals. Last-session quotes may
+be useful research context while still marked stale and execution-blocked.
+
+Runtime PASS establishes installation health. Research AVAILABLE requires
+usable evidence and completed synthesis. Neither grants manual-entry readiness.
+Schwab-Paper fills are simulated; real brokerage execution is unsupported by
+the Astra Skill and `execution_authority` remains `NONE`.
+
 ## Daily Schwab-Paper operation
 
 For normal paper operation, run exactly one command:

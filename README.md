@@ -3,6 +3,13 @@
 US-equity portfolio decision support. All current outputs are research-only;
 there is no broker execution and a DRAFT is not authorization to enter an order.
 
+Final maintainer acceptance on 2026-09-11: **BLOCKED_WITH_EVIDENCE**.
+Source validation and a real clean wheel installation passed. The one fresh
+GPT-6 Astra acceptance session hit its usage limit before reading the Skill or
+calling tools; SEC retrieval also returned HTTP 403. This is not a production
+research acceptance. See [final review](reports/meridian-astra-final-review.md)
+and [clean installation](reports/meridian-clean-install-acceptance.md).
+
 ## Install (Windows PowerShell)
 
 Use Python 3.12 and uv. From this checkout:
@@ -13,6 +20,10 @@ uv sync --group dev --inexact
 
 `--inexact` preserves already installed optional research packages. If uv is not
 on PATH but the existing environment is present, use `.\.venv\Scripts\uv.exe`.
+
+For an installed wheel, use `meridian doctor --json` and `meridian init --json`
+from its Python 3.12 environment. The checkout and its PowerShell launcher are
+not required for wheel operation. Mutable state uses `RuntimePaths`.
 
 ## Configure
 
