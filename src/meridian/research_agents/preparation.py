@@ -34,7 +34,8 @@ from meridian.data.retrieval_orchestrator import (
     EvidenceCache,
     RetrievalOrchestrator,
 )
-from meridian.historical import YahooChartHistoricalProvider
+from meridian.historical import NasdaqHistoricalProvider, YahooChartHistoricalProvider
+from meridian.operational_market_snapshot import ResilientHistoricalProvider
 from meridian.research_agents.data_gap_planner import DataGapPlan, DataGapPlanner, GapPlanner
 from meridian.runtime import RuntimePaths
 from meridian.schemas import StableModel
@@ -73,9 +74,15 @@ class ResearchPreparationService:
         profile = root / "policies" / "strategy_profile.json"
         if not profile.is_file():
             profile = Path(__file__).resolve().parents[1] / "policies" / "strategy_profile.json"
-        yahoo = YahooChartHistoricalProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=8.0)
+        history = ResilientHistoricalProvider(
+            (
+                YahooChartHistoricalProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=8.0),
+                NasdaqHistoricalProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=8.0),
+            ),
+            paths.cache / "market" / "daily",
+        )
         providers = (
-            HistoricalSeriesRetrievalProvider(yahoo),
+            HistoricalSeriesRetrievalProvider(history),
             SecFundamentalRetrievalProvider(),
             YahooMacroRetrievalProvider(),
         )
@@ -103,6 +110,18 @@ class ResearchPreparationService:
         planner_rounds = 0
         last_plan: DataGapPlan | None = None
         provider_results: list[ProviderResult] = []
+        # Baseline structured requirements are deterministic and already known.
+        # Retrieve them before asking Codex to plan optional gaps so a model
+        # timeout cannot erase usable market history from this run.
+        package = self.orchestrator.retrieve(
+            requirements,
+            as_of=request.analysis_cutoff,
+            existing_evidence=evidence,
+            rounds=0,
+            planner_summary="BASELINE_DETERMINISTIC_RETRIEVAL",
+        )
+        provider_results.extend(package.provider_results)
+        evidence = list(package.evidence)
         for round_number in range(1, self.max_retrieval_rounds + 1):
             try:
                 last_plan = self.planner.analyze(self._planner_context(request, package), settings)
@@ -111,17 +130,13 @@ class ResearchPreparationService:
                 failed = package.model_copy(
                     update={
                         "status": DataStatus.GPT_PLANNER_FAILED,
-                        "unresolved": tuple(
-                            dict.fromkeys((*package.unresolved, code))
-                        ),
+                        "unresolved": tuple(dict.fromkeys((*package.unresolved, code))),
                         "planner_summary": str(error),
                     }
                 )
                 failed = self._mark_available_requirements(failed)
                 return ResearchPreparationResult(
-                    request=request.model_copy(
-                        update={"evidence_package": failed.research_view()}
-                    ),
+                    request=request.model_copy(update={"evidence_package": failed.research_view()}),
                     package=failed,
                     initial_completeness=initial_completeness,
                     planner_rounds=planner_rounds,
@@ -140,9 +155,7 @@ class ResearchPreparationService:
                 planner_summary=last_plan.reasoning_summary,
             )
             provider_results.extend(package.provider_results)
-            package = package.model_copy(
-                update={"provider_results": tuple(provider_results)}
-            )
+            package = package.model_copy(update={"provider_results": tuple(provider_results)})
             evidence = list(package.evidence)
             if not package.quality.blocking_missing and last_plan.sufficient:
                 break
@@ -164,9 +177,7 @@ class ResearchPreparationService:
             )
             failed = self._mark_available_requirements(failed)
             return ResearchPreparationResult(
-                request=request.model_copy(
-                    update={"evidence_package": failed.research_view()}
-                ),
+                request=request.model_copy(update={"evidence_package": failed.research_view()}),
                 package=failed,
                 initial_completeness=initial_completeness,
                 planner_rounds=planner_rounds,
@@ -215,9 +226,7 @@ class ResearchPreparationService:
         error_code = None
         if final_package.quality.blocking_missing:
             error_code = final_package.status.value
-        enriched = request.model_copy(
-            update={"evidence_package": final_package.research_view()}
-        )
+        enriched = request.model_copy(update={"evidence_package": final_package.research_view()})
         return ResearchPreparationResult(
             request=enriched,
             package=final_package,

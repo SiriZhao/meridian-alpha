@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import ROUND_DOWN, Decimal
 from typing import Protocol
 
 from meridian.config import AllocationPolicy, RiskPolicy
@@ -50,8 +50,12 @@ class DeterministicFallbackAllocator:
             )
         available = Decimal("1") - policy.min_cash_weight
         total = sum((score.score for score in selected), Decimal("0"))
+        weight_unit = Decimal("0.000001")
         weights = [
-            min(policy.max_position_weight, available * score.score / total) for score in selected
+            min(policy.max_position_weight, available * score.score / total).quantize(
+                weight_unit, rounding=ROUND_DOWN
+            )
+            for score in selected
         ]
         invested = sum(weights, Decimal("0"))
         return TargetPortfolio(

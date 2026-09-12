@@ -86,9 +86,15 @@ class HistoricalBar(StableModel):
             raise ValueError("low must not exceed open, close and high")
         if not is_trading_session(self.session, self.calendar):
             raise ValueError("historical bar session is not a valid trading session")
-        if self.adjustment_status is not HistoricalAdjustmentStatus.RAW and self.certification is HistoricalBarCertification.CERTIFIED_MARKET_SESSION:
+        if (
+            self.adjustment_status is not HistoricalAdjustmentStatus.RAW
+            and self.certification is HistoricalBarCertification.CERTIFIED_MARKET_SESSION
+        ):
             raise ValueError("adjusted bars cannot be certified as raw market session facts")
-        if self.certification is HistoricalBarCertification.CERTIFIED_MARKET_SESSION and self.quality is not HistoricalQuality.VERIFIED:
+        if (
+            self.certification is HistoricalBarCertification.CERTIFIED_MARKET_SESSION
+            and self.quality is not HistoricalQuality.VERIFIED
+        ):
             raise ValueError("certified market session bars require VERIFIED quality")
         return self
 
@@ -142,7 +148,9 @@ class HistoricalBarSeries(StableModel):
 class HistoricalOHLCVProvider(Protocol):
     provider_name: str
 
-    def get_bars(self, symbol: str, start: date, end: date, *, as_of: datetime) -> Sequence[Mapping[str, Any]]: ...
+    def get_bars(
+        self, symbol: str, start: date, end: date, *, as_of: datetime
+    ) -> Sequence[Mapping[str, Any]]: ...
 
 
 class HistoricalDataNormalizer:
@@ -171,12 +179,16 @@ class HistoricalDataNormalizer:
         security = self.security_master.resolve(symbol)
         provider_symbol = security.provider_symbols.get(self.provider)
         if not provider_symbol:
-            raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol")
+            raise SecurityIdentityUnavailable(
+                "SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol"
+            )
         bars: list[HistoricalBar] = []
         for row in rows:
             row_symbol = str(row.get("provider_symbol", ""))
             if row_symbol != provider_symbol:
-                raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch")
+                raise SecurityIdentityUnavailable(
+                    "SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch"
+                )
             session = self._date(row.get("session"))
             observed_at = self._timestamp(row.get("observed_at", row.get("session")))
             available_at = self._timestamp(row.get("available_at", observed_at))
@@ -238,7 +250,9 @@ class HistoricalDataNormalizer:
             try:
                 result = datetime.fromisoformat(value.replace("Z", "+00:00"))
             except ValueError:
-                result = datetime.combine(date.fromisoformat(value[:10]), datetime.min.time(), tzinfo=UTC)
+                result = datetime.combine(
+                    date.fromisoformat(value[:10]), datetime.min.time(), tzinfo=UTC
+                )
         elif isinstance(value, date):
             result = datetime.combine(value, datetime.min.time(), tzinfo=UTC)
         else:
@@ -273,15 +287,29 @@ class HistoricalDataQualityDiagnostics(StableModel):
     warnings: tuple[str, ...] = ()
 
 
-def inspect_series(series: HistoricalBarSeries, *, expected_sessions: Sequence[date] = (), stale_before: datetime | None = None, abnormal_volume_threshold: Decimal | None = None) -> HistoricalDataQualityDiagnostics:
+def inspect_series(
+    series: HistoricalBarSeries,
+    *,
+    expected_sessions: Sequence[date] = (),
+    stale_before: datetime | None = None,
+    abnormal_volume_threshold: Decimal | None = None,
+) -> HistoricalDataQualityDiagnostics:
     sessions = [bar.session for bar in series.bars]
     duplicates = tuple(sorted({item for item in sessions if sessions.count(item) > 1}))
     expected = tuple(expected_sessions)
     missing = tuple(item for item in expected if item not in set(sessions))
-    coverage = (Decimal(len(set(sessions) & set(expected))) / Decimal(len(expected))) if expected else None
+    coverage = (
+        (Decimal(len(set(sessions) & set(expected))) / Decimal(len(expected))) if expected else None
+    )
     zero_volume = sum(1 for bar in series.bars if bar.volume == 0)
-    stale_rows = sum(1 for bar in series.bars if stale_before is not None and bar.available_at < stale_before)
-    abnormal_volume = sum(1 for bar in series.bars if abnormal_volume_threshold is not None and bar.volume > abnormal_volume_threshold)
+    stale_rows = sum(
+        1 for bar in series.bars if stale_before is not None and bar.available_at < stale_before
+    )
+    abnormal_volume = sum(
+        1
+        for bar in series.bars
+        if abnormal_volume_threshold is not None and bar.volume > abnormal_volume_threshold
+    )
     return HistoricalDataQualityDiagnostics(
         total_sessions=len(sessions),
         expected_sessions=len(expected) if expected else None,
@@ -291,7 +319,14 @@ def inspect_series(series: HistoricalBarSeries, *, expected_sessions: Sequence[d
         zero_volume_rows=zero_volume,
         stale_rows=stale_rows,
         abnormal_volume_rows=abnormal_volume,
-        warnings=tuple(item for item in ("MISSING_SESSIONS" if missing else None, "STALE_SERIES" if stale_rows else None) if item),
+        warnings=tuple(
+            item
+            for item in (
+                "MISSING_SESSIONS" if missing else None,
+                "STALE_SERIES" if stale_rows else None,
+            )
+            if item
+        ),
     )
 
 
@@ -302,7 +337,9 @@ class HistoricalProviderComparison(StableModel):
     status: str = "MATCH"
 
 
-def compare_historical_series(series: Sequence[HistoricalBarSeries]) -> HistoricalProviderComparison:
+def compare_historical_series(
+    series: Sequence[HistoricalBarSeries],
+) -> HistoricalProviderComparison:
     if not series:
         raise ValueError("at least one historical series is required")
     baseline = {bar.session: bar for bar in series[0].bars}
@@ -315,7 +352,15 @@ def compare_historical_series(series: Sequence[HistoricalBarSeries]) -> Historic
             if left is None or right is None:
                 differing_sessions.add(session.isoformat())
                 continue
-            for field in ("open", "high", "low", "close", "volume", "adjustment_status", "currency"):
+            for field in (
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume",
+                "adjustment_status",
+                "currency",
+            ):
                 if getattr(left, field) != getattr(right, field):
                     differing_fields.add(field)
     status = "MARKET_DATA_CONFLICT" if differing_sessions or differing_fields else "MATCH"
@@ -336,12 +381,26 @@ class ShadowFeatureLineage(StableModel):
     promoted: bool = False
 
 
-def generate_shadow_features(series: HistoricalBarSeries, cutoff: datetime) -> tuple[dict[str, Decimal | None], ShadowFeatureLineage]:
+def generate_shadow_features(
+    series: HistoricalBarSeries, cutoff: datetime
+) -> tuple[dict[str, Decimal | None], ShadowFeatureLineage]:
     if cutoff.tzinfo is None or cutoff.utcoffset() is None:
         raise ValueError("feature cutoff must be timezone-aware")
-    eligible = tuple(bar for bar in series.bars if bar.available_at <= cutoff and (bar.session < cutoff.date() or session_is_complete(cutoff, bar.calendar)))
+    eligible = tuple(
+        bar
+        for bar in series.bars
+        if bar.available_at <= cutoff
+        and (bar.session < cutoff.date() or session_is_complete(cutoff, bar.calendar))
+    )
     bars = tuple(
-        Bar(datetime.combine(bar.session, datetime.min.time(), tzinfo=UTC), bar.open, bar.high, bar.low, bar.close, int(bar.volume))
+        Bar(
+            datetime.combine(bar.session, datetime.min.time(), tzinfo=UTC),
+            bar.open,
+            bar.high,
+            bar.low,
+            bar.close,
+            int(bar.volume),
+        )
         for bar in eligible
     )
     features = feature_set(bars, cutoff)
@@ -356,14 +415,8 @@ def generate_shadow_features(series: HistoricalBarSeries, cutoff: datetime) -> t
     return features, lineage
 
 
-
-
-
-
 OHLCVBar = HistoricalBar
 HistoricalSeries = HistoricalBarSeries
-
-
 
 
 class HistoricalProviderError(RuntimeError):
@@ -450,7 +503,9 @@ class YahooChartHistoricalProvider:
         if time.perf_counter() - started > self.timeout_seconds * 2:
             raise HistoricalProviderTimeout("Yahoo historical response exceeded timeout budget")
         try:
-            document = json.loads(payload.decode("utf-8") if isinstance(payload, bytes) else str(payload))
+            document = json.loads(
+                payload.decode("utf-8") if isinstance(payload, bytes) else str(payload)
+            )
             result = document["chart"]["result"][0]
             timestamps = result["timestamp"]
             quote = result["indicators"]["quote"][0]
@@ -486,7 +541,9 @@ class YahooChartHistoricalProvider:
                     "close": close,
                     "volume": volume,
                     "currency": currency,
-                    "observed_at": session_close(session, TradingCalendarName(security.trading_calendar)),
+                    "observed_at": session_close(
+                        session, TradingCalendarName(security.trading_calendar)
+                    ),
                     "available_at": retrieved,
                     "source": "yahoo-chart-public",
                 }
@@ -506,8 +563,134 @@ class YahooChartHistoricalProvider:
     ) -> HistoricalBarSeries:
         rows = self.get_bars(symbol, start, end, as_of=as_of)
         retrieved = self.clock()
-        return HistoricalDataNormalizer(self.security_master, provider=self.provider_name).normalize(
+        return HistoricalDataNormalizer(
+            self.security_master, provider=self.provider_name
+        ).normalize(
             rows,
+            symbol=symbol,
+            as_of=max(as_of, retrieved) if live else as_of,
+            retrieved_at=retrieved,
+            adjustment_status=HistoricalAdjustmentStatus.RAW,
+            certification=HistoricalBarCertification.UNVERIFIED,
+            quality=HistoricalQuality.UNVERIFIED,
+            source_mode="LIVE_SHADOW",
+        )
+
+
+class NasdaqHistoricalProvider:
+    """Public Nasdaq daily-table fallback, normalized through Meridian's OHLCV gate."""
+
+    provider_name = "nasdaq"
+    network_capable = True
+
+    def __init__(
+        self,
+        security_master: SecurityMaster,
+        *,
+        timeout_seconds: float = 10.0,
+        opener: Callable[..., Any] = urlopen,
+        clock: Callable[[], datetime] | None = None,
+    ) -> None:
+        self.security_master, self.timeout_seconds, self.opener = (
+            security_master,
+            timeout_seconds,
+            opener,
+        )
+        self.clock = clock or (lambda: datetime.now(UTC))
+
+    def get_series(
+        self, symbol: str, start: date, end: date, *, as_of: datetime, live: bool = False
+    ) -> HistoricalBarSeries:
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider_name)
+        if not provider_symbol:
+            raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:nasdaq-symbol")
+        assetclass = "etf" if security.asset_type.value == "ETF" else "stocks"
+        query = urlencode(
+            {
+                "assetclass": assetclass,
+                "fromdate": start.isoformat(),
+                "todate": end.isoformat(),
+                "limit": "5000",
+            }
+        )
+        request = Request(
+            f"https://api.nasdaq.com/api/quote/{url_quote(provider_symbol)}/historical?{query}",
+            headers={"User-Agent": "Mozilla/5.0 MeridianAlpha/0.1", "Accept": "application/json"},
+        )
+        try:
+            response = self.opener(request, timeout=self.timeout_seconds)
+            payload = response.read()
+        except TimeoutError as error:
+            raise HistoricalProviderTimeout("Nasdaq historical request timed out") from error
+        except OSError as error:
+            raise HistoricalProviderError("Nasdaq historical request failed") from error
+        try:
+            document = json.loads(
+                payload.decode("utf-8") if isinstance(payload, bytes) else str(payload)
+            )
+            rows = ((document.get("data") or {}).get("tradesTable") or {}).get("rows") or []
+            if not isinstance(rows, list) or not rows:
+                raise ValueError("no historical rows")
+        except (TypeError, ValueError, json.JSONDecodeError) as error:
+            raise HistoricalProviderMalformed("Nasdaq historical response is malformed") from error
+        retrieved = self.clock()
+        normalized: list[Mapping[str, Any]] = []
+
+        def value(row: Mapping[str, Any], *keys: str) -> Any:
+            for key in keys:
+                candidate = row.get(key)
+                if candidate not in (None, "", "N/A"):
+                    return str(candidate).replace("$", "").replace(",", "")
+            raise ValueError("Nasdaq historical field missing")
+
+        try:
+            for row in rows:
+                if not isinstance(row, Mapping):
+                    raise ValueError("Nasdaq historical row malformed")
+                required_values = (
+                    row.get("open") or row.get("openPrice"),
+                    row.get("high") or row.get("highPrice"),
+                    row.get("low") or row.get("lowPrice"),
+                    row.get("close") or row.get("closePrice"),
+                    row.get("volume") or row.get("shareVolume"),
+                )
+                if any(value in (None, "", "N/A") for value in required_values):
+                    continue
+                raw_date = str(row.get("date") or row.get("tradeDate") or "")
+                try:
+                    session = datetime.strptime(raw_date, "%m/%d/%Y").date()
+                except ValueError:
+                    session = date.fromisoformat(raw_date[:10])
+                if session < start or session > end or session > as_of.date():
+                    continue
+                normalized.append(
+                    {
+                        "provider_symbol": provider_symbol,
+                        "session": session,
+                        "open": value(row, "open", "openPrice"),
+                        "high": value(row, "high", "highPrice"),
+                        "low": value(row, "low", "lowPrice"),
+                        "close": value(row, "close", "closePrice"),
+                        "volume": value(row, "volume", "shareVolume"),
+                        "currency": security.currency,
+                        "observed_at": session_close(
+                            session, TradingCalendarName(security.trading_calendar)
+                        ),
+                        "available_at": retrieved,
+                        "source": "nasdaq-public-api",
+                    }
+                )
+        except (TypeError, ValueError) as error:
+            raise HistoricalProviderMalformed(
+                "Nasdaq historical response has invalid OHLCV"
+            ) from error
+        if not normalized:
+            raise HistoricalProviderMalformed("Nasdaq historical response contains no usable rows")
+        return HistoricalDataNormalizer(
+            self.security_master, provider=self.provider_name
+        ).normalize(
+            normalized,
             symbol=symbol,
             as_of=max(as_of, retrieved) if live else as_of,
             retrieved_at=retrieved,

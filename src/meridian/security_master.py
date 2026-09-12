@@ -89,6 +89,7 @@ class OfficialIdentityProvenance(StableModel):
             raise ValueError("official identity source must be an HTTPS URI")
         return self
 
+
 class SecurityIdentityHistory(StableModel):
     """Time-bounded symbol/identifier continuity for historical replay."""
 
@@ -166,7 +167,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-EQ-AAPL",
         canonical_symbol="AAPL",
-        provider_symbols={"yahoo": "AAPL"},
+        provider_symbols={"yahoo": "AAPL", "nasdaq": "AAPL"},
         asset_type=AssetType.EQUITY,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -187,7 +188,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-EQ-MSFT",
         canonical_symbol="MSFT",
-        provider_symbols={"yahoo": "MSFT"},
+        provider_symbols={"yahoo": "MSFT", "nasdaq": "MSFT"},
         asset_type=AssetType.EQUITY,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -200,7 +201,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-EQ-NVDA",
         canonical_symbol="NVDA",
-        provider_symbols={"yahoo": "NVDA"},
+        provider_symbols={"yahoo": "NVDA", "nasdaq": "NVDA"},
         asset_type=AssetType.EQUITY,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -213,7 +214,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-EQ-META",
         canonical_symbol="META",
-        provider_symbols={"yahoo": "META"},
+        provider_symbols={"yahoo": "META", "nasdaq": "META"},
         asset_type=AssetType.EQUITY,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -226,7 +227,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-EQ-GOOGL",
         canonical_symbol="GOOGL",
-        provider_symbols={"yahoo": "GOOGL"},
+        provider_symbols={"yahoo": "GOOGL", "nasdaq": "GOOGL"},
         asset_type=AssetType.EQUITY,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -239,7 +240,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-ETF-SPY",
         canonical_symbol="SPY",
-        provider_symbols={"yahoo": "SPY"},
+        provider_symbols={"yahoo": "SPY", "nasdaq": "SPY"},
         asset_type=AssetType.ETF,
         primary_exchange="NYSEARCA",
         trading_calendar="US_EQUITY",
@@ -252,7 +253,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-ETF-QQQ",
         canonical_symbol="QQQ",
-        provider_symbols={"yahoo": "QQQ"},
+        provider_symbols={"yahoo": "QQQ", "nasdaq": "QQQ"},
         asset_type=AssetType.ETF,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -265,7 +266,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-ETF-SGOV",
         canonical_symbol="SGOV",
-        provider_symbols={"yahoo": "SGOV"},
+        provider_symbols={"yahoo": "SGOV", "nasdaq": "SGOV"},
         asset_type=AssetType.ETF,
         primary_exchange="NYSEARCA",
         trading_calendar="US_EQUITY",
@@ -278,7 +279,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-ETF-GLD",
         canonical_symbol="GLD",
-        provider_symbols={"yahoo": "GLD"},
+        provider_symbols={"yahoo": "GLD", "nasdaq": "GLD"},
         asset_type=AssetType.ETF,
         primary_exchange="NYSEARCA",
         trading_calendar="US_EQUITY",
@@ -291,7 +292,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-ETF-TLT",
         canonical_symbol="TLT",
-        provider_symbols={"yahoo": "TLT"},
+        provider_symbols={"yahoo": "TLT", "nasdaq": "TLT"},
         asset_type=AssetType.ETF,
         primary_exchange="NASDAQ",
         trading_calendar="US_EQUITY",
@@ -304,7 +305,7 @@ _DEFAULT_RECORDS = (
     SecurityMasterRecord(
         canonical_asset_id="US-INDEX-VIX",
         canonical_symbol="VIX",
-        provider_symbols={"yahoo": "^VIX"},
+        provider_symbols={"yahoo": "^VIX", "nasdaq": "^VIX"},
         asset_type=AssetType.INDEX,
         primary_exchange="CBOE",
         trading_calendar="CBOE_VIX",

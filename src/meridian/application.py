@@ -49,6 +49,7 @@ from meridian.research_agents.audit import write_research_audit
 from meridian.research_agents.preparation import ResearchPreparationService
 from meridian.research_stage import CanonicalResearchStage
 from meridian.research_universe import ResearchUniverseScheduler
+from meridian.run_health import persist_run_health
 from meridian.runtime import RuntimePaths, policy_directory
 from meridian.runtime_diagnostics import report as doctor_report
 
@@ -98,7 +99,9 @@ class MeridianApplicationService:
         existed = self.paths.db.exists()
         try:
             AuditStore(self.paths.db).migrate()
-            with closing(sqlite3.connect(self.paths.db.resolve().as_uri() + "?mode=rw", uri=True)) as connection:
+            with closing(
+                sqlite3.connect(self.paths.db.resolve().as_uri() + "?mode=rw", uri=True)
+            ) as connection:
                 version = connection.execute(
                     "SELECT MAX(version) FROM schema_migrations"
                 ).fetchone()[0]
@@ -124,61 +127,141 @@ class MeridianApplicationService:
 
     def snapshot_validate(self, path: Path) -> dict[str, object]:
         policies = load_policies(policy_directory())
-        diagnostic, _ = inspect_snapshot(path, max_age_seconds=policies.data.account_snapshot_max_age_seconds)
+        diagnostic, _ = inspect_snapshot(
+            path, max_age_seconds=policies.data.account_snapshot_max_age_seconds
+        )
         diagnostic = self._snapshot_novelty(diagnostic, claim=False)
-        return {"valid": diagnostic.status is ReadinessStatus.PASS,
-                "status": "PASS" if diagnostic.status is ReadinessStatus.PASS else "DEGRADED",
-                "snapshot_provenance": diagnostic.model_dump(mode="json"), "sanitized": True}
+        return {
+            "valid": diagnostic.status is ReadinessStatus.PASS,
+            "status": "PASS" if diagnostic.status is ReadinessStatus.PASS else "DEGRADED",
+            "snapshot_provenance": diagnostic.model_dump(mode="json"),
+            "sanitized": True,
+        }
 
-    def _snapshot_novelty(self, diagnostic: SnapshotDiagnostic, *, claim: bool) -> SnapshotDiagnostic:
-        if diagnostic.status is not ReadinessStatus.PASS or diagnostic.snapshot_key is None or diagnostic.content_hash is None:
+    def _snapshot_novelty(
+        self, diagnostic: SnapshotDiagnostic, *, claim: bool
+    ) -> SnapshotDiagnostic:
+        if (
+            diagnostic.status is not ReadinessStatus.PASS
+            or diagnostic.snapshot_key is None
+            or diagnostic.content_hash is None
+        ):
             return diagnostic
-        novelty = AuditStore(self.paths.db).snapshot_novelty(diagnostic.snapshot_key, diagnostic.content_hash,
-            seen_at=diagnostic.checked_at.isoformat() if claim else None)
-        return diagnostic.model_copy(update={"novelty": novelty, **(
-            {"status": ReadinessStatus.BLOCKED, "code": "ACCOUNT_SNAPSHOT_REPLAYED" if novelty == "REPLAYED" else "ACCOUNT_SNAPSHOT_ID_CONFLICT"}
-            if novelty != "NEW" else {})})
+        novelty = AuditStore(self.paths.db).snapshot_novelty(
+            diagnostic.snapshot_key,
+            diagnostic.content_hash,
+            seen_at=diagnostic.checked_at.isoformat() if claim else None,
+        )
+        return diagnostic.model_copy(
+            update={
+                "novelty": novelty,
+                **(
+                    {
+                        "status": ReadinessStatus.BLOCKED,
+                        "code": "ACCOUNT_SNAPSHOT_REPLAYED"
+                        if novelty == "REPLAYED"
+                        else "ACCOUNT_SNAPSHOT_ID_CONFLICT",
+                    }
+                    if novelty != "NEW"
+                    else {}
+                ),
+            }
+        )
 
-    def _rejected_snapshot(self, diagnostic: SnapshotDiagnostic, log_path: Path, startup: dict[str, object] | None = None) -> dict[str, object]:
+    def _rejected_snapshot(
+        self,
+        diagnostic: SnapshotDiagnostic,
+        log_path: Path,
+        startup: dict[str, object] | None = None,
+    ) -> dict[str, object]:
         now = datetime.now(UTC)
         run_id = "daily-" + uuid4().hex
-        ready = RecommendationReadiness(runtime_health=ReadinessStatus.PASS,
-            account_snapshot_status=diagnostic.status, account_snapshot_freshness=diagnostic.freshness,
+        ready = RecommendationReadiness(
+            runtime_health=ReadinessStatus.PASS,
+            account_snapshot_status=diagnostic.status,
+            account_snapshot_freshness=diagnostic.freshness,
             account_provenance=diagnostic.provenance_status,
-            market_data_status=ReadinessStatus.NOT_RUN, market_data_freshness=ReadinessStatus.NOT_RUN,
-            quote_certification_status=ReadinessStatus.BLOCKED, quote_kind="NOT_REQUESTED",
-            input_mode=diagnostic.source_kind or "UNKNOWN")
+            market_data_status=ReadinessStatus.NOT_RUN,
+            market_data_freshness=ReadinessStatus.NOT_RUN,
+            quote_certification_status=ReadinessStatus.BLOCKED,
+            quote_kind="NOT_REQUESTED",
+            input_mode=diagnostic.source_kind or "UNKNOWN",
+        )
         directory = self.paths.reports / now.date().isoformat() / run_id
         payload: dict[str, object] = {
-            "run_id": run_id, "analysis_time": now.isoformat(), "timestamp": now.isoformat(),
+            "run_id": run_id,
+            "analysis_time": now.isoformat(),
+            "timestamp": now.isoformat(),
             "trading_date": now.astimezone(ZoneInfo("America/New_York")).date().isoformat(),
-            "status": "BLOCKED_STALE_ACCOUNT", "runtime_status": "PASS",
+            "status": "BLOCKED_STALE_ACCOUNT",
+            "runtime_status": "PASS",
             "readiness": ready.model_dump(mode="json"),
             "snapshot_provenance": diagnostic.model_dump(mode="json"),
-            "data_status": "NOT_RUN", "research_status": "NOT_RUN", "quant_status": "NOT_RUN", "risk_status": "NOT_RUN",
-            "recommendation_status": "BLOCKED", "blocked_reasons": [diagnostic.code],
-            "errors": [diagnostic.code], "warnings": [], "orders": [],
-            "next_actions": [diagnostic.next_action], "provider_probes": {},
-            "research": {"context": {"status": "NOT_RUN", "output": None, "authority": "ADVISORY_ONLY"},
-                         "provenance": "NONE", "attempts": 0, "error_code": "RESEARCH_UPSTREAM_BLOCKED",
-                         "next_action": diagnostic.next_action},
+            "data_status": "NOT_RUN",
+            "research_status": "NOT_RUN",
+            "quant_status": "NOT_RUN",
+            "risk_status": "NOT_RUN",
+            "recommendation_status": "BLOCKED",
+            "blocked_reasons": [diagnostic.code],
+            "errors": [diagnostic.code],
+            "warnings": [],
+            "orders": [],
+            "next_actions": [diagnostic.next_action],
+            "provider_probes": {},
+            "research": {
+                "context": {"status": "NOT_RUN", "output": None, "authority": "ADVISORY_ONLY"},
+                "provenance": "NONE",
+                "attempts": 0,
+                "error_code": "RESEARCH_UPSTREAM_BLOCKED",
+                "next_action": diagnostic.next_action,
+            },
             "decision_context": {"research_status": "NOT_RUN", "research": None},
-            "gates": [ReadinessGateResult(gate=name, status=ReadinessStatus.NOT_RUN,
-                        reason="Snapshot validation prevented evaluation", evidence=(diagnostic.code,)).model_dump(mode="json")
-                      for name in ("ACCOUNT_READY", "SECURITY_READY", "MARKET_READY", "RESEARCH_READY",
-                                   "QUOTE_READY", "RISK_READY", "RECONCILIATION_READY")],
+            "gates": [
+                ReadinessGateResult(
+                    gate=name,
+                    status=ReadinessStatus.NOT_RUN,
+                    reason="Snapshot validation prevented evaluation",
+                    evidence=(diagnostic.code,),
+                ).model_dump(mode="json")
+                for name in (
+                    "ACCOUNT_READY",
+                    "SECURITY_READY",
+                    "MARKET_READY",
+                    "RESEARCH_READY",
+                    "QUOTE_READY",
+                    "RISK_READY",
+                    "RECONCILIATION_READY",
+                )
+            ],
             "manual_authority": {"status": "BLOCKED", "certificate_issued": False},
-            "stages": [{"stage": name, "run_id": run_id, "start": None, "finish": None,
-                        "duration_seconds": 0, "status": "NOT_RUN", "error_code": "UPSTREAM_SNAPSHOT_BLOCKED",
-                        "next_action": diagnostic.next_action} for name in ("market", "research", "decision")],
-            "execution": "MANUAL", "broker_submission": "DISABLED",
+            "stages": [
+                {
+                    "stage": name,
+                    "run_id": run_id,
+                    "start": None,
+                    "finish": None,
+                    "duration_seconds": 0,
+                    "status": "NOT_RUN",
+                    "error_code": "UPSTREAM_SNAPSHOT_BLOCKED",
+                    "next_action": diagnostic.next_action,
+                }
+                for name in ("market", "research", "decision")
+            ],
+            "execution": "MANUAL",
+            "broker_submission": "DISABLED",
             "market_status": (startup or {}).get("market_status", {}),
             "execution_mode": "SAFE_ANALYSIS",
             "startup_diagnostics": startup or {},
             "safe_analysis": {"status": "BLOCKED_ACCOUNT_INPUT", "orders": [], "authority": "NONE"},
-            "output_files": {"report_json": str(directory / "daily.json"), "report_markdown": str(directory / "daily.md"), "log": str(log_path)},
+            "output_files": {
+                "report_json": str(directory / "daily.json"),
+                "report_markdown": str(directory / "daily.md"),
+                "log": str(log_path),
+            },
         }
-        AuditStore(self.paths.db).write_readiness(run_id, now.isoformat(), str(payload["status"]), payload)
+        AuditStore(self.paths.db).write_readiness(
+            run_id, now.isoformat(), str(payload["status"]), payload
+        )
         return self._complete_report(payload)
 
     def daily(
@@ -199,13 +282,21 @@ class MeridianApplicationService:
         logger.addHandler(handler)
         logger.info("START invocation=%s config=%s", invocation, policy_directory())
         try:
-            payload = self._daily(snapshot_path, market_fixture, logger, log_path, research_live_enabled)
-            logger.log(logging.ERROR if payload.get("runtime_status") == "FAILED" else logging.INFO,
-                "run_id=%s runtime=%s error_code=%s", payload.get("run_id"),
-                payload.get("runtime_status"), payload.get("error_code"))
+            payload = self._daily(
+                snapshot_path, market_fixture, logger, log_path, research_live_enabled
+            )
+            logger.log(
+                logging.ERROR if payload.get("runtime_status") == "FAILED" else logging.INFO,
+                "run_id=%s runtime=%s error_code=%s",
+                payload.get("run_id"),
+                payload.get("runtime_status"),
+                payload.get("error_code"),
+            )
             return payload
         except (OSError, ValueError, sqlite3.Error):
-            logger.error("Daily failed; run doctor and validate input. Exception details omitted to protect account data.")
+            logger.error(
+                "Daily failed; run doctor and validate input. Exception details omitted to protect account data."
+            )
             raise
         finally:
             logger.info("END invocation=%s", invocation)
@@ -224,30 +315,63 @@ class MeridianApplicationService:
         logger.info("Database initialization and preflight started")
         initialized = self.init()
         if initialized["status"] == "INIT_FAILED":
-            return {**initialized, "run_id": log_path.stem, "runtime_status": "FAILED",
-                    "readiness": RecommendationReadiness(runtime_health=ReadinessStatus.FAILED).model_dump(mode="json"),
-                    "errors": [initialized["error_code"]], "next_actions": [initialized["next_step"]], "output_files": {"log": str(log_path)}}
+            return {
+                **initialized,
+                "run_id": log_path.stem,
+                "runtime_status": "FAILED",
+                "readiness": RecommendationReadiness(
+                    runtime_health=ReadinessStatus.FAILED
+                ).model_dump(mode="json"),
+                "errors": [initialized["error_code"]],
+                "next_actions": [initialized["next_step"]],
+                "output_files": {"log": str(log_path)},
+            }
         preflight = self.doctor()
         if preflight["status"] == "FAIL":
-            return {"status": "FAILED", "run_id": log_path.stem, "runtime_status": "FAILED", "error_code": "MERIDIAN_PREFLIGHT_FAILED", "diagnostics": preflight, "readiness": RecommendationReadiness(runtime_health=ReadinessStatus.FAILED).model_dump(mode="json"), "errors": ["MERIDIAN_PREFLIGHT_FAILED"], "next_actions": ["Resolve failed doctor checks."], "output_files": {"log": str(log_path)}}
+            return {
+                "status": "FAILED",
+                "run_id": log_path.stem,
+                "runtime_status": "FAILED",
+                "error_code": "MERIDIAN_PREFLIGHT_FAILED",
+                "diagnostics": preflight,
+                "readiness": RecommendationReadiness(
+                    runtime_health=ReadinessStatus.FAILED
+                ).model_dump(mode="json"),
+                "errors": ["MERIDIAN_PREFLIGHT_FAILED"],
+                "next_actions": ["Resolve failed doctor checks."],
+                "output_files": {"log": str(log_path)},
+            }
         logger.info("Database status=%s", initialized["status"])
         policies = load_policies(policy_directory())
         initial_market = market_status(datetime.now(UTC))
         startup: dict[str, object] = {
-            "environment": {"status": preflight["status"], "python": sys.version.split()[0], "runtime_home": str(self.paths.home)},
-            "cache": preflight.get("cache", {"status": "BLOCKED", "error_code": "CACHE_HEALTH_UNAVAILABLE"}),
+            "environment": {
+                "status": preflight["status"],
+                "python": sys.version.split()[0],
+                "runtime_home": str(self.paths.home),
+            },
+            "cache": preflight.get(
+                "cache", {"status": "BLOCKED", "error_code": "CACHE_HEALTH_UNAVAILABLE"}
+            ),
             "data_provider": {"status": "NOT_RUN", "selected_lanes": []},
             "market_status": initial_market.as_dict(),
-            "execution_mode": "NORMAL" if initial_market.status is MarketStatus.OPEN else "SAFE_ANALYSIS",
+            "execution_mode": "NORMAL"
+            if initial_market.status is MarketStatus.OPEN
+            else "SAFE_ANALYSIS",
         }
-        snapshot, account = inspect_snapshot(snapshot_path, max_age_seconds=policies.data.account_snapshot_max_age_seconds)
+        snapshot, account = inspect_snapshot(
+            snapshot_path, max_age_seconds=policies.data.account_snapshot_max_age_seconds
+        )
         snapshot = self._snapshot_novelty(snapshot, claim=True)
         if snapshot.status is not ReadinessStatus.PASS or account is None:
             logger.warning("Snapshot rejected code=%s", snapshot.code)
             return self._rejected_snapshot(snapshot, log_path, startup)
         cutoff = datetime.now(UTC)
         market_started = cutoff
-        logger.info("Market retrieval started; mode=%s", "FIXTURE" if market_fixture else "OPERATIONAL_PUBLIC")
+        logger.info(
+            "Market retrieval started; mode=%s",
+            "FIXTURE" if market_fixture else "OPERATIONAL_PUBLIC",
+        )
         market_error: str | None = None
         if market_fixture:
             try:
@@ -275,9 +399,13 @@ class MeridianApplicationService:
             symbols = set(policies.universe.tickers) | {
                 holding.ticker for holding in account.holdings
             }
-            operational = OperationalMarketSnapshotService.from_runtime(self.paths, policy=FreshnessPolicy(quote_max_age_seconds=policies.data.quote_max_age_seconds, account_max_age_seconds=policies.data.account_snapshot_max_age_seconds)).build(
-                symbols, analysis_time=cutoff, live=True
-            )
+            operational = OperationalMarketSnapshotService.from_runtime(
+                self.paths,
+                policy=FreshnessPolicy(
+                    quote_max_age_seconds=policies.data.quote_max_age_seconds,
+                    account_max_age_seconds=policies.data.account_snapshot_max_age_seconds,
+                ),
+            ).build(symbols, analysis_time=cutoff, live=True)
             cutoff = operational.information_cutoff
             research_quotes = dict(operational.research_quotes)
             partial_quotes = dict(research_quotes)
@@ -298,32 +426,44 @@ class MeridianApplicationService:
         current_market = market_status(cutoff)
         provider_probes = provenance.get("provider_probes", {})
         provider_probes = provider_probes if isinstance(provider_probes, dict) else {}
-        selected_lanes = sorted({
-            str(item.get("selection"))
-            for item in provider_probes.values()
-            if isinstance(item, dict) and item.get("selection")
-        })
+        selected_lanes = sorted(
+            {
+                str(item.get("selection"))
+                for item in provider_probes.values()
+                if isinstance(item, dict) and item.get("selection")
+            }
+        )
         provider_status = "PASS" if quotes else "DATA_DEGRADED"
         if provenance.get("data_quality_mode") == "DATA_DEGRADED":
             provider_status = "DATA_DEGRADED"
         execution_mode = (
-            "NORMAL" if current_market.status is MarketStatus.OPEN and bool(quotes)
-            else "DEGRADED_OPERATIONAL" if current_market.status is MarketStatus.OPEN and bool(partial_quotes)
+            "NORMAL"
+            if current_market.status is MarketStatus.OPEN and bool(quotes)
+            else "DEGRADED_OPERATIONAL"
+            if current_market.status is MarketStatus.OPEN and bool(partial_quotes)
             else "SAFE_ANALYSIS"
         )
-        startup.update({
-            "data_provider": {"status": provider_status, "selected_lanes": selected_lanes},
-            "market_status": current_market.as_dict(),
-            "execution_mode": execution_mode,
-        })
+        startup.update(
+            {
+                "data_provider": {"status": provider_status, "selected_lanes": selected_lanes},
+                "market_status": current_market.as_dict(),
+                "execution_mode": execution_mode,
+            }
+        )
         closure = DailyClosureService(policies)
         parent_id = daily_run_id(account, quotes, cutoff, policies)
         settings = policies.models.research
         if settings is not None and research_live_enabled:
             # Paper runs opt in locally; the global models.yaml default stays unchanged.
-            settings = settings.model_copy(update={"live_enabled": True})
+            settings = settings.model_copy(
+                update={"live_enabled": True, "timeout_seconds": min(settings.timeout_seconds, 30)}
+            )
+
         def digest(value: object) -> str:
-            return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
+            return hashlib.sha256(
+                json.dumps(value, sort_keys=True, default=str).encode()
+            ).hexdigest()
+
         health = provenance.get("provider_health")
         health = health if isinstance(health, dict) else {}
         input_blockers = closure._gates(account, quotes, cutoff)
@@ -364,9 +504,7 @@ class MeridianApplicationService:
             "cash_weight": str(
                 Decimal(account.cash) / total_equity if total_equity else Decimal("0")
             ),
-            "gross_exposure": str(
-                invested_value / total_equity if total_equity else Decimal("0")
-            ),
+            "gross_exposure": str(invested_value / total_equity if total_equity else Decimal("0")),
             "positions": [
                 {
                     "ticker": holding.ticker,
@@ -382,38 +520,123 @@ class MeridianApplicationService:
             "account_identifier_included": False,
             "persistence_allowed": False,
         }
-        request = DailyResearchInput(parent_run_id=parent_id, analysis_cutoff=cutoff,
+        request = DailyResearchInput(
+            parent_run_id=parent_id,
+            analysis_cutoff=cutoff,
             mode="FIXTURE" if market_fixture or snapshot.source_kind == "FIXTURE" else "LIVE",
             snapshot_reference=snapshot.content_hash or "UNAVAILABLE",
-            market_reference=digest({symbol: quote.model_dump(mode="json") for symbol, quote in research_quotes.items()}),
-            policy_reference=digest({name: value.model_dump(mode="json") for name, value in vars(policies).items()}),
-            provider=settings.provider if settings else "UNCONFIGURED", model=settings.model if settings else "UNCONFIGURED",
-            observations=tuple(PublicResearchObservation(ticker=ticker, observed_at=research_quotes[ticker].timestamp,
-                price=research_quotes[ticker].last, daily_return=research_quotes[ticker].daily_return,
-                reference=digest(research_quotes[ticker].model_dump(mode="json")))
-                for ticker in research_request_tickers),
+            market_reference=digest(
+                {symbol: quote.model_dump(mode="json") for symbol, quote in research_quotes.items()}
+            ),
+            policy_reference=digest(
+                {name: value.model_dump(mode="json") for name, value in vars(policies).items()}
+            ),
+            provider=settings.provider if settings else "UNCONFIGURED",
+            model=settings.model if settings else "UNCONFIGURED",
+            observations=tuple(
+                PublicResearchObservation(
+                    ticker=ticker,
+                    observed_at=research_quotes[ticker].timestamp,
+                    price=research_quotes[ticker].last,
+                    daily_return=research_quotes[ticker].daily_return,
+                    reference=digest(research_quotes[ticker].model_dump(mode="json")),
+                )
+                for ticker in research_request_tickers
+            ),
             freshness_status="PASS" if research_inputs_ready else "BLOCKED",
-            provider_provenance={ticker: json.dumps(health, sort_keys=True) for ticker, health in health.items()},
+            provider_provenance={
+                ticker: json.dumps(health, sort_keys=True) for ticker, health in health.items()
+            },
             universe_plan=universe_plan,
             portfolio_context=portfolio_context,
         )
         logger.info("run_id=%s stage=research start", parent_id)
         research = self.research_stage.run(request, settings)
-        logger.info("run_id=%s stage=research status=%s duration=%s code=%s", parent_id, research.context.status.value, research.duration_seconds, research.error_code)
+        logger.info(
+            "run_id=%s stage=research status=%s duration=%s code=%s",
+            parent_id,
+            research.context.status.value,
+            research.duration_seconds,
+            research.error_code,
+        )
+        research_mode = (
+            "FULL_RESEARCH"
+            if research.context.status is ResearchProviderStatus.AVAILABLE
+            else "DEGRADED_RESEARCH"
+            if research.error_code == "CODEX_RATE_LIMITED"
+            else "OFFLINE_RESEARCH"
+        )
+        research_degradation = {
+            "research_mode": research_mode,
+            "research_confidence": "NORMAL"
+            if research_mode == "FULL_RESEARCH"
+            else "LOW"
+            if research_mode == "DEGRADED_RESEARCH"
+            else "NONE",
+            "llm_available": research_mode == "FULL_RESEARCH",
+            "fallback_reason": None
+            if research_mode == "FULL_RESEARCH"
+            else research.error_code or "RESEARCH_UNAVAILABLE",
+            "evidence_synthesis": "CODEX"
+            if research_mode == "FULL_RESEARCH"
+            else "DETERMINISTIC_STRUCTURED_INPUTS_ONLY",
+        }
         evaluated_at = datetime.now(UTC)
-        result = closure.run(account, quotes, cutoff=cutoff, research=research.context, evaluated_at=evaluated_at)
-        result.report.update({"research": research.model_dump(mode="json"), "research_input": request.model_dump(mode="json"),
-            "data_auto_retrieval": research.preparation_diagnostics,
-            "research_universe": universe_plan.model_dump(mode="json") if universe_plan else {
-                "eligible_universe": [], "research_universe": [], "deep_analysis_universe": [],
-                "original_count": 0, "research_count": 0, "deep_analysis_count": 0,
-                "mode": "full", "selection_basis": "FULL_UNIVERSE",
-            },
-            "stages": [
-                {"stage": "market", "run_id": parent_id, "start": market_started.isoformat(), "finish": market_finished.isoformat(), "duration_seconds": (market_finished - market_started).total_seconds(), "status": "PASS" if market_valid else "BLOCKED", "error_code": market_error or (None if market_valid else "MARKET_INPUT_NOT_READY"), "next_action": "Review provider probes and freshness."},
-                {"stage": "research", "run_id": parent_id, "start": research.started_at.isoformat(), "finish": research.finished_at.isoformat(), "duration_seconds": research.duration_seconds, "status": research.context.status.value, "error_code": research.error_code, "next_action": research.next_action},
-                {"stage": "decision", "run_id": parent_id, "start": evaluated_at.isoformat(), "finish": datetime.now(UTC).isoformat(), "duration_seconds": (datetime.now(UTC) - evaluated_at).total_seconds(), "status": result.decision.overall_status.value, "error_code": None, "next_action": "Review deterministic policy gates; no manual authority inferred."},
-            ]})
+        result = closure.run(
+            account, quotes, cutoff=cutoff, research=research.context, evaluated_at=evaluated_at
+        )
+        result.report.update(
+            {
+                "research": {**research.model_dump(mode="json"), **research_degradation},
+                "research_input": request.model_dump(mode="json"),
+                "data_auto_retrieval": research.preparation_diagnostics,
+                "research_universe": universe_plan.model_dump(mode="json")
+                if universe_plan
+                else {
+                    "eligible_universe": [],
+                    "research_universe": [],
+                    "deep_analysis_universe": [],
+                    "original_count": 0,
+                    "research_count": 0,
+                    "deep_analysis_count": 0,
+                    "mode": "full",
+                    "selection_basis": "FULL_UNIVERSE",
+                },
+                "stages": [
+                    {
+                        "stage": "market",
+                        "run_id": parent_id,
+                        "start": market_started.isoformat(),
+                        "finish": market_finished.isoformat(),
+                        "duration_seconds": (market_finished - market_started).total_seconds(),
+                        "status": "PASS" if market_valid else "BLOCKED",
+                        "error_code": market_error
+                        or (None if market_valid else "MARKET_INPUT_NOT_READY"),
+                        "next_action": "Review provider probes and freshness.",
+                    },
+                    {
+                        "stage": "research",
+                        "run_id": parent_id,
+                        "start": research.started_at.isoformat(),
+                        "finish": research.finished_at.isoformat(),
+                        "duration_seconds": research.duration_seconds,
+                        "status": research.context.status.value,
+                        "error_code": research.error_code,
+                        "next_action": research.next_action,
+                    },
+                    {
+                        "stage": "decision",
+                        "run_id": parent_id,
+                        "start": evaluated_at.isoformat(),
+                        "finish": datetime.now(UTC).isoformat(),
+                        "duration_seconds": (datetime.now(UTC) - evaluated_at).total_seconds(),
+                        "status": result.decision.overall_status.value,
+                        "error_code": None,
+                        "next_action": "Review deterministic policy gates; no manual authority inferred.",
+                    },
+                ],
+            }
+        )
         result.report.update(provenance)
         result.report["research_audit_files"] = write_research_audit(
             self.paths.logs / "research",
@@ -438,21 +661,35 @@ class MeridianApplicationService:
             }
         result.report["market_observations"] = market_observations
         if market_error:
-            result.report.update({"error_code": market_error, "exit_code": 3, "error_category": "DATA_QUALITY"})
+            result.report.update(
+                {"error_code": market_error, "exit_code": 3, "error_category": "DATA_QUALITY"}
+            )
         analysis_ok = result.report["status"] in {"DRAFT", "NO_ACTION", "NO_CAPITAL"}
-        directory = self.paths.reports / result.decision.as_of.date().isoformat() / result.decision.run_id
+        directory = (
+            self.paths.reports / result.decision.as_of.date().isoformat() / result.decision.run_id
+        )
         total_equity = account.total_equity
         invested_value = sum((holding.market_value for holding in account.holdings), Decimal("0"))
-        position_weights = [holding.market_value / total_equity for holding in account.holdings] if total_equity > 0 else []
+        position_weights = (
+            [holding.market_value / total_equity for holding in account.holdings]
+            if total_equity > 0
+            else []
+        )
         safe_analysis = {
             "status": "NOT_REQUIRED" if market_valid else "COMPLETED_NO_EXECUTION",
             "risk_analysis": {
                 "status": "PASS_ACCOUNT_ONLY",
                 "cash": str(account.cash),
                 "total_equity": str(total_equity),
-                "gross_exposure": str(invested_value / total_equity if total_equity > 0 else Decimal("0")),
+                "gross_exposure": str(
+                    invested_value / total_equity if total_equity > 0 else Decimal("0")
+                ),
                 "max_position_weight": str(max(position_weights, default=Decimal("0"))),
-                "limitations": ["No fresh complete market snapshot; price-sensitive risk is not asserted"] if not market_valid else [],
+                "limitations": [
+                    "No fresh complete market snapshot; price-sensitive risk is not asserted"
+                ]
+                if not market_valid
+                else [],
             },
             "portfolio_check": {
                 "status": "PASS_ACCOUNT_FACTS_ONLY",
@@ -470,52 +707,109 @@ class MeridianApplicationService:
                 "action": "HOLD" if not market_valid else None,
                 "orders": [],
                 "authority": "NONE",
-                "reason": "Fresh complete market data is required before deterministic order construction." if not market_valid else None,
+                "reason": "Fresh complete market data is required before deterministic order construction."
+                if not market_valid
+                else None,
             },
         }
         preflight_cache = preflight.get("cache", {})
-        cache_degraded = isinstance(preflight_cache, dict) and preflight_cache.get("status") != "READY"
-        result.report.update({
-            "timestamp": cutoff.isoformat(),
-            "trading_date": cutoff.astimezone(ZoneInfo("America/New_York")).date().isoformat(),
-            "runtime_status": "PASS" if preflight["status"] != "FAIL" else "FAILED",
-            "database_status": "PASS",
-            "startup_diagnostics": startup,
-            "market_status": current_market.as_dict(),
-            "execution_mode": execution_mode,
-            "data_quality_mode": provenance.get("data_quality_mode", "NORMAL"),
-            "safe_analysis": safe_analysis,
-            "data_status": "PASS" if quotes and not any("MARKET" in reason for reason in result.decision.blocked_reasons) else "FAILED",
-            "portfolio_status": account.freshness_state.value,
-            "research_status": research.context.status.value,
-            "quant_status": "PASS" if result.decision.target_portfolio is not None else "NOT_RUN",
-            "risk_status": "PASS" if result.decision.target_portfolio is not None and analysis_ok else "NOT_RUN",
-            "recommendation_status": "RESEARCH_ONLY" if analysis_ok else "BLOCKED",
-            "warnings": ["PUBLIC_RESEARCH_IS_ADVISORY_NOT_CERTIFIED", "NOT_AUTHORIZED_FOR_MANUAL_ENTRY"] + (["CACHE_DEGRADED"] if cache_degraded else []) + (["DATA_DEGRADED"] if provenance.get("data_quality_mode") == "DATA_DEGRADED" else []),
-            "errors": list(result.decision.blocked_reasons) + ([market_error] if market_error else []),
-            "output_files": {"report_json": str(directory / "daily.json"), "report_markdown": str(directory / "daily.md"), "log": str(log_path)},
-            "elapsed_seconds": round(monotonic() - started, 3),
-        })
+        cache_degraded = (
+            isinstance(preflight_cache, dict) and preflight_cache.get("status") != "READY"
+        )
+        result.report.update(
+            {
+                "timestamp": cutoff.isoformat(),
+                "trading_date": cutoff.astimezone(ZoneInfo("America/New_York")).date().isoformat(),
+                "runtime_status": "PASS" if preflight["status"] != "FAIL" else "FAILED",
+                "database_status": "PASS",
+                "startup_diagnostics": startup,
+                "market_status": current_market.as_dict(),
+                "execution_mode": execution_mode,
+                "data_quality_mode": provenance.get("data_quality_mode", "NORMAL"),
+                "safe_analysis": safe_analysis,
+                "data_status": "PASS"
+                if quotes
+                and not any("MARKET" in reason for reason in result.decision.blocked_reasons)
+                else "FAILED",
+                "portfolio_status": account.freshness_state.value,
+                "research_status": research.context.status.value,
+                "quant_status": "PASS"
+                if result.decision.target_portfolio is not None
+                else "NOT_RUN",
+                "risk_status": "PASS"
+                if result.decision.target_portfolio is not None and analysis_ok
+                else "NOT_RUN",
+                "recommendation_status": "RESEARCH_ONLY" if analysis_ok else "BLOCKED",
+                "warnings": [
+                    "PUBLIC_RESEARCH_IS_ADVISORY_NOT_CERTIFIED",
+                    "NOT_AUTHORIZED_FOR_MANUAL_ENTRY",
+                ]
+                + (["CACHE_DEGRADED"] if cache_degraded else [])
+                + (
+                    ["DATA_DEGRADED"]
+                    if provenance.get("data_quality_mode") == "DATA_DEGRADED"
+                    else []
+                ),
+                "errors": list(result.decision.blocked_reasons)
+                + ([market_error] if market_error else []),
+                "output_files": {
+                    "report_json": str(directory / "daily.json"),
+                    "report_markdown": str(directory / "daily.md"),
+                    "log": str(log_path),
+                },
+                "elapsed_seconds": round(monotonic() - started, 3),
+            }
+        )
         market_ok = result.report["data_status"] == "PASS"
-        snapshot_fresh = (evaluated_at - account.as_of).total_seconds() <= policies.data.account_snapshot_max_age_seconds
+        snapshot_fresh = (
+            evaluated_at - account.as_of
+        ).total_seconds() <= policies.data.account_snapshot_max_age_seconds
         research_available = research.context.status is ResearchProviderStatus.AVAILABLE
-        research_health = ReadinessStatus.PASS if research_available else ReadinessStatus.NOT_RUN if research.context.status is ResearchProviderStatus.NOT_RUN else ReadinessStatus.BLOCKED
+        research_health = (
+            ReadinessStatus.PASS
+            if research_available
+            else ReadinessStatus.NOT_RUN
+            if research.context.status is ResearchProviderStatus.NOT_RUN
+            else ReadinessStatus.BLOCKED
+        )
         ready = RecommendationReadiness(
             research_status=research_health,
-            research_freshness=ReadinessStatus.PASS if research_available and research.response_received_at is not None and 0 <= (evaluated_at - research.response_received_at).total_seconds() <= (settings.live_as_of_tolerance_seconds if settings else 0) else ReadinessStatus.UNKNOWN,
+            research_freshness=ReadinessStatus.PASS
+            if research_available
+            and research.response_received_at is not None
+            and 0
+            <= (evaluated_at - research.response_received_at).total_seconds()
+            <= (settings.live_as_of_tolerance_seconds if settings else 0)
+            else ReadinessStatus.UNKNOWN,
             runtime_health=ReadinessStatus(str(preflight["status"])),
             account_snapshot_status=snapshot.status,
-            account_snapshot_freshness=ReadinessStatus.PASS if snapshot_fresh else ReadinessStatus.BLOCKED,
+            account_snapshot_freshness=ReadinessStatus.PASS
+            if snapshot_fresh
+            else ReadinessStatus.BLOCKED,
             account_provenance=snapshot.provenance_status,
             market_data_status=ReadinessStatus.PASS if quotes else ReadinessStatus.BLOCKED,
             market_data_freshness=ReadinessStatus.PASS if market_ok else ReadinessStatus.BLOCKED,
-            provider_provenance=ReadinessStatus.DEGRADED if market_fixture else ReadinessStatus.PASS if provenance.get("provider_probes") else ReadinessStatus.UNKNOWN,
-            decision_pipeline_status=ReadinessStatus.PASS if result.decision.target_portfolio is not None and analysis_ok else ReadinessStatus.FAILED if result.report["status"] == "FAILED" else ReadinessStatus.NOT_RUN,
-            policy_gate_status=ReadinessStatus.DEGRADED if result.decision.target_portfolio is not None else ReadinessStatus.NOT_RUN,
+            provider_provenance=ReadinessStatus.DEGRADED
+            if market_fixture
+            else ReadinessStatus.PASS
+            if provenance.get("provider_probes")
+            else ReadinessStatus.UNKNOWN,
+            decision_pipeline_status=ReadinessStatus.PASS
+            if result.decision.target_portfolio is not None and analysis_ok
+            else ReadinessStatus.FAILED
+            if result.report["status"] == "FAILED"
+            else ReadinessStatus.NOT_RUN,
+            policy_gate_status=ReadinessStatus.DEGRADED
+            if result.decision.target_portfolio is not None
+            else ReadinessStatus.NOT_RUN,
             quote_certification_status=ReadinessStatus.BLOCKED,
-            input_mode=("FIXTURE" if market_fixture or snapshot.source_kind == "FIXTURE"
-                        else "PAPER_LEDGER" if snapshot.source_kind == "PAPER_LEDGER"
-                        else "HOST_SUPPLIED_UNVERIFIED"),
+            input_mode=(
+                "FIXTURE"
+                if market_fixture or snapshot.source_kind == "FIXTURE"
+                else "PAPER_LEDGER"
+                if snapshot.source_kind == "PAPER_LEDGER"
+                else "HOST_SUPPLIED_UNVERIFIED"
+            ),
             quote_kind="PUBLIC_RESEARCH_QUOTE" if not market_fixture else "FIXTURE",
         )
         reconciliation = result.report.get("reconciliation")
@@ -523,28 +817,84 @@ class MeridianApplicationService:
         gate_specs = (
             (
                 "ACCOUNT_READY",
-                ReadinessStatus.PASS if ready.account_provenance is ReadinessStatus.PASS and snapshot_fresh else ReadinessStatus.BLOCKED,
-                "Fresh authoritative paper ledger observation" if snapshot.source_kind == "PAPER_LEDGER" else "Authenticated fresh Host source required",
+                ReadinessStatus.PASS
+                if ready.account_provenance is ReadinessStatus.PASS and snapshot_fresh
+                else ReadinessStatus.BLOCKED,
+                "Fresh authoritative paper ledger observation"
+                if snapshot.source_kind == "PAPER_LEDGER"
+                else "Authenticated fresh Host source required",
                 snapshot.content_hash or "UNAVAILABLE",
             ),
-            ("SECURITY_READY", ready.policy_gate_status, "Operational sector metadata is not authoritative certification", request.policy_reference),
-            ("MARKET_READY", ready.market_data_freshness, "Market observations must be fresh at decision time", request.market_reference),
-            ("RESEARCH_READY", ReadinessStatus.DEGRADED if research_available else research_health, "Public model inference is advisory, not certified evidence", research.context.input_hash),
-            ("QUOTE_READY", ready.quote_certification_status, "Certified execution quote absent", "UNAVAILABLE"),
-            ("RISK_READY", ReadinessStatus.PASS if result.report["risk_status"] == "PASS" else ReadinessStatus.BLOCKED, "Deterministic projected portfolio validation", request.policy_reference),
-            ("RECONCILIATION_READY", ReadinessStatus.PASS if reconciled and snapshot_fresh else ReadinessStatus.BLOCKED, "Reconciliation uses supplied facts; no fills inferred", snapshot.content_hash or "UNAVAILABLE"),
+            (
+                "SECURITY_READY",
+                ready.policy_gate_status,
+                "Operational sector metadata is not authoritative certification",
+                request.policy_reference,
+            ),
+            (
+                "MARKET_READY",
+                ready.market_data_freshness,
+                "Market observations must be fresh at decision time",
+                request.market_reference,
+            ),
+            (
+                "RESEARCH_READY",
+                ReadinessStatus.DEGRADED if research_available else research_health,
+                "Public model inference is advisory, not certified evidence",
+                research.context.input_hash,
+            ),
+            (
+                "QUOTE_READY",
+                ready.quote_certification_status,
+                "Certified execution quote absent",
+                "UNAVAILABLE",
+            ),
+            (
+                "RISK_READY",
+                ReadinessStatus.PASS
+                if result.report["risk_status"] == "PASS"
+                else ReadinessStatus.BLOCKED,
+                "Deterministic projected portfolio validation",
+                request.policy_reference,
+            ),
+            (
+                "RECONCILIATION_READY",
+                ReadinessStatus.PASS if reconciled and snapshot_fresh else ReadinessStatus.BLOCKED,
+                "Reconciliation uses supplied facts; no fills inferred",
+                snapshot.content_hash or "UNAVAILABLE",
+            ),
         )
-        gates = tuple(ReadinessGateResult(gate=name, status=status, reason=reason, evidence=(reference,)) for name, status, reason, reference in gate_specs)
-        result.report.update({"gates": [gate.model_dump(mode="json") for gate in gates],
-            "manual_authority": {"status": "BLOCKED" if any(gate.status is not ReadinessStatus.PASS for gate in gates) else "MANUAL_REVIEW_REQUIRED", "certificate_issued": False, "reason": "Existing sealed authority and certified quote remain required."},
-            "readiness": ready.model_dump(mode="json"),
-            "snapshot_provenance": snapshot.model_dump(mode="json"),
-            "next_actions": ["Provide verifiable authorized Host source evidence; content hashes are not authentication.",
-                             "Supply fresh market observations if freshness is blocked.",
-                             "Run certified research and policy gates before recommendation readiness.",
-                             "Manual entry additionally requires a certified execution quote and sealed authority."],
-            "degraded_reasons": ["RESEARCH_ADVISORY_ONLY" if research_available else "RESEARCH_" + research.context.status.value, "POLICY_SECURITY_METADATA_UNCERTIFIED", "PUBLIC_QUOTE_UNCERTIFIED"],
-        })
+        gates = tuple(
+            ReadinessGateResult(gate=name, status=status, reason=reason, evidence=(reference,))
+            for name, status, reason, reference in gate_specs
+        )
+        result.report.update(
+            {
+                "gates": [gate.model_dump(mode="json") for gate in gates],
+                "manual_authority": {
+                    "status": "BLOCKED"
+                    if any(gate.status is not ReadinessStatus.PASS for gate in gates)
+                    else "MANUAL_REVIEW_REQUIRED",
+                    "certificate_issued": False,
+                    "reason": "Existing sealed authority and certified quote remain required.",
+                },
+                "readiness": ready.model_dump(mode="json"),
+                "snapshot_provenance": snapshot.model_dump(mode="json"),
+                "next_actions": [
+                    "Provide verifiable authorized Host source evidence; content hashes are not authentication.",
+                    "Supply fresh market observations if freshness is blocked.",
+                    "Run certified research and policy gates before recommendation readiness.",
+                    "Manual entry additionally requires a certified execution quote and sealed authority.",
+                ],
+                "degraded_reasons": [
+                    "RESEARCH_ADVISORY_ONLY"
+                    if research_available
+                    else "RESEARCH_" + research.context.status.value,
+                    "POLICY_SECURITY_METADATA_UNCERTIFIED",
+                    "PUBLIC_QUOTE_UNCERTIFIED",
+                ],
+            }
+        )
         # Forward evidence consumes this exact final decision and the already-selected
         # operational observations. It is intentionally observational: it never
         # recalculates an order, upgrades public data, or promotes a strategy.
@@ -555,8 +905,11 @@ class MeridianApplicationService:
         try:
             if analysis_ok and market_ok:
                 targets = result.decision.target_portfolio
-                target_weights = ({item.ticker: item.target_weight for item in targets.positions}
-                                  if targets is not None else {})
+                target_weights = (
+                    {item.ticker: item.target_weight for item in targets.positions}
+                    if targets is not None
+                    else {}
+                )
                 order_signals = {item.ticker: item.side.value for item in result.decision.orders}
                 quote_prices = {ticker: quote.last for ticker, quote in quotes.items()}
                 forward_freeze = freeze_canonical_predictions(
@@ -579,21 +932,34 @@ class MeridianApplicationService:
                     data_mode=str(provenance["data_mode"]),
                 )
                 forward_outcomes = forward_ledger.ingest_prices(
-                    observed_at=cutoff, prices=quote_prices, source="CANONICAL_OPERATIONAL_MARKET_SNAPSHOT"
+                    observed_at=cutoff,
+                    prices=quote_prices,
+                    source="CANONICAL_OPERATIONAL_MARKET_SNAPSHOT",
                 )
             else:
-                forward_freeze = {"status": "FORWARD_NOT_FROZEN", "reason": "CANONICAL_DECISION_OR_MARKET_NOT_READY"}
-                forward_outcomes = {"status": "FORWARD_OUTCOME_NOT_READY", "reason": "CANONICAL_MARKET_NOT_READY"}
-            forward_summary = forward_ledger.evaluate(minimum_samples=forward_policy.minimum_mature_samples)
+                forward_freeze = {
+                    "status": "FORWARD_NOT_FROZEN",
+                    "reason": "CANONICAL_DECISION_OR_MARKET_NOT_READY",
+                }
+                forward_outcomes = {
+                    "status": "FORWARD_OUTCOME_NOT_READY",
+                    "reason": "CANONICAL_MARKET_NOT_READY",
+                }
+            forward_summary = forward_ledger.evaluate(
+                minimum_samples=forward_policy.minimum_mature_samples
+            )
             result.report["forward_evidence"] = {
-                "status": forward_summary["status"], "freeze": forward_freeze,
-                "outcomes": forward_outcomes, "summary": forward_summary,
+                "status": forward_summary["status"],
+                "freeze": forward_freeze,
+                "outcomes": forward_outcomes,
+                "summary": forward_summary,
                 "policy_hash": forward_policy_hash(forward_policy),
                 "authority": "SHADOW_EVIDENCE_ONLY_NO_AUTOMATIC_PROMOTION",
             }
         except (OSError, ValueError):
             result.report["forward_evidence"] = {
-                "status": "BLOCKED", "freeze": {"status": "FORWARD_NOT_FROZEN"},
+                "status": "BLOCKED",
+                "freeze": {"status": "FORWARD_NOT_FROZEN"},
                 "outcomes": {"status": "FORWARD_OUTCOME_NOT_READY"},
                 "summary": {"status": "BLOCKED"},
                 "authority": "SHADOW_EVIDENCE_ONLY_NO_AUTOMATIC_PROMOTION",
@@ -601,25 +967,79 @@ class MeridianApplicationService:
             }
             errors = result.report.get("errors", [])
             next_actions = result.report.get("next_actions", [])
-            result.report["errors"] = [*errors, "FORWARD_EVIDENCE_INTEGRITY_OR_STORAGE_FAILED"] if isinstance(errors, list) else ["FORWARD_EVIDENCE_INTEGRITY_OR_STORAGE_FAILED"]
-            result.report["next_actions"] = [*next_actions, "Inspect forward evidence storage and preserve the conflicting receipt; do not infer a replacement prediction."] if isinstance(next_actions, list) else ["Inspect forward evidence storage and preserve the conflicting receipt; do not infer a replacement prediction."]
+            result.report["errors"] = (
+                [*errors, "FORWARD_EVIDENCE_INTEGRITY_OR_STORAGE_FAILED"]
+                if isinstance(errors, list)
+                else ["FORWARD_EVIDENCE_INTEGRITY_OR_STORAGE_FAILED"]
+            )
+            result.report["next_actions"] = (
+                [
+                    *next_actions,
+                    "Inspect forward evidence storage and preserve the conflicting receipt; do not infer a replacement prediction.",
+                ]
+                if isinstance(next_actions, list)
+                else [
+                    "Inspect forward evidence storage and preserve the conflicting receipt; do not infer a replacement prediction."
+                ]
+            )
         AuditStore(self.paths.db).write_decision(result.decision)
-        AuditStore(self.paths.db).write_readiness(result.decision.run_id, cutoff.isoformat(), str(result.report["status"]), {
-            "research": result.report["research"], "research_input": result.report["research_input"], "decision_context": result.report["decision_context"], "gates": result.report["gates"], "stages": result.report["stages"], "manual_authority": result.report["manual_authority"],
-            "readiness": result.report["readiness"], "snapshot_provenance": result.report["snapshot_provenance"],
-            "provider_probes": provenance.get("provider_probes", {}), "data_mode": provenance["data_mode"],
-            "next_actions": result.report["next_actions"], "errors": result.report["errors"], "error_code": result.report.get("error_code"),
-        })
-        logger.info("run_id=%s data_mode=%s elapsed_seconds=%s", result.decision.run_id, provenance["data_mode"], result.report["elapsed_seconds"])
-        logger.info("recommendation=%s blockers=%s", ready.recommendation_readiness.value, ready.blockers)
-        logger.warning("Research status=%s; advisory-only, no manual-entry authority", research.context.status.value)
-        logger.info("status=%s provider_health=%s report=%s", result.report["status"], provenance["provider_health"], directory)
+        AuditStore(self.paths.db).write_readiness(
+            result.decision.run_id,
+            cutoff.isoformat(),
+            str(result.report["status"]),
+            {
+                "research": result.report["research"],
+                "research_input": result.report["research_input"],
+                "decision_context": result.report["decision_context"],
+                "gates": result.report["gates"],
+                "stages": result.report["stages"],
+                "manual_authority": result.report["manual_authority"],
+                "readiness": result.report["readiness"],
+                "snapshot_provenance": result.report["snapshot_provenance"],
+                "provider_probes": provenance.get("provider_probes", {}),
+                "data_mode": provenance["data_mode"],
+                "next_actions": result.report["next_actions"],
+                "errors": result.report["errors"],
+                "error_code": result.report.get("error_code"),
+            },
+        )
+        logger.info(
+            "run_id=%s data_mode=%s elapsed_seconds=%s",
+            result.decision.run_id,
+            provenance["data_mode"],
+            result.report["elapsed_seconds"],
+        )
+        logger.info(
+            "recommendation=%s blockers=%s", ready.recommendation_readiness.value, ready.blockers
+        )
+        logger.warning(
+            "Research status=%s; advisory-only, no manual-entry authority",
+            research.context.status.value,
+        )
+        logger.info(
+            "status=%s provider_health=%s report=%s",
+            result.report["status"],
+            provenance["provider_health"],
+            directory,
+        )
         return self._complete_report(result.report)
 
     def _complete_report(self, payload: dict[str, object]) -> dict[str, object]:
         try:
             json_path, markdown_path = persist_run_report(payload, self.paths)
-            return {**payload, "report_json": str(json_path), "report_markdown": str(markdown_path)}
+            result = {
+                **payload,
+                "report_json": str(json_path),
+                "report_markdown": str(markdown_path),
+            }
+            try:
+                result["run_health_json"] = str(persist_run_health(result, self.paths))
+            except OSError as error:
+                logging.getLogger("meridian.run_health").error(
+                    "RUN_HEALTH_PERSISTENCE_FAILED error_type=%s", type(error).__name__
+                )
+                result["run_health_error"] = "RUN_HEALTH_PERSISTENCE_FAILED"
+            return result
         except OSError:
             # Analysis may already be durable. Keep its identity and append a failure
             # receipt rather than replacing immutable evidence or inventing a new run.
@@ -627,22 +1047,51 @@ class MeridianApplicationService:
             outputs = outputs if isinstance(outputs, dict) else {}
             raw_readiness = payload.get("readiness", {})
             raw_readiness = raw_readiness if isinstance(raw_readiness, dict) else {}
-            readiness = RecommendationReadiness.model_validate({key: value for key, value in raw_readiness.items()
-                if key in RecommendationReadiness.model_fields}).model_copy(update={"runtime_health": ReadinessStatus.FAILED})
-            failure = {**payload, "status": "FAILED", "runtime_status": "FAILED", "exit_code": 3,
-                "error_code": "MERIDIAN_REPORT_WRITE_FAILED", "error_category": "USER_FIXABLE",
-                "recommendation_status": "BLOCKED", "report_persistence_status": "FAILED",
+            readiness = RecommendationReadiness.model_validate(
+                {
+                    key: value
+                    for key, value in raw_readiness.items()
+                    if key in RecommendationReadiness.model_fields
+                }
+            ).model_copy(update={"runtime_health": ReadinessStatus.FAILED})
+            failure = {
+                **payload,
+                "status": "FAILED",
+                "runtime_status": "FAILED",
+                "exit_code": 3,
+                "error_code": "MERIDIAN_REPORT_WRITE_FAILED",
+                "error_category": "USER_FIXABLE",
+                "recommendation_status": "BLOCKED",
+                "report_persistence_status": "FAILED",
                 "readiness": readiness.model_dump(mode="json"),
                 "errors": ["MERIDIAN_REPORT_WRITE_FAILED"],
-                "next_actions": ["Check report directory permissions, free space and file locks. Partial files are not a completed report; preserve audit history and use this run_id for diagnosis."],
-                "partial_output_files": {key: value for key, value in outputs.items() if key != "log" and Path(str(value)).is_file()},
-                "output_files": {key: value for key, value in outputs.items() if key == "log" and Path(str(value)).is_file()},
-                "audit_failure_recorded": True}
+                "next_actions": [
+                    "Check report directory permissions, free space and file locks. Partial files are not a completed report; preserve audit history and use this run_id for diagnosis."
+                ],
+                "partial_output_files": {
+                    key: value
+                    for key, value in outputs.items()
+                    if key != "log" and Path(str(value)).is_file()
+                },
+                "output_files": {
+                    key: value
+                    for key, value in outputs.items()
+                    if key == "log" and Path(str(value)).is_file()
+                },
+                "audit_failure_recorded": True,
+            }
             try:
-                AuditStore(self.paths.db).write_readiness(str(payload["run_id"]) + ":report-failure",
-                    str(payload["analysis_time"]), "FAILED",
-                    {"event_type": "REPORT_PERSISTENCE_FAILED", "parent_run_id": payload["run_id"],
-                     "error_code": failure["error_code"], "runtime_status": "FAILED"})
+                AuditStore(self.paths.db).write_readiness(
+                    str(payload["run_id"]) + ":report-failure",
+                    str(payload["analysis_time"]),
+                    "FAILED",
+                    {
+                        "event_type": "REPORT_PERSISTENCE_FAILED",
+                        "parent_run_id": payload["run_id"],
+                        "error_code": failure["error_code"],
+                        "runtime_status": "FAILED",
+                    },
+                )
             except (OSError, sqlite3.Error):
                 failure["audit_failure_recorded"] = False
             return failure
@@ -745,7 +1194,9 @@ class MeridianApplicationService:
         research_context = research.get("context", {})
         research_context = research_context if isinstance(research_context, dict) else {}
         research_diagnostics = research.get("provider_diagnostics", {})
-        research_diagnostics = research_diagnostics if isinstance(research_diagnostics, dict) else {}
+        research_diagnostics = (
+            research_diagnostics if isinstance(research_diagnostics, dict) else {}
+        )
         research_response = research.get("structured_response", {})
         research_response = research_response if isinstance(research_response, dict) else {}
         research_universe = payload.get("research_universe", {})
@@ -767,7 +1218,9 @@ class MeridianApplicationService:
         provider = startup.get("data_provider", {})
         provider = provider if isinstance(provider, dict) else {}
         market_status_summary = startup.get("market_status", {})
-        market_status_summary = market_status_summary if isinstance(market_status_summary, dict) else {}
+        market_status_summary = (
+            market_status_summary if isinstance(market_status_summary, dict) else {}
+        )
         evidence_catalog = retrieval.get("evidence_catalog", [])
         lines = [
             "# Meridian Daily — Schwab-Paper",
@@ -928,13 +1381,25 @@ class MeridianApplicationService:
         temporary_md = markdown_path.with_suffix(".tmp")
         temporary_md.write_text("\n".join(lines), encoding="utf-8")
         publish_staged_report(temporary_md, markdown_path)
-        return {"paper_report_json": str(json_path), "paper_report_markdown": str(markdown_path)}
+        outputs = {"paper_report_json": str(json_path), "paper_report_markdown": str(markdown_path)}
+        try:
+            outputs["run_health_json"] = str(persist_run_health(payload, self.paths))
+        except OSError as error:
+            logging.getLogger("meridian.run_health").error(
+                "RUN_HEALTH_PERSISTENCE_FAILED error_type=%s", type(error).__name__
+            )
+            outputs["run_health_error"] = "RUN_HEALTH_PERSISTENCE_FAILED"
+        return outputs
 
     def paper_run(self, account_name: str = DEFAULT_ACCOUNT) -> dict[str, object]:
         """Run the existing canonical daily flow against one durable paper account."""
         initialized = self.init()
         if initialized["status"] == "INIT_FAILED":
-            return {**initialized, "status": "PAPER_BLOCKED", "paper_execution": {"status": "BLOCKED"}}
+            return {
+                **initialized,
+                "status": "PAPER_BLOCKED",
+                "paper_execution": {"status": "BLOCKED"},
+            }
         ledger = self._paper_ledger()
         account = ledger.state(account_name)
         auto_initialized = False
@@ -960,7 +1425,9 @@ class MeridianApplicationService:
             market_session = market_status(cutoff).status.value
         except ValueError:
             market_session = "CLOSED"
-        trading_date = str(daily.get("trading_date") or datetime.now(ZoneInfo("America/New_York")).date())
+        trading_date = str(
+            daily.get("trading_date") or datetime.now(ZoneInfo("America/New_York")).date()
+        )
         canonical_run_id = str(daily.get("run_id", "UNAVAILABLE"))
         report_status = str(daily.get("status", "FAILED"))
         research_status = str(daily.get("research_status", "NOT_RUN"))
@@ -1027,7 +1494,9 @@ class MeridianApplicationService:
         paper_run_id = "paper-" + canonical_run_id
         paper_execution = {
             "status": execution_status,
-            "readiness": "PASS" if execution_status in {"PAPER_COMPLETE", "PAPER_NO_TRADE"} else "BLOCKED",
+            "readiness": "PASS"
+            if execution_status in {"PAPER_COMPLETE", "PAPER_NO_TRADE"}
+            else "BLOCKED",
             "authority": "PAPER_EXECUTION_ONLY",
             "quote_kind": "PUBLIC_RESEARCH_QUOTE",
             "quote_certification": "BLOCKED",
@@ -1041,7 +1510,9 @@ class MeridianApplicationService:
         daily_readiness = daily.get("readiness")
         daily_readiness = daily_readiness if isinstance(daily_readiness, dict) else {}
         daily_manual_authority = daily.get("manual_authority")
-        daily_manual_authority = daily_manual_authority if isinstance(daily_manual_authority, dict) else {}
+        daily_manual_authority = (
+            daily_manual_authority if isinstance(daily_manual_authority, dict) else {}
+        )
         payload: dict[str, object] = {
             "schema_version": "meridian-paper-daily.v1",
             "paper_run_id": paper_run_id,
@@ -1056,7 +1527,8 @@ class MeridianApplicationService:
                 "realized_pnl": account_status.get("realized_pnl"),
                 "positions": account_status.get("positions", []),
             },
-            "performance": performance or {"status": "NOT_MARKED", "reason": "FRESH_QUOTES_FOR_ALL_POSITIONS_REQUIRED"},
+            "performance": performance
+            or {"status": "NOT_MARKED", "reason": "FRESH_QUOTES_FOR_ALL_POSITIONS_REQUIRED"},
             "startup_diagnostics": daily.get("startup_diagnostics", {}),
             "execution_mode": daily.get("execution_mode", "SAFE_ANALYSIS"),
             "safe_analysis": daily.get("safe_analysis", {}),
@@ -1083,7 +1555,9 @@ class MeridianApplicationService:
             "auto_initialized": auto_initialized,
             "blockers": blockers,
             "next_actions": (
-                ["Inspect canonical report and retry only during a regular session with fresh public data and validated advisory research."]
+                [
+                    "Inspect canonical report and retry only during a regular session with fresh public data and validated advisory research."
+                ]
                 if blockers
                 else ["Paper ledger and report were updated. Broker submission remains disabled."]
             ),
@@ -1094,15 +1568,33 @@ class MeridianApplicationService:
         except OSError:
             paper_outputs = {}
             payload["blockers"] = [*blockers, "PAPER_REPORT_WRITE_FAILED"]
-            payload["next_actions"] = ["Check report directory permissions and preserve the canonical report and paper ledger."]
-        payload["output_files"] = {**paper_outputs, **({"canonical_report_json": daily["report_json"]} if "report_json" in daily else {}), **({"canonical_report_markdown": daily["report_markdown"]} if "report_markdown" in daily else {})}
+            payload["next_actions"] = [
+                "Check report directory permissions and preserve the canonical report and paper ledger."
+            ]
+        payload["output_files"] = {
+            **paper_outputs,
+            **({"canonical_report_json": daily["report_json"]} if "report_json" in daily else {}),
+            **(
+                {"canonical_report_markdown": daily["report_markdown"]}
+                if "report_markdown" in daily
+                else {}
+            ),
+        }
         return payload
+
     def data_status(self) -> dict[str, object]:
         policies = load_policies(policy_directory())
-        snapshot = OperationalMarketSnapshotService.from_runtime(self.paths, policy=FreshnessPolicy(quote_max_age_seconds=policies.data.quote_max_age_seconds, account_max_age_seconds=policies.data.account_snapshot_max_age_seconds)).build(
-            policies.universe.tickers, analysis_time=datetime.now().astimezone(), live=True
-        )
-        return {**snapshot.data_status(), "status": "PASS" if snapshot.status == "OPERATIONAL_READY" else "DEGRADED"}
+        snapshot = OperationalMarketSnapshotService.from_runtime(
+            self.paths,
+            policy=FreshnessPolicy(
+                quote_max_age_seconds=policies.data.quote_max_age_seconds,
+                account_max_age_seconds=policies.data.account_snapshot_max_age_seconds,
+            ),
+        ).build(policies.universe.tickers, analysis_time=datetime.now().astimezone(), live=True)
+        return {
+            **snapshot.data_status(),
+            "status": "PASS" if snapshot.status == "OPERATIONAL_READY" else "DEGRADED",
+        }
 
     def dip_scout(self, packet_path: Path) -> dict[str, object]:
         return dip_scout(
@@ -1112,9 +1604,11 @@ class MeridianApplicationService:
     def forward_status(self) -> dict[str, object]:
         policy = load_forward_evidence_policy(policy_directory())
         ledger = ForwardLedger(self.paths.audit / "forward-evidence.json")
-        return {**ledger.evaluate(minimum_samples=policy.minimum_mature_samples),
-                "policy_hash": forward_policy_hash(policy),
-                "authority": "SHADOW_EVIDENCE_ONLY_NO_AUTOMATIC_PROMOTION"}
+        return {
+            **ledger.evaluate(minimum_samples=policy.minimum_mature_samples),
+            "policy_hash": forward_policy_hash(policy),
+            "authority": "SHADOW_EVIDENCE_ONLY_NO_AUTOMATIC_PROMOTION",
+        }
 
     def latest_report(self) -> dict[str, object]:
         reports = sorted(
@@ -1145,4 +1639,3 @@ class MeridianApplicationService:
             "execution": "MANUAL",
             "broker_submission": "DISABLED",
         }
-

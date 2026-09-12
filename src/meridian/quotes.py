@@ -180,7 +180,9 @@ class QuoteNormalizer:
         provider_symbol = str(raw.get("provider_symbol", "")).strip()
         expected_symbol = security.provider_symbols.get(provider)
         if not provider_symbol or expected_symbol != provider_symbol:
-            raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch")
+            raise SecurityIdentityUnavailable(
+                "SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch"
+            )
         observed = self._timestamp(raw.get("observed_at"))
         if observed > retrieved_at:
             raise ValueError("quote observed_at cannot be in the future")
@@ -261,7 +263,9 @@ class QuoteComparison(StableModel):
     warnings: tuple[str, ...] = ()
 
 
-def compare_quotes(quotes: tuple[QuoteObservation, ...], *, last_tolerance: Decimal = Decimal("0.01")) -> QuoteComparison:
+def compare_quotes(
+    quotes: tuple[QuoteObservation, ...], *, last_tolerance: Decimal = Decimal("0.01")
+) -> QuoteComparison:
     if not quotes:
         raise ValueError("at least one quote is required")
     symbol = quotes[0].canonical_symbol
@@ -271,7 +275,11 @@ def compare_quotes(quotes: tuple[QuoteObservation, ...], *, last_tolerance: Deci
             differing.append("identity")
         if quote.currency != quotes[0].currency:
             differing.append("currency")
-        if quote.last is not None and quotes[0].last is not None and abs(quote.last - quotes[0].last) > last_tolerance:
+        if (
+            quote.last is not None
+            and quotes[0].last is not None
+            and abs(quote.last - quotes[0].last) > last_tolerance
+        ):
             differing.append("last")
         if quote.bid != quotes[0].bid:
             differing.append("bid")
@@ -289,13 +297,6 @@ def compare_quotes(quotes: tuple[QuoteObservation, ...], *, last_tolerance: Deci
         status=QuoteQualityStatus.MARKET_DATA_CONFLICT if fields else QuoteQualityStatus.VERIFIED,
         warnings=("MARKET_DATA_CONFLICT",) if fields else (),
     )
-
-
-
-
-
-
-
 
 
 class YahooChartQuoteProvider:
@@ -363,15 +364,23 @@ class YahooChartQuoteProvider:
         if _time.monotonic() - started > self.timeout_seconds * 2:
             raise QuoteProviderTimeout("Yahoo chart response exceeded timeout budget")
         try:
-            document = json.loads(payload.decode("utf-8") if isinstance(payload, bytes) else str(payload))
+            document = json.loads(
+                payload.decode("utf-8") if isinstance(payload, bytes) else str(payload)
+            )
             result = document["chart"]["result"][0]
             meta = result["meta"]
             price = meta.get("regularMarketPrice")
             epoch = meta.get("regularMarketTime")
             if price is None or epoch is None:
                 timestamps = result.get("timestamp") or []
-                closes = ((result.get("indicators") or {}).get("quote") or [{}])[0].get("close") or []
-                valid = [(ts, close) for ts, close in zip(timestamps, closes, strict=False) if close is not None]
+                closes = ((result.get("indicators") or {}).get("quote") or [{}])[0].get(
+                    "close"
+                ) or []
+                valid = [
+                    (ts, close)
+                    for ts, close in zip(timestamps, closes, strict=False)
+                    if close is not None
+                ]
                 if not valid:
                     raise ValueError("Yahoo chart response has no last price")
                 epoch, price = valid[-1]
@@ -391,6 +400,89 @@ class YahooChartQuoteProvider:
             provider=self.provider_name,
             retrieved_at=retrieved,
             source="yahoo-chart-public",
+            as_of=as_of,
+        )
+
+
+class NasdaqApiQuoteProvider:
+    """Read-only Nasdaq public quote fallback; never an execution quote."""
+
+    provider_name = "nasdaq"
+    network_capable = True
+    capabilities = MarketDataCapabilityCertificate(
+        provider_name=provider_name,
+        supports_live=True,
+        supports_last=True,
+        timestamp_semantics="Nasdaq public API timestamp; unverified research observation",
+        research_grade=False,
+        execution_quote_grade=False,
+    )
+
+    def __init__(
+        self,
+        security_master: SecurityMaster,
+        *,
+        timeout_seconds: float = 8.0,
+        opener: Callable[..., Any] = urlopen,
+        clock: Callable[[], datetime] | None = None,
+    ) -> None:
+        self.security_master, self.timeout_seconds, self.opener = (
+            security_master,
+            timeout_seconds,
+            opener,
+        )
+        self.clock = clock or (lambda: datetime.now(UTC))
+
+    def get_quote(self, symbol: str, *, as_of: datetime | None = None) -> QuoteObservation:
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider_name)
+        if not provider_symbol:
+            raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:nasdaq-symbol")
+        assetclass = "etf" if security.asset_type.value == "ETF" else "stocks"
+        request = Request(
+            f"https://api.nasdaq.com/api/quote/{url_quote(provider_symbol)}/info?assetclass={assetclass}",
+            headers={"User-Agent": "Mozilla/5.0 MeridianAlpha/0.1", "Accept": "application/json"},
+        )
+        try:
+            response = self.opener(request, timeout=self.timeout_seconds)
+            payload = response.read()
+        except TimeoutError as error:
+            raise QuoteProviderTimeout("Nasdaq quote request timed out") from error
+        except OSError as error:
+            raise QuoteProviderError("Nasdaq quote request failed") from error
+        try:
+            data = json.loads(
+                payload.decode("utf-8") if isinstance(payload, bytes) else str(payload)
+            )["data"]
+            primary = data.get("primaryData") or {}
+            price = primary.get("lastSalePrice") or data.get("lastSalePrice")
+            timestamp_text = primary.get("lastTradeTimestamp") or data.get("lastTradeTimestamp")
+            if price is None or timestamp_text is None:
+                raise ValueError("Nasdaq quote has no price or timestamp")
+            raw_timestamp = str(timestamp_text)
+            try:
+                observed = datetime.fromisoformat(raw_timestamp.replace("Z", "+00:00"))
+            except ValueError:
+                observed = datetime.strptime(
+                    raw_timestamp.removesuffix(" ET"), "%b %d, %Y %I:%M %p"
+                )
+            if observed.tzinfo is None:
+                observed = observed.replace(tzinfo=ZoneInfo(security.timezone)).astimezone(UTC)
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+            raise QuoteProviderMalformed("Nasdaq quote response is malformed") from error
+        retrieved = self.clock()
+        return QuoteNormalizer(self.security_master).normalize(
+            {
+                "provider_symbol": provider_symbol,
+                "observed_at": observed,
+                "available_at": observed,
+                "last": str(price).replace("$", "").replace(",", ""),
+                "currency": security.currency,
+            },
+            symbol=symbol,
+            provider=self.provider_name,
+            retrieved_at=retrieved,
+            source="nasdaq-public-api",
             as_of=as_of,
         )
 
