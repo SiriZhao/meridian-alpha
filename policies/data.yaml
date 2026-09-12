@@ -1,6 +1,12 @@
 example_defaults: true
 account_snapshot_max_age_seconds: 3600
 quote_max_age_seconds: 900
+research:
+  maximum_market_age_seconds: 259200
+  require_verified_structured_market: true
+execution:
+  maximum_quote_age_seconds: 900
+  require_market_open: true
 historical_cache_enabled: true
 nav_discrepancy_tolerance: 25.00
 evidence:

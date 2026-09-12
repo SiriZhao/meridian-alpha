@@ -92,6 +92,20 @@ class ResearchBudgetPolicy(PolicyModel):
         return (held + remainder)[: self.max_graph_tickers_per_run]
 
 
+class ResearchBudget(PolicyModel):
+    """Finite wall-clock budget for the GPT-native advisory pipeline."""
+
+    total_seconds: int = Field(default=42, ge=1, le=600)
+    primary_seconds: int = Field(default=16, ge=1, le=300)
+    skeptic_seconds: int = Field(default=10, ge=1, le=300)
+    scenario_seconds: int = Field(default=8, ge=1, le=300)
+    synthesis_seconds: int = Field(default=8, ge=1, le=300)
+
+    @model_validator(mode="after")
+    def stages_fit_total_budget(self) -> ResearchBudget:
+        if self.primary_seconds + self.skeptic_seconds + self.scenario_seconds + self.synthesis_seconds > self.total_seconds:
+            raise ValueError("research stage budgets cannot exceed total_seconds")
+        return self
 class EvidencePacketPolicy(PolicyModel):
     """Conservative bounds for Meridian-owned evidence packets."""
 
@@ -136,6 +150,12 @@ class ResearchSettings(PolicyModel):
     max_parallel_tickers: int = Field(ge=1, le=32)
     live_enabled: bool = False
     minimum_research_coverage: Decimal = Field(ge=0, le=1)
+    research_engine: str = Field(default="gpt_native_v1", pattern=r"^(legacy|gpt_native_v1)$")
+    native_budget: ResearchBudget = Field(default_factory=ResearchBudget)
+    primary_model: str | None = Field(default=None, min_length=1)
+    skeptic_model: str | None = Field(default=None, min_length=1)
+    scenario_model: str | None = Field(default=None, min_length=1)
+    synthesis_model: str | None = Field(default=None, min_length=1)
     budget: ResearchBudgetPolicy = Field(
         default_factory=lambda: ResearchBudgetPolicy(
             max_graph_tickers_per_run=5,
@@ -174,11 +194,25 @@ class ModelPolicy(PolicyModel):
     debate_rounds: int = Field(ge=0, le=10)
     allocator_selection: str = Field(pattern=r"^(finrlx|deterministic_fallback)$")
 
+class ResearchDataPolicy(PolicyModel):
+    """Freshness suitable for research facts, including prior-session closes."""
+
+    maximum_market_age_seconds: int = Field(default=259200, ge=1, le=604800)
+    require_verified_structured_market: bool = True
+
+
+class ExecutionDataPolicy(PolicyModel):
+    """Tighter freshness for an independently gated executable quote."""
+
+    maximum_quote_age_seconds: int = Field(default=900, ge=1, le=86400)
+    require_market_open: bool = True
 
 class DataPolicy(PolicyModel):
     example_defaults: bool = True
     account_snapshot_max_age_seconds: int = Field(ge=1, le=604800)
     quote_max_age_seconds: int = Field(ge=1, le=86400)
+    research: ResearchDataPolicy = Field(default_factory=ResearchDataPolicy)
+    execution: ExecutionDataPolicy = Field(default_factory=ExecutionDataPolicy)
     nav_discrepancy_tolerance: Decimal = Field(ge=0, le=1000000000)
     historical_cache_enabled: bool = True
     evidence: EvidencePacketPolicy = Field(

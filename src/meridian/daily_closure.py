@@ -267,6 +267,46 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
                 lines.append("")
                 lines.extend("    " + line for line in
                              (str(item.get("ticker")) + ": " + str(item.get("thesis"))).splitlines())
+    intelligence = report.get("research_intelligence", {})
+    intelligence = intelligence if isinstance(intelligence, dict) else {}
+    if intelligence:
+        confidence = intelligence.get("confidence", {})
+        confidence = confidence if isinstance(confidence, dict) else {}
+        primary = intelligence.get("primary", {})
+        primary = primary if isinstance(primary, dict) else {}
+        skeptic = intelligence.get("skeptic", {})
+        skeptic = skeptic if isinstance(skeptic, dict) else {}
+        scenarios = intelligence.get("scenarios", {})
+        scenarios = scenarios if isinstance(scenarios, dict) else {}
+        synthesis = intelligence.get("synthesis", {})
+        synthesis = synthesis if isinstance(synthesis, dict) else {}
+        lines.extend([
+            "", "## Research intelligence (advisory only)", "",
+            f"Research status: **{intelligence.get('research_state', 'NOT_RUN')}**; "
+            f"Decision status: **{intelligence.get('decision_state', 'NOT_RUN')}**; "
+            f"Execution status: **{intelligence.get('execution_state', 'BLOCKED')}**.",
+            f"Research data: **{intelligence.get('research_data_status', 'UNKNOWN')}**; "
+            f"Execution data: **{intelligence.get('execution_data_status', 'UNKNOWN')}**.",
+            f"Evidence coverage: **{len(intelligence.get('evidence', [])) if isinstance(intelligence.get('evidence', []), list) else 0}**; "
+            f"system confidence: **{confidence.get('system_confidence', 'NOT_AVAILABLE')}**; "
+            f"LLM self-confidence: **{confidence.get('llm_self_confidence', 'NOT_AVAILABLE')}**.",
+            f"Primary thesis (GPT OPINION): {synthesis.get('primary_thesis') or primary.get('thesis') or 'GPT reasoning unavailable.'}",
+            f"Counter-thesis (GPT OPINION): {', '.join(skeptic.get('challenges', [])) if isinstance(skeptic.get('challenges', []), list) else 'not available'}",
+            f"What changed: **{intelligence.get('thesis_change', 'UNKNOWN')}**.",
+            f"Disagreement score: **{intelligence.get('disagreement_score', 'NOT_AVAILABLE')}**.",
+            "FACT = normalized structured evidence; MODEL INFERENCE = deterministic analytics; GPT OPINION = schema-validated advisory reasoning.",
+        ])
+        if scenarios:
+            lines.append("Bull/Base/Bear scenarios (GPT OPINION):")
+            for label in ("bull", "base", "bear"):
+                scenario = scenarios.get(label, {})
+                if isinstance(scenario, dict):
+                    lines.append(
+                        f"- {label.title()}: {scenario.get('probability', 'UNKNOWN')} — {scenario.get('description', '')}"
+                    )
+        lines.append(
+            "Execution availability remains independently gated. GPT research has no order, price, sizing, or broker authority."
+        )
     lines.extend(["", "## Next actions", ""])
     lines.extend(f"- {item}" for item in report.get("next_actions", []))  # type: ignore[union-attr]
     lines.extend(["", "## Research-only draft — NOT AUTHORIZED FOR MANUAL ENTRY", ""])

@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo
 from meridian.audit import SCHEMA_VERSION, AuditStore
 from meridian.config import load_forward_evidence_policy, load_policies
 from meridian.daily_closure import (
+    DailyClosureResult,
     DailyClosureService,
     daily_run_id,
     load_market_fixture,
@@ -28,10 +29,18 @@ from meridian.daily_closure import (
 from meridian.daily_research import (
     DailyResearchInput,
     PublicResearchObservation,
+    ResearchDecisionContext,
     ResearchProviderStatus,
+    ResearchStageResult,
 )
 from meridian.forward_evidence import ForwardLedger, freeze_canonical_predictions
 from meridian.forward_evidence import policy_hash as forward_policy_hash
+from meridian.gpt_native_research import (
+    ExecutionState,
+    GPTNativeResearchOrchestrator,
+    ResearchMemory,
+    persist_research_trace,
+)
 from meridian.host_readiness import (
     ReadinessGateResult,
     ReadinessStatus,
@@ -52,6 +61,7 @@ from meridian.research_universe import ResearchUniverseScheduler
 from meridian.run_health import persist_run_health
 from meridian.runtime import RuntimePaths, policy_directory
 from meridian.runtime_diagnostics import report as doctor_report
+from meridian.schemas import RunStatus
 
 
 class MeridianApplicationService:
@@ -74,6 +84,9 @@ class MeridianApplicationService:
             self.research_stage.preparation = ResearchPreparationService.from_runtime(self.paths)
         self.research_universe_scheduler = (
             research_universe_scheduler or ResearchUniverseScheduler()
+        )
+        self.native_research = GPTNativeResearchOrchestrator(
+            memory=ResearchMemory(self.paths.data / "research" / "memory")
         )
 
     def version(self) -> dict[str, object]:
@@ -469,7 +482,10 @@ class MeridianApplicationService:
         input_blockers = closure._gates(account, quotes, cutoff)
         market_valid = bool(quotes) and not any("MARKET" in reason for reason in input_blockers)
         research_inputs_ready = bool(research_quotes) and all(
-            quote.timestamp <= cutoff for quote in research_quotes.values()
+            quote.timestamp <= cutoff
+            and 0 <= (cutoff - quote.timestamp).total_seconds()
+            <= policies.data.research.maximum_market_age_seconds
+            for quote in research_quotes.values()
         )
         eligible_research_tickers = tuple(
             ticker
@@ -551,43 +567,124 @@ class MeridianApplicationService:
             portfolio_context=portfolio_context,
         )
         logger.info("run_id=%s stage=research start", parent_id)
-        research = self.research_stage.run(request, settings)
+        native_result = None
+        use_native = (
+            settings is not None
+            and settings.research_engine == "gpt_native_v1"
+            and not bool(getattr(self.research_stage.provider, "_injected_runner", False))
+        )
+        if use_native:
+            assert settings is not None
+            execution_data_status = (
+                "PASS"
+                if market_valid
+                and all(
+                    0 <= (cutoff - quote.timestamp).total_seconds()
+                    <= policies.data.execution.maximum_quote_age_seconds
+                    for quote in quotes.values()
+                )
+                else "BLOCKED"
+            )
+            native_execution_state = (
+                ExecutionState.BLOCKED_MARKET_CLOSED
+                if current_market.status is not MarketStatus.OPEN
+                else ExecutionState.BLOCKED_DATA_QUALITY
+                if not market_valid
+                else ExecutionState.BLOCKED_POLICY
+            )
+            native_result = self.native_research.run(
+                request,
+                research_data_status="PASS" if research_inputs_ready else "BLOCKED",
+                execution_data_status=execution_data_status,
+                execution_state=native_execution_state,
+                settings=settings,
+                run_id=parent_id,
+            )
+            now = datetime.now(UTC)
+            research = ResearchStageResult(
+                context=ResearchDecisionContext(
+                    research_run_id="native-" + parent_id,
+                    parent_run_id=parent_id,
+                    input_hash=request.input_hash,
+                    analysis_cutoff=cutoff,
+                    status=ResearchProviderStatus.NOT_RUN,
+                ),
+                prompt_created_at=now,
+                started_at=now,
+                finished_at=now,
+                duration_seconds=0,
+                attempts=0,
+                provider="GPT_NATIVE_V1",
+                model=settings.model,
+                error_code=None,
+                next_action="Research remains advisory; deterministic execution gates remain authoritative.",
+            )
+            research_mode = native_result.research_state.value
+            research_degradation = {
+                "research_mode": research_mode,
+                "research_confidence": native_result.confidence.system_confidence,
+                "llm_available": any(
+                    stage.status.value == "SUCCESS" for stage in native_result.stages.values()
+                ),
+                "fallback_reason": ",".join(native_result.degradation_reasons) or None,
+                "evidence_synthesis": "GPT_NATIVE_EVIDENCE_FIRST",
+            }
+        else:
+            research = self.research_stage.run(request, settings)
+            research_mode = (
+                "FULL_RESEARCH"
+                if research.context.status is ResearchProviderStatus.AVAILABLE
+                else "DEGRADED_RESEARCH"
+                if research.error_code == "CODEX_RATE_LIMITED"
+                else "OFFLINE_RESEARCH"
+            )
+            research_degradation = {
+                "research_mode": research_mode,
+                "research_confidence": "NORMAL"
+                if research_mode == "FULL_RESEARCH"
+                else "LOW"
+                if research_mode == "DEGRADED_RESEARCH"
+                else "NONE",
+                "llm_available": research_mode == "FULL_RESEARCH",
+                "fallback_reason": None
+                if research_mode == "FULL_RESEARCH"
+                else research.error_code or "RESEARCH_UNAVAILABLE",
+                "evidence_synthesis": "CODEX"
+                if research_mode == "FULL_RESEARCH"
+                else "DETERMINISTIC_STRUCTURED_INPUTS_ONLY",
+            }
         logger.info(
             "run_id=%s stage=research status=%s duration=%s code=%s",
             parent_id,
-            research.context.status.value,
+            native_result.research_state.value if native_result else research.context.status.value,
             research.duration_seconds,
             research.error_code,
         )
-        research_mode = (
-            "FULL_RESEARCH"
-            if research.context.status is ResearchProviderStatus.AVAILABLE
-            else "DEGRADED_RESEARCH"
-            if research.error_code == "CODEX_RATE_LIMITED"
-            else "OFFLINE_RESEARCH"
-        )
-        research_degradation = {
-            "research_mode": research_mode,
-            "research_confidence": "NORMAL"
-            if research_mode == "FULL_RESEARCH"
-            else "LOW"
-            if research_mode == "DEGRADED_RESEARCH"
-            else "NONE",
-            "llm_available": research_mode == "FULL_RESEARCH",
-            "fallback_reason": None
-            if research_mode == "FULL_RESEARCH"
-            else research.error_code or "RESEARCH_UNAVAILABLE",
-            "evidence_synthesis": "CODEX"
-            if research_mode == "FULL_RESEARCH"
-            else "DETERMINISTIC_STRUCTURED_INPUTS_ONLY",
-        }
         evaluated_at = datetime.now(UTC)
         result = closure.run(
             account, quotes, cutoff=cutoff, research=research.context, evaluated_at=evaluated_at
         )
+        if (
+            native_result is not None
+            and native_result.execution_state is not ExecutionState.READY
+            and result.decision.overall_status is RunStatus.DRAFT
+        ):
+            # GPT-native research has no execution authority.  Preserve the
+            # deterministic target for analysis, but never emit an order draft
+            # when its independent execution gate is blocked.
+            decision = result.decision.model_copy(
+                update={"orders": (), "overall_status": RunStatus.NO_ACTION}
+            )
+            result = DailyClosureResult(
+                decision=decision,
+                report={**result.report, "orders": [], "status": RunStatus.NO_ACTION.value},
+            )
         result.report.update(
             {
                 "research": {**research.model_dump(mode="json"), **research_degradation},
+                "research_intelligence": (
+                    native_result.model_dump(mode="json") if native_result is not None else None
+                ),
                 "research_input": request.model_dump(mode="json"),
                 "data_auto_retrieval": research.preparation_diagnostics,
                 "research_universe": universe_plan.model_dump(mode="json")
@@ -638,6 +735,13 @@ class MeridianApplicationService:
             }
         )
         result.report.update(provenance)
+        if native_result is not None:
+            try:
+                result.report["research_trace_json"] = str(
+                    persist_research_trace(native_result, self.paths, cutoff)
+                )
+            except OSError:
+                result.report["research_trace_error"] = "RESEARCH_TRACE_PERSISTENCE_FAILED"
         result.report["research_audit_files"] = write_research_audit(
             self.paths.logs / "research",
             parent_id,
@@ -764,7 +868,7 @@ class MeridianApplicationService:
         snapshot_fresh = (
             evaluated_at - account.as_of
         ).total_seconds() <= policies.data.account_snapshot_max_age_seconds
-        research_available = research.context.status is ResearchProviderStatus.AVAILABLE
+        research_available = (native_result is not None and native_result.research_state.value in {"RESEARCH_READY", "RESEARCH_DEGRADED"}) or research.context.status is ResearchProviderStatus.AVAILABLE
         research_health = (
             ReadinessStatus.PASS
             if research_available

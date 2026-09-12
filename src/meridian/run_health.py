@@ -18,6 +18,10 @@ STAGES = (
     "BENCHMARK_DATA",
     "DATA_VALIDATION",
     "RESEARCH",
+    "PRIMARY_ANALYST",
+    "SKEPTIC",
+    "SCENARIO_ANALYSIS",
+    "DECISION_SYNTHESIS",
     "DECISION",
     "PORTFOLIO",
     "PAPER_EXECUTION",
@@ -79,10 +83,28 @@ def build_run_health(payload: dict[str, object]) -> dict[str, object]:
         "DATA_VALIDATION": "MARKET",
         "PORTFOLIO": "DECISION",
     }
+    intelligence = payload.get("research_intelligence", {})
+    intelligence = intelligence if isinstance(intelligence, dict) else {}
+    native_stages = intelligence.get("stages", {})
+    native_stages = native_stages if isinstance(native_stages, dict) else {}
     is_paper = bool(payload.get("paper_run_id"))
     canonical_run_id = str(payload.get("canonical_run_id") or "") or None
     stages = []
     for name in STAGES:
+        native = native_stages.get(name)
+        if isinstance(native, dict):
+            stage = _stage(
+                name,
+                started,
+                started,
+                str(native.get("status") or "UNKNOWN"),
+                str(native.get("error_type")) if native.get("error_type") else None,
+            )
+            stage["elapsed_ms"] = int(native.get("duration_ms") or 0)
+            stage["model"] = native.get("model")
+            stage["schema_valid"] = bool(native.get("schema_valid"))
+            stages.append(stage)
+            continue
         source = observed.get(name) or observed.get(aliases.get(name, ""))
         if source:
             begin = str(source.get("start") or started)
@@ -167,11 +189,18 @@ def build_run_health(payload: dict[str, object]) -> dict[str, object]:
             "research_confidence": research.get("research_confidence"),
             "llm_available": research.get("llm_available", False),
             "fallback_reason": research.get("fallback_reason"),
+            "research_state": intelligence.get("research_state"),
+            "research_data_status": intelligence.get("research_data_status"),
+            "evidence_count": len(intelligence.get("evidence", [])) if isinstance(intelligence.get("evidence", []), list) else 0,
+            "supported_claims": sum(1 for item in intelligence.get("claims", []) if isinstance(item, dict) and item.get("status") == "SUPPORTED") if isinstance(intelligence.get("claims", []), list) else 0,
+            "conflicted_claims": sum(1 for item in intelligence.get("claims", []) if isinstance(item, dict) and item.get("status") == "CONFLICTED") if isinstance(intelligence.get("claims", []), list) else 0,
+            "system_confidence": (intelligence.get("confidence", {}) or {}).get("system_confidence") if isinstance(intelligence.get("confidence", {}), dict) else None,
         },
         "decision": {
             "status": decision.get("status", payload.get("status")),
             "blocking_reason": blockers[0] if blockers else None,
             "orders_created": len(orders),
+            "decision_state": intelligence.get("decision_state"),
         },
         "paper_execution": {
             "status": paper.get("status", "NOT_RUN"),
@@ -190,6 +219,8 @@ def build_run_health(payload: dict[str, object]) -> dict[str, object]:
         "errors": payload.get("errors", []),
         "blocking_reason": blockers[0] if blockers else None,
         "execution_authority": "NONE",
+        "execution_state": intelligence.get("execution_state"),
+        "execution_data_status": intelligence.get("execution_data_status"),
     }
     if is_paper and canonical_run_id:
         result["canonical_run_id"] = canonical_run_id
