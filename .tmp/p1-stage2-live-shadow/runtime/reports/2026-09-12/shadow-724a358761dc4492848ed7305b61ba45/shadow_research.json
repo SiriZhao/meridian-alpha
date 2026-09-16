@@ -1,0 +1,168 @@
+{
+  "schema_version": "meridian-shadow-research.v1",
+  "run_id": "shadow-724a358761dc4492848ed7305b61ba45",
+  "shadow_only": true,
+  "mode": "SHADOW_LIVE",
+  "symbols": [
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "SPY"
+  ],
+  "evidence_count": 8,
+  "model_route": {
+    "PRIMARY_ANALYST": {
+      "model": "codex-default",
+      "reasoning_effort": "medium",
+      "timeout_seconds": 16,
+      "max_attempts": 1
+    },
+    "SKEPTIC": {
+      "model": "codex-default",
+      "reasoning_effort": "medium",
+      "timeout_seconds": 10,
+      "max_attempts": 1
+    },
+    "SCENARIO_ANALYST": {
+      "model": "codex-default",
+      "reasoning_effort": "medium",
+      "timeout_seconds": 8,
+      "max_attempts": 1
+    },
+    "DECISION_SYNTHESIZER": {
+      "model": "codex-default",
+      "reasoning_effort": "medium",
+      "timeout_seconds": 8,
+      "max_attempts": 1
+    }
+  },
+  "stages": {
+    "PRIMARY_ANALYST": {
+      "status": "AUTH_ERROR",
+      "role": "PRIMARY_ANALYST",
+      "model": "codex-default",
+      "reasoning_effort": "medium",
+      "started_at": "2026-09-12T08:33:09.584204Z",
+      "finished_at": "2026-09-12T08:33:09.584204Z",
+      "duration_ms": 13921,
+      "attempt_count": 1,
+      "output": null,
+      "schema_valid": false,
+      "error_type": "AUTH_ERROR",
+      "usage": {}
+    },
+    "SKEPTIC": {
+      "status": "AUTH_ERROR",
+      "role": "SKEPTIC",
+      "model": "codex-default",
+      "reasoning_effort": "medium",
+      "started_at": "2026-09-12T08:33:18.454625Z",
+      "finished_at": "2026-09-12T08:33:18.454625Z",
+      "duration_ms": 8860,
+      "attempt_count": 1,
+      "output": null,
+      "schema_valid": false,
+      "error_type": "AUTH_ERROR",
+      "usage": {}
+    },
+    "SCENARIO_ANALYSIS": {
+      "status": "TIMEOUT",
+      "role": "SCENARIO_ANALYSIS",
+      "model": "codex-default",
+      "reasoning_effort": "medium",
+      "started_at": "2026-09-12T08:33:27.134664Z",
+      "finished_at": "2026-09-12T08:33:27.134664Z",
+      "duration_ms": 8671,
+      "attempt_count": 1,
+      "output": null,
+      "schema_valid": false,
+      "error_type": "TIMEOUT",
+      "usage": {}
+    },
+    "DECISION_SYNTHESIS": {
+      "status": "NOT_RUN",
+      "role": "UNKNOWN",
+      "model": "NOT_AVAILABLE",
+      "reasoning_effort": "UNKNOWN",
+      "started_at": "2026-09-12T08:32:55.657382Z",
+      "finished_at": "2026-09-12T08:32:55.657382Z",
+      "duration_ms": 0,
+      "attempt_count": 1,
+      "output": null,
+      "schema_valid": false,
+      "error_type": null,
+      "usage": {}
+    }
+  },
+  "primary": null,
+  "skeptic": null,
+  "scenario": null,
+  "synthesis": null,
+  "system_confidence": 0.6,
+  "llm_self_confidence": null,
+  "confidence_breakdown": {
+    "data_quality": 1.0,
+    "evidence_coverage": 1.0,
+    "source_diversity": 0.6667,
+    "gpt_consistency": 0.65,
+    "skeptic_severity": 0.0,
+    "scenario_dispersion": 0.5,
+    "historical_completeness": 1.0,
+    "freshness": 1.0,
+    "grounding": 0.0,
+    "model_completion": 0.0,
+    "hallucination_penalty": 0.0
+  },
+  "decision_state": "RESEARCH_ONLY",
+  "direction": "NEUTRAL",
+  "quality_metrics": {
+    "evidence_grounding_rate": null,
+    "unsupported_claim_rate": null,
+    "invalid_evidence_reference_rate": null,
+    "contradiction_detection_rate": null,
+    "schema_success_rate": 0.0,
+    "stage_completion_rate": 0.0,
+    "hallucinated_market_fact_count": 0,
+    "unverifiable_numeric_claim_count": 0,
+    "stale_evidence_usage_count": 0,
+    "confidence_vs_evidence_gap": null,
+    "analyst_skeptic_disagreement": null,
+    "scenario_probability_validity": null,
+    "memory_consistency": null,
+    "latency_ms": 31452,
+    "skeptic_added_information": null,
+    "skeptic_duplicate_rate": null,
+    "skeptic_valid_challenges": 0,
+    "skeptic_false_challenges": 0,
+    "fatal_flaw_detected": false,
+    "scenario_overlap_score": null,
+    "hallucination_flags": []
+  },
+  "comparison": {
+    "deterministic_direction": "BULLISH",
+    "deterministic_confidence": 1.0,
+    "shadow_direction": "NEUTRAL",
+    "shadow_confidence": null,
+    "prior_direction": null,
+    "what_gpt_added": [],
+    "what_gpt_contradicted": [
+      "direction:BULLISH->NEUTRAL"
+    ],
+    "what_gpt_missed": [],
+    "what_deterministic_missed": [],
+    "what_changed_from_prior": [
+      "NEW"
+    ],
+    "disagreement": "LOW"
+  },
+  "latency_ms": 31452,
+  "usage_by_stage": {
+    "PRIMARY_ANALYST": {},
+    "SKEPTIC": {},
+    "SCENARIO_ANALYSIS": {},
+    "DECISION_SYNTHESIS": {}
+  },
+  "orders_created": 0,
+  "orders_executed": 0,
+  "shadow_decision_authority": "NONE"
+}

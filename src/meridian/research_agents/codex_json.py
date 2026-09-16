@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -14,7 +13,9 @@ from meridian.codex_provider import (
     discover_codex_executable,
     sanitized_child_environment,
 )
+from meridian.codex_schema import strict_output_schema
 from meridian.config import ResearchSettings
+from meridian.runtime_io import research_temporary_directory
 
 
 class CodexJsonError(RuntimeError):
@@ -48,11 +49,11 @@ class CodexJsonClient:
         if executable is None and not self._injected_runner:
             raise CodexJsonError("CODEX_NOT_INSTALLED")
         model, effort, timeout = self._settings(settings)
-        with tempfile.TemporaryDirectory(prefix="meridian-codex-agent-") as temp_name:
+        with research_temporary_directory() as temp_name:
             directory = Path(temp_name)
             schema_path = directory / "output.schema.json"
             output_path = directory / "output.json"
-            schema_path.write_text(json.dumps(output_schema), encoding="utf-8")
+            schema_path.write_text(json.dumps(strict_output_schema(dict(output_schema))), encoding="utf-8")
             command = [executable or "codex"]
             if search:
                 command.append("--search")

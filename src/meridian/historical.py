@@ -488,14 +488,19 @@ class YahooChartHistoricalProvider:
         started = time.perf_counter()
         try:
             response = self.opener(request, timeout=self.timeout_seconds)
-            status = getattr(response, "status", getattr(response, "code", None))
             try:
-                status_code = int(status) if status is not None else None
-            except (TypeError, ValueError):
-                status_code = None
-            if status_code is not None and status_code >= 400:
-                raise HistoricalProviderError(f"Yahoo historical HTTP error: {status_code}")
-            payload = response.read()
+                status = getattr(response, "status", getattr(response, "code", None))
+                try:
+                    status_code = int(status) if status is not None else None
+                except (TypeError, ValueError):
+                    status_code = None
+                if status_code is not None and status_code >= 400:
+                    raise HistoricalProviderError(f"Yahoo historical HTTP error: {status_code}")
+                payload = response.read()
+            finally:
+                close = getattr(response, "close", None)
+                if close is not None:
+                    close()
         except TimeoutError as error:
             raise HistoricalProviderTimeout("Yahoo historical request timed out") from error
         except OSError as error:
@@ -620,7 +625,12 @@ class NasdaqHistoricalProvider:
         )
         try:
             response = self.opener(request, timeout=self.timeout_seconds)
-            payload = response.read()
+            try:
+                payload = response.read()
+            finally:
+                close = getattr(response, "close", None)
+                if close is not None:
+                    close()
         except TimeoutError as error:
             raise HistoricalProviderTimeout("Nasdaq historical request timed out") from error
         except OSError as error:

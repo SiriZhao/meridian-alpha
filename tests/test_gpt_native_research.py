@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from decimal import Decimal
+from uuid import uuid4
 
 from meridian.application import MeridianApplicationService
 from meridian.config import ResearchBudget, ResearchSettings
@@ -184,14 +185,17 @@ def test_memory_and_trace_are_auditable(tmp_path) -> None:
     assert "input_evidence_ids" in trace.read_text(encoding="utf-8")
 
 
-def test_native_closed_market_report_keeps_orders_at_zero(tmp_path) -> None:
+def test_native_closed_market_report_keeps_orders_at_zero(tmp_path, monkeypatch) -> None:
+    # The account remains fresh, while this scenario explicitly exercises a closed exchange.
+    from meridian.market_status import market_status
+    monkeypatch.setattr("meridian.application.market_status", lambda _: market_status(datetime(2026, 9, 13, 14, tzinfo=UTC)))
     now = datetime.now(UTC)
     account = tmp_path / "account.json"
     market = tmp_path / "market.json"
     account.write_text(
         json.dumps(
             {
-                "snapshot_id": "native-closed-test",
+                "snapshot_id": "native-closed-test-" + uuid4().hex,
                 "source_kind": "fixture",
                 "source_name": "test",
                 "as_of": now.isoformat(),

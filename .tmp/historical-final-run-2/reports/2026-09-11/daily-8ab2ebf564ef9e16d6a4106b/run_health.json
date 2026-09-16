@@ -1,0 +1,529 @@
+{
+  "blocking_reason": null,
+  "cache": {
+    "hits": 0,
+    "misses": 0,
+    "reads": 0,
+    "stale_rejected": 0,
+    "writes": 0
+  },
+  "decision": {
+    "blocking_reason": null,
+    "orders_created": 0,
+    "status": "NO_ACTION"
+  },
+  "duration_ms": 31725,
+  "errors": [],
+  "execution_authority": "NONE",
+  "finished_at": "2026-09-11T16:25:48.851881+00:00",
+  "market_data": {
+    "fallbacks_used": [],
+    "providers_attempted": [],
+    "providers_used": [],
+    "status": "PASS",
+    "symbols": {
+      "AAPL": {
+        "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+        "cache": {
+          "hit": false,
+          "status": "WRITE_OK"
+        },
+        "data_quality_mode": "NORMAL",
+        "final_market_status": "PASS",
+        "history": {
+          "available_at": "2026-09-11T16:02:21.807113+00:00",
+          "certification": "UNVERIFIED",
+          "cutoff": "2026-09-11T16:25:13.111950+00:00",
+          "latest_session": "2026-09-10",
+          "provider": "yahoo",
+          "received_at": "2026-09-11T16:02:21.807113+00:00",
+          "status": "PASS"
+        },
+        "primary": {
+          "age_seconds": 5.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "attempted_at": "2026-09-11T16:25:11.656415+00:00",
+          "completed_at": "2026-09-11T16:25:12.370219+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "AAPL",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:12.370219+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "yahoo",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:12+00:00",
+          "status": "OK",
+          "symbol": "AAPL"
+        },
+        "secondary": {
+          "age_seconds": 17.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "attempted_at": "2026-09-11T16:25:12.370734+00:00",
+          "completed_at": "2026-09-11T16:25:13.108950+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "AAPL",
+            "shadow_only": "true",
+            "source": "nasdaq-public-api"
+          },
+          "provider": "nasdaq",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:13.108950+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "nasdaq",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:00+00:00",
+          "status": "OK",
+          "symbol": "AAPL"
+        },
+        "selected": {
+          "age_seconds": 5.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "AAPL",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:12.370219+00:00",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:12+00:00",
+          "status": "OK",
+          "symbol": "AAPL"
+        },
+        "selected_provider": "yahoo",
+        "selection": "PRIMARY"
+      },
+      "MSFT": {
+        "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+        "cache": {
+          "hit": false,
+          "status": "WRITE_OK"
+        },
+        "data_quality_mode": "NORMAL",
+        "final_market_status": "PASS",
+        "history": {
+          "available_at": "2026-09-11T15:43:31.107528+00:00",
+          "certification": "UNVERIFIED",
+          "cutoff": "2026-09-11T16:25:14.557898+00:00",
+          "latest_session": "2026-09-10",
+          "provider": "yahoo",
+          "received_at": "2026-09-11T15:43:31.107528+00:00",
+          "status": "PASS"
+        },
+        "primary": {
+          "age_seconds": 6.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "attempted_at": "2026-09-11T16:25:13.111950+00:00",
+          "completed_at": "2026-09-11T16:25:13.720499+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "MSFT",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:13.720499+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "yahoo",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:11+00:00",
+          "status": "OK",
+          "symbol": "MSFT"
+        },
+        "secondary": {
+          "age_seconds": 17.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "attempted_at": "2026-09-11T16:25:13.720499+00:00",
+          "completed_at": "2026-09-11T16:25:14.553597+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "MSFT",
+            "shadow_only": "true",
+            "source": "nasdaq-public-api"
+          },
+          "provider": "nasdaq",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:14.553597+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "nasdaq",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:00+00:00",
+          "status": "OK",
+          "symbol": "MSFT"
+        },
+        "selected": {
+          "age_seconds": 6.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "MSFT",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:13.720499+00:00",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:11+00:00",
+          "status": "OK",
+          "symbol": "MSFT"
+        },
+        "selected_provider": "yahoo",
+        "selection": "PRIMARY"
+      },
+      "NVDA": {
+        "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+        "cache": {
+          "hit": false,
+          "status": "WRITE_OK"
+        },
+        "data_quality_mode": "NORMAL",
+        "final_market_status": "PASS",
+        "history": {
+          "available_at": "2026-09-11T15:43:32.383540+00:00",
+          "certification": "UNVERIFIED",
+          "cutoff": "2026-09-11T16:25:15.929008+00:00",
+          "latest_session": "2026-09-10",
+          "provider": "yahoo",
+          "received_at": "2026-09-11T15:43:32.384047+00:00",
+          "status": "PASS"
+        },
+        "primary": {
+          "age_seconds": 3.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "attempted_at": "2026-09-11T16:25:14.557898+00:00",
+          "completed_at": "2026-09-11T16:25:15.177079+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "NVDA",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:15.177079+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "yahoo",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:14+00:00",
+          "status": "OK",
+          "symbol": "NVDA"
+        },
+        "secondary": {
+          "age_seconds": 17.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "attempted_at": "2026-09-11T16:25:15.177079+00:00",
+          "completed_at": "2026-09-11T16:25:15.924286+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "NVDA",
+            "shadow_only": "true",
+            "source": "nasdaq-public-api"
+          },
+          "provider": "nasdaq",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:15.924286+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "nasdaq",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:00+00:00",
+          "status": "OK",
+          "symbol": "NVDA"
+        },
+        "selected": {
+          "age_seconds": 3.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "NVDA",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:15.177079+00:00",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:14+00:00",
+          "status": "OK",
+          "symbol": "NVDA"
+        },
+        "selected_provider": "yahoo",
+        "selection": "PRIMARY"
+      },
+      "SPY": {
+        "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+        "cache": {
+          "hit": false,
+          "status": "WRITE_OK"
+        },
+        "data_quality_mode": "NORMAL",
+        "final_market_status": "PASS",
+        "history": {
+          "available_at": "2026-09-11T15:43:33.676245+00:00",
+          "certification": "UNVERIFIED",
+          "cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "latest_session": "2026-09-10",
+          "provider": "yahoo",
+          "received_at": "2026-09-11T15:43:33.677105+00:00",
+          "status": "PASS"
+        },
+        "primary": {
+          "age_seconds": 1.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "attempted_at": "2026-09-11T16:25:15.929008+00:00",
+          "completed_at": "2026-09-11T16:25:16.594021+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "SPY",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:16.594021+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "yahoo",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:16+00:00",
+          "status": "OK",
+          "symbol": "SPY"
+        },
+        "secondary": {
+          "age_seconds": 17.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "attempted_at": "2026-09-11T16:25:16.594021+00:00",
+          "completed_at": "2026-09-11T16:25:17.122226+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "SPY",
+            "shadow_only": "true",
+            "source": "nasdaq-public-api"
+          },
+          "provider": "nasdaq",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:17.122226+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "nasdaq",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:00+00:00",
+          "status": "OK",
+          "symbol": "SPY"
+        },
+        "selected": {
+          "age_seconds": 1.127121,
+          "analysis_cutoff": "2026-09-11T16:25:17.127121+00:00",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "SPY",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T16:25:16.594021+00:00",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T16:25:16+00:00",
+          "status": "OK",
+          "symbol": "SPY"
+        },
+        "selected_provider": "yahoo",
+        "selection": "PRIMARY"
+      }
+    },
+    "warnings": []
+  },
+  "overall_status": "NO_ACTION",
+  "paper_execution": {
+    "orders_executed": 0,
+    "status": "NOT_RUN"
+  },
+  "research": {
+    "fallback_reason": "CODEX_TIMEOUT",
+    "llm_available": false,
+    "research_confidence": "NONE",
+    "research_mode": "OFFLINE_RESEARCH",
+    "status": "CODEX_TIMEOUT"
+  },
+  "run_id": "daily-8ab2ebf564ef9e16d6a4106b",
+  "schema_version": "meridian-run-health.v1",
+  "stages": [
+    {
+      "elapsed_ms": 31725,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:48.851881+00:00",
+      "name": "PRE_FLIGHT",
+      "started_at": "2026-09-11T16:25:17.127121+00:00",
+      "status": "NOT_RECORDED"
+    },
+    {
+      "elapsed_ms": 5472,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:17.128120+00:00",
+      "name": "MARKET_QUOTE",
+      "started_at": "2026-09-11T16:25:11.656415+00:00",
+      "status": "PASS"
+    },
+    {
+      "elapsed_ms": 5472,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:17.128120+00:00",
+      "name": "HISTORICAL_DATA",
+      "started_at": "2026-09-11T16:25:11.656415+00:00",
+      "status": "PASS"
+    },
+    {
+      "elapsed_ms": 5472,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:17.128120+00:00",
+      "name": "BENCHMARK_DATA",
+      "started_at": "2026-09-11T16:25:11.656415+00:00",
+      "status": "PASS"
+    },
+    {
+      "elapsed_ms": 5472,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:17.128120+00:00",
+      "name": "DATA_VALIDATION",
+      "started_at": "2026-09-11T16:25:11.656415+00:00",
+      "status": "PASS"
+    },
+    {
+      "elapsed_ms": 31676,
+      "error_message": "CODEX_TIMEOUT",
+      "error_type": "CODEX_TIMEOUT",
+      "finished_at": "2026-09-11T16:25:48.804466+00:00",
+      "name": "RESEARCH",
+      "started_at": "2026-09-11T16:25:17.128120+00:00",
+      "status": "CODEX_TIMEOUT"
+    },
+    {
+      "elapsed_ms": 2,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:48.805975+00:00",
+      "name": "DECISION",
+      "started_at": "2026-09-11T16:25:48.804466+00:00",
+      "status": "NO_ACTION"
+    },
+    {
+      "elapsed_ms": 2,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:48.805975+00:00",
+      "name": "PORTFOLIO",
+      "started_at": "2026-09-11T16:25:48.804466+00:00",
+      "status": "NO_ACTION"
+    },
+    {
+      "elapsed_ms": 31725,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:48.851881+00:00",
+      "name": "PAPER_EXECUTION",
+      "started_at": "2026-09-11T16:25:17.127121+00:00",
+      "status": "NOT_RECORDED"
+    },
+    {
+      "elapsed_ms": 31725,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:48.851881+00:00",
+      "name": "REPORT_GENERATION",
+      "started_at": "2026-09-11T16:25:17.127121+00:00",
+      "status": "PASS"
+    },
+    {
+      "elapsed_ms": 31725,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:48.851881+00:00",
+      "name": "REPORT_PERSISTENCE",
+      "started_at": "2026-09-11T16:25:17.127121+00:00",
+      "status": "PASS"
+    },
+    {
+      "elapsed_ms": 31725,
+      "error_message": null,
+      "error_type": null,
+      "finished_at": "2026-09-11T16:25:48.851881+00:00",
+      "name": "RUN_FINALIZATION",
+      "started_at": "2026-09-11T16:25:17.127121+00:00",
+      "status": "PASS"
+    }
+  ],
+  "started_at": "2026-09-11T16:25:17.127121+00:00",
+  "warnings": [
+    "PUBLIC_RESEARCH_IS_ADVISORY_NOT_CERTIFIED",
+    "NOT_AUTHORIZED_FOR_MANUAL_ENTRY"
+  ]
+}

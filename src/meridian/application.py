@@ -6,6 +6,7 @@ import hashlib
 import importlib.metadata
 import json
 import logging
+import os
 import sqlite3
 import sys
 from contextlib import closing
@@ -28,10 +29,12 @@ from meridian.daily_closure import (
 )
 from meridian.daily_research import (
     DailyResearchInput,
+    DailyResearchOutput,
     PublicResearchObservation,
     ResearchDecisionContext,
     ResearchProviderStatus,
     ResearchStageResult,
+    SymbolResearch,
 )
 from meridian.forward_evidence import ForwardLedger, freeze_canonical_predictions
 from meridian.forward_evidence import policy_hash as forward_policy_hash
@@ -41,6 +44,7 @@ from meridian.gpt_native_research import (
     ResearchMemory,
     persist_research_trace,
 )
+from meridian.host_llm import HostJobStage, accept_result, create_job, load_job
 from meridian.host_readiness import (
     ReadinessGateResult,
     ReadinessStatus,
@@ -61,7 +65,9 @@ from meridian.research_universe import ResearchUniverseScheduler
 from meridian.run_health import persist_run_health
 from meridian.runtime import RuntimePaths, policy_directory
 from meridian.runtime_diagnostics import report as doctor_report
-from meridian.schemas import RunStatus
+from meridian.runtime_io import run_lock
+from meridian.schemas import MarketSnapshot, RunStatus
+from meridian.shadow_evaluation import ShadowMode, ShadowResearchRunner
 
 
 class MeridianApplicationService:
@@ -285,6 +291,7 @@ class MeridianApplicationService:
         research_live_enabled: bool = False,
     ) -> dict[str, object]:
         self.paths.ensure_directories()
+        self.paths.preflight()
         invocation = uuid4().hex
         log_path = self.paths.logs / ("daily-" + invocation + ".log")
         logger = logging.getLogger("meridian.daily." + invocation)
@@ -295,9 +302,10 @@ class MeridianApplicationService:
         logger.addHandler(handler)
         logger.info("START invocation=%s config=%s", invocation, policy_directory())
         try:
-            payload = self._daily(
-                snapshot_path, market_fixture, logger, log_path, research_live_enabled
-            )
+            with run_lock(self.paths.locks, invocation):
+                payload = self._daily(
+                    snapshot_path, market_fixture, logger, log_path, research_live_enabled
+                )
             logger.log(
                 logging.ERROR if payload.get("runtime_status") == "FAILED" else logging.INFO,
                 "run_id=%s runtime=%s error_code=%s",
@@ -487,6 +495,103 @@ class MeridianApplicationService:
             <= policies.data.research.maximum_market_age_seconds
             for quote in research_quotes.values()
         )
+        expected_closed_market = (
+            current_market.status is not MarketStatus.OPEN
+            and market_error is None
+            and research_inputs_ready
+        )
+        host_job_path = os.environ.get("MERIDIAN_HOST_JOB")
+        daily_data_status = (
+            "PASS"
+            if market_valid
+            else "MARKET_CLOSED"
+            if expected_closed_market
+            else "FAILED"
+        )
+
+        def semantic_quote_payload(values: dict[str, MarketSnapshot]) -> dict[str, dict[str, object]]:
+            return {
+                ticker: {
+                    key: value
+                    for key, value in quote.model_dump(mode="json").items()
+                    if key not in {"timestamp", "freshness_state"}
+                }
+                for ticker, quote in sorted(values.items())
+            }
+
+        host_resume_job = None
+        host_result_invalidated = False
+        if host_job_path:
+            host_resume_job = load_job(Path(host_job_path))
+            if host_resume_job.stage is not HostJobStage.RESEARCH:
+                raise ValueError("HOST_LLM_RESULT_STALE")
+            raw_job_quotes = host_resume_job.market_context.get("quotes", {})
+            if not isinstance(raw_job_quotes, dict):
+                raise ValueError("HOST_LLM_RESULT_STALE")
+            try:
+                frozen_quotes = {
+                    str(ticker): MarketSnapshot.model_validate(value)
+                    for ticker, value in raw_job_quotes.items()
+                    if isinstance(ticker, str) and isinstance(value, dict)
+                }
+            except ValueError as error:
+                raise ValueError("HOST_LLM_RESULT_STALE") from error
+            if semantic_quote_payload(frozen_quotes) != semantic_quote_payload(research_quotes):
+                old_run_id = host_resume_job.run_id
+                from meridian.host_llm import HostLLMResult
+                rebuilt_job, rebuilt_path = create_job(
+                    self.paths,
+                    run_id=parent_id,
+                    stage=HostJobStage.RESEARCH,
+                    market_context={
+                        "cutoff": cutoff.isoformat(),
+                        "quotes": {k: v.model_dump(mode="json") for k, v in research_quotes.items()},
+                    },
+                    portfolio_context={
+                        "currency": account.currency,
+                        "as_of": account.as_of.isoformat(),
+                        "cash": str(account.cash),
+                        "total_equity": str(account.total_equity),
+                        "positions": [
+                            {
+                                "ticker": holding.ticker,
+                                "market_value": str(holding.market_value),
+                                "weight": str(
+                                    holding.market_value / account.total_equity
+                                    if account.total_equity
+                                    else Decimal("0")
+                                ),
+                            }
+                            for holding in account.holdings
+                        ],
+                        "account_identifier_included": False,
+                    },
+                    risk_context={"gates": list(input_blockers)},
+                    strategy_context={
+                        "mode": "PAPER_ONLY",
+                        "execution_authority": "NONE",
+                        "market_reference": digest(
+                            {k: v.model_dump(mode="json") for k, v in research_quotes.items()}
+                        ),
+                    },
+                    research_questions=("Assess the supplied current market evidence.",),
+                    required_output_schema=HostLLMResult.model_json_schema(),
+                )
+                host_job_path = str(rebuilt_path)
+                host_result_path = None
+                host_result_invalidated = True
+                host_resume_job = rebuilt_job
+                startup["host_llm_recovery"] = {
+                    "status": "REBUILT",
+                    "reason": "HOST_LLM_RESULT_STALE",
+                    "old_run_id": old_run_id,
+                    "new_job_path": str(rebuilt_path),
+                }
+            else:
+                # Resume uses the exact research snapshot from the job. A later
+                # provider poll may update timestamps without changing decision facts.
+                research_quotes = frozen_quotes
+
         eligible_research_tickers = tuple(
             ticker
             for ticker in sorted(research_quotes)
@@ -566,12 +671,73 @@ class MeridianApplicationService:
             universe_plan=universe_plan,
             portfolio_context=portfolio_context,
         )
+        host_mode = os.environ.get("MERIDIAN_LLM_MODE", "").upper() == "HOST_CODEX"
+        if not host_result_invalidated:
+            host_job_path = os.environ.get("MERIDIAN_HOST_JOB")
+            host_result_path = os.environ.get("MERIDIAN_HOST_RESULT")
+        host_research: ResearchStageResult | None = None
+        if host_mode:
+            from meridian.host_llm import HostLLMResult
+            evidence_ids = {item.ticker: item.reference for item in request.observations}
+            if host_job_path:
+                job_path = Path(host_job_path)
+                job = host_resume_job or load_job(job_path)
+                if job.stage is not HostJobStage.RESEARCH or job.strategy_context.get("market_reference") != request.market_reference:
+                    raise ValueError("HOST_LLM_RESULT_STALE")
+            else:
+                job, job_path = create_job(self.paths, run_id=parent_id, stage=HostJobStage.RESEARCH,
+                    market_context={"cutoff": cutoff.isoformat(), "quotes": {k: v.model_dump(mode="json") for k, v in research_quotes.items()}, "evidence_ids": evidence_ids},
+                    portfolio_context=portfolio_context, risk_context={"gates": list(input_blockers)},
+                    strategy_context={"mode": "PAPER_ONLY", "execution_authority": "NONE", "market_reference": request.market_reference, "input_hash": request.input_hash},
+                    research_questions=("Assess the supplied current market evidence.",),
+                    required_output_schema=HostLLMResult.model_json_schema())
+            if not host_result_path:
+                host_research = ResearchStageResult(
+                    context=ResearchDecisionContext(research_run_id="host-" + parent_id, parent_run_id=parent_id,
+                        input_hash=request.input_hash, analysis_cutoff=cutoff, status=ResearchProviderStatus.NOT_RUN),
+                    prompt_created_at=cutoff, started_at=cutoff, finished_at=cutoff, duration_seconds=0, attempts=0,
+                    provider="HOST_CODEX", model="HOST", error_code="HOST_LLM_REQUIRED",
+                    next_action=f"Codex host must read {job_path} and write a validated result JSON; rerun with MERIDIAN_HOST_RESULT.",
+                    preparation_diagnostics={"execution_mode": "HOST_CODEX", "job_path": str(job_path), "result_path": None})
+            else:
+                try:
+                    job_loaded = load_job(job_path)
+                    host_result, accepted_path = accept_result(job_loaded, Path(host_result_path))
+                    expected_refs = {item.reference for item in request.observations}
+                    if not expected_refs <= set(host_result.evidence):
+                        raise ValueError("HOST_LLM_RESULT_INVALID")
+                    regime = host_result.market_regime.upper()
+                    direction = "BULLISH" if "BULL" in regime else "BEARISH" if "BEAR" in regime else "NEUTRAL"
+                    output = DailyResearchOutput(results=tuple(SymbolResearch(ticker=item.ticker,
+                        claim_kind="MODEL_INFERENCE", direction=direction,
+                        research_conviction=Decimal(str(host_result.confidence)), thesis=host_result.summary,
+                        risks=host_result.risks, cited_evidence_ids=(item.reference,),
+                        data_limitations=host_result.uncertainties or ("HOST_RESULT_LIMITATIONS_UNSPECIFIED",))
+                        for item in request.observations))
+                    output.validate_input(request)
+                    host_research = ResearchStageResult(
+                        context=ResearchDecisionContext(research_run_id="host-" + parent_id, parent_run_id=parent_id,
+                            input_hash=request.input_hash, analysis_cutoff=cutoff, status=ResearchProviderStatus.AVAILABLE,
+                            output=output), prompt_created_at=cutoff, started_at=cutoff, finished_at=datetime.now(UTC),
+                        duration_seconds=0, attempts=1, provider="HOST_CODEX", model="CHATGPT_HOST", provenance="REPLAY",
+                        response_received_at=datetime.now(UTC), error_code=None,
+                        next_action="Host result validated; deterministic portfolio and paper gates remain authoritative.",
+                        preparation_diagnostics={"execution_mode": "HOST_CODEX", "job_path": str(job_path), "result_path": str(accepted_path)})
+                except (OSError, ValueError, json.JSONDecodeError) as error:
+                    host_research = ResearchStageResult(
+                        context=ResearchDecisionContext(research_run_id="host-" + parent_id, parent_run_id=parent_id,
+                            input_hash=request.input_hash, analysis_cutoff=cutoff, status=ResearchProviderStatus.INVALID_RESPONSE),
+                        prompt_created_at=cutoff, started_at=cutoff, finished_at=datetime.now(UTC), duration_seconds=0,
+                        attempts=1, provider="HOST_CODEX", model="CHATGPT_HOST", error_code="HOST_LLM_RESULT_INVALID",
+                        next_action="Fix the host result JSON and rerun resume.",
+                        preparation_diagnostics={"execution_mode": "HOST_CODEX", "job_path": str(job_path), "result_path": host_result_path, "error_type": type(error).__name__})
         logger.info("run_id=%s stage=research start", parent_id)
         native_result = None
         use_native = (
             settings is not None
             and settings.research_engine == "gpt_native_v1"
             and not bool(getattr(self.research_stage.provider, "_injected_runner", False))
+            and not host_mode
         )
         if use_native:
             assert settings is not None
@@ -601,13 +767,26 @@ class MeridianApplicationService:
                 run_id=parent_id,
             )
             now = datetime.now(UTC)
+            native_status = (
+                ResearchProviderStatus.CODEX_TIMEOUT
+                if any(
+                    stage.status.value == "TIMEOUT"
+                    for stage in native_result.stages.values()
+                )
+                else ResearchProviderStatus.CODEX_PROCESS_ERROR
+                if any(
+                    stage.status.value in {"PROCESS_ERROR", "AUTH_ERROR", "NOT_AVAILABLE"}
+                    for stage in native_result.stages.values()
+                )
+                else ResearchProviderStatus.INVALID_RESPONSE
+            )
             research = ResearchStageResult(
                 context=ResearchDecisionContext(
                     research_run_id="native-" + parent_id,
                     parent_run_id=parent_id,
                     input_hash=request.input_hash,
                     analysis_cutoff=cutoff,
-                    status=ResearchProviderStatus.NOT_RUN,
+                    status=native_status,
                 ),
                 prompt_created_at=now,
                 started_at=now,
@@ -629,6 +808,10 @@ class MeridianApplicationService:
                 "fallback_reason": ",".join(native_result.degradation_reasons) or None,
                 "evidence_synthesis": "GPT_NATIVE_EVIDENCE_FIRST",
             }
+        elif host_mode and host_research is not None:
+            research = host_research
+            research_mode = "FULL_RESEARCH" if research.context.status is ResearchProviderStatus.AVAILABLE else "HOST_LLM_REQUIRED"
+            research_degradation = {"research_mode": research_mode, "research_confidence": "HOST_VALIDATED" if research.context.status is ResearchProviderStatus.AVAILABLE else "NONE", "llm_available": research.context.status is ResearchProviderStatus.AVAILABLE, "fallback_reason": research.error_code, "evidence_synthesis": "HOST_CODEX"}
         else:
             research = self.research_stage.run(request, settings)
             research_mode = (
@@ -706,10 +889,18 @@ class MeridianApplicationService:
                         "start": market_started.isoformat(),
                         "finish": market_finished.isoformat(),
                         "duration_seconds": (market_finished - market_started).total_seconds(),
-                        "status": "PASS" if market_valid else "BLOCKED",
+                        "status": daily_data_status,
                         "error_code": market_error
-                        or (None if market_valid else "MARKET_INPUT_NOT_READY"),
-                        "next_action": "Review provider probes and freshness.",
+                        or (
+                            None
+                            if market_valid or expected_closed_market
+                            else "MARKET_INPUT_NOT_READY"
+                        ),
+                        "next_action": (
+                            "Wait for the next regular session; completed-session data remains research-only."
+                            if expected_closed_market
+                            else "Review provider probes and freshness."
+                        ),
                     },
                     {
                         "stage": "research",
@@ -831,10 +1022,10 @@ class MeridianApplicationService:
                 "execution_mode": execution_mode,
                 "data_quality_mode": provenance.get("data_quality_mode", "NORMAL"),
                 "safe_analysis": safe_analysis,
-                "data_status": "PASS"
-                if quotes
-                and not any("MARKET" in reason for reason in result.decision.blocked_reasons)
-                else "FAILED",
+                "data_status": daily_data_status,
+                "market_data_tradeable": (
+                    current_market.status is MarketStatus.OPEN and market_valid
+                ),
                 "portfolio_status": account.freshness_state.value,
                 "research_status": research.context.status.value,
                 "quant_status": "PASS"
@@ -1512,11 +1703,23 @@ class MeridianApplicationService:
                 raise ValueError("PAPER_ACCOUNT_NOT_FOUND")
             _, auto_initialized = ledger.initialize(account_name)
         snapshot_path = ledger.write_snapshot(self.paths.cache / "paper-snapshots", account_name)
+        previous_llm_mode = os.environ.get("MERIDIAN_LLM_MODE")
+        explicit_host_handoff = bool(
+            os.environ.get("MERIDIAN_HOST_JOB")
+            or os.environ.get("MERIDIAN_HOST_RESULT")
+        )
+        if explicit_host_handoff:
+            os.environ["MERIDIAN_LLM_MODE"] = "HOST_CODEX"
         try:
-            # This is the canonical daily service, including its doctor, market,
-            # research, deterministic decision, gates, AuditStore and report steps.
+            # Normal local paper runs execute the configured native runtime.
+            # HOST_CODEX is reserved for an explicit job/result handoff.
             daily = self.daily(snapshot_path, research_live_enabled=True)
         finally:
+            if explicit_host_handoff:
+                if previous_llm_mode is None:
+                    os.environ.pop("MERIDIAN_LLM_MODE", None)
+                else:
+                    os.environ["MERIDIAN_LLM_MODE"] = previous_llm_mode
             try:
                 snapshot_path.unlink(missing_ok=True)
             except OSError:
@@ -1534,24 +1737,37 @@ class MeridianApplicationService:
         )
         canonical_run_id = str(daily.get("run_id", "UNAVAILABLE"))
         report_status = str(daily.get("status", "FAILED"))
+        data_status = str(daily.get("data_status", "FAILED"))
         research_status = str(daily.get("research_status", "NOT_RUN"))
         portfolio = daily.get("portfolio")
         targets = portfolio.get("positions", []) if isinstance(portfolio, dict) else []
         blockers: list[str] = []
+        fatal_blockers: list[str] = []
         if str(daily.get("runtime_status", "FAILED")) != "PASS":
-            blockers.append("PAPER_CANONICAL_RUNTIME_FAILED")
+            fatal_blockers.append("PAPER_CANONICAL_RUNTIME_FAILED")
         if market_session != MarketStatus.OPEN.value:
             blockers.append("PAPER_EXECUTION_BLOCKED_MARKET_CLOSED")
-        if str(daily.get("data_status", "FAILED")) != "PASS" or not quotes:
-            blockers.append("PAPER_EXECUTION_BLOCKED_MARKET_DATA")
+        expected_closed_market = (
+            market_session != MarketStatus.OPEN.value and data_status == "MARKET_CLOSED"
+        )
+        if (data_status != "PASS" or not quotes) and not expected_closed_market:
+            fatal_blockers.append("PAPER_EXECUTION_BLOCKED_MARKET_DATA")
         if research_status != "AVAILABLE":
-            blockers.append("PAPER_EXECUTION_BLOCKED_RESEARCH_" + research_status)
-        if report_status not in {"DRAFT", "NO_ACTION"}:
-            blockers.append("PAPER_EXECUTION_BLOCKED_DECISION_" + report_status)
+            fatal_blockers.append("PAPER_EXECUTION_BLOCKED_RESEARCH_" + research_status)
+        expected_closed_decision = (
+            expected_closed_market and report_status == RunStatus.BLOCKED_STALE_MARKET.value
+        )
+        if report_status not in {"DRAFT", "NO_ACTION"} and not expected_closed_decision:
+            fatal_blockers.append("PAPER_EXECUTION_BLOCKED_DECISION_" + report_status)
         if report_status == "DRAFT" and not isinstance(targets, list):
-            blockers.append("PAPER_EXECUTION_BLOCKED_DECISION_CONTEXT")
+            fatal_blockers.append("PAPER_EXECUTION_BLOCKED_DECISION_CONTEXT")
+        blockers.extend(fatal_blockers)
 
-        execution_status = "PAPER_BLOCKED"
+        execution_status = (
+            "PAPER_WAITING_FOR_MARKET"
+            if expected_closed_market and not fatal_blockers
+            else "PAPER_BLOCKED"
+        )
         fills = ()
         intents = ()
         if not blockers:
@@ -1610,7 +1826,9 @@ class MeridianApplicationService:
             "slippage_bps": str(ledger.settings.slippage_bps),
             "commission_per_order": str(ledger.settings.commission_per_order),
         }
-        final_status = execution_status if execution_status != "PAPER_BLOCKED" else "PAPER_BLOCKED"
+        final_status = (
+            "PAPER_READY" if execution_status == "PAPER_COMPLETE" else execution_status
+        )
         daily_readiness = daily.get("readiness")
         daily_readiness = daily_readiness if isinstance(daily_readiness, dict) else {}
         daily_manual_authority = daily.get("manual_authority")
@@ -1637,8 +1855,14 @@ class MeridianApplicationService:
             "execution_mode": daily.get("execution_mode", "SAFE_ANALYSIS"),
             "safe_analysis": daily.get("safe_analysis", {}),
             "market": {
-                "status": daily.get("data_status", "NOT_RUN"),
+                "status": data_status,
                 "session": market_session,
+                "market_data_tradeable": bool(
+                    daily.get(
+                        "market_data_tradeable",
+                        market_session == MarketStatus.OPEN.value and data_status == "PASS",
+                    )
+                ),
                 "observations": quotes,
                 "provider_probes": daily.get("provider_probes", {}),
                 "quote_certification": "BLOCKED",
@@ -1686,6 +1910,58 @@ class MeridianApplicationService:
         }
         return payload
 
+    def shadow_run(self, market_fixture: Path) -> dict[str, object]:
+        """Run live GPT against bounded market facts with permanently zero orders."""
+        self.paths.ensure_directories()
+        policies = load_policies(policy_directory())
+        settings = policies.models.research
+        if settings is None:
+            raise ValueError("SHADOW_RESEARCH_NOT_CONFIGURED")
+        quotes = load_market_fixture(market_fixture)
+        cutoff = datetime.now(UTC)
+        observations = tuple(
+            PublicResearchObservation(
+                ticker=ticker,
+                observed_at=quote.timestamp,
+                price=quote.last,
+                daily_return=quote.daily_return,
+                reference=hashlib.sha256(
+                    json.dumps(quote.model_dump(mode="json"), sort_keys=True).encode()
+                ).hexdigest(),
+            )
+            for ticker, quote in sorted(quotes.items())
+            if ticker in policies.universe.tickers and quote.timestamp <= cutoff
+        )
+        request = DailyResearchInput(
+            parent_run_id="shadow-" + uuid4().hex,
+            analysis_cutoff=cutoff,
+            mode="LIVE",
+            snapshot_reference="SHADOW_NO_ACCOUNT_SNAPSHOT",
+            market_reference=hashlib.sha256(
+                json.dumps({ticker: quote.model_dump(mode="json") for ticker, quote in quotes.items()}, sort_keys=True, default=str).encode()
+            ).hexdigest(),
+            policy_reference=hashlib.sha256(policies.models.model_dump_json().encode()).hexdigest(),
+            provider=settings.provider,
+            model=settings.model,
+            observations=observations,
+            freshness_status="PASS" if observations else "BLOCKED",
+            provider_provenance={ticker: "FIXTURE_SHADOW" for ticker in quotes},
+        )
+        record = ShadowResearchRunner(self.paths).run(
+            request,
+            settings.model_copy(update={"live_enabled": True}),
+            mode=ShadowMode.SHADOW_LIVE,
+            run_id=request.parent_run_id,
+            market_closed=market_status(cutoff).status is not MarketStatus.OPEN,
+        )
+        directory = self.paths.reports / cutoff.date().isoformat() / record.run_id
+        return {
+            **record.model_dump(mode="json"),
+            "output_files": {"shadow_research_json": str(directory / "shadow_research.json")},
+            "orders_created": 0,
+            "orders_executed": 0,
+            "shadow_only": True,
+        }
     def data_status(self) -> dict[str, object]:
         policies = load_policies(policy_directory())
         snapshot = OperationalMarketSnapshotService.from_runtime(

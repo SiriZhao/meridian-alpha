@@ -27,6 +27,27 @@ research:
   skeptic_model: codex-default
   scenario_model: codex-default
   synthesis_model: codex-default
+  models:
+    PRIMARY_ANALYST:
+      model: codex-default
+      reasoning_effort: medium
+      timeout_seconds: 16
+      max_attempts: 1
+    SKEPTIC:
+      model: codex-default
+      reasoning_effort: medium
+      timeout_seconds: 10
+      max_attempts: 1
+    SCENARIO_ANALYST:
+      model: codex-default
+      reasoning_effort: medium
+      timeout_seconds: 8
+      max_attempts: 1
+    DECISION_SYNTHESIZER:
+      model: codex-default
+      reasoning_effort: medium
+      timeout_seconds: 8
+      max_attempts: 1
   native_budget:
     total_seconds: 42
     primary_seconds: 16

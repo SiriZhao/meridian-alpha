@@ -1,0 +1,19 @@
+{
+  "symbol": "NVDA",
+  "last_updated": "2026-09-12T07:16:25.251811Z",
+  "current_thesis": "Deterministic evidence available; GPT reasoning unavailable.",
+  "confidence": 0.8879,
+  "direction": "NEUTRAL",
+  "key_drivers": [],
+  "key_risks": [],
+  "invalidators": [],
+  "open_questions": [],
+  "last_decision_state": "RESEARCH_ONLY",
+  "evidence_summary": [
+    "cd4be00323d7b6bcbbb25defe6a4db9b3d33ed9c18f3f5bc1068d16b98be0fff",
+    "det-cd4be00323d7b6bcbbb25defe6a4db9b3d33ed9c18f3f5bc"
+  ],
+  "recent_changes": [
+    "NEW"
+  ]
+}

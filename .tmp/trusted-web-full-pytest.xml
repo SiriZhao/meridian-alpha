@@ -1,0 +1,702 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="18" skipped="0" tests="474" time="59.628" timestamp="2026-09-11T22:03:38.942358+08:00" hostname="YOGA"><testcase classname="tests.test_acceptance_failures" name="test_snapshot_failures_are_operator_results[missing]" time="2.577" /><testcase classname="tests.test_acceptance_failures" name="test_snapshot_failures_are_operator_results[invalid]" time="2.115" /><testcase classname="tests.test_acceptance_failures" name="test_snapshot_failures_are_operator_results[stale]" time="2.451" /><testcase classname="tests.test_acceptance_failures" name="test_snapshot_failures_are_operator_results[future]" time="2.172" /><testcase classname="tests.test_acceptance_failures" name="test_problematic_runtime_path_is_structured" time="0.812" /><testcase classname="tests.test_acceptance_failures" name="test_database_failure_preserves_history[locked]" time="8.655" /><testcase classname="tests.test_acceptance_failures" name="test_database_failure_preserves_history[newer]" time="1.684" /><testcase classname="tests.test_acceptance_failures" name="test_report_write_failure_keeps_original_run_identity" time="2.110" /><testcase classname="tests.test_acceptance_failures" name="test_canonical_cli_research_faults[ok-AVAILABLE]" time="2.446" /><testcase classname="tests.test_acceptance_failures" name="test_canonical_cli_research_faults[missing-CODEX_NOT_INSTALLED]" time="2.126" /><testcase classname="tests.test_acceptance_failures" name="test_canonical_cli_research_faults[auth-CODEX_AUTH_REQUIRED]" time="2.141" /><testcase classname="tests.test_acceptance_failures" name="test_canonical_cli_research_faults[timeout-CODEX_TIMEOUT]" time="2.488" /><testcase classname="tests.test_acceptance_failures" name="test_canonical_cli_research_faults[malformed-CODEX_SCHEMA_ERROR]" time="2.275" /><testcase classname="tests.test_acceptance_failures" name="test_canonical_cli_research_faults[schema-CODEX_SCHEMA_ERROR]" time="2.483" /><testcase classname="tests.test_acceptance_failures" name="test_yahoo_provider_faults_are_structured[timeout]" time="0.001" /><testcase classname="tests.test_acceptance_failures" name="test_yahoo_provider_faults_are_structured[dns]" time="0.000" /><testcase classname="tests.test_acceptance_failures" name="test_yahoo_provider_faults_are_structured[invalid]" time="0.000" /><testcase classname="tests.test_acceptance_failures" name="test_launcher_missing_python_is_structured" time="0.510"><failure message="TypeError: the JSON object must be str, bytes or bytearray, not NoneType">tmp_path = WindowsPath('E:/CSDIY/Vibe Coding Project/meridian-alpha/.pytest_tmp_trusted_web_final/test_launcher_missing_python_i0')
+
+    @pytest.mark.skipif(sys.platform != "win32", reason="Windows PowerShell 5 launcher")
+    def test_launcher_missing_python_is_structured(tmp_path: Path):
+        import shutil
+        launcher = tmp_path / "installation # 中文" / "scripts" / "run_meridian.ps1"
+        launcher.parent.mkdir(parents=True)
+        shutil.copyfile(Path(__file__).parents[1] / "scripts/run_meridian.ps1", launcher)
+        run = subprocess.run(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+            "-File", str(launcher), "daily", "--json"], cwd=tmp_path,
+            capture_output=True, text=True, encoding="utf-8", timeout=20, check=False)
+        assert run.returncode == 3
+&gt;       result = json.loads(run.stdout)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_acceptance_failures.py:193: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+s = None, cls = None, object_hook = None, parse_float = None, parse_int = None
+parse_constant = None, object_pairs_hook = None, kw = {}
+
+    def loads(s, *, cls=None, object_hook=None, parse_float=None,
+            parse_int=None, parse_constant=None, object_pairs_hook=None, **kw):
+        """Deserialize ``s`` (a ``str``, ``bytes`` or ``bytearray`` instance
+        containing a JSON document) to a Python object.
+    
+        ``object_hook`` is an optional function that will be called with the
+        result of any object literal decode (a ``dict``). The return value of
+        ``object_hook`` will be used instead of the ``dict``. This feature
+        can be used to implement custom decoders (e.g. JSON-RPC class hinting).
+    
+        ``object_pairs_hook`` is an optional function that will be called with the
+        result of any object literal decoded with an ordered list of pairs.  The
+        return value of ``object_pairs_hook`` will be used instead of the ``dict``.
+        This feature can be used to implement custom decoders.  If ``object_hook``
+        is also defined, the ``object_pairs_hook`` takes priority.
+    
+        ``parse_float``, if specified, will be called with the string
+        of every JSON float to be decoded. By default this is equivalent to
+        float(num_str). This can be used to use another datatype or parser
+        for JSON floats (e.g. decimal.Decimal).
+    
+        ``parse_int``, if specified, will be called with the string
+        of every JSON int to be decoded. By default this is equivalent to
+        int(num_str). This can be used to use another datatype or parser
+        for JSON integers (e.g. float).
+    
+        ``parse_constant``, if specified, will be called with one of the
+        following strings: -Infinity, Infinity, NaN.
+        This can be used to raise an exception if invalid JSON numbers
+        are encountered.
+    
+        To use a custom ``JSONDecoder`` subclass, specify it with the ``cls``
+        kwarg; otherwise ``JSONDecoder`` is used.
+        """
+        if isinstance(s, str):
+            if s.startswith('\ufeff'):
+                raise JSONDecodeError("Unexpected UTF-8 BOM (decode using utf-8-sig)",
+                                      s, 0)
+        else:
+            if not isinstance(s, (bytes, bytearray)):
+&gt;               raise TypeError(f'the JSON object must be str, bytes or bytearray, '
+                                f'not {s.__class__.__name__}')
+E               TypeError: the JSON object must be str, bytes or bytearray, not NoneType
+
+C:\Users\YOGA Pro16\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py:339: TypeError</failure></testcase><testcase classname="tests.test_alpha_research_budget" name="test_bullish_and_bearish_certified_research_change_alpha_in_opposite_directions" time="0.001" /><testcase classname="tests.test_alpha_research_budget" name="test_research_and_dislocation_share_one_combined_cap" time="0.000" /><testcase classname="tests.test_alpha_research_budget" name="test_uncertified_or_abstaining_signal_cannot_influence_alpha" time="0.000" /><testcase classname="tests.test_application_reports" name="test_latest_report_is_fixed_redacted_summary" time="0.009" /><testcase classname="tests.test_application_service" name="test_fresh_home_requires_explicit_init_then_doctor_is_current" time="0.805" /><testcase classname="tests.test_application_service" name="test_application_service_paths_data_and_forward_are_runtime_scoped" time="1.790" /><testcase classname="tests.test_application_service" name="test_invalid_existing_database_fails_closed" time="0.014" /><testcase classname="tests.test_astra_foundation" name="test_astra_fact_requires_known_evidence" time="0.001" /><testcase classname="tests.test_astra_foundation" name="test_astra_rejects_unsupported_fact_and_future_evidence" time="0.001" /><testcase classname="tests.test_astra_foundation" name="test_astra_contradictions_and_unknowns_are_explicit" time="0.000" /><testcase classname="tests.test_astra_foundation" name="test_astra_mcp_registration_and_no_broker_execution_surface" time="0.000" /><testcase classname="tests.test_astra_foundation" name="test_astra_mcp_tools_have_structured_read_only_schemas" time="0.002" /><testcase classname="tests.test_astra_foundation" name="test_skill_is_astra_evidence_first" time="0.000" /><testcase classname="tests.test_astra_foundation" name="test_production_runtime_paths_do_not_write_project_tree" time="0.006" /><testcase classname="tests.test_astra_foundation" name="test_account_tool_rejects_future_snapshot" time="0.000" /><testcase classname="tests.test_astra_foundation" name="test_account_tool_rejects_stale_snapshot" time="0.005" /><testcase classname="tests.test_astra_foundation" name="test_astra_eval_fixture_covers_required_behaviors" time="0.001" /><testcase classname="tests.test_astra_foundation" name="test_astra_research_audit_is_immutable_under_runtime_paths" time="0.010" /><testcase classname="tests.test_astra_foundation" name="test_legacy_account_validator_rejects_stale_snapshot_without_authority" time="0.001" /><testcase classname="tests.test_astra_foundation" name="test_runtime_status_is_non_mutating_in_read_only_host" time="0.001" /><testcase classname="tests.test_canonical_research" name="test_canonical_stage_consumes_provider_neutrally" time="0.014" /><testcase classname="tests.test_canonical_research" name="test_no_action_and_insufficient_data_remain_fail_closed[NO_ACTION-NO_ACTION-CODEX_NO_ACTION]" time="0.012" /><testcase classname="tests.test_canonical_research" name="test_no_action_and_insufficient_data_remain_fail_closed[INSUFFICIENT_DATA-INSUFFICIENT_DATA-CODEX_INSUFFICIENT_DATA]" time="0.015" /><testcase classname="tests.test_canonical_research" name="test_provider_failures_are_preserved_by_stage[process0-CODEX_AUTH_REQUIRED]" time="0.009" /><testcase classname="tests.test_canonical_research" name="test_provider_failures_are_preserved_by_stage[process1-CODEX_RATE_LIMITED]" time="0.009" /><testcase classname="tests.test_canonical_research" name="test_provider_failures_are_preserved_by_stage[process2-CODEX_TIMEOUT]" time="0.010" /><testcase classname="tests.test_canonical_research" name="test_provider_failures_are_preserved_by_stage[invalid-CODEX_SCHEMA_ERROR]" time="0.017" /><testcase classname="tests.test_canonical_research" name="test_replay_and_input_boundaries" time="0.031" /><testcase classname="tests.test_canonical_research" name="test_canonical_research_report_and_persistence[False]" time="0.502" /><testcase classname="tests.test_canonical_research" name="test_canonical_research_report_and_persistence[True]" time="0.522" /><testcase classname="tests.test_canonical_research" name="test_research_cannot_change_financial_parameters_and_latency_blocks" time="0.004" /><testcase classname="tests.test_codex_json_errors" name="test_auxiliary_agent_usage_limit_is_not_misclassified_as_auth" time="0.005" /><testcase classname="tests.test_codex_provider" name="test_successful_structured_response_uses_safe_codex_command_and_stdin" time="0.015" /><testcase classname="tests.test_codex_provider" name="test_valid_non_action_statuses_are_structured[NO_ACTION]" time="0.018" /><testcase classname="tests.test_codex_provider" name="test_valid_non_action_statuses_are_structured[INSUFFICIENT_DATA]" time="0.017" /><testcase classname="tests.test_codex_provider" name="test_malformed_empty_and_missing_outputs_fail_closed_with_one_repair[not-json-CODEX_SCHEMA_ERROR]" time="0.025" /><testcase classname="tests.test_codex_provider" name="test_malformed_empty_and_missing_outputs_fail_closed_with_one_repair[-CODEX_EMPTY_RESPONSE]" time="0.017" /><testcase classname="tests.test_codex_provider" name="test_malformed_empty_and_missing_outputs_fail_closed_with_one_repair[MISSING-CODEX_OUTPUT_MISSING]" time="0.012" /><testcase classname="tests.test_codex_provider" name="test_executable_missing_is_explicit_and_not_retried" time="0.005" /><testcase classname="tests.test_codex_provider" name="test_non_retryable_process_errors_are_actionable[Please login or sign in to Codex-CODEX_AUTH_REQUIRED]" time="0.010" /><testcase classname="tests.test_codex_provider" name="test_non_retryable_process_errors_are_actionable[rate limit 429 quota exhausted-CODEX_RATE_LIMITED]" time="0.010" /><testcase classname="tests.test_codex_provider" name="test_non_retryable_process_errors_are_actionable[Error loading configuration: invalid config.toml-CODEX_CONFIG_INVALID]" time="0.013" /><testcase classname="tests.test_codex_provider" name="test_usage_limit_with_plugin_warning_is_rate_limited_not_auth" time="0.008" /><testcase classname="tests.test_codex_provider" name="test_timeout_is_explicit_and_process_runner_owns_cleanup" time="0.007" /><testcase classname="tests.test_codex_provider" name="test_temporary_process_failure_gets_one_repair_retry" time="0.018" /><testcase classname="tests.test_codex_provider" name="test_schema_and_citation_rejection_get_one_repair_retry" time="0.022" /><testcase classname="tests.test_codex_provider" name="test_repair_retry_can_recover_from_malformed_output" time="0.021" /><testcase classname="tests.test_codex_provider" name="test_windows_unicode_and_large_utf8_stdin" time="0.025" /><testcase classname="tests.test_codex_provider" name="test_child_environment_is_sanitized_and_model_overrides_are_explicit" time="0.018" /><testcase classname="tests.test_codex_provider" name="test_sanitizer_never_mutates_parent_and_deepseek_is_not_called" time="0.016" /><testcase classname="tests.test_config_validation" name="test_malformed_yaml_fails_fast" time="0.015" /><testcase classname="tests.test_config_validation" name="test_impossible_weight_capacity_fails_fast" time="0.019" /><testcase classname="tests.test_config_validation" name="test_missing_model_setting_fails_fast" time="0.018" /><testcase classname="tests.test_core" name="test_zero_account_fails_closed_without_orders" time="0.005" /><testcase classname="tests.test_core" name="test_stale_account_blocks_before_market_access" time="0.005" /><testcase classname="tests.test_core" name="test_no_lookahead_feature_gate" time="0.000" /><testcase classname="tests.test_core" name="test_synthetic_cash_account_generates_bounded_manual_drafts" time="0.005" /><testcase classname="tests.test_core" name="test_policy_rejects_leverage" time="0.017" /><testcase classname="tests.test_daily_closure" name="test_fresh_path_generates_manual_draft_and_deterministic_audit" time="0.011" /><testcase classname="tests.test_daily_closure" name="test_report_publication_handles_windows_cross_device_rename" time="0.012" /><testcase classname="tests.test_daily_closure" name="test_stale_missing_and_future_market_fail_closed" time="0.001" /><testcase classname="tests.test_daily_closure" name="test_zero_capital_and_snapshot_sensitive_input_rejection" time="0.005" /><testcase classname="tests.test_data_quality_gate" name="test_quality_gate_preserves_blocking_requirements" time="0.001" /><testcase classname="tests.test_data_quality_gate" name="test_quality_gate_blocks_missing_required" time="0.000" /><testcase classname="tests.test_domain_and_execution" name="test_domain_models_reject_naive_timestamps" time="0.001" /><testcase classname="tests.test_domain_and_execution" name="test_model_invariants_reject_schema_drift" time="0.000" /><testcase classname="tests.test_domain_and_execution" name="test_ready_decision_and_no_capital_final_validation" time="0.000" /><testcase classname="tests.test_domain_and_execution" name="test_raw_agent_signal_cannot_enter_alpha_fusion" time="0.000" /><testcase classname="tests.test_domain_and_execution" name="test_risk_caps_position_and_sector" time="0.008" /><testcase classname="tests.test_domain_and_execution" name="test_reconciliation_uses_actual_snapshot_and_never_oversells" time="0.004" /><testcase classname="tests.test_domain_and_execution" name="test_limit_price_fail_closed[snapshot0-BLOCKED_STALE_MARKET]" time="0.004" /><testcase classname="tests.test_domain_and_execution" name="test_limit_price_fail_closed[snapshot1-DRAFT]" time="0.004" /><testcase classname="tests.test_domain_and_execution" name="test_limit_price_fail_closed[snapshot2-DRAFT]" time="0.008" /><testcase classname="tests.test_domain_and_execution" name="test_limit_price_fail_closed[snapshot3-DRAFT]" time="0.007" /><testcase classname="tests.test_domain_and_execution" name="test_limit_price_fail_closed[snapshot4-DRAFT]" time="0.004" /><testcase classname="tests.test_domain_and_execution" name="test_audit_idempotency_rejects_contradictory_run" time="0.025" /><testcase classname="tests.test_evidence_graph" name="test_graph_rejects_dangling_evidence_and_node_references" time="0.001" /><testcase classname="tests.test_evidence_graph" name="test_result_rejects_graph_evidence_not_in_research_evidence" time="0.000" /><testcase classname="tests.test_evidence_graph" name="test_event_and_macro_are_cutoff_bounded_and_source_bearing" time="0.001" /><testcase classname="tests.test_evidence_graph" name="test_event_and_macro_mcp_tools_are_read_only_and_fail_explicitly" time="0.000" /><testcase classname="tests.test_evidence_provenance" name="test_evidence_requires_nonempty_provenance" time="0.001" /><testcase classname="tests.test_execution_still_blocked_when_closed" name="test_paper_execution_remains_blocked_when_research_is_complete" time="0.038" /><testcase classname="tests.test_final_acceptance_regressions" name="test_ytd_and_gap_use_prior_year_close_and_current_open" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_result_cutoff_is_authoritative_over_evidence_cutoff[known_at]" time="0.001" /><testcase classname="tests.test_final_acceptance_regressions" name="test_result_cutoff_is_authoritative_over_evidence_cutoff[observed_at]" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_result_rejects_claim_type_confidence_and_authority_spoofing" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_graph_rejects_cycles_and_unsupported_confidence" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_sec_filing_label_does_not_override_fact_duration" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_yoy_does_not_use_an_arbitrary_prior_quarter" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_debt_deduplicates_components_and_keeps_one_accession" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_quant_rejects_malformed_bars[modification0]" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_quant_rejects_malformed_bars[modification1]" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_quant_rejects_malformed_bars[modification2]" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_account_and_risk_reject_spoofed_freshness[-3601]" time="0.009" /><testcase classname="tests.test_final_acceptance_regressions" name="test_account_and_risk_reject_spoofed_freshness[1]" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_ttm_requires_four_nonoverlapping_quarters_and_resolvable_inputs" time="0.001" /><testcase classname="tests.test_final_acceptance_regressions" name="test_astra_surface_has_no_nested_daily_pipeline" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_provider_failures_preserve_explicit_diagnostics[error0]" time="0.001" /><testcase classname="tests.test_final_acceptance_regressions" name="test_provider_failures_preserve_explicit_diagnostics[error1]" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_provider_failures_preserve_explicit_diagnostics[error2]" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_sec_numerical_retrieval_requires_acceptance_metadata" time="0.000" /><testcase classname="tests.test_final_acceptance_regressions" name="test_sec_provider_rejects_timezone_less_acceptance" time="0.001" /><testcase classname="tests.test_final_acceptance_regressions" name="test_live_history_uses_completion_clock_but_replay_cutoff_is_immutable" time="0.004" /><testcase classname="tests.test_final_acceptance_regressions" name="test_intraday_return_uses_last_completed_close_and_unknown_open_gap" time="0.001" /><testcase classname="tests.test_fundamentals" name="test_fcf_has_lineage_and_later_restatement_cannot_leak" time="0.001" /><testcase classname="tests.test_fundamentals" name="test_non_certified_or_invalid_duration_rejected" time="0.000" /><testcase classname="tests.test_gap_planner" name="test_gap_planner_returns_requirements_not_values" time="0.015" /><testcase classname="tests.test_gap_planner" name="test_gap_planner_schema_uses_codex_compatible_subset" time="0.000" /><testcase classname="tests.test_gate15" name="test_account_age_boundaries" time="0.005" /><testcase classname="tests.test_gate15" name="test_quote_age_boundary_blocks_only_after_threshold" time="0.005" /><testcase classname="tests.test_gate15" name="test_structured_evidence_validation" time="0.000" /><testcase classname="tests.test_gate15" name="test_valuation_uses_fresh_mark_not_broker_value" time="0.001" /><testcase classname="tests.test_gate15" name="test_projected_validator_rejects_oversell_and_negative_cash" time="0.001" /><testcase classname="tests.test_gate15" name="test_mcp_service_without_provider_fails_closed" time="0.001" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_cumulative_buy_projection" time="0.000" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_unknown_pit_is_rejected" time="0.000" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_certified_signal_is_sealed" time="0.000" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_candidate_missing_timestamp_is_deferred" time="0.000" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_test_mode_never_certifies" time="0.001" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_synthetic_capability_cannot_authorize" time="0.000" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_future_available_at_is_rejected" time="0.000" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_direct_grounding_requires_packet_identity" time="0.000" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_provider_capability_mismatch_fails_closed" time="0.000" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_live_capable_provider_is_rejected_in_test_mode" time="0.000" /><testcase classname="tests.test_gate26_product_invariants" name="test_gate26_alpha_fusion_regime_influence_is_bounded" time="0.001" /><testcase classname="tests.test_gate3b15_context" name="test_sec_event_requires_exact_certified_metadata_and_has_no_sentiment" time="0.000" /><testcase classname="tests.test_gate3b15_context" name="test_macro_vintage_and_regime_reject_future_information" time="0.000" /><testcase classname="tests.test_gate3b15_context" name="test_historical_identity_is_blocked_without_authoritative_continuity" time="0.000" /><testcase classname="tests.test_gate3b16_numeric" name="test_numeric_provider_preserves_values_and_contexts" time="0.000" /><testcase classname="tests.test_gate3b16_numeric" name="test_numeric_provider_rejects_wrong_cik" time="0.000" /><testcase classname="tests.test_gate3b16_numeric" name="test_unknown_concept_stays_raw_but_is_excluded_from_certified_canonical_analysis" time="0.001" /><testcase classname="tests.test_gate3b16_numeric" name="test_accession_join_uses_acceptance_and_missing_metadata_is_unverified" time="0.000" /><testcase classname="tests.test_gate3b16_numeric" name="test_cutoff_selects_known_fact_not_last_array_element_and_preserves_yoy_lineage" time="0.000" /><testcase classname="tests.test_gate3b16_numeric" name="test_quarter_ytd_and_units_do_not_derive_margin" time="0.000" /><testcase classname="tests.test_gate3b16_numeric" name="test_enriched_prompt_contains_structured_certified_values_only" time="0.001" /><testcase classname="tests.test_gate3b1_foundation" name="test_unknown_security_identity_fails_closed" time="0.000" /><testcase classname="tests.test_gate3b1_foundation" name="test_vix_alias_is_index_with_distinct_calendar" time="0.000" /><testcase classname="tests.test_gate3b1_foundation" name="test_wrong_provider_symbol_fails_closed" time="0.000" /><testcase classname="tests.test_gate3b1_foundation" name="test_quote_last_only_is_explicitly_not_bid_ask_grade" time="0.000"><failure message="meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch">def test_quote_last_only_is_explicitly_not_bid_ask_grade() -&gt; None:
+&gt;       quote = QuoteNormalizer(DEFAULT_SECURITY_MASTER, max_age_seconds=10000).normalize(
+            _raw(), symbol="AAPL", provider="fixture", retrieved_at=T
+        )
+
+tests\test_gate3b1_foundation.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.quotes.QuoteNormalizer object at 0x000001C35ECDA120&gt;
+raw = {'available_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), 'currency': 'USD', 'last': '100.00', 'observed_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), ...}
+
+    def normalize(
+        self,
+        raw: Mapping[str, Any],
+        *,
+        symbol: str,
+        provider: str,
+        retrieved_at: datetime,
+        source: str | None = None,
+        as_of: datetime | None = None,
+    ) -&gt; QuoteObservation:
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = str(raw.get("provider_symbol", "")).strip()
+        expected_symbol = security.provider_symbols.get(provider)
+        if not provider_symbol or expected_symbol != provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch
+
+src\meridian\quotes.py:183: SecurityIdentityUnavailable</failure></testcase><testcase classname="tests.test_gate3b1_foundation" name="test_inverted_bid_ask_rejected" time="0.001"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'bid'&#10; Input: 'SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch'">def test_inverted_bid_ask_rejected() -&gt; None:
+        with pytest.raises(ValueError, match="bid"):
+&gt;           QuoteNormalizer(DEFAULT_SECURITY_MASTER, max_age_seconds=10000).normalize(
+                _raw(bid="101", ask="100"), symbol="AAPL", provider="fixture", retrieved_at=T
+            )
+
+tests\test_gate3b1_foundation.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.quotes.QuoteNormalizer object at 0x000001C35ECDA660&gt;
+raw = {'ask': '100', 'available_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), 'bid': '101', 'currency': 'USD', ...}
+
+    def normalize(
+        self,
+        raw: Mapping[str, Any],
+        *,
+        symbol: str,
+        provider: str,
+        retrieved_at: datetime,
+        source: str | None = None,
+        as_of: datetime | None = None,
+    ) -&gt; QuoteObservation:
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = str(raw.get("provider_symbol", "")).strip()
+        expected_symbol = security.provider_symbols.get(provider)
+        if not provider_symbol or expected_symbol != provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch
+
+src\meridian\quotes.py:183: SecurityIdentityUnavailable
+
+During handling of the above exception, another exception occurred:
+
+    def test_inverted_bid_ask_rejected() -&gt; None:
+&gt;       with pytest.raises(ValueError, match="bid"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'bid'
+E        Input: 'SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch'
+
+tests\test_gate3b1_foundation.py:71: AssertionError</failure></testcase><testcase classname="tests.test_gate3b1_foundation" name="test_currency_mismatch_rejected" time="0.000"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'currency'&#10; Input: 'SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch'">def test_currency_mismatch_rejected() -&gt; None:
+        with pytest.raises(ValueError, match="currency"):
+&gt;           QuoteNormalizer(DEFAULT_SECURITY_MASTER, max_age_seconds=10000).normalize(
+                _raw(currency="EUR"), symbol="AAPL", provider="fixture", retrieved_at=T
+            )
+
+tests\test_gate3b1_foundation.py:79: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.quotes.QuoteNormalizer object at 0x000001C35ECDB3B0&gt;
+raw = {'available_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), 'currency': 'EUR', 'last': '100.00', 'observed_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), ...}
+
+    def normalize(
+        self,
+        raw: Mapping[str, Any],
+        *,
+        symbol: str,
+        provider: str,
+        retrieved_at: datetime,
+        source: str | None = None,
+        as_of: datetime | None = None,
+    ) -&gt; QuoteObservation:
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = str(raw.get("provider_symbol", "")).strip()
+        expected_symbol = security.provider_symbols.get(provider)
+        if not provider_symbol or expected_symbol != provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch
+
+src\meridian\quotes.py:183: SecurityIdentityUnavailable
+
+During handling of the above exception, another exception occurred:
+
+    def test_currency_mismatch_rejected() -&gt; None:
+&gt;       with pytest.raises(ValueError, match="currency"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'currency'
+E        Input: 'SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch'
+
+tests\test_gate3b1_foundation.py:78: AssertionError</failure></testcase><testcase classname="tests.test_gate3b1_foundation" name="test_future_timestamp_rejected" time="0.001"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'future'&#10; Input: 'SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch'">def test_future_timestamp_rejected() -&gt; None:
+        with pytest.raises(ValueError, match="future"):
+&gt;           QuoteNormalizer(DEFAULT_SECURITY_MASTER, max_age_seconds=10000).normalize(
+                _raw(observed_at=datetime(2026, 8, 28, 19, 0, tzinfo=UTC)),
+                symbol="AAPL", provider="fixture", retrieved_at=T
+            )
+
+tests\test_gate3b1_foundation.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.quotes.QuoteNormalizer object at 0x000001C35EC80230&gt;
+raw = {'available_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), 'currency': 'USD', 'last': '100.00', 'observed_at': datetime.datetime(2026, 8, 28, 19, 0, tzinfo=datetime.timezone.utc), ...}
+
+    def normalize(
+        self,
+        raw: Mapping[str, Any],
+        *,
+        symbol: str,
+        provider: str,
+        retrieved_at: datetime,
+        source: str | None = None,
+        as_of: datetime | None = None,
+    ) -&gt; QuoteObservation:
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = str(raw.get("provider_symbol", "")).strip()
+        expected_symbol = security.provider_symbols.get(provider)
+        if not provider_symbol or expected_symbol != provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch
+
+src\meridian\quotes.py:183: SecurityIdentityUnavailable
+
+During handling of the above exception, another exception occurred:
+
+    def test_future_timestamp_rejected() -&gt; None:
+&gt;       with pytest.raises(ValueError, match="future"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'future'
+E        Input: 'SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch'
+
+tests\test_gate3b1_foundation.py:85: AssertionError</failure></testcase><testcase classname="tests.test_gate3b1_foundation" name="test_stale_quote_is_marked_stale" time="0.001"><failure message="meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch">def test_stale_quote_is_marked_stale() -&gt; None:
+&gt;       quote = QuoteNormalizer(DEFAULT_SECURITY_MASTER, max_age_seconds=60).normalize(
+            _raw(observed_at=datetime(2026, 8, 28, 15, 0, tzinfo=UTC)),
+            symbol="AAPL", provider="fixture", retrieved_at=T,
+        )
+
+tests\test_gate3b1_foundation.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.quotes.QuoteNormalizer object at 0x000001C35EC82150&gt;
+raw = {'available_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), 'currency': 'USD', 'last': '100.00', 'observed_at': datetime.datetime(2026, 8, 28, 15, 0, tzinfo=datetime.timezone.utc), ...}
+
+    def normalize(
+        self,
+        raw: Mapping[str, Any],
+        *,
+        symbol: str,
+        provider: str,
+        retrieved_at: datetime,
+        source: str | None = None,
+        as_of: datetime | None = None,
+    ) -&gt; QuoteObservation:
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = str(raw.get("provider_symbol", "")).strip()
+        expected_symbol = security.provider_symbols.get(provider)
+        if not provider_symbol or expected_symbol != provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch
+
+src\meridian\quotes.py:183: SecurityIdentityUnavailable</failure></testcase><testcase classname="tests.test_gate3b1_foundation" name="test_us_calendar_weekend_holiday_and_dst" time="0.001" /><testcase classname="tests.test_gate3b1_foundation" name="test_provider_capabilities_default_conservatively" time="0.001" /><testcase classname="tests.test_gate3b1_foundation" name="test_provider_disagreement_is_explicit_not_averaged" time="0.001"><failure message="meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch">def test_provider_disagreement_is_explicit_not_averaged() -&gt; None:
+        normalizer = QuoteNormalizer(DEFAULT_SECURITY_MASTER)
+&gt;       a = normalizer.normalize(_raw(last="100"), symbol="AAPL", provider="fixture", retrieved_at=T)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_gate3b1_foundation.py:120: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.quotes.QuoteNormalizer object at 0x000001C35ECA6990&gt;
+raw = {'available_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), 'currency': 'USD', 'last': '100', 'observed_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), ...}
+
+    def normalize(
+        self,
+        raw: Mapping[str, Any],
+        *,
+        symbol: str,
+        provider: str,
+        retrieved_at: datetime,
+        source: str | None = None,
+        as_of: datetime | None = None,
+    ) -&gt; QuoteObservation:
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = str(raw.get("provider_symbol", "")).strip()
+        expected_symbol = security.provider_symbols.get(provider)
+        if not provider_symbol or expected_symbol != provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch
+
+src\meridian\quotes.py:183: SecurityIdentityUnavailable</failure></testcase><testcase classname="tests.test_gate3b1_foundation" name="test_security_conflict_downgrades_identity" time="0.000" /><testcase classname="tests.test_gate3b1_foundation" name="test_shadow_policy_cannot_authorize" time="0.000"><failure message="meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch">def test_shadow_policy_cannot_authorize() -&gt; None:
+&gt;       quote = QuoteNormalizer(DEFAULT_SECURITY_MASTER, max_age_seconds=10000).normalize(
+            _raw(), symbol="AAPL", provider="fixture", retrieved_at=T
+        )
+
+tests\test_gate3b1_foundation.py:143: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.quotes.QuoteNormalizer object at 0x000001C35ECA63C0&gt;
+raw = {'available_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), 'currency': 'USD', 'last': '100.00', 'observed_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), ...}
+
+    def normalize(
+        self,
+        raw: Mapping[str, Any],
+        *,
+        symbol: str,
+        provider: str,
+        retrieved_at: datetime,
+        source: str | None = None,
+        as_of: datetime | None = None,
+    ) -&gt; QuoteObservation:
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = str(raw.get("provider_symbol", "")).strip()
+        expected_symbol = security.provider_symbols.get(provider)
+        if not provider_symbol or expected_symbol != provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch
+
+src\meridian\quotes.py:183: SecurityIdentityUnavailable</failure></testcase><testcase classname="tests.test_gate3b1_foundation" name="test_quote_during_session_is_incomplete" time="0.000"><failure message="meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch">def test_quote_during_session_is_incomplete() -&gt; None:
+&gt;       quote = QuoteNormalizer(DEFAULT_SECURITY_MASTER, max_age_seconds=10000).normalize(
+            _raw(observed_at=datetime(2026, 8, 28, 15, 0, tzinfo=UTC)),
+            symbol="AAPL", provider="fixture", retrieved_at=T,
+        )
+
+tests\test_gate3b1_foundation.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.quotes.QuoteNormalizer object at 0x000001C35EC800E0&gt;
+raw = {'available_at': datetime.datetime(2026, 8, 28, 16, 0, tzinfo=datetime.timezone.utc), 'currency': 'USD', 'last': '100.00', 'observed_at': datetime.datetime(2026, 8, 28, 15, 0, tzinfo=datetime.timezone.utc), ...}
+
+    def normalize(
+        self,
+        raw: Mapping[str, Any],
+        *,
+        symbol: str,
+        provider: str,
+        retrieved_at: datetime,
+        source: str | None = None,
+        as_of: datetime | None = None,
+    ) -&gt; QuoteObservation:
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = str(raw.get("provider_symbol", "")).strip()
+        expected_symbol = security.provider_symbols.get(provider)
+        if not provider_symbol or expected_symbol != provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:provider-symbol-mismatch
+
+src\meridian\quotes.py:183: SecurityIdentityUnavailable</failure></testcase><testcase classname="tests.test_gate3b1_foundation" name="test_development_fixture_is_not_authoritative" time="0.000" /><testcase classname="tests.test_gate3b2_historical" name="test_historical_bar_normalization_and_raw_execution_boundary" time="0.000"><failure message="meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol">def test_historical_bar_normalization_and_raw_execution_boundary() -&gt; None:
+&gt;       series = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture").normalize(
+            [_row()], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED,
+            adjustment_status=HistoricalAdjustmentStatus.RAW,
+            certification=HistoricalBarCertification.CERTIFIED_MARKET_SESSION,
+            quality=HistoricalQuality.VERIFIED,
+        )
+
+tests\test_gate3b2_historical.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.historical.HistoricalDataNormalizer object at 0x000001C35ECDBC80&gt;
+rows = [{'available_at': '2026-08-28T21:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '105', ...}]
+
+    def normalize(
+        self,
+        rows: Sequence[Mapping[str, Any]],
+        *,
+        symbol: str,
+        as_of: datetime,
+        retrieved_at: datetime,
+        adjustment_status: HistoricalAdjustmentStatus = HistoricalAdjustmentStatus.RAW,
+        certification: HistoricalBarCertification = HistoricalBarCertification.UNVERIFIED,
+        quality: HistoricalQuality = HistoricalQuality.UNVERIFIED,
+        source_mode: str = "REPLAY",
+    ) -&gt; HistoricalBarSeries:
+        if as_of.tzinfo is None or as_of.utcoffset() is None:
+            raise ValueError("as_of must be timezone-aware")
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider)
+        if not provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol
+
+src\meridian\historical.py:174: SecurityIdentityUnavailable</failure></testcase><testcase classname="tests.test_gate3b2_historical" name="test_impossible_ohlc_and_future_session_rejected" time="0.001"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'high'&#10; Input: 'SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol'">def test_impossible_ohlc_and_future_session_rejected() -&gt; None:
+        normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture")
+        with pytest.raises(ValueError, match="high"):
+&gt;           normalizer.normalize([_row(high="98")], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED)
+
+tests\test_gate3b2_historical.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.historical.HistoricalDataNormalizer object at 0x000001C35ECDA780&gt;
+rows = [{'available_at': '2026-08-28T21:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '98', ...}]
+
+    def normalize(
+        self,
+        rows: Sequence[Mapping[str, Any]],
+        *,
+        symbol: str,
+        as_of: datetime,
+        retrieved_at: datetime,
+        adjustment_status: HistoricalAdjustmentStatus = HistoricalAdjustmentStatus.RAW,
+        certification: HistoricalBarCertification = HistoricalBarCertification.UNVERIFIED,
+        quality: HistoricalQuality = HistoricalQuality.UNVERIFIED,
+        source_mode: str = "REPLAY",
+    ) -&gt; HistoricalBarSeries:
+        if as_of.tzinfo is None or as_of.utcoffset() is None:
+            raise ValueError("as_of must be timezone-aware")
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider)
+        if not provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol
+
+src\meridian\historical.py:174: SecurityIdentityUnavailable
+
+During handling of the above exception, another exception occurred:
+
+    def test_impossible_ohlc_and_future_session_rejected() -&gt; None:
+        normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture")
+&gt;       with pytest.raises(ValueError, match="high"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'high'
+E        Input: 'SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol'
+
+tests\test_gate3b2_historical.py:67: AssertionError</failure></testcase><testcase classname="tests.test_gate3b2_historical" name="test_weekend_session_and_wrong_symbol_fail_closed" time="0.001"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'trading session'&#10; Input: 'SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol'">def test_weekend_session_and_wrong_symbol_fail_closed() -&gt; None:
+        normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture")
+        with pytest.raises(ValueError, match="trading session"):
+&gt;           normalizer.normalize([_row("2026-08-29")], symbol="AAPL", as_of=datetime(2026, 9, 1, tzinfo=UTC), retrieved_at=datetime(2026, 9, 1, tzinfo=UTC))
+
+tests\test_gate3b2_historical.py:76: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.historical.HistoricalDataNormalizer object at 0x000001C35ECA68A0&gt;
+rows = [{'available_at': '2026-08-29T21:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '105', ...}]
+
+    def normalize(
+        self,
+        rows: Sequence[Mapping[str, Any]],
+        *,
+        symbol: str,
+        as_of: datetime,
+        retrieved_at: datetime,
+        adjustment_status: HistoricalAdjustmentStatus = HistoricalAdjustmentStatus.RAW,
+        certification: HistoricalBarCertification = HistoricalBarCertification.UNVERIFIED,
+        quality: HistoricalQuality = HistoricalQuality.UNVERIFIED,
+        source_mode: str = "REPLAY",
+    ) -&gt; HistoricalBarSeries:
+        if as_of.tzinfo is None or as_of.utcoffset() is None:
+            raise ValueError("as_of must be timezone-aware")
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider)
+        if not provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol
+
+src\meridian\historical.py:174: SecurityIdentityUnavailable
+
+During handling of the above exception, another exception occurred:
+
+    def test_weekend_session_and_wrong_symbol_fail_closed() -&gt; None:
+        normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture")
+&gt;       with pytest.raises(ValueError, match="trading session"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'trading session'
+E        Input: 'SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol'
+
+tests\test_gate3b2_historical.py:75: AssertionError</failure></testcase><testcase classname="tests.test_gate3b2_historical" name="test_adjusted_prices_are_explicitly_non_execution" time="0.000"><failure message="meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol">def test_adjusted_prices_are_explicitly_non_execution() -&gt; None:
+&gt;       series = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture").normalize(
+            [_row()], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED,
+            adjustment_status=HistoricalAdjustmentStatus.ADJUSTED_CLOSE,
+        )
+
+tests\test_gate3b2_historical.py:82: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.historical.HistoricalDataNormalizer object at 0x000001C35F164CB0&gt;
+rows = [{'available_at': '2026-08-28T21:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '105', ...}]
+
+    def normalize(
+        self,
+        rows: Sequence[Mapping[str, Any]],
+        *,
+        symbol: str,
+        as_of: datetime,
+        retrieved_at: datetime,
+        adjustment_status: HistoricalAdjustmentStatus = HistoricalAdjustmentStatus.RAW,
+        certification: HistoricalBarCertification = HistoricalBarCertification.UNVERIFIED,
+        quality: HistoricalQuality = HistoricalQuality.UNVERIFIED,
+        source_mode: str = "REPLAY",
+    ) -&gt; HistoricalBarSeries:
+        if as_of.tzinfo is None or as_of.utcoffset() is None:
+            raise ValueError("as_of must be timezone-aware")
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider)
+        if not provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol
+
+src\meridian\historical.py:174: SecurityIdentityUnavailable</failure></testcase><testcase classname="tests.test_gate3b2_historical" name="test_quality_missing_sessions_and_provider_conflict" time="0.000"><failure message="meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol">def test_quality_missing_sessions_and_provider_conflict() -&gt; None:
+        normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture")
+&gt;       first = normalizer.normalize([_row()], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_gate3b2_historical.py:92: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.historical.HistoricalDataNormalizer object at 0x000001C35F165460&gt;
+rows = [{'available_at': '2026-08-28T21:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '105', ...}]
+
+    def normalize(
+        self,
+        rows: Sequence[Mapping[str, Any]],
+        *,
+        symbol: str,
+        as_of: datetime,
+        retrieved_at: datetime,
+        adjustment_status: HistoricalAdjustmentStatus = HistoricalAdjustmentStatus.RAW,
+        certification: HistoricalBarCertification = HistoricalBarCertification.UNVERIFIED,
+        quality: HistoricalQuality = HistoricalQuality.UNVERIFIED,
+        source_mode: str = "REPLAY",
+    ) -&gt; HistoricalBarSeries:
+        if as_of.tzinfo is None or as_of.utcoffset() is None:
+            raise ValueError("as_of must be timezone-aware")
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider)
+        if not provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol
+
+src\meridian\historical.py:174: SecurityIdentityUnavailable</failure></testcase><testcase classname="tests.test_gate3b2_historical" name="test_shadow_features_are_lineaged_and_cutoff_bounded" time="0.000"><failure message="meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol">def test_shadow_features_are_lineaged_and_cutoff_bounded() -&gt; None:
+        normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture")
+&gt;       series = normalizer.normalize(
+            [_row("2026-08-27"), _row("2026-08-28")], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED
+        )
+
+tests\test_gate3b2_historical.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.historical.HistoricalDataNormalizer object at 0x000001C35ECA6EA0&gt;
+rows = [{'available_at': '2026-08-27T21:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '105', ...}, {'available_at': '2026-08-28T21:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '105', ...}]
+
+    def normalize(
+        self,
+        rows: Sequence[Mapping[str, Any]],
+        *,
+        symbol: str,
+        as_of: datetime,
+        retrieved_at: datetime,
+        adjustment_status: HistoricalAdjustmentStatus = HistoricalAdjustmentStatus.RAW,
+        certification: HistoricalBarCertification = HistoricalBarCertification.UNVERIFIED,
+        quality: HistoricalQuality = HistoricalQuality.UNVERIFIED,
+        source_mode: str = "REPLAY",
+    ) -&gt; HistoricalBarSeries:
+        if as_of.tzinfo is None or as_of.utcoffset() is None:
+            raise ValueError("as_of must be timezone-aware")
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider)
+        if not provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol
+
+src\meridian\historical.py:174: SecurityIdentityUnavailable</failure></testcase><testcase classname="tests.test_gate3b2_historical" name="test_corporate_action_requires_known_at_for_historical_pit" time="0.001" /><testcase classname="tests.test_gate3b2_historical" name="test_first_seen_ledger_never_backdates" time="0.000" /><testcase classname="tests.test_gate3b2_historical" name="test_future_available_at_and_late_announcement_cannot_enter_cutoff" time="0.001"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'after as_of'&#10; Input: 'SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol'">def test_future_available_at_and_late_announcement_cannot_enter_cutoff() -&gt; None:
+        normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture")
+        with pytest.raises(ValueError, match="after as_of"):
+&gt;           normalizer.normalize(
+                [_row(available_at="2026-08-29T00:00:00+00:00")],
+                symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED,
+            )
+
+tests\test_gate3b2_historical.py:151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.historical.HistoricalDataNormalizer object at 0x000001C35ECDBE60&gt;
+rows = [{'available_at': '2026-08-29T00:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '105', ...}]
+
+    def normalize(
+        self,
+        rows: Sequence[Mapping[str, Any]],
+        *,
+        symbol: str,
+        as_of: datetime,
+        retrieved_at: datetime,
+        adjustment_status: HistoricalAdjustmentStatus = HistoricalAdjustmentStatus.RAW,
+        certification: HistoricalBarCertification = HistoricalBarCertification.UNVERIFIED,
+        quality: HistoricalQuality = HistoricalQuality.UNVERIFIED,
+        source_mode: str = "REPLAY",
+    ) -&gt; HistoricalBarSeries:
+        if as_of.tzinfo is None or as_of.utcoffset() is None:
+            raise ValueError("as_of must be timezone-aware")
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider)
+        if not provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol
+
+src\meridian\historical.py:174: SecurityIdentityUnavailable
+
+During handling of the above exception, another exception occurred:
+
+    def test_future_available_at_and_late_announcement_cannot_enter_cutoff() -&gt; None:
+        normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture")
+&gt;       with pytest.raises(ValueError, match="after as_of"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'after as_of'
+E        Input: 'SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol'
+
+tests\test_gate3b2_historical.py:150: AssertionError</failure></testcase><testcase classname="tests.test_gate3b2_historical" name="test_incomplete_current_session_excluded_from_shadow_features" time="0.001"><failure message="meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol">def test_incomplete_current_session_excluded_from_shadow_features() -&gt; None:
+        normalizer = HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture")
+&gt;       series = normalizer.normalize(
+            [_row("2026-08-27"), _row("2026-08-28", available_at="2026-08-28T17:00:00+00:00")],
+            symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED,
+        )
+
+tests\test_gate3b2_historical.py:167: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.historical.HistoricalDataNormalizer object at 0x000001C35E7773B0&gt;
+rows = [{'available_at': '2026-08-27T21:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '105', ...}, {'available_at': '2026-08-28T17:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '105', ...}]
+
+    def normalize(
+        self,
+        rows: Sequence[Mapping[str, Any]],
+        *,
+        symbol: str,
+        as_of: datetime,
+        retrieved_at: datetime,
+        adjustment_status: HistoricalAdjustmentStatus = HistoricalAdjustmentStatus.RAW,
+        certification: HistoricalBarCertification = HistoricalBarCertification.UNVERIFIED,
+        quality: HistoricalQuality = HistoricalQuality.UNVERIFIED,
+        source_mode: str = "REPLAY",
+    ) -&gt; HistoricalBarSeries:
+        if as_of.tzinfo is None or as_of.utcoffset() is None:
+            raise ValueError("as_of must be timezone-aware")
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider)
+        if not provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol
+
+src\meridian\historical.py:174: SecurityIdentityUnavailable</failure></testcase><testcase classname="tests.test_gate3b2_historical" name="test_certified_market_bar_requires_verified_quality" time="0.001"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'VERIFIED quality'&#10; Input: 'SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol'">def test_certified_market_bar_requires_verified_quality() -&gt; None:
+        with pytest.raises(ValueError, match="VERIFIED quality"):
+&gt;           HistoricalDataNormalizer(DEFAULT_SECURITY_MASTER, provider="fixture").normalize(
+                [_row()], symbol="AAPL", as_of=AS_OF, retrieved_at=RETRIEVED,
+                certification=HistoricalBarCertification.CERTIFIED_MARKET_SESSION,
+                quality=HistoricalQuality.UNVERIFIED,
+            )
+
+tests\test_gate3b2_historical.py:177: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;meridian.historical.HistoricalDataNormalizer object at 0x000001C35F1645F0&gt;
+rows = [{'available_at': '2026-08-28T21:00:00+00:00', 'close': '104', 'currency': 'USD', 'high': '105', ...}]
+
+    def normalize(
+        self,
+        rows: Sequence[Mapping[str, Any]],
+        *,
+        symbol: str,
+        as_of: datetime,
+        retrieved_at: datetime,
+        adjustment_status: HistoricalAdjustmentStatus = HistoricalAdjustmentStatus.RAW,
+        certification: HistoricalBarCertification = HistoricalBarCertification.UNVERIFIED,
+        quality: HistoricalQuality = HistoricalQuality.UNVERIFIED,
+        source_mode: str = "REPLAY",
+    ) -&gt; HistoricalBarSeries:
+        if as_of.tzinfo is None or as_of.utcoffset() is None:
+            raise ValueError("as_of must be timezone-aware")
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("retrieved_at must be timezone-aware")
+        security = self.security_master.resolve(symbol)
+        provider_symbol = security.provider_symbols.get(self.provider)
+        if not provider_symbol:
+&gt;           raise SecurityIdentityUnavailable("SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol")
+E           meridian.security_master.SecurityIdentityUnavailable: SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol
+
+src\meridian\historical.py:174: SecurityIdentityUnavailable
+
+During handling of the above exception, another exception occurred:
+
+    def test_certified_market_bar_requires_verified_quality() -&gt; None:
+&gt;       with pytest.raises(ValueError, match="VERIFIED quality"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'VERIFIED quality'
+E        Input: 'SECURITY_IDENTITY_UNAVAILABLE:historical-provider-symbol'
+
+tests\test_gate3b2_historical.py:176: AssertionError</failure></testcase><testcase classname="tests.test_gate3b2_historical" name="test_golden_universe_is_bounded_and_identity_complete" time="0.000" /><testcase classname="tests.test_gate3b3_evidence_foundation" name="test_fundamental_authority_is_publication_availability_not_period_end" time="0.000" /><testcase classname="tests.test_gate3b3_evidence_foundation" name="test_fundamental_future_availability_rejected_for_cutoff_by_packet_builder_contract" time="0.000" /><testcase classname="tests.test_gate3b3_evidence_foundation" name="test_news_requires_explicit_publication_and_deduplicates_by_document_identity" time="0.000" /><testcase classname="tests.test_gate3b3_evidence_foundation" name="test_macro_without_release_vintage_is_unverified" time="0.000" /><testcase classname="tests.test_gate3b3_evidence_foundation" name="test_replay_evidence_is_synthetic_and_non_executable[provider0]" time="0.000" /><testcase classname="tests.test_gate3b3_evidence_foundation" name="test_replay_evidence_is_synthetic_and_non_executable[provider1]" time="0.000" /><testcase classname="tests.test_gate3b3_evidence_foundation" name="test_replay_evidence_is_synthetic_and_non_executable[provider2]" time="0.000" /><testcase classname="tests.test_gate3b4_shadow_daily" name="test_shadow_daily_is_bounded_and_non_executable" time="0.012" /><testcase classname="tests.test_gate3b4_shadow_daily" name="test_shadow_daily_surfaces_deferred_candidates" time="0.003" /><testcase classname="tests.test_gate3b4_shadow_daily" name="test_shadow_daily_has_no_live_provider_status" time="0.001" /><testcase classname="tests.test_gate3b5_certification" name="test_packet_mixed_verified_and_certified_does_not_upgrade_to_historical_pit" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_packet_requires_homogeneous_explicit_historical_certification" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_packet_mixed_statuses_fail_closed[statuses0]" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_packet_mixed_statuses_fail_closed[statuses1]" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_packet_mixed_statuses_fail_closed[statuses2]" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_packet_mixed_statuses_fail_closed[statuses3]" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_multi_provider_registry_authorizes_each_citation_with_its_own_certificate" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_missing_provider_certificate_fails_closed" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_single_provider_certificate_cannot_authorize_another_provider" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_provider_capability_pit_claim_mismatch_fails_closed" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_provider_registry_unknown_name_is_not_silently_defaulted" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_provider_certification_registry_is_conservative" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_packet_claim_cannot_overstate_item_pit_certification" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_certified_view_filters_mixed_context_before_normalization" time="0.000" /><testcase classname="tests.test_gate3b5_certification" name="test_certified_view_is_sealed" time="0.000" /><testcase classname="tests.test_gate3b5_real_providers" name="test_yahoo_quote_normalizes_last_only_and_shadow_capabilities" time="0.000" /><testcase classname="tests.test_gate3b5_real_providers" name="test_yahoo_quote_malformed_response_is_explicit" time="0.000" /><testcase classname="tests.test_gate3b5_real_providers" name="test_yahoo_historical_skips_missing_rows_without_imputation" time="0.001" /><testcase classname="tests.test_gate3b5_real_providers" name="test_yahoo_historical_malformed_response_is_explicit" time="0.000" /><testcase classname="tests.test_gate3b5_real_providers" name="test_real_market_evidence_is_unverified_and_not_executable" time="0.000" /><testcase classname="tests.test_gate4_host_account" name="test_complete_host_envelope_normalizes_without_private_identifier" time="0.000" /><testcase classname="tests.test_gate4_host_account" name="test_partial_and_stale_remain_non_executable_account_states" time="0.000" /><testcase classname="tests.test_gate4_host_account" name="test_unknown_security_and_currency_mismatch_fail_closed" time="0.001" /><testcase classname="tests.test_gate4_host_account" name="test_duplicate_snapshot_id_with_changed_content_fails_closed" time="0.000" /><testcase classname="tests.test_gate4_host_account" name="test_production_clock_rejects_injected_time_and_future_host_fields" time="0.001" /><testcase classname="tests.test_gate4_host_account" name="test_old_as_of_is_stale_even_when_old_retrieved_at_is_nearby" time="0.000" /><testcase classname="tests.test_gate4_host_account" name="test_host_coverage_cases_preserve_analysis_only_boundaries" time="0.001" /><testcase classname="tests.test_gate4_host_account" name="test_host_sensitive_fields_are_rejected_before_normalization" time="0.001" /><testcase classname="tests.test_gate4_identity_quote" name="test_identity_promotion_requires_primary_source_and_interval" time="0.001" /><testcase classname="tests.test_gate4_identity_quote" name="test_captured_identity_report_is_explicitly_loadable_and_historical_bounds_hold" time="0.002" /><testcase classname="tests.test_gate4_identity_quote" name="test_quote_validator_enforces_certificate_identity_freshness_and_spread" time="0.001" /><testcase classname="tests.test_gate4_readiness" name="test_missing_host_input_is_explicitly_supervised_and_not_manual" time="0.000" /><testcase classname="tests.test_gate4_readiness" name="test_partial_or_stale_host_cannot_self_authorize_manual_entry" time="0.000" /><testcase classname="tests.test_gate5_reproducibility" name="test_frozen_feature_blocks_future_inputs_and_is_deterministic" time="0.001" /><testcase classname="tests.test_gate5_reproducibility" name="test_frozen_feature_rejects_non_sha256_and_non_finite_values" time="0.000" /><testcase classname="tests.test_gate5_reproducibility" name="test_analysis_manifest_requires_sha256_input_hashes" time="0.000" /><testcase classname="tests.test_gate5_reproducibility" name="test_provider_health_bounds_retries" time="0.000" /><testcase classname="tests.test_gate5_reproducibility" name="test_replay_safe_cache_preserves_original_availability_and_rejects_secrets" time="0.004" /><testcase classname="tests.test_gate5_shadow_contracts" name="test_finrlx_challenger_requires_manifest_and_never_promotes" time="0.000" /><testcase classname="tests.test_gate5_shadow_contracts" name="test_validated_shadow_boundary_receives_only_frozen_feature_snapshot" time="0.006" /><testcase classname="tests.test_gate5_shadow_contracts" name="test_shadow_infer_rechecks_artifact_before_runtime" time="0.006" /><testcase classname="tests.test_gate5_shadow_contracts" name="test_shadow_infer_rejects_target_policy_violation" time="0.007" /><testcase classname="tests.test_gate5_shadow_contracts" name="test_allocator_comparison_does_not_fabricate_oos_metrics" time="0.000" /><testcase classname="tests.test_gate5_shadow_contracts" name="test_dislocation_screen_is_bounded_and_deterministic" time="0.000" /><testcase classname="tests.test_gate5_shadow_contracts" name="test_dislocation_modifier_requires_sealed_certified_evidence_view" time="0.001" /><testcase classname="tests.test_gate5_shadow_contracts" name="test_raw_dislocation_assessment_cannot_authorize_modifier" time="0.000" /><testcase classname="tests.test_gate5_shadow_contracts" name="test_dislocation_price_and_quality_snapshots_are_separate" time="0.000" /><testcase classname="tests.test_gate5e_5f_integrity" name="test_cache_persists_and_validates_file_and_record_hashes" time="0.037" /><testcase classname="tests.test_gate5e_5f_integrity" name="test_cache_load_rejects_conflicting_duplicate_key" time="0.012" /><testcase classname="tests.test_gate5e_5f_integrity" name="test_cache_blocks_sensitive_payload_names[payload0]" time="0.001" /><testcase classname="tests.test_gate5e_5f_integrity" name="test_cache_blocks_sensitive_payload_names[payload1]" time="0.001" /><testcase classname="tests.test_gate5e_5f_integrity" name="test_cache_blocks_sensitive_payload_names[payload2]" time="0.001" /><testcase classname="tests.test_gate5e_5f_integrity" name="test_frozen_llm_response_requires_exact_hash_cutoff_schema_and_citations" time="0.001" /><testcase classname="tests.test_gate5e_5f_integrity" name="test_oos_status_cannot_use_placeholder_validation_fields" time="0.001" /><testcase classname="tests.test_gate5e_5f_integrity" name="test_offline_soak_is_bounded_and_explicit" time="0.000" /><testcase classname="tests.test_gate6a_production" name="test_production_fusion_is_directional_and_not_quant_only" time="0.001" /><testcase classname="tests.test_gate6a_production" name="test_bundle_availability_is_maximum_input_availability" time="0.001" /><testcase classname="tests.test_gate6a_production" name="test_security_manifest_sidecar_is_required_for_verified_loader" time="0.001" /><testcase classname="tests.test_gate6c_release_candidate" name="test_real_host_template_is_valid_and_uses_verified_runtime_identity" time="0.002" /><testcase classname="tests.test_gate6c_release_candidate" name="test_quote_preflight_is_sanitized_when_credentials_are_absent" time="0.000" /><testcase classname="tests.test_gate6c_release_candidate" name="test_alpaca_candidate_is_read_only_and_parses_quote_and_trade" time="0.000" /><testcase classname="tests.test_gate6c_release_candidate" name="test_polygon_candidate_is_read_only_and_parses_nanosecond_timestamps" time="0.000" /><testcase classname="tests.test_gate6d_6e_long_shadow" name="test_shadow_run_ledger_is_append_only_and_reloadable" time="0.023" /><testcase classname="tests.test_gate6d_6e_long_shadow" name="test_forward_outcome_is_not_available_before_observed_time" time="0.001" /><testcase classname="tests.test_gate6d_6e_long_shadow" name="test_replay_soak_health_and_profiles_are_explicit" time="0.001" /><testcase classname="tests.test_gate6d_6e_long_shadow" name="test_finrlx_inspection_stays_unavailable_without_runtime" time="0.003" /><testcase classname="tests.test_gate6f_manual_authority" name="test_only_seven_pass_gates_issue_ready_certificate" time="0.001" /><testcase classname="tests.test_gate6f_manual_authority" name="test_legacy_market_snapshot_readiness_cannot_be_manual_ready" time="0.001" /><testcase classname="tests.test_gate6f_manual_authority" name="test_manual_draft_requires_certificate_and_exact_quote" time="0.001" /><testcase classname="tests.test_gate6f_manual_authority" name="test_profile_manual_support_never_uses_decision_ready_without_certificate" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_fake_or_mismatched_capability_certificates_are_blocked[update0-QUOTE_PROVIDER_CERTIFICATE_MISMATCH]" time="0.001" /><testcase classname="tests.test_gate6f_manual_authority" name="test_fake_or_mismatched_capability_certificates_are_blocked[update1-QUOTE_CERTIFICATE_SYMBOL_SCOPE_MISMATCH]" time="0.001" /><testcase classname="tests.test_gate6f_manual_authority" name="test_fake_or_mismatched_capability_certificates_are_blocked[update2-QUOTE_CERTIFICATE_EXPIRED]" time="0.001" /><testcase classname="tests.test_gate6f_manual_authority" name="test_fake_or_mismatched_capability_certificates_are_blocked[update3-QUOTE_FEED_CERTIFICATE_MISMATCH]" time="0.001" /><testcase classname="tests.test_gate6f_manual_authority" name="test_invalid_capability_hash_is_blocked" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_closed_and_wide_quotes_are_blocked" time="0.001" /><testcase classname="tests.test_gate6f_manual_authority" name="test_each_failed_or_degraded_gate_blocks_certificate[ACCOUNT_READY]" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_each_failed_or_degraded_gate_blocks_certificate[SECURITY_READY]" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_each_failed_or_degraded_gate_blocks_certificate[MARKET_READY]" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_each_failed_or_degraded_gate_blocks_certificate[RESEARCH_READY]" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_each_failed_or_degraded_gate_blocks_certificate[QUOTE_READY]" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_each_failed_or_degraded_gate_blocks_certificate[RISK_READY]" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_each_failed_or_degraded_gate_blocks_certificate[RECONCILIATION_READY]" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_host_readiness_rejects_duck_typed_ready_certificate" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_mcp_refuses_ready_status_without_persisted_certificate" time="0.000" /><testcase classname="tests.test_gate6f_manual_authority" name="test_mcp_host_envelope_routes_to_canonical_application_service" time="0.031" /><testcase classname="tests.test_gate6f_manual_authority" name="test_manual_draft_has_no_fill_side_effects" time="0.002" /><testcase classname="tests.test_gate6g_supervised_rc" name="test_host_nested_sensitive_keys_and_digest_conflict_fail_closed" time="0.001" /><testcase classname="tests.test_gate6g_supervised_rc" name="test_host_future_fields_rejected_by_system_clock_in_replay" time="0.002" /><testcase classname="tests.test_gate6g_supervised_rc" name="test_quote_instance_identity_and_missing_fields_fail_closed[bid-MISSING_BID]" time="0.001" /><testcase classname="tests.test_gate6g_supervised_rc" name="test_quote_instance_identity_and_missing_fields_fail_closed[ask-MISSING_ASK]" time="0.001" /><testcase classname="tests.test_gate6g_supervised_rc" name="test_quote_instance_identity_and_missing_fields_fail_closed[currency-WRONG_CURRENCY]" time="0.001" /><testcase classname="tests.test_gate6g_supervised_rc" name="test_quote_instance_identity_and_missing_fields_fail_closed[symbol-WRONG_TICKER]" time="0.001" /><testcase classname="tests.test_gate6g_supervised_rc" name="test_quote_vix_requires_separate_index_capability" time="0.001" /><testcase classname="tests.test_gate6g_supervised_rc" name="test_quote_temporal_and_spread_failures_are_typed" time="0.001" /><testcase classname="tests.test_gate6g_supervised_rc" name="test_readiness_certificate_requires_all_seven_and_fixture_is_not_real_ready" time="0.001" /><testcase classname="tests.test_gate6g_supervised_rc" name="test_gate6g_runner_reports_missing_real_gates_without_secrets" time="0.111" /><testcase classname="tests.test_gate6h_release" name="test_daily_package_is_sanitized_and_append_only" time="0.247" /><testcase classname="tests.test_gate6h_release" name="test_performance_ledger_rejects_tampered_content_hash" time="0.007" /><testcase classname="tests.test_gate6h_release" name="test_v1_soak_has_no_network_and_profiles_have_no_auto_execution" time="0.000" /><testcase classname="tests.test_gate6l_operations" name="test_session_requires_every_gate_and_counts_only_qualified" time="0.005" /><testcase classname="tests.test_gate6l_operations" name="test_session_duplicate_is_idempotent_and_conflict_fails_closed" time="0.004" /><testcase classname="tests.test_gate6l_operations" name="test_session_ledger_rejects_tampered_hash" time="0.015" /><testcase classname="tests.test_intelligence_forward" name="test_malformed_llm_and_risk_block_have_no_order_authority" time="0.001" /><testcase classname="tests.test_intelligence_forward" name="test_structural_damage_avoids_and_future_evidence_rejected" time="0.000" /><testcase classname="tests.test_intelligence_forward" name="test_forward_evidence_is_append_only_and_maturity_gated" time="0.006" /><testcase classname="tests.test_intelligence_forward" name="test_forward_freeze_is_authoritative_idempotent_and_session_aware" time="0.006" /><testcase classname="tests.test_intelligence_forward" name="test_forward_ingestion_waits_for_maturity_and_is_idempotent" time="0.008" /><testcase classname="tests.test_live_llm_transport" name="test_legacy_deepseek_runtime_is_disabled_without_network" time="0.005" /><testcase classname="tests.test_live_shadow_opt_in" name="test_live_shadow_requires_explicit_opt_in_and_does_not_mutate_defaults" time="0.000" /><testcase classname="tests.test_live_shadow_opt_in" name="test_live_shadow_rejects_raw_packet_or_context" time="0.000" /><testcase classname="tests.test_market_closed_research_allowed" name="test_market_closed_does_not_prevent_research_completion" time="0.001" /><testcase classname="tests.test_market_data_plane_v2" name="test_v2_features_are_deterministic_bounded_and_benchmark_aware" time="0.004" /><testcase classname="tests.test_market_data_plane_v2" name="test_v2_features_leave_benchmark_values_unknown_when_unavailable" time="0.001" /><testcase classname="tests.test_market_data_plane_v2" name="test_quant_metrics_exposes_only_bounded_research_view_with_benchmarks" time="0.006" /><testcase classname="tests.test_night_part1" name="test_candidate_selector_prioritizes_holdings_and_surfaces_deferred" time="0.001" /><testcase classname="tests.test_night_part1" name="test_candidate_selector_minimum_quant_score_is_explicit" time="0.000" /><testcase classname="tests.test_night_part1" name="test_candidate_future_feature_is_rejected" time="0.000" /><testcase classname="tests.test_night_part1" name="test_offline_providers_are_synthetic_and_not_live" time="0.000" /><testcase classname="tests.test_night_part1" name="test_packet_builder_deduplicates_bounds_and_isolates_failures" time="0.001" /><testcase classname="tests.test_night_part1" name="test_future_available_evidence_is_dropped_and_empty_reason_is_explicit" time="0.000" /><testcase classname="tests.test_night_part1" name="test_completeness_policy_returns_structured_failure" time="0.000" /><testcase classname="tests.test_night_part1" name="test_graph_summary_cannot_be_available" time="0.000" /><testcase classname="tests.test_night_part1" name="test_empty_packet_requires_reason" time="0.000" /><testcase classname="tests.test_night_part1" name="test_naive_evidence_timestamp_is_rejected" time="0.000" /><testcase classname="tests.test_night_part2" name="test_unknown_citation_is_invalid_output" time="0.000" /><testcase classname="tests.test_night_part2" name="test_missing_citation_is_rejected_when_required" time="0.000" /><testcase classname="tests.test_night_part2" name="test_grounded_conviction_is_bounded[value0]" time="0.000" /><testcase classname="tests.test_night_part2" name="test_grounded_conviction_is_bounded[value1]" time="0.000" /><testcase classname="tests.test_night_part2" name="test_valid_grounded_signal_becomes_agent_signal_only_after_citation_gate" time="0.000" /><testcase classname="tests.test_night_part2" name="test_graph_rating_does_not_create_conviction" time="0.000" /><testcase classname="tests.test_night_part2" name="test_live_disabled_prevents_graph_invocation" time="0.001" /><testcase classname="tests.test_night_part2" name="test_graph_summary_alone_is_not_available" time="0.001" /><testcase classname="tests.test_night_part2" name="test_valid_grounded_result_produces_agent_signal" time="0.001" /><testcase classname="tests.test_night_part2" name="test_provider_failure_is_isolated" time="0.001" /><testcase classname="tests.test_night_part2" name="test_budget_limits_graph_calls_before_invocation" time="0.004" /><testcase classname="tests.test_night_part2" name="test_replay_store_round_trip_and_hash_validation" time="0.036" /><testcase classname="tests.test_night_part2" name="test_replay_mode_never_calls_graph_provider" time="0.019" /><testcase classname="tests.test_night_part2" name="test_deepseek_normalizer_disabled_without_client_call" time="0.005" /><testcase classname="tests.test_night_part2" name="test_future_citation_is_rejected" time="0.000" /><testcase classname="tests.test_night_part2_config" name="test_evidence_age_policy_rejects_negative_age" time="0.000" /><testcase classname="tests.test_night_part2_config" name="test_evidence_age_policy_rejects_blank_type" time="0.000" /><testcase classname="tests.test_night_part2_e2e" name="test_scenario_a_zero_capital_stops_before_research_and_market" time="0.005" /><testcase classname="tests.test_night_part2_e2e" name="test_scenario_b_synthetic_pipeline_reaches_grounded_signal_and_fusion" time="0.001" /><testcase classname="tests.test_night_part2_e2e" name="test_scenario_c_existing_holding_is_prioritized_and_deferred_is_explicit" time="0.001" /><testcase classname="tests.test_night_part2_e2e" name="test_scenario_d_graph_success_with_insufficient_evidence_is_not_available" time="0.000" /><testcase classname="tests.test_night_part2_e2e" name="test_scenario_e_unknown_evidence_citation_fails_closed" time="0.001" /><testcase classname="tests.test_night_part2_e2e" name="test_candidate_selector_is_deterministic_for_equal_scores" time="0.000" /><testcase classname="tests.test_no_llm_fabricated_market_data" name="test_codex_web_cannot_supply_market_price" time="0.001" /><testcase classname="tests.test_operational_data" name="test_fresh_fallback_and_research_boundary" time="0.005" /><testcase classname="tests.test_operational_data" name="test_stale_and_future_quotes_degrade" time="0.000" /><testcase classname="tests.test_operational_data" name="test_disagreement_invalid_response_and_cache_corruption" time="0.008" /><testcase classname="tests.test_operational_data" name="test_completed_session_handles_weekend_and_holiday" time="0.000" /><testcase classname="tests.test_operational_market_snapshot" name="test_primary_with_secondary_failure_builds_provenance_snapshot" time="0.005" /><testcase classname="tests.test_operational_market_snapshot" name="test_conflict_and_both_unavailable_fail_closed" time="0.004" /><testcase classname="tests.test_operational_market_snapshot" name="test_future_quote_is_never_converted_to_market_snapshot" time="0.000" /><testcase classname="tests.test_operational_market_snapshot" name="test_provider_precision_is_normalized_at_market_snapshot_boundary" time="0.004" /><testcase classname="tests.test_operational_market_snapshot" name="test_last_completed_session_quote_is_research_only" time="0.003" /><testcase classname="tests.test_orchestrator_safety" name="test_zero_capital_does_not_call_market_or_research" time="0.005" /><testcase classname="tests.test_orchestrator_safety" name="test_missing_market_data_is_draft_without_orders" time="0.004" /><testcase classname="tests.test_orchestrator_safety" name="test_missing_research_is_draft_without_orders" time="0.004" /><testcase classname="tests.test_orchestrator_safety" name="test_complete_synthetic_pipeline_is_ready_only_with_all_inputs" time="0.004" /><testcase classname="tests.test_orchestrator_safety" name="test_naive_run_date_is_rejected_before_work" time="0.004" /><testcase classname="tests.test_orchestrator_safety" name="test_future_account_snapshot_is_failed" time="0.007" /><testcase classname="tests.test_orchestrator_safety" name="test_universe_excluded_holding_requires_a_current_quote" time="0.006" /><testcase classname="tests.test_package" name="test_package_version_is_present" time="0.000" /><testcase classname="tests.test_paper_runtime" name="test_v2_database_upgrades_to_paper_schema_without_losing_user_table" time="0.023" /><testcase classname="tests.test_paper_runtime" name="test_paper_initialization_is_once_and_survives_restart" time="0.016" /><testcase classname="tests.test_paper_runtime" name="test_paper_snapshot_is_fresh_ledger_observation_not_a_renamed_replay" time="0.029" /><testcase classname="tests.test_paper_runtime" name="test_paper_fill_is_atomic_long_only_and_daily_idempotent" time="0.024" /><testcase classname="tests.test_paper_runtime" name="test_paper_accounting_benchmark_and_drawdown" time="0.030" /><testcase classname="tests.test_paper_runtime" name="test_paper_reset_requires_exact_account_confirmation" time="0.025" /><testcase classname="tests.test_paper_runtime" name="test_paper_run_uses_canonical_daily_then_prevents_same_day_duplicate" time="0.107" /><testcase classname="tests.test_paper_runtime" name="test_paper_run_fails_closed_when_canonical_research_is_not_available" time="0.040" /><testcase classname="tests.test_paper_runtime" name="test_paper_order_builder_applies_cash_and_existing_policy" time="0.020" /><testcase classname="tests.test_precision" name="test_derived_limit_is_validated_and_quantized_to_money_precision" time="0.004" /><testcase classname="tests.test_provider_fallback" name="test_provider_failure_falls_through_to_next_provider" time="0.003" /><testcase classname="tests.test_recommendation_daily" name="test_missing_and_duplicate_daily_persist_readiness" time="1.264" /><testcase classname="tests.test_recommendation_daily" name="test_invalid_market_fixture_persists_blockers" time="0.479" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[runtime_health]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[account_snapshot_status]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[account_snapshot_freshness]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[account_provenance]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[market_data_status]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[market_data_freshness]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[provider_provenance]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[research_status]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[research_freshness]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[decision_pipeline_status]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_unknown_never_promoted[policy_gate_status]" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_runtime_research_and_manual_are_distinct" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_snapshot_time_bounds[0-ACCOUNT_SNAPSHOT_VALID]" time="0.007" /><testcase classname="tests.test_recommendation_readiness" name="test_snapshot_time_bounds[-3601-ACCOUNT_SNAPSHOT_STALE]" time="0.010" /><testcase classname="tests.test_recommendation_readiness" name="test_snapshot_time_bounds[1-ACCOUNT_SNAPSHOT_FUTURE_DATED]" time="0.011" /><testcase classname="tests.test_recommendation_readiness" name="test_dst_offsets_use_elapsed_time[now0]" time="0.011" /><testcase classname="tests.test_recommendation_readiness" name="test_dst_offsets_use_elapsed_time[now1]" time="0.010" /><testcase classname="tests.test_recommendation_readiness" name="test_malformed_or_naive_snapshot_is_bounded[change0]" time="0.019" /><testcase classname="tests.test_recommendation_readiness" name="test_malformed_or_naive_snapshot_is_bounded[change1]" time="0.023" /><testcase classname="tests.test_recommendation_readiness" name="test_pending_and_partial_input_not_usable" time="0.046" /><testcase classname="tests.test_recommendation_readiness" name="test_duplicate_claim_is_atomic_and_conflict_visible" time="0.033" /><testcase classname="tests.test_recommendation_readiness" name="test_old_database_upgrade_and_failed_migration_rollback" time="0.033" /><testcase classname="tests.test_recommendation_readiness" name="test_session_boundaries_and_future_bar" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_stale_primary_valid_secondary_and_cached_replay" time="0.008" /><testcase classname="tests.test_recommendation_readiness" name="test_mid_migration_failure_rolls_back_new_tables" time="0.017" /><testcase classname="tests.test_recommendation_readiness" name="test_historical_receipt_after_replay_cutoff_rejected" time="0.002" /><testcase classname="tests.test_recommendation_readiness" name="test_cache_lookup_preserves_requested_provider_alias" time="0.007" /><testcase classname="tests.test_recommendation_readiness" name="test_historical_adapter_never_advances_fixed_cutoff" time="0.001" /><testcase classname="tests.test_recommendation_readiness" name="test_recent_timestamp_during_holiday_is_not_a_fresh_trade" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_every_nonpassing_dimension_blocks_recommendation" time="0.000" /><testcase classname="tests.test_recommendation_readiness" name="test_final_probe_and_provider_health_use_same_cutoff" time="0.001" /><testcase classname="tests.test_reliability_e2e" name="test_daily_fresh_and_existing_home_outside_checkout" time="6.787" /><testcase classname="tests.test_reliability_e2e" name="test_future_schema_preserved_and_connections_released" time="0.391" /><testcase classname="tests.test_reliability_e2e" name="test_live_retrieval_closes_cutoff_without_weakening_replay" time="0.001" /><testcase classname="tests.test_research_universe" name="test_universe_sizes_respect_hard_budget_and_degrade_gracefully[5000-500-reduced]" time="0.033" /><testcase classname="tests.test_research_universe" name="test_universe_sizes_respect_hard_budget_and_degrade_gracefully[1000-500-reduced]" time="0.006" /><testcase classname="tests.test_research_universe" name="test_universe_sizes_respect_hard_budget_and_degrade_gracefully[500-500-full]" time="0.003" /><testcase classname="tests.test_research_universe" name="test_universe_sizes_respect_hard_budget_and_degrade_gracefully[100-100-full]" time="0.001" /><testcase classname="tests.test_research_universe" name="test_resource_capacity_can_reduce_deep_analysis_below_research_universe" time="0.048" /><testcase classname="tests.test_research_universe" name="test_reduced_pool_uses_liquidity_and_preserves_required_holding_review" time="0.000" /><testcase classname="tests.test_research_universe" name="test_reduced_universe_reaches_provider_instead_of_budget_block" time="0.025" /><testcase classname="tests.test_retrieval_loop" name="test_agentic_retrieval_loop_rechecks_after_new_evidence" time="0.023" /><testcase classname="tests.test_retrieval_loop" name="test_research_view_omits_raw_series_and_portfolio_values" time="0.023" /><testcase classname="tests.test_retrieval_loop" name="test_rate_limited_gap_planner_preserves_actionable_codex_status" time="0.013" /><testcase classname="tests.test_retrieval_orchestrator" name="test_retrieval_orchestrator_adds_local_derived_features" time="0.006" /><testcase classname="tests.test_retrieval_orchestrator" name="test_orchestrator_collects_two_numeric_sources_and_marks_conflict" time="0.001" /><testcase classname="tests.test_review_packaging" name="test_review_archive_excludes_secret_and_runtime_paths" time="0.883" /><testcase classname="tests.test_runtime_database" name="test_temp_database_migration_is_visible_to_doctor" time="0.360" /><testcase classname="tests.test_runtime_database" name="test_missing_database_is_explicitly_pending_not_a_shadow_database" time="0.418" /><testcase classname="tests.test_runtime_diagnostics" name="test_windows_default_and_environment_override" time="0.002" /><testcase classname="tests.test_runtime_diagnostics" name="test_runtime_paths_create_only_runtime_directories" time="0.007" /><testcase classname="tests.test_runtime_diagnostics" name="test_doctor_json_is_secret_safe_and_network_free" time="0.353" /><testcase classname="tests.test_runtime_diagnostics" name="test_doctor_module_startup_smoke" time="2.447" /><testcase classname="tests.test_runtime_diagnostics" name="test_read_only_runtime_report_does_not_claim_a_write_probe" time="0.373" /><testcase classname="tests.test_runtime_stabilization" name="test_cache_health_probes_atomic_io_and_reports_stale_files" time="0.014" /><testcase classname="tests.test_runtime_stabilization" name="test_provider_cache_write_failure_is_degraded_not_fatal" time="0.001" /><testcase classname="tests.test_runtime_stabilization" name="test_primary_fallback_cached_strategy_uses_fresh_cache" time="0.008" /><testcase classname="tests.test_runtime_stabilization" name="test_market_status_distinguishes_session_context[value0-OPEN]" time="0.000" /><testcase classname="tests.test_runtime_stabilization" name="test_market_status_distinguishes_session_context[value1-PRE_MARKET]" time="0.000" /><testcase classname="tests.test_runtime_stabilization" name="test_market_status_distinguishes_session_context[value2-AFTER_HOURS]" time="0.000" /><testcase classname="tests.test_runtime_stabilization" name="test_market_status_distinguishes_session_context[value3-CLOSED]" time="0.000" /><testcase classname="tests.test_runtime_stabilization" name="test_market_status_distinguishes_session_context[value4-HOLIDAY]" time="0.000" /><testcase classname="tests.test_runtime_stabilization" name="test_canonical_daily_completes_safe_analysis_when_all_market_lanes_fail" time="0.474" /><testcase classname="tests.test_safety" name="test_no_broker_execution_identifier_in_runtime_source" time="0.019" /><testcase classname="tests.test_sec_filing_metadata" name="test_acceptance_before_cutoff_certifies_exact_accession" time="0.000" /><testcase classname="tests.test_sec_filing_metadata" name="test_acceptance_after_cutoff_and_accession_mismatch_fail_closed" time="0.000" /><testcase classname="tests.test_sec_filing_metadata" name="test_naive_times_and_cik_accession_identity_mismatch_are_rejected" time="0.000" /><testcase classname="tests.test_sec_filing_metadata" name="test_distinct_certified_provider_emits_only_accession_certified_evidence" time="0.000" /><testcase classname="tests.test_sec_filing_metadata" name="test_historical_submissions_collection_resolves_exact_accession" time="0.000" /><testcase classname="tests.test_sec_ticker_resolution" name="test_sec_ticker_resolver_exact_match_is_cached" time="0.000" /><testcase classname="tests.test_sec_ticker_resolution" name="test_sec_ticker_resolver_rejects_missing_or_ambiguous_symbols[rows0]" time="0.000" /><testcase classname="tests.test_sec_ticker_resolution" name="test_sec_ticker_resolver_rejects_missing_or_ambiguous_symbols[rows1]" time="0.000" /><testcase classname="tests.test_source_conflict" name="test_material_numeric_disagreement_is_source_conflict" time="0.000" /><testcase classname="tests.test_tradingagents_adapter" name="test_missing_dependency_or_credential_is_explicit" time="0.007" /><testcase classname="tests.test_tradingagents_adapter" name="test_runner_normalizes_and_ignores_execution_fields" time="0.007" /><testcase classname="tests.test_tradingagents_adapter" name="test_future_evidence_is_rejected" time="0.008" /><testcase classname="tests.test_tradingagents_adapter" name="test_timeout_retries_then_explicit_timeout" time="0.010" /><testcase classname="tests.test_tradingagents_adapter" name="test_batch_order_is_deterministic_and_failure_isolated" time="0.008" /><testcase classname="tests.test_tradingagents_adapter" name="test_replay_is_separate_and_schema_checked" time="0.043" /><testcase classname="tests.test_tradingagents_adapter" name="test_deepseek_path_does_not_require_openai_key" time="0.007" /><testcase classname="tests.test_tradingagents_adapter" name="test_missing_required_structured_field_is_invalid" time="0.007" /><testcase classname="tests.test_tradingagents_adapter" name="test_provider_errors_are_explicit_and_not_neutral" time="0.007" /><testcase classname="tests.test_tradingagents_adapter" name="test_native_provider_runner_is_not_configured_when_dependency_missing" time="0.013" /><testcase classname="tests.test_tradingagents_adapter" name="test_default_live_path_is_legacy_disabled" time="0.006" /><testcase classname="tests.test_tradingagents_adapter" name="test_client_only_runner_cannot_masquerade_as_full_graph" time="0.007" /><testcase classname="tests.test_tradingagents_adapter" name="test_graph_failure_is_explicit" time="0.006" /><testcase classname="tests.test_tradingagents_adapter" name="test_graph_invalid_rating_is_not_research_signal" time="0.007" /><testcase classname="tests.test_tradingagents_adapter" name="test_official_graph_runner_returns_only_safe_metadata" time="0.005" /><testcase classname="tests.test_tradingagents_adapter" name="test_historical_live_graph_call_is_forbidden_before_runner" time="0.006" /><testcase classname="tests.test_tradingagents_adapter" name="test_graph_retry_budget_is_distinct_and_zero_does_not_restart" time="0.007" /><testcase classname="tests.test_tradingagents_adapter" name="test_replay_never_invokes_live_graph" time="0.014" /><testcase classname="tests.test_tradingagents_adapter" name="test_research_budget_bounds_candidates_and_reviews_holdings" time="0.007" /><testcase classname="tests.test_tradingagents_adapter" name="test_evidence_packet_citations_are_resolved" time="0.001" /><testcase classname="tests.test_tradingagents_adapter" name="test_live_as_of_guard_is_deterministic_with_injected_clock" time="0.000" /><testcase classname="tests.test_tradingagents_adapter" name="test_live_as_of_guard_rejects_naive_timestamps" time="0.000" /><testcase classname="tests.test_trusted_web_market" name="test_tier_a_is_accepted_without_a_second_source" time="0.001" /><testcase classname="tests.test_trusted_web_market" name="test_two_independent_tier_b_sources_are_accepted" time="0.000" /><testcase classname="tests.test_trusted_web_market" name="test_untrusted_duplicate_conflicting_and_single_tier_b_fail_safely" time="0.000" /><testcase classname="tests.test_trusted_web_market" name="test_url_future_and_currency_mismatch_are_rejected_or_conflicted[update0-SOURCE_URL_INVALID]" time="0.001" /><testcase classname="tests.test_trusted_web_market" name="test_url_future_and_currency_mismatch_are_rejected_or_conflicted[update1-EVIDENCE_AFTER_CUTOFF]" time="0.000" /><testcase classname="tests.test_trusted_web_market" name="test_url_future_and_currency_mismatch_are_rejected_or_conflicted[update2-CURRENCY_MISMATCH]" time="0.000" /><testcase classname="tests.test_trusted_web_market" name="test_historical_requires_machine_readable_table_not_narrative" time="0.001" /><testcase classname="tests.test_trusted_web_market" name="test_validation_tool_and_active_runtime_have_no_stooq" time="0.000" /><testcase classname="tests.test_trusted_web_market" name="test_policy_is_configurable_for_official_ir_domain" time="0.000" /><testcase classname="tests.test_web_research_agent" name="test_date_only_publication_keeps_source_bound_qualitative_finding" time="0.002" /></testsuite></testsuites>

@@ -130,6 +130,15 @@ class EvidenceCompletenessPolicy(PolicyModel):
         return self
 
 
+class ModelRoutingPolicy(PolicyModel):
+    """Role-specific model configuration with finite retry and timeout limits."""
+
+    model: str = Field(min_length=1)
+    reasoning_effort: str = Field(default="medium", pattern=r"^(minimal|low|medium|high|xhigh)$")
+    timeout_seconds: int = Field(default=20, ge=1, le=600)
+    max_attempts: int = Field(default=1, ge=1, le=2)
+    retry_on_schema_error: bool = True
+
 class ResearchSettings(PolicyModel):
     provider: str = Field(min_length=1)
     model: str = Field(min_length=1)
@@ -156,6 +165,7 @@ class ResearchSettings(PolicyModel):
     skeptic_model: str | None = Field(default=None, min_length=1)
     scenario_model: str | None = Field(default=None, min_length=1)
     synthesis_model: str | None = Field(default=None, min_length=1)
+    models: dict[str, ModelRoutingPolicy] = Field(default_factory=dict)
     budget: ResearchBudgetPolicy = Field(
         default_factory=lambda: ResearchBudgetPolicy(
             max_graph_tickers_per_run=5,

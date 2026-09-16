@@ -68,6 +68,7 @@ class DailyResearchInput(StableModel):
     provider_provenance: dict[str, str] = Field(default_factory=dict)
     universe_plan: ResearchUniversePlan | None = None
     evidence_package: dict[str, Any] | None = None
+    market_context: dict[str, Any] | None = None
     # Current account state is supplied only to the local Codex child process. It is
     # intentionally absent from request dumps, hashes, reports, replay artifacts,
     # and the persistent retrieval cache/audit trail.

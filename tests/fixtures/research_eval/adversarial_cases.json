@@ -1,0 +1,15 @@
+{
+  "schema_version": "meridian-research-eval.v1",
+  "cases": [
+    "incomplete_evidence",
+    "conflicting_evidence",
+    "stale_evidence",
+    "misleading_momentum",
+    "high_valuation_strong_growth",
+    "strong_fundamentals_weak_price_trend",
+    "invalid_prior_thesis",
+    "unsupported_bullish_narrative",
+    "unsupported_bearish_narrative",
+    "fabricated_evidence_reference_attempt"
+  ]
+}

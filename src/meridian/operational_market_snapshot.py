@@ -36,6 +36,7 @@ from meridian.operational_data import (
 )
 from meridian.quotes import NasdaqApiQuoteProvider, YahooChartQuoteProvider
 from meridian.runtime import RuntimePaths
+from meridian.runtime_io import atomic_write
 from meridian.schemas import FreshnessState, MarketSnapshot
 from meridian.security_master import DEFAULT_SECURITY_MASTER
 from meridian.trading_calendar import latest_completed_session
@@ -112,9 +113,7 @@ class ResilientHistoricalProvider:
                     "market_timestamp": series.bars[-1].observed_at.isoformat(),
                     "series": series.model_dump(mode="json"),
                 }
-                temp = self._path(symbol).with_suffix(".tmp")
-                temp.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
-                temp.replace(self._path(symbol))
+                atomic_write(self._path(symbol), json.dumps(payload, sort_keys=True))
                 self.last_diagnostics[symbol] = {
                     "provider_used": series.provider,
                     "fallback_path": [

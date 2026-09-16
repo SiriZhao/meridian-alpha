@@ -197,7 +197,7 @@ def test_paper_run_uses_canonical_daily_then_prevents_same_day_duplicate(
 
     monkeypatch.setattr(service, "daily", canonical)
     first = service.paper_run()
-    assert first["status"] == "PAPER_COMPLETE"
+    assert first["status"] == "PAPER_READY"
     assert first["paper_execution"]["quote_certification"] == "BLOCKED"  # type: ignore[index]
     assert first["manual_authority"] == "BLOCKED"
     outputs = first["output_files"]

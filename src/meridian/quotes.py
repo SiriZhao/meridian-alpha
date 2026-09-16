@@ -87,6 +87,12 @@ class QuoteObservation(StableModel):
     bid: Decimal | None = Field(default=None, ge=Decimal("0"))
     ask: Decimal | None = Field(default=None, ge=Decimal("0"))
     last: Decimal | None = Field(default=None, ge=Decimal("0"))
+    previous_close: Decimal | None = Field(default=None, gt=0)
+    open: Decimal | None = Field(default=None, ge=0)
+    day_high: Decimal | None = Field(default=None, ge=0)
+    day_low: Decimal | None = Field(default=None, ge=0)
+    volume: Decimal | None = Field(default=None, ge=0)
+    delay_seconds: int | None = Field(default=None, ge=0)
     currency: str = Field(pattern=r"^[A-Z]{3}$")
     market_status: MarketSessionStatus = MarketSessionStatus.UNKNOWN
     source: str = Field(min_length=1, max_length=256)
@@ -234,6 +240,12 @@ class QuoteNormalizer:
             bid=bid,
             ask=ask,
             last=last,
+            previous_close=_decimal(raw.get("previous_close"), "previous_close"),
+            open=_decimal(raw.get("open"), "open"),
+            day_high=_decimal(raw.get("day_high"), "day_high"),
+            day_low=_decimal(raw.get("day_low"), "day_low"),
+            volume=_decimal(raw.get("volume"), "volume"),
+            delay_seconds=raw.get("delay_seconds"),
             currency=currency,
             market_status=market_status,
             source=source or provider,
@@ -349,14 +361,19 @@ class YahooChartQuoteProvider:
         started = _time.monotonic()
         try:
             response = self.opener(request, timeout=self.timeout_seconds)
-            status = getattr(response, "status", getattr(response, "code", None))
             try:
-                status_code = int(status) if status is not None else None
-            except (TypeError, ValueError):
-                status_code = None
-            if status_code is not None and status_code >= 400:
-                raise QuoteProviderError(f"Yahoo chart HTTP error: {status_code}")
-            payload = response.read()
+                status = getattr(response, "status", getattr(response, "code", None))
+                try:
+                    status_code = int(status) if status is not None else None
+                except (TypeError, ValueError):
+                    status_code = None
+                if status_code is not None and status_code >= 400:
+                    raise QuoteProviderError(f"Yahoo chart HTTP error: {status_code}")
+                payload = response.read()
+            finally:
+                close = getattr(response, "close", None)
+                if close is not None:
+                    close()
         except TimeoutError as error:
             raise QuoteProviderTimeout("Yahoo chart request timed out") from error
         except OSError as error:
@@ -388,12 +405,25 @@ class YahooChartQuoteProvider:
         except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as error:
             raise QuoteProviderMalformed("Yahoo chart response is malformed") from error
         retrieved = self.clock()
+        bar_times = result.get("timestamp") or []
+        bar_values = ((result.get("indicators") or {}).get("quote") or [{}])[0]
+        local_date = observed.astimezone(ZoneInfo("America/New_York")).date()
+        past = [(ts, value) for ts, value in zip(bar_times, bar_values.get("close") or [], strict=False)
+                if value is not None and datetime.fromtimestamp(ts, UTC).astimezone(ZoneInfo("America/New_York")).date() < local_date]
+        current_open = next((value for ts, value in reversed(list(zip(bar_times, bar_values.get("open") or [], strict=False)))
+                             if datetime.fromtimestamp(ts, UTC).astimezone(ZoneInfo("America/New_York")).date() == local_date), None)
         return QuoteNormalizer(self.security_master).normalize(
             {
                 "provider_symbol": provider_symbol,
                 "observed_at": observed,
                 "available_at": observed,
                 "last": price,
+                "previous_close": meta.get("previousClose") or (past[-1][1] if past else None),
+                "open": current_open,
+                "day_high": meta.get("regularMarketDayHigh"),
+                "day_low": meta.get("regularMarketDayLow"),
+                "volume": meta.get("regularMarketVolume"),
+                "delay_seconds": int(meta["exchangeDataDelayedBy"]) * 60 if meta.get("exchangeDataDelayedBy") is not None else None,
                 "currency": str(meta.get("currency") or security.currency),
             },
             symbol=symbol,
@@ -445,7 +475,12 @@ class NasdaqApiQuoteProvider:
         )
         try:
             response = self.opener(request, timeout=self.timeout_seconds)
-            payload = response.read()
+            try:
+                payload = response.read()
+            finally:
+                close = getattr(response, "close", None)
+                if close is not None:
+                    close()
         except TimeoutError as error:
             raise QuoteProviderTimeout("Nasdaq quote request timed out") from error
         except OSError as error:

@@ -1,0 +1,11 @@
+{
+  "schema_version": "meridian-research-eval.v1",
+  "cases": [
+    {"id": "SPY-bullish-regime", "symbol": "SPY", "regime": "BULLISH", "evidence": ["price", "momentum", "macro"]},
+    {"id": "QQQ-high-volatility", "symbol": "QQQ", "regime": "HIGH_VOLATILITY", "evidence": ["price", "momentum", "risk"]},
+    {"id": "NVDA-growth-valuation", "symbol": "NVDA", "regime": "BULLISH", "evidence": ["price", "earnings", "valuation"]},
+    {"id": "AAPL-base-regime", "symbol": "AAPL", "regime": "NEUTRAL", "evidence": ["price", "fundamental", "quality"]},
+    {"id": "MSFT-bearish-regime", "symbol": "MSFT", "regime": "BEARISH", "evidence": ["price", "fundamental", "macro"]},
+    {"id": "BRK.B-defensive-regime", "symbol": "BRK.B", "regime": "NEUTRAL", "evidence": ["price", "quality", "valuation"]}
+  ]
+}

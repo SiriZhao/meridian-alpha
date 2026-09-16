@@ -1,0 +1,19 @@
+{
+  "symbol": "MSFT",
+  "last_updated": "2026-09-12T07:14:49.854270Z",
+  "current_thesis": "Deterministic evidence available; GPT reasoning unavailable.",
+  "confidence": 0.8879,
+  "direction": "NEUTRAL",
+  "key_drivers": [],
+  "key_risks": [],
+  "invalidators": [],
+  "open_questions": [],
+  "last_decision_state": "RESEARCH_ONLY",
+  "evidence_summary": [
+    "ede5304f87a0fef65a7095ce23096f330a30cc35338405fcf3f1ca16d6a4de08",
+    "det-ede5304f87a0fef65a7095ce23096f330a30cc35338405fc"
+  ],
+  "recent_changes": [
+    "NEW"
+  ]
+}

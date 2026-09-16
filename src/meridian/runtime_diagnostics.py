@@ -17,7 +17,6 @@ import re
 import sqlite3
 import subprocess
 import sys
-import tempfile
 from contextlib import closing
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -29,6 +28,7 @@ from meridian.cache_health import CacheHealth, CacheHealthStatus, check_cache_he
 from meridian.codex_provider import AUTH_MODE, discover_codex_executable
 from meridian.config import load_policies
 from meridian.runtime import RuntimePaths, policy_directory, project_root
+from meridian.runtime_io import FilesystemFailure
 
 
 @dataclass(frozen=True)
@@ -39,11 +39,8 @@ class Check:
 
 
 def _writable(path: Path) -> None:
-    with tempfile.TemporaryFile(dir=path) as probe:
-        probe.write(b"meridian")
-        probe.seek(0)
-        if probe.read() != b"meridian":
-            raise OSError("runtime probe readback failed")
+    from meridian.runtime_io import write_probe
+    write_probe(path)
 
 
 def _database(path: Path) -> dict[str, object]:
@@ -70,7 +67,7 @@ def _attempt(name: str, callback: object, *, optional: bool = False) -> Check:
             callback()
         return Check(name, "PASS", "available")
     except Exception as error:  # noqa: BLE001 - doctor must never traceback
-        return Check(name, "WARN" if optional else "FAIL", type(error).__name__ + "; inspect the corresponding path/config in this report and rerun doctor")
+        return Check(name, "WARN" if optional else "FAIL", json.dumps(error.detail) if isinstance(error, FilesystemFailure) else type(error).__name__ + "; inspect the corresponding path/config in this report and rerun doctor")
 
 
 def _codex_version(executable: str | None) -> tuple[str, str]:

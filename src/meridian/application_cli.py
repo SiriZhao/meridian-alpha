@@ -12,20 +12,24 @@ from uuid import uuid4
 from meridian.application import MeridianApplicationService
 from meridian.host_readiness import ReadinessStatus, RecommendationReadiness
 from meridian.runtime import RuntimePathError
+from meridian.runtime_io import filesystem_detail
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(prog="meridian")
-    parser.add_argument("command", choices=("version", "paths", "doctor", "init", "data-status", "snapshot", "daily", "dip-scout", "forward-status", "paper"))
+    parser.add_argument("command", choices=("version", "paths", "doctor", "init", "data-status", "snapshot", "daily", "dip-scout", "forward-status", "paper", "shadow-run", "live-advisory", "host-llm"))
     parser.add_argument("subcommand", nargs="?")
     parser.add_argument("file", nargs="?")
     parser.add_argument("--snapshot")
+    parser.add_argument("--role-timeout", type=int, default=90)
+    parser.add_argument("--reasoning-effort", choices=("low", "medium", "high"))
     parser.add_argument("--market-fixture")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--account", default="Schwab-Paper")
     parser.add_argument("--cash")
     parser.add_argument("--currency", default="USD")
     parser.add_argument("--confirm-reset")
+    parser.add_argument("--run-id")
     args = parser.parse_args()
     service = None
     try:
@@ -44,8 +48,37 @@ def main() -> int:
             payload = service.forward_status()
         elif args.command == "snapshot" and args.subcommand == "validate" and args.file:
             payload = service.snapshot_validate(Path(args.file))
+        elif args.command == "live-advisory":
+            from meridian.live_advisory import LiveAdvisoryService
+            payload = LiveAdvisoryService(service.paths).run(account_name=args.account,
+                snapshot_path=Path(args.snapshot) if args.snapshot else None, role_timeout=args.role_timeout,
+                reasoning_effort=args.reasoning_effort)
+            payload["status"] = "PASS" if payload["LIVE_RUN_READY"] else "FAILED"
+        elif args.command == "host-llm" and args.subcommand == "prepare":
+            from meridian.host_llm import HostJobStage, create_job, machine_handoff
+            run_id = args.run_id or f"host-{uuid4().hex}"
+            context = json.loads(Path(args.file).read_text(encoding="utf-8")) if args.file else {}
+            job, path = create_job(service.paths, run_id=run_id, stage=HostJobStage.RESEARCH,
+                market_context=context.get("market_context", {}), portfolio_context=context.get("portfolio_context"),
+                risk_context=context.get("risk_context", {}), strategy_context=context.get("strategy_context", {}),
+                research_questions=tuple(context.get("research_questions", ())),
+                required_output_schema=context.get("required_output_schema", {}))
+            payload = {"status": "WAITING_FOR_HOST", **machine_handoff(run_id=run_id, job_path=path,
+                next_action="Codex host writes result; resume with host-llm accept --file JOB|RESULT.")}
+        elif args.command == "host-llm" and args.subcommand == "accept" and args.file:
+            from meridian.host_llm import accept_result, load_job
+            job_path, result_path = (Path(item) for item in args.file.split("|", 1))
+            job = load_job(job_path)
+            result, accepted = accept_result(job, result_path)
+            payload = {"status": "PASS", "run_id": job.run_id, "job_id": job.job_id,
+                "stage": job.stage.value, "result_path": str(accepted),
+                "result": result.model_dump(mode="json"), "execution_authority": "NONE",
+                "auto_execution": False, "manual_confirmation_required": True}
+
         elif args.command == "daily":
             payload = service.daily(Path(args.snapshot) if args.snapshot else None, Path(args.market_fixture) if args.market_fixture else None)
+        elif args.command == "shadow-run" and args.market_fixture:
+            payload = service.shadow_run(Path(args.market_fixture))
         elif args.command == "paper" and args.subcommand == "init":
             payload = service.paper_init(
                 args.account,
@@ -73,11 +106,15 @@ def main() -> int:
             code, category, message = "MERIDIAN_FILESYSTEM_ERROR", "USER_FIXABLE", "Check the indicated path, permissions and file locks; choose a writable MERIDIAN_HOME."
         elif isinstance(error, sqlite3.Error):
             code, category, message = "MERIDIAN_DATABASE_ERROR", "USER_FIXABLE", "Run doctor; check database permissions, locks and schema. Preserve the database."
+        elif str(error).startswith("HOST_LLM_"):
+            code, category, message = str(error), "DATA_QUALITY", "Host LLM job/result contract validation failed; inspect the run artifact."
         elif str(error) == "PAPER_RESET_CONFIRMATION_REQUIRED":
             code, category, message = "PAPER_RESET_CONFIRMATION_REQUIRED", "USER_FIXABLE", "Reset requires --confirm-reset with the exact paper account name; no account state changed."
         else:
             code, category, message = "MERIDIAN_INPUT_INVALID", "DATA_QUALITY", "Supply a valid sanitized HostAccountSnapshotEnvelope and market fixture; run snapshot validate first."
         payload = {"status": "FAILED", "runtime_status": "FAILED", "error_code": code, "category": category, "message": message, "path": str(getattr(error, "filename", None) or ""), "logs_path": str(service.paths.logs) if service else None, "automatic_recovery": "No destructive recovery attempted"}
+        if isinstance(error, OSError):
+            payload["filesystem"] = getattr(error, "detail", filesystem_detail(error, "APPLICATION_IO", Path(error.filename or ".")))
         payload.update({"run_id": "failed-" + uuid4().hex,
                         "readiness": RecommendationReadiness(runtime_health=ReadinessStatus.FAILED).model_dump(mode="json"),
                         "errors": [code], "next_actions": [message], "output_files": {}})

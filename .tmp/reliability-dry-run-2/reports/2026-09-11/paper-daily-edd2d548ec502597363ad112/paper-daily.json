@@ -1,0 +1,771 @@
+{
+  "account": {
+    "account": "Schwab-Paper",
+    "account_environment": "PAPER",
+    "account_provenance": "INTERNAL_PAPER_LEDGER",
+    "benchmark": "SPY",
+    "book_nav": "100000.0000",
+    "broker_submission": "DISABLED",
+    "cash": "100000.0000",
+    "currency": "USD",
+    "dividends": "NOT_IMPLEMENTED",
+    "found": true,
+    "inception": "2026-09-11T15:51:45.874717+00:00",
+    "latest_performance": {
+      "account_name": "Schwab-Paper",
+      "benchmark_cumulative_return": null,
+      "benchmark_price": null,
+      "cash": "100000.0000",
+      "cumulative_return": "0.0000",
+      "daily_return": null,
+      "drawdown": "0.0000",
+      "fees": "0.0000",
+      "market_value": "0.0000",
+      "nav": "100000.0000",
+      "observed_at": "2026-09-11T15:52:21.973951+00:00",
+      "run_id": "daily-edd2d548ec502597363ad112",
+      "trade_count": 0,
+      "trading_date": "2026-09-11",
+      "turnover": "0.0000"
+    },
+    "ledger_version": 0,
+    "positions": [],
+    "realized_pnl": "0.0000",
+    "starting_capital": "100000.0000",
+    "status": "PAPER_ACCOUNT_READY"
+  },
+  "analysis_time": "2026-09-11T15:51:51.414692+00:00",
+  "auto_initialized": true,
+  "blockers": [
+    "PAPER_EXECUTION_BLOCKED_MARKET_DATA",
+    "PAPER_EXECUTION_BLOCKED_RESEARCH_CODEX_TIMEOUT",
+    "PAPER_EXECUTION_BLOCKED_DECISION_BLOCKED_STALE_MARKET"
+  ],
+  "canonical_output_files": {
+    "log": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.tmp\\reliability-dry-run-2\\logs\\daily-ed38b0f6005e45ed9217b771c99f4ac2.log",
+    "report_json": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.tmp\\reliability-dry-run-2\\reports\\2026-09-11\\daily-edd2d548ec502597363ad112\\daily.json",
+    "report_markdown": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.tmp\\reliability-dry-run-2\\reports\\2026-09-11\\daily-edd2d548ec502597363ad112\\daily.md"
+  },
+  "canonical_run_id": "daily-edd2d548ec502597363ad112",
+  "data_auto_retrieval": {
+    "blocking_missing": [
+      "SPY:PRICE_HISTORY:daily_ohlcv_1y",
+      "NVDA:PRICE_HISTORY:daily_ohlcv_1y",
+      "MSFT:PRICE_HISTORY:daily_ohlcv_1y"
+    ],
+    "conflicts": [],
+    "evidence_catalog": [
+      {
+        "confidence": "0.85",
+        "evidence_id": "ev_fe87aee2c9cb62ad483d8c5b",
+        "field": "current_market_snapshot",
+        "provider": "operational-provider-chain",
+        "requirement_key": "SPY:MARKET_SNAPSHOT:current_market_snapshot",
+        "retrieved_at": "2026-09-11T15:51:51.416441+00:00",
+        "source": "canonical-market-stage",
+        "symbol": "SPY",
+        "timestamp": "2026-09-11T15:51:49+00:00",
+        "validation_status": "PASS"
+      },
+      {
+        "confidence": "0.85",
+        "evidence_id": "ev_ad42010aa0420ea9e801449d",
+        "field": "current_market_snapshot",
+        "provider": "operational-provider-chain",
+        "requirement_key": "NVDA:MARKET_SNAPSHOT:current_market_snapshot",
+        "retrieved_at": "2026-09-11T15:51:51.416441+00:00",
+        "source": "canonical-market-stage",
+        "symbol": "NVDA",
+        "timestamp": "2026-09-11T15:51:48+00:00",
+        "validation_status": "PASS"
+      },
+      {
+        "confidence": "0.85",
+        "evidence_id": "ev_4eae219f7a37a3b793407f97",
+        "field": "current_market_snapshot",
+        "provider": "operational-provider-chain",
+        "requirement_key": "MSFT:MARKET_SNAPSHOT:current_market_snapshot",
+        "retrieved_at": "2026-09-11T15:51:51.416441+00:00",
+        "source": "canonical-market-stage",
+        "symbol": "MSFT",
+        "timestamp": "2026-09-11T15:51:46+00:00",
+        "validation_status": "PASS"
+      },
+      {
+        "confidence": "1",
+        "evidence_id": "ev_fb3382a9accf4f0bc11adca6",
+        "field": "portfolio_context",
+        "provider": "meridian",
+        "requirement_key": "PORTFOLIO:PORTFOLIO_CONTEXT:portfolio_context",
+        "retrieved_at": "2026-09-11T15:51:51.416441+00:00",
+        "source": "meridian-account-snapshot-validation",
+        "symbol": "PORTFOLIO",
+        "timestamp": "2026-09-11T15:51:51.414692+00:00",
+        "validation_status": "PASS"
+      },
+      {
+        "confidence": "1",
+        "evidence_id": "ev_a9398e19cfe4557111c53d3a",
+        "field": "strategy_policy",
+        "provider": "meridian-policy",
+        "requirement_key": "MERIDIAN:INVESTMENT_HORIZON:strategy_policy",
+        "retrieved_at": "2026-09-11T15:51:51.416441+00:00",
+        "source": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\policies\\strategy_profile.json",
+        "symbol": "MERIDIAN",
+        "timestamp": "2026-09-11T15:51:51.414692+00:00",
+        "validation_status": "PASS"
+      }
+    ],
+    "failed": [
+      "SPY:PRICE_HISTORY:daily_ohlcv_1y",
+      "SPY:FUNDAMENTALS:latest_fundamentals",
+      "NVDA:PRICE_HISTORY:daily_ohlcv_1y",
+      "NVDA:FUNDAMENTALS:latest_fundamentals",
+      "MSFT:PRICE_HISTORY:daily_ohlcv_1y",
+      "MSFT:FUNDAMENTALS:latest_fundamentals",
+      "SPY:BENCHMARK:benchmark_ohlcv_1y",
+      "VIX:MACRO:vix"
+    ],
+    "final_completeness": "0.3846153846153846153846153846",
+    "initial_completeness": "0.3846153846153846153846153846",
+    "planner_rounds": 0,
+    "provider_results": [],
+    "quality_grade": "DEGRADED",
+    "quality_score": 71,
+    "requirements": 13,
+    "retrieval_rounds": 0,
+    "retrieved": 5,
+    "source_count": 3,
+    "sources": [
+      "meridian-policy:E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\policies\\strategy_profile.json",
+      "meridian:meridian-account-snapshot-validation",
+      "operational-provider-chain:canonical-market-stage"
+    ],
+    "status": "GPT_PLANNER_FAILED"
+  },
+  "decision": {
+    "context": {
+      "authority": "ADVISORY_ONLY",
+      "financial_parameters_source": "DETERMINISTIC_POLICY_AND_MARKET",
+      "research": null,
+      "research_input_hash": "318185b8fd1a14e09d7dfa28e86458fc2fab4ac14ab8a6a0f44d388c2e71dfa9",
+      "research_run_id": "research-1e4712bae2a04615b2afb3b2d1580d2e",
+      "research_status": "CODEX_TIMEOUT"
+    },
+    "gates": [
+      {
+        "evidence": [
+          "ca80148535ab5a5a62ad54baceeee8e4b87657ea93d7692083e0c2525180c50c"
+        ],
+        "gate": "ACCOUNT_READY",
+        "reason": "Fresh authoritative paper ledger observation",
+        "status": "PASS"
+      },
+      {
+        "evidence": [
+          "e794e1ec094e15cb914d8572bcaea5950b22b5d5ba753cc86fe12f40dab408b7"
+        ],
+        "gate": "SECURITY_READY",
+        "reason": "Operational sector metadata is not authoritative certification",
+        "status": "NOT_RUN"
+      },
+      {
+        "evidence": [
+          "afa66ce4f89ab58872ea86047beefe93f1b9603ca585af9575c8d55d80eabdd9"
+        ],
+        "gate": "MARKET_READY",
+        "reason": "Market observations must be fresh at decision time",
+        "status": "BLOCKED"
+      },
+      {
+        "evidence": [
+          "318185b8fd1a14e09d7dfa28e86458fc2fab4ac14ab8a6a0f44d388c2e71dfa9"
+        ],
+        "gate": "RESEARCH_READY",
+        "reason": "Public model inference is advisory, not certified evidence",
+        "status": "BLOCKED"
+      },
+      {
+        "evidence": [
+          "UNAVAILABLE"
+        ],
+        "gate": "QUOTE_READY",
+        "reason": "Certified execution quote absent",
+        "status": "BLOCKED"
+      },
+      {
+        "evidence": [
+          "e794e1ec094e15cb914d8572bcaea5950b22b5d5ba753cc86fe12f40dab408b7"
+        ],
+        "gate": "RISK_READY",
+        "reason": "Deterministic projected portfolio validation",
+        "status": "BLOCKED"
+      },
+      {
+        "evidence": [
+          "ca80148535ab5a5a62ad54baceeee8e4b87657ea93d7692083e0c2525180c50c"
+        ],
+        "gate": "RECONCILIATION_READY",
+        "reason": "Reconciliation uses supplied facts; no fills inferred",
+        "status": "BLOCKED"
+      }
+    ],
+    "status": "BLOCKED_STALE_MARKET"
+  },
+  "execution_mode": "DEGRADED_OPERATIONAL",
+  "forward_evidence": {
+    "authority": "SHADOW_EVIDENCE_ONLY_NO_AUTOMATIC_PROMOTION",
+    "freeze": {
+      "reason": "CANONICAL_DECISION_OR_MARKET_NOT_READY",
+      "status": "FORWARD_NOT_FROZEN"
+    },
+    "outcomes": {
+      "reason": "CANONICAL_MARKET_NOT_READY",
+      "status": "FORWARD_OUTCOME_NOT_READY"
+    },
+    "policy_hash": "1637daa31d6a4435d9ea7a31d48ca66f422b0aaee4ec2f6d45d50e3fa20ca85e",
+    "status": "INSUFFICIENT_FORWARD_EVIDENCE",
+    "summary": {
+      "by_horizon": {},
+      "maturity_status": "NOT_MATURE",
+      "pending_count": 0,
+      "prediction_count": 0,
+      "promotion_readiness": "NOT_ELIGIBLE_AUTOMATIC_PROMOTION_DISABLED",
+      "required": 20,
+      "sample_count": 0,
+      "status": "INSUFFICIENT_FORWARD_EVIDENCE"
+    }
+  },
+  "manual_authority": "BLOCKED",
+  "market": {
+    "observations": {},
+    "provider_probes": {
+      "AAPL": {
+        "analysis_cutoff": "2026-09-11T15:51:51.414692+00:00",
+        "cache": {
+          "hit": false,
+          "status": "MISS"
+        },
+        "data_quality_mode": "DATA_DEGRADED",
+        "final_market_status": "BLOCKED",
+        "history": {
+          "status": "NOT_RUN"
+        },
+        "primary": {
+          "attempted_at": "2026-09-11T15:51:47.407198+00:00",
+          "completed_at": "2026-09-11T15:51:47.844219+00:00",
+          "detail": "invalid_response",
+          "error_category": "PROVIDER_FAILURE",
+          "provider": "yahoo",
+          "request_mode": "LIVE",
+          "status": "INVALID_RESPONSE"
+        },
+        "secondary": {
+          "attempted_at": "2026-09-11T15:51:47.844219+00:00",
+          "completed_at": "2026-09-11T15:51:48.684504+00:00",
+          "detail": "invalid_response",
+          "error_category": "PROVIDER_FAILURE",
+          "provider": "nasdaq",
+          "request_mode": "LIVE",
+          "status": "INVALID_RESPONSE"
+        },
+        "selected_provider": null,
+        "selection": "PRIMARY"
+      },
+      "MSFT": {
+        "analysis_cutoff": "2026-09-11T15:51:51.414692+00:00",
+        "cache": {
+          "hit": false,
+          "status": "WRITE_OK"
+        },
+        "data_quality_mode": "DATA_DEGRADED",
+        "final_market_status": "PASS",
+        "history": {
+          "available_at": "2026-09-11T15:43:31.107528+00:00",
+          "certification": "UNVERIFIED",
+          "cutoff": "2026-09-11T15:51:49.536988+00:00",
+          "latest_session": "2026-09-10",
+          "provider": "yahoo",
+          "received_at": "2026-09-11T15:43:31.107528+00:00",
+          "status": "PASS"
+        },
+        "primary": {
+          "age_seconds": 5.414692,
+          "analysis_cutoff": "2026-09-11T15:51:51.414692+00:00",
+          "attempted_at": "2026-09-11T15:51:48.685234+00:00",
+          "completed_at": "2026-09-11T15:51:49.112442+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "MSFT",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T15:51:49.112442+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "yahoo",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T15:51:46+00:00",
+          "status": "OK",
+          "symbol": "MSFT"
+        },
+        "secondary": {
+          "attempted_at": "2026-09-11T15:51:49.112442+00:00",
+          "completed_at": "2026-09-11T15:51:49.525174+00:00",
+          "detail": "invalid_response",
+          "error_category": "PROVIDER_FAILURE",
+          "provider": "nasdaq",
+          "request_mode": "LIVE",
+          "status": "INVALID_RESPONSE"
+        },
+        "selected": {
+          "age_seconds": 5.414692,
+          "analysis_cutoff": "2026-09-11T15:51:51.414692+00:00",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "MSFT",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T15:51:49.112442+00:00",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T15:51:46+00:00",
+          "status": "OK",
+          "symbol": "MSFT"
+        },
+        "selected_provider": "yahoo",
+        "selection": "PRIMARY"
+      },
+      "NVDA": {
+        "analysis_cutoff": "2026-09-11T15:51:51.414692+00:00",
+        "cache": {
+          "hit": false,
+          "status": "WRITE_OK"
+        },
+        "data_quality_mode": "DATA_DEGRADED",
+        "final_market_status": "PASS",
+        "history": {
+          "available_at": "2026-09-11T15:43:32.383540+00:00",
+          "certification": "UNVERIFIED",
+          "cutoff": "2026-09-11T15:51:50.629803+00:00",
+          "latest_session": "2026-09-10",
+          "provider": "yahoo",
+          "received_at": "2026-09-11T15:43:32.384047+00:00",
+          "status": "PASS"
+        },
+        "primary": {
+          "age_seconds": 3.414692,
+          "analysis_cutoff": "2026-09-11T15:51:51.414692+00:00",
+          "attempted_at": "2026-09-11T15:51:49.536988+00:00",
+          "completed_at": "2026-09-11T15:51:49.866969+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "NVDA",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T15:51:49.866969+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "yahoo",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T15:51:48+00:00",
+          "status": "OK",
+          "symbol": "NVDA"
+        },
+        "secondary": {
+          "attempted_at": "2026-09-11T15:51:49.866969+00:00",
+          "completed_at": "2026-09-11T15:51:50.613831+00:00",
+          "detail": "invalid_response",
+          "error_category": "PROVIDER_FAILURE",
+          "provider": "nasdaq",
+          "request_mode": "LIVE",
+          "status": "INVALID_RESPONSE"
+        },
+        "selected": {
+          "age_seconds": 3.414692,
+          "analysis_cutoff": "2026-09-11T15:51:51.414692+00:00",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "NVDA",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T15:51:49.866969+00:00",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T15:51:48+00:00",
+          "status": "OK",
+          "symbol": "NVDA"
+        },
+        "selected_provider": "yahoo",
+        "selection": "PRIMARY"
+      },
+      "SPY": {
+        "analysis_cutoff": "2026-09-11T15:51:51.414692+00:00",
+        "cache": {
+          "hit": false,
+          "status": "WRITE_OK"
+        },
+        "data_quality_mode": "DATA_DEGRADED",
+        "final_market_status": "PASS",
+        "history": {
+          "available_at": "2026-09-11T15:43:33.676245+00:00",
+          "certification": "UNVERIFIED",
+          "cutoff": "2026-09-11T15:51:51.414692+00:00",
+          "latest_session": "2026-09-10",
+          "provider": "yahoo",
+          "received_at": "2026-09-11T15:43:33.677105+00:00",
+          "status": "PASS"
+        },
+        "primary": {
+          "age_seconds": 2.414692,
+          "analysis_cutoff": "2026-09-11T15:51:51.414692+00:00",
+          "attempted_at": "2026-09-11T15:51:50.629803+00:00",
+          "completed_at": "2026-09-11T15:51:50.991138+00:00",
+          "detail": "public operational observation; not PIT certified",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "SPY",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T15:51:50.991138+00:00",
+          "request_mode": "LIVE",
+          "requested_provider": "yahoo",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T15:51:49+00:00",
+          "status": "OK",
+          "symbol": "SPY"
+        },
+        "secondary": {
+          "attempted_at": "2026-09-11T15:51:50.991138+00:00",
+          "completed_at": "2026-09-11T15:51:51.405459+00:00",
+          "detail": "invalid_response",
+          "error_category": "PROVIDER_FAILURE",
+          "provider": "nasdaq",
+          "request_mode": "LIVE",
+          "status": "INVALID_RESPONSE"
+        },
+        "selected": {
+          "age_seconds": 2.414692,
+          "analysis_cutoff": "2026-09-11T15:51:51.414692+00:00",
+          "error_category": null,
+          "latest_completed_session": "2026-09-10",
+          "provenance": {
+            "provider_symbol": "SPY",
+            "shadow_only": "true",
+            "source": "yahoo-chart-public"
+          },
+          "provider": "yahoo",
+          "provider_session": "INCOMPLETE",
+          "quote_certification_status": "BLOCKED",
+          "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+          "received_at": "2026-09-11T15:51:50.991138+00:00",
+          "research_context": "OK",
+          "session": "REGULAR",
+          "source_timestamp": "2026-09-11T15:51:49+00:00",
+          "status": "OK",
+          "symbol": "SPY"
+        },
+        "selected_provider": "yahoo",
+        "selection": "PRIMARY"
+      }
+    },
+    "quote_certification": "BLOCKED",
+    "session": "OPEN",
+    "status": "FAILED"
+  },
+  "next_actions": [
+    "Inspect canonical report and retry only during a regular session with fresh public data and validated advisory research."
+  ],
+  "paper_execution": {
+    "authority": "PAPER_EXECUTION_ONLY",
+    "commission_per_order": "1.0",
+    "fills": [],
+    "intent_count": 0,
+    "market_session": "OPEN",
+    "quote_certification": "BLOCKED",
+    "quote_kind": "PUBLIC_RESEARCH_QUOTE",
+    "readiness": "BLOCKED",
+    "slippage_bps": "5",
+    "status": "PAPER_BLOCKED"
+  },
+  "paper_run_id": "paper-daily-edd2d548ec502597363ad112",
+  "performance": {
+    "benchmark_cumulative_return": null,
+    "benchmark_symbol": "SPY",
+    "cash": "100000.0000",
+    "cumulative_return": "0.0000",
+    "daily_return": null,
+    "dividends": "NOT_IMPLEMENTED",
+    "drawdown": "0.0000",
+    "excess_return": null,
+    "fees": "0.0000",
+    "market_value": "0.0000",
+    "nav": "100000.0000",
+    "trade_count": 0,
+    "trading_date": "2026-09-11",
+    "turnover": "0.0000"
+  },
+  "portfolio": {
+    "cash": "100000.0000",
+    "positions": [],
+    "realized_pnl": "0.0000"
+  },
+  "quote_certification": "BLOCKED",
+  "recommendation_readiness": "BLOCKED",
+  "research": {
+    "attempts": 0,
+    "context": {
+      "analysis_cutoff": "2026-09-11T15:51:51.414692Z",
+      "authority": "ADVISORY_ONLY",
+      "input_hash": "318185b8fd1a14e09d7dfa28e86458fc2fab4ac14ab8a6a0f44d388c2e71dfa9",
+      "output": null,
+      "parent_run_id": "daily-edd2d548ec502597363ad112",
+      "research_run_id": "research-1e4712bae2a04615b2afb3b2d1580d2e",
+      "status": "CODEX_TIMEOUT"
+    },
+    "duration_seconds": 30.516,
+    "error_code": "CODEX_TIMEOUT",
+    "evidence_synthesis": "DETERMINISTIC_STRUCTURED_INPUTS_ONLY",
+    "fallback_reason": "CODEX_TIMEOUT",
+    "finished_at": "2026-09-11T15:52:21.938883Z",
+    "llm_available": false,
+    "model": "codex-default",
+    "next_action": "Review the explicit blocking_missing list and provider results; no missing value was inferred and execution remains blocked.",
+    "preparation_diagnostics": {
+      "blocking_missing": [
+        "SPY:PRICE_HISTORY:daily_ohlcv_1y",
+        "NVDA:PRICE_HISTORY:daily_ohlcv_1y",
+        "MSFT:PRICE_HISTORY:daily_ohlcv_1y"
+      ],
+      "conflicts": [],
+      "evidence_catalog": [
+        {
+          "confidence": "0.85",
+          "evidence_id": "ev_fe87aee2c9cb62ad483d8c5b",
+          "field": "current_market_snapshot",
+          "provider": "operational-provider-chain",
+          "requirement_key": "SPY:MARKET_SNAPSHOT:current_market_snapshot",
+          "retrieved_at": "2026-09-11T15:51:51.416441+00:00",
+          "source": "canonical-market-stage",
+          "symbol": "SPY",
+          "timestamp": "2026-09-11T15:51:49+00:00",
+          "validation_status": "PASS"
+        },
+        {
+          "confidence": "0.85",
+          "evidence_id": "ev_ad42010aa0420ea9e801449d",
+          "field": "current_market_snapshot",
+          "provider": "operational-provider-chain",
+          "requirement_key": "NVDA:MARKET_SNAPSHOT:current_market_snapshot",
+          "retrieved_at": "2026-09-11T15:51:51.416441+00:00",
+          "source": "canonical-market-stage",
+          "symbol": "NVDA",
+          "timestamp": "2026-09-11T15:51:48+00:00",
+          "validation_status": "PASS"
+        },
+        {
+          "confidence": "0.85",
+          "evidence_id": "ev_4eae219f7a37a3b793407f97",
+          "field": "current_market_snapshot",
+          "provider": "operational-provider-chain",
+          "requirement_key": "MSFT:MARKET_SNAPSHOT:current_market_snapshot",
+          "retrieved_at": "2026-09-11T15:51:51.416441+00:00",
+          "source": "canonical-market-stage",
+          "symbol": "MSFT",
+          "timestamp": "2026-09-11T15:51:46+00:00",
+          "validation_status": "PASS"
+        },
+        {
+          "confidence": "1",
+          "evidence_id": "ev_fb3382a9accf4f0bc11adca6",
+          "field": "portfolio_context",
+          "provider": "meridian",
+          "requirement_key": "PORTFOLIO:PORTFOLIO_CONTEXT:portfolio_context",
+          "retrieved_at": "2026-09-11T15:51:51.416441+00:00",
+          "source": "meridian-account-snapshot-validation",
+          "symbol": "PORTFOLIO",
+          "timestamp": "2026-09-11T15:51:51.414692+00:00",
+          "validation_status": "PASS"
+        },
+        {
+          "confidence": "1",
+          "evidence_id": "ev_a9398e19cfe4557111c53d3a",
+          "field": "strategy_policy",
+          "provider": "meridian-policy",
+          "requirement_key": "MERIDIAN:INVESTMENT_HORIZON:strategy_policy",
+          "retrieved_at": "2026-09-11T15:51:51.416441+00:00",
+          "source": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\policies\\strategy_profile.json",
+          "symbol": "MERIDIAN",
+          "timestamp": "2026-09-11T15:51:51.414692+00:00",
+          "validation_status": "PASS"
+        }
+      ],
+      "failed": [
+        "SPY:PRICE_HISTORY:daily_ohlcv_1y",
+        "SPY:FUNDAMENTALS:latest_fundamentals",
+        "NVDA:PRICE_HISTORY:daily_ohlcv_1y",
+        "NVDA:FUNDAMENTALS:latest_fundamentals",
+        "MSFT:PRICE_HISTORY:daily_ohlcv_1y",
+        "MSFT:FUNDAMENTALS:latest_fundamentals",
+        "SPY:BENCHMARK:benchmark_ohlcv_1y",
+        "VIX:MACRO:vix"
+      ],
+      "final_completeness": "0.3846153846153846153846153846",
+      "initial_completeness": "0.3846153846153846153846153846",
+      "planner_rounds": 0,
+      "provider_results": [],
+      "quality_grade": "DEGRADED",
+      "quality_score": 71,
+      "requirements": 13,
+      "retrieval_rounds": 0,
+      "retrieved": 5,
+      "source_count": 3,
+      "sources": [
+        "meridian-policy:E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\policies\\strategy_profile.json",
+        "meridian:meridian-account-snapshot-validation",
+        "operational-provider-chain:canonical-market-stage"
+      ],
+      "status": "GPT_PLANNER_FAILED"
+    },
+    "prompt_created_at": "2026-09-11T15:51:51.416441Z",
+    "provenance": "NONE",
+    "provider": "codex_cli",
+    "provider_diagnostics": {},
+    "request_sent_at": null,
+    "research_confidence": "NONE",
+    "research_mode": "OFFLINE_RESEARCH",
+    "response_received_at": null,
+    "started_at": "2026-09-11T15:51:51.416441Z",
+    "structured_response": null
+  },
+  "research_universe": {
+    "deep_analysis_count": 3,
+    "deep_analysis_universe": [
+      "SPY",
+      "NVDA",
+      "MSFT"
+    ],
+    "eligible_universe": [
+      "MSFT",
+      "NVDA",
+      "SPY"
+    ],
+    "mode": "full",
+    "original_count": 3,
+    "policy_limit": 3,
+    "research_count": 3,
+    "research_universe": [
+      "SPY",
+      "NVDA",
+      "MSFT"
+    ],
+    "resource_cpu_count": 16,
+    "resource_limit": 3,
+    "resource_memory_gib": "31.587886810302734375",
+    "selection_basis": "FULL_UNIVERSE"
+  },
+  "runtime_status": "PASS",
+  "safe_analysis": {
+    "historical_factor_analysis": {
+      "reason": "Only verified operational observations already produced by the canonical market stage are shown; no missing factor is fabricated.",
+      "status": "PARTIAL",
+      "symbols": [
+        "MSFT",
+        "NVDA",
+        "SPY"
+      ]
+    },
+    "portfolio_check": {
+      "long_only": true,
+      "negative_cash": false,
+      "position_count": 0,
+      "status": "PASS_ACCOUNT_FACTS_ONLY"
+    },
+    "risk_analysis": {
+      "cash": "100000.0000",
+      "gross_exposure": "0E+4",
+      "limitations": [
+        "No fresh complete market snapshot; price-sensitive risk is not asserted"
+      ],
+      "max_position_weight": "0",
+      "status": "PASS_ACCOUNT_ONLY",
+      "total_equity": "100000.0000"
+    },
+    "simulated_decision": {
+      "action": "HOLD",
+      "authority": "NONE",
+      "orders": [],
+      "reason": "Fresh complete market data is required before deterministic order construction.",
+      "status": "BLOCKED"
+    },
+    "status": "COMPLETED_NO_EXECUTION"
+  },
+  "schema_version": "meridian-paper-daily.v1",
+  "startup_diagnostics": {
+    "cache": {
+      "atomic_replace": true,
+      "encrypted": false,
+      "error_code": null,
+      "next_action": "No cache action required.",
+      "path": "E:\\MeridianAlphaRuntime\\cache",
+      "readable": true,
+      "stale_temporary_files": 0,
+      "status": "READY",
+      "writable": true
+    },
+    "data_provider": {
+      "selected_lanes": [
+        "PRIMARY"
+      ],
+      "status": "DATA_DEGRADED"
+    },
+    "environment": {
+      "python": "3.12.10",
+      "runtime_home": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.tmp\\reliability-dry-run-2",
+      "status": "PASS"
+    },
+    "execution_mode": "DEGRADED_OPERATIONAL",
+    "market_status": {
+      "exchange": "NYSE",
+      "local_time": "2026-09-11T11:51:51.414692-04:00",
+      "next_action": "Fresh regular-session data may support paper-only execution; all gates still apply.",
+      "observed_at": "2026-09-11T15:51:51.414692+00:00",
+      "status": "OPEN",
+      "trading_date": "2026-09-11"
+    }
+  },
+  "status": "PAPER_BLOCKED",
+  "trading_date": "2026-09-11"
+}

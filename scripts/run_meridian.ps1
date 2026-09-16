@@ -25,6 +25,8 @@ if (-not (Test-Path -LiteralPath $python)) {
     exit 3
 }
 $env:PYTHONUTF8 = '1'
+$configuredHome = [Environment]::GetEnvironmentVariable('MERIDIAN_HOME', 'User')
+if (-not $env:MERIDIAN_HOME -and $configuredHome) { $env:MERIDIAN_HOME = $configuredHome }
 $configuredCache = [Environment]::GetEnvironmentVariable('MERIDIAN_CACHE', 'User')
 if (-not $env:MERIDIAN_CACHE -and $configuredCache) {
     $env:MERIDIAN_CACHE = $configuredCache

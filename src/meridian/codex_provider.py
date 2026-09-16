@@ -7,7 +7,6 @@ import json
 import os
 import shutil
 import subprocess
-import tempfile
 import time
 from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
@@ -20,6 +19,7 @@ from pydantic import AwareDatetime, Field, model_validator
 
 from meridian.config import ResearchSettings
 from meridian.daily_research import DailyResearchInput, DailyResearchOutput, SymbolResearch
+from meridian.runtime_io import research_temporary_directory
 from meridian.schemas import StableModel
 
 AUTH_MODE = "CHATGPT_MANAGED_CODEX"
@@ -365,7 +365,7 @@ class CodexCliProvider:
         last_exit: int | None = None
         output_hash: str | None = None
         for attempt in range(1, max_attempts + 1):
-            with tempfile.TemporaryDirectory(prefix="meridian-codex-") as temp_name:
+            with research_temporary_directory() as temp_name:
                 temporary = Path(temp_name)
                 output_path = temporary / "research-output.json"
                 command = [

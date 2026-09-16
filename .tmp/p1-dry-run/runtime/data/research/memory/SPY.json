@@ -1,0 +1,19 @@
+{
+  "symbol": "SPY",
+  "last_updated": "2026-09-12T07:14:49.863743Z",
+  "current_thesis": "Deterministic evidence available; GPT reasoning unavailable.",
+  "confidence": 0.8879,
+  "direction": "NEUTRAL",
+  "key_drivers": [],
+  "key_risks": [],
+  "invalidators": [],
+  "open_questions": [],
+  "last_decision_state": "RESEARCH_ONLY",
+  "evidence_summary": [
+    "76532c558f80f08561fff1f233323fa828f56edc0e7040e6b2c3ee1d1ca50a9f",
+    "det-76532c558f80f08561fff1f233323fa828f56edc0e7040e6"
+  ],
+  "recent_changes": [
+    "NEW"
+  ]
+}
