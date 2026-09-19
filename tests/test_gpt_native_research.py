@@ -228,8 +228,10 @@ def test_native_closed_market_report_keeps_orders_at_zero(tmp_path, monkeypatch)
         )
     market.write_text(json.dumps({"quotes": quotes}), encoding="utf-8")
     result = MeridianApplicationService(RuntimePaths(tmp_path / "runtime")).daily(account, market)
-    intelligence = result["research_intelligence"]
-    assert isinstance(intelligence, dict)
-    assert intelligence["execution_state"] == "BLOCKED_MARKET_CLOSED"
+    # Fixture mode must not invoke the real GPT-native runtime. Market closure
+    # remains an independent deterministic execution gate.
+    assert result["research_intelligence"] is None
+    assert result["research_status"] == "NOT_RUN"
+    assert result["status"] == "NO_ACTION"
     assert result["orders"] == []
-    assert result["research_trace_json"]
+    assert result.get("research_trace_json") is None
