@@ -863,14 +863,14 @@ class MeridianApplicationService:
         result = closure.run(
             account, quotes, cutoff=cutoff, research=research.context, evaluated_at=evaluated_at
         )
-        if (
+        execution_gate_blocked = current_market.status is not MarketStatus.OPEN or (
             native_result is not None
             and native_result.execution_state is not ExecutionState.READY
-            and result.decision.overall_status is RunStatus.DRAFT
-        ):
-            # GPT-native research has no execution authority.  Preserve the
-            # deterministic target for analysis, but never emit an order draft
-            # when its independent execution gate is blocked.
+        )
+        if execution_gate_blocked and result.decision.overall_status is RunStatus.DRAFT:
+            # Research has no execution authority. Preserve the deterministic
+            # target for analysis, but never emit an order draft while either
+            # the exchange or the independent native execution gate is blocked.
             decision = result.decision.model_copy(
                 update={"orders": (), "overall_status": RunStatus.NO_ACTION}
             )
