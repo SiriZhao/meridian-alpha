@@ -751,6 +751,7 @@ class MeridianApplicationService:
         use_native = (
             settings is not None
             and settings.research_engine == "gpt_native_v1"
+            and request.mode == "LIVE"
             and not bool(getattr(self.research_stage.provider, "_injected_runner", False))
             and not host_mode
         )
