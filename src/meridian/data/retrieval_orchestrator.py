@@ -54,17 +54,17 @@ class EvidenceCache:
         self.clock = clock or (lambda: datetime.now(UTC))
 
     @staticmethod
-    def _digest(requirement: ResearchDataRequirement) -> str:
-        body = requirement.model_dump_json(exclude={"status"})
+    def _digest(requirement: ResearchDataRequirement, as_of: datetime) -> str:
+        body = requirement.model_dump_json(exclude={"status"}) + "|" + as_of.isoformat()
         return hashlib.sha256(body.encode()).hexdigest()
 
-    def _path(self, requirement: ResearchDataRequirement) -> Path:
-        return self.directory / (self._digest(requirement) + ".json")
+    def _path(self, requirement: ResearchDataRequirement, as_of: datetime) -> Path:
+        return self.directory / (self._digest(requirement, as_of) + ".json")
 
     def load(
         self, requirement: ResearchDataRequirement, *, as_of: datetime
     ) -> tuple[EvidenceRecord, ...]:
-        path = self._path(requirement)
+        path = self._path(requirement, as_of)
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
             records = tuple(EvidenceRecord.model_validate(item) for item in payload["evidence"])
@@ -75,6 +75,8 @@ class EvidenceCache:
             item.expires_at is None
             or item.expires_at <= now
             or item.timestamp > as_of
+            or (item.available_at is not None and item.available_at > as_of)
+            or item.as_of != as_of
             or item.requirement_key != requirement.key
             for item in records
         ):
@@ -83,14 +85,21 @@ class EvidenceCache:
             item.model_copy(update={"source_type": SourceType.LOCAL_CACHE}) for item in records
         )
 
-    def store(self, requirement: ResearchDataRequirement, records: Sequence[EvidenceRecord]) -> None:
+    def store(
+        self,
+        requirement: ResearchDataRequirement,
+        records: Sequence[EvidenceRecord],
+        *,
+        as_of: datetime,
+    ) -> None:
         if not records:
             return
         self.directory.mkdir(parents=True, exist_ok=True)
-        path = self._path(requirement)
+        path = self._path(requirement, as_of)
         temporary = path.with_name(path.name + "." + uuid4().hex + ".tmp")
         payload = {
-            "cache_key": self._digest(requirement),
+            "cache_key": self._digest(requirement, as_of),
+            "as_of": as_of.isoformat(),
             "source": [item.source for item in records],
             "retrieved_at": max(item.retrieved_at for item in records).isoformat(),
             "expires_at": min(
@@ -383,7 +392,7 @@ class RetrievalOrchestrator:
                 present.add(requirement.key)
                 if self.cache:
                     try:
-                        self.cache.store(requirement, accepted)
+                        self.cache.store(requirement, accepted, as_of=as_of)
                     except OSError:
                         pass
         evidence.extend(self._derive(evidence, as_of=as_of))
@@ -431,7 +440,13 @@ class RetrievalOrchestrator:
         for attempt in range(1, self.max_retries + 2):
             try:
                 records = provider.retrieve(requirement, as_of=as_of)
-                if not records or any(item.requirement_key != requirement.key or item.timestamp > as_of for item in records):
+                if not records or any(
+                    item.requirement_key != requirement.key
+                    or item.timestamp > as_of
+                    or item.as_of != as_of
+                    or (item.available_at is not None and item.available_at > as_of)
+                    for item in records
+                ):
                     raise RetrievalProviderError("PROVIDER_INVALID_RESPONSE")
                 self._failures[provider.provider_name] = 0
                 self._last_success[provider.provider_name] = self.clock()

@@ -5,10 +5,12 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
 from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from enum import StrEnum
+from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
 
@@ -778,13 +780,57 @@ class SECCompanyFactsNumericProvider:
         clock: Callable[[], datetime] | None = None,
         user_agent: str = "MeridianAlpha research contact unavailable",
         resolver: Any | None = None,
+        timeout_seconds: int = 10,
+        max_retries: int = 1,
+        sleeper: Callable[[float], None] = time.sleep,
+        cache_directory: Path | None = None,
+        cache_ttl_seconds: int = 86400,
     ) -> None:
         self.opener = opener
         self.clock = clock or (lambda: datetime.now(UTC))
         self.user_agent = user_agent
         self.resolver = resolver or SECTickerResolver(opener=opener, clock=self.clock)
+        if timeout_seconds < 1 or max_retries < 0 or cache_ttl_seconds < 1:
+            raise ValueError("SEC_PROVIDER_BUDGET_INVALID")
+        self.timeout_seconds = timeout_seconds
+        self.max_retries = max_retries
+        self.sleeper = sleeper
+        self.cache_directory = cache_directory
+        self.cache_ttl_seconds = cache_ttl_seconds
         self.last_exclusions: tuple[str, ...] = ()
         self.last_identity: tuple[str, str, str | None, datetime] | None = None
+        self.last_transport_status = "NOT_RUN"
+
+    def _companyfacts_payload(self, source_uri: str, cik: str) -> str:
+        cache_path = self.cache_directory / f"CIK{cik}.json" if self.cache_directory else None
+        if cache_path and cache_path.is_file():
+            age = self.clock().timestamp() - cache_path.stat().st_mtime
+            if 0 <= age <= self.cache_ttl_seconds:
+                self.last_transport_status = "CACHE_HIT"
+                return cache_path.read_text(encoding="utf-8")
+        last_error: Exception | None = None
+        for attempt in range(self.max_retries + 1):
+            try:
+                response = self.opener(
+                    Request(source_uri, headers={"User-Agent": self.user_agent}),
+                    timeout=self.timeout_seconds,
+                )
+                raw = response.read()
+                payload = raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
+                json.loads(payload)
+                self.last_transport_status = "NETWORK"
+                if cache_path:
+                    cache_path.parent.mkdir(parents=True, exist_ok=True)
+                    temporary = cache_path.with_suffix(".tmp")
+                    temporary.write_text(payload, encoding="utf-8")
+                    temporary.replace(cache_path)
+                return payload
+            except (OSError, TimeoutError, json.JSONDecodeError) as error:
+                last_error = error
+                if attempt < self.max_retries:
+                    self.sleeper(0.1 * (2**attempt))
+        self.last_transport_status = "UNAVAILABLE"
+        raise ValueError("SEC_COMPANYFACTS_UNAVAILABLE") from last_error
 
     def get_observations(self, ticker: str) -> tuple[SECNumericObservation, ...]:
         normalized_ticker = ticker.upper()
@@ -800,11 +846,7 @@ class SECCompanyFactsNumericProvider:
         if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
             raise ValueError("SEC clock must be timezone-aware")
         source_uri = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json"
-        response = self.opener(
-            Request(source_uri, headers={"User-Agent": self.user_agent}), timeout=10
-        )
-        raw = response.read()
-        payload = raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
+        payload = self._companyfacts_payload(source_uri, cik)
         try:
             data = json.loads(payload)
         except json.JSONDecodeError as error:

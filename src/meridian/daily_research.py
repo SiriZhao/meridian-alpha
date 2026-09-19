@@ -14,6 +14,7 @@ from pydantic import AwareDatetime, Field, model_validator
 from meridian.research import GroundedResearchResult
 from meridian.research_universe import ResearchUniversePlan
 from meridian.schemas import StableModel
+from meridian.temporal import ResearchTemporalContext
 
 
 class ResearchProviderStatus(StrEnum):
@@ -43,6 +44,19 @@ class ResearchProviderStatus(StrEnum):
     BLOCKED = "BLOCKED"
 
 
+class ResearchFailureStatus(StrEnum):
+    """Failure meanings; none may be mapped to HOLD or NO_ACTION."""
+
+    VALID = "VALID"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+    STALE_EVIDENCE = "STALE_EVIDENCE"
+    SCHEMA_INVALID = "SCHEMA_INVALID"
+    LLM_TIMEOUT = "LLM_TIMEOUT"
+    LLM_UNAVAILABLE = "LLM_UNAVAILABLE"
+    DATA_UNAVAILABLE = "DATA_UNAVAILABLE"
+
+
 class PublicResearchObservation(StableModel):
     """Outbound allowlist. No account, arbitrary evidence payload or free text."""
 
@@ -69,6 +83,7 @@ class DailyResearchInput(StableModel):
     universe_plan: ResearchUniversePlan | None = None
     evidence_package: dict[str, Any] | None = None
     market_context: dict[str, Any] | None = None
+    temporal_context: ResearchTemporalContext | None = None
     # Current account state is supplied only to the local Codex child process. It is
     # intentionally absent from request dumps, hashes, reports, replay artifacts,
     # and the persistent retrieval cache/audit trail.
@@ -78,6 +93,8 @@ class DailyResearchInput(StableModel):
 
     @model_validator(mode="after")
     def temporal_boundary(self) -> DailyResearchInput:
+        if self.temporal_context is not None and self.temporal_context.information_cutoff != self.analysis_cutoff:
+            raise ValueError("RESEARCH_TEMPORAL_CONTEXT_MISMATCH")
         if any(item.observed_at > self.analysis_cutoff for item in self.observations):
             raise ValueError("RESEARCH_INPUT_AFTER_CUTOFF")
         if len({item.ticker for item in self.observations}) != len(self.observations):
@@ -150,6 +167,7 @@ class ResearchDecisionContext(StableModel):
     input_hash: str
     analysis_cutoff: AwareDatetime
     status: ResearchProviderStatus
+    failure_status: ResearchFailureStatus | None = None
     authority: Literal["ADVISORY_ONLY"] = "ADVISORY_ONLY"
     output: DailyResearchOutput | None = None
 

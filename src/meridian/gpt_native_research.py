@@ -88,6 +88,9 @@ class DecisionState(StrEnum):
     NO_ACTION = "NO_ACTION"
     INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
     CONFLICTING_EVIDENCE = "CONFLICTING_EVIDENCE"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+    LLM_TIMEOUT = "LLM_TIMEOUT"
+    STALE_EVIDENCE = "STALE_EVIDENCE"
 
 
 class ExecutionState(StrEnum):
@@ -886,13 +889,25 @@ class GPTNativeResearchOrchestrator:
                 }
                 for result in stages.values()
             )
-            state, decision = (
-                (ResearchState.DEGRADED, DecisionState.RESEARCH_ONLY)
-                if transient_failure
-                else (ResearchState.OFFLINE, DecisionState.RESEARCH_ONLY)
-            )
+            if any(result.status is InvocationStatus.TIMEOUT for result in stages.values()):
+                state, decision = ResearchState.DEGRADED, DecisionState.LLM_TIMEOUT
+            elif any(result.status is InvocationStatus.SCHEMA_ERROR for result in stages.values()):
+                state, decision = ResearchState.DEGRADED, DecisionState.REVIEW_REQUIRED
+            else:
+                state, decision = (
+                    (ResearchState.DEGRADED, DecisionState.RESEARCH_ONLY)
+                    if transient_failure
+                    else (ResearchState.OFFLINE, DecisionState.RESEARCH_ONLY)
+                )
         elif missing:
-            state, decision = ResearchState.DEGRADED, DecisionState.RESEARCH_ONLY
+            state = ResearchState.DEGRADED
+            decision = (
+                DecisionState.REVIEW_REQUIRED
+                if any(result.status is InvocationStatus.SCHEMA_ERROR for result in stages.values())
+                else DecisionState.LLM_TIMEOUT
+                if any(result.status is InvocationStatus.TIMEOUT for result in stages.values())
+                else DecisionState.RESEARCH_ONLY
+            )
         else:
             state, decision = ResearchState.READY, synthesis.decision_state if synthesis else DecisionState.RESEARCH_ONLY
         if skeptic and (skeptic.fatal_flaw or disagreement >= 0.65):

@@ -58,6 +58,7 @@ from meridian.market_status import MarketStatus, market_status
 from meridian.operational_data import FreshnessPolicy
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
 from meridian.paper import DEFAULT_ACCOUNT, DEFAULT_INITIAL_CASH, PaperLedger, PaperSettings
+from meridian.portfolio_snapshot import PortfolioSnapshot
 from meridian.research_agents.audit import write_research_audit
 from meridian.research_agents.preparation import ResearchPreparationService
 from meridian.research_stage import CanonicalResearchStage
@@ -68,6 +69,7 @@ from meridian.runtime_diagnostics import report as doctor_report
 from meridian.runtime_io import run_lock
 from meridian.schemas import MarketSnapshot, RunStatus
 from meridian.shadow_evaluation import ShadowMode, ShadowResearchRunner
+from meridian.temporal import ResearchTemporalContext
 
 
 class MeridianApplicationService:
@@ -641,6 +643,10 @@ class MeridianApplicationService:
             "account_identifier_included": False,
             "persistence_allowed": False,
         }
+        # Freeze the current account facts before any model invocation. The
+        # resulting value is read-only and remains excluded from persisted
+        # research request hashes by DailyResearchInput.
+        portfolio_context = PortfolioSnapshot.from_account_snapshot(account).research_view()
         request = DailyResearchInput(
             parent_run_id=parent_id,
             analysis_cutoff=cutoff,
@@ -648,6 +654,15 @@ class MeridianApplicationService:
             snapshot_reference=snapshot.content_hash or "UNAVAILABLE",
             market_reference=digest(
                 {symbol: quote.model_dump(mode="json") for symbol, quote in research_quotes.items()}
+            ),
+            temporal_context=ResearchTemporalContext(
+                run_id=parent_id,
+                trading_date=cutoff.astimezone(ZoneInfo("America/New_York")).date(),
+                as_of=cutoff,
+                information_cutoff=cutoff,
+                market_session=current_market.status.value,
+                timezone="America/New_York",
+                portfolio_snapshot_id=account.snapshot_id,
             ),
             policy_reference=digest(
                 {name: value.model_dump(mode="json") for name, value in vars(policies).items()}
@@ -1940,6 +1955,14 @@ class MeridianApplicationService:
             market_reference=hashlib.sha256(
                 json.dumps({ticker: quote.model_dump(mode="json") for ticker, quote in quotes.items()}, sort_keys=True, default=str).encode()
             ).hexdigest(),
+            temporal_context=ResearchTemporalContext(
+                run_id="shadow-context-" + cutoff.strftime("%Y%m%dT%H%M%S%fZ"),
+                trading_date=cutoff.astimezone(ZoneInfo("America/New_York")).date(),
+                as_of=cutoff,
+                information_cutoff=cutoff,
+                market_session=market_status(cutoff).status.value,
+                timezone="America/New_York",
+            ),
             policy_reference=hashlib.sha256(policies.models.model_dump_json().encode()).hexdigest(),
             provider=settings.provider,
             model=settings.model,

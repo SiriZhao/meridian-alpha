@@ -16,6 +16,10 @@ coverage.xml
 htmlcov/
 .pytest_tmp/
 .pytest_tmp*/
+.test-tmp-*/
+.tmp/
+.runtime/
+dist/
 
 artifacts/
 

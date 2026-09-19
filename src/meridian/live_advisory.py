@@ -42,6 +42,7 @@ from meridian.runtime import RuntimePaths, policy_directory
 from meridian.runtime_io import atomic_write, run_lock
 from meridian.schemas import AccountSnapshot, AlphaScore, StableModel
 from meridian.security_master import DEFAULT_SECURITY_MASTER
+from meridian.temporal import ResearchTemporalContext
 from meridian.trading_calendar import NEW_YORK, session_context
 
 Freshness = Literal["LIVE", "DELAYED", "STALE", "UNAVAILABLE"]
@@ -396,6 +397,9 @@ class LiveAdvisoryService:
         request = DailyResearchInput(parent_run_id=run_id, analysis_cutoff=cutoff, mode='LIVE',
                     snapshot_reference='IN_MEMORY_ONLY', market_reference=digest(rows), policy_reference=digest(policies.risk.model_dump()),
                     provider='codex_cli', model=settings.model,
+                    temporal_context=ResearchTemporalContext(run_id=run_id, trading_date=cutoff.astimezone(NEW_YORK).date(),
+                        as_of=cutoff, information_cutoff=cutoff, market_session=session_context(cutoff),
+                        timezone='America/New_York'),
                     observations=tuple(PublicResearchObservation(ticker=symbol, observed_at=observations[symbol].observed_at,
                         price=cast(Decimal, observations[symbol].last), daily_return=row['daily_change'], reference=references[symbol]) for symbol,row in valid_rows.items()),
                     freshness_status='PASS' if fresh else 'BLOCKED', portfolio_context=context,

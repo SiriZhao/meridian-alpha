@@ -57,6 +57,7 @@ class DataStatus(StrEnum):
     MARKET_CLOSED = "MARKET_CLOSED"
     STALE_MARKET_DATA = "STALE_MARKET_DATA"
     RESEARCH_COMPLETE_EXECUTION_BLOCKED = "RESEARCH_COMPLETE_EXECUTION_BLOCKED"
+    UNVERIFIED_POINT_IN_TIME = "UNVERIFIED_POINT_IN_TIME"
 
 
 class ValidationStatus(StrEnum):
@@ -115,6 +116,9 @@ class EvidenceRecord(StableModel):
     symbol: str = Field(pattern=r"^[A-Z][A-Z0-9.\-]{0,31}$")
     timestamp: AwareDatetime
     as_of: AwareDatetime
+    published_at: AwareDatetime | None = None
+    effective_at: AwareDatetime | None = None
+    available_at: AwareDatetime | None = None
     source: str = Field(min_length=1, max_length=512)
     source_type: SourceType
     retrieved_at: AwareDatetime
@@ -131,6 +135,15 @@ class EvidenceRecord(StableModel):
             raise ValueError("EVIDENCE_VALUE_MISSING")
         if self.timestamp > self.as_of:
             raise ValueError("EVIDENCE_AFTER_AS_OF")
+        for name, value in (
+            ("published_at", self.published_at),
+            ("effective_at", self.effective_at),
+            ("available_at", self.available_at),
+        ):
+            if value is not None and value > self.as_of:
+                raise ValueError(f"{name.upper()}_AFTER_AS_OF")
+        if self.published_at is not None and self.available_at is not None and self.published_at > self.available_at:
+            raise ValueError("PUBLISHED_AFTER_AVAILABLE")
         if self.expires_at is not None and self.expires_at < self.retrieved_at:
             raise ValueError("EVIDENCE_EXPIRY_INVALID")
         if self.source_type is SourceType.CODEX_WEB_RESEARCH and self.category not in {

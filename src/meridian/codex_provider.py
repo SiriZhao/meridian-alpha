@@ -18,7 +18,12 @@ from typing import Any
 from pydantic import AwareDatetime, Field, model_validator
 
 from meridian.config import ResearchSettings
-from meridian.daily_research import DailyResearchInput, DailyResearchOutput, SymbolResearch
+from meridian.daily_research import (
+    DailyResearchInput,
+    DailyResearchOutput,
+    ResearchFailureStatus,
+    SymbolResearch,
+)
 from meridian.runtime_io import research_temporary_directory
 from meridian.schemas import StableModel
 
@@ -83,7 +88,11 @@ class ResearchPacket(StableModel):
             for item in request.observations
         )
         return cls(
-            as_of=request.analysis_cutoff,
+            as_of=(
+                request.temporal_context.information_cutoff
+                if request.temporal_context
+                else request.analysis_cutoff
+            ),
             market_session="NOT_SUPPLIED",
             market_regime_inputs=signals,
             signals=signals,
@@ -157,6 +166,7 @@ class CodexRunDiagnostics(StableModel):
     input_packet_hash: str
     output_hash: str | None = None
     error_class: str | None = None
+    failure_status: ResearchFailureStatus | None = None
 
 
 class CodexProviderResult(StableModel):
@@ -509,6 +519,17 @@ class CodexCliProvider:
         exit_code: int | None = None,
         output_hash: str | None = None,
     ) -> CodexProviderResult:
+        failure_status = {
+            CodexError.SCHEMA_ERROR: ResearchFailureStatus.SCHEMA_INVALID,
+            CodexError.TIMEOUT: ResearchFailureStatus.LLM_TIMEOUT,
+            CodexError.NOT_INSTALLED: ResearchFailureStatus.LLM_UNAVAILABLE,
+            CodexError.AUTH_REQUIRED: ResearchFailureStatus.LLM_UNAVAILABLE,
+            CodexError.PROCESS_ERROR: ResearchFailureStatus.LLM_UNAVAILABLE,
+            CodexError.RATE_LIMITED: ResearchFailureStatus.LLM_UNAVAILABLE,
+            CodexError.EMPTY_RESPONSE: ResearchFailureStatus.REVIEW_REQUIRED,
+            CodexError.OUTPUT_MISSING: ResearchFailureStatus.REVIEW_REQUIRED,
+            CodexError.CONFIG_INVALID: ResearchFailureStatus.REVIEW_REQUIRED,
+        }[error]
         diagnostics = CodexRunDiagnostics(
             model_requested=model,
             reasoning_effort=effort,
@@ -520,6 +541,7 @@ class CodexCliProvider:
             input_packet_hash=input_hash,
             output_hash=output_hash,
             error_class=error.value,
+            failure_status=failure_status,
         )
         return CodexProviderResult(
             diagnostics=diagnostics,

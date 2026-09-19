@@ -310,6 +310,19 @@ class PaperLedger:
             ),
         )
 
+    def research_portfolio_snapshot(
+        self,
+        account_name: str = DEFAULT_ACCOUNT,
+        *,
+        observed_at: datetime | None = None,
+    ):
+        """Return an immutable research view; it has no ledger mutation methods."""
+        from meridian.portfolio_snapshot import PortfolioSnapshot
+
+        return PortfolioSnapshot.from_host_envelope(
+            self.export_snapshot(account_name, observed_at=observed_at)
+        )
+
     def write_snapshot(self, directory: Path, account_name: str = DEFAULT_ACCOUNT, *, observed_at: datetime | None = None) -> Path:
         envelope = self.export_snapshot(account_name, observed_at=observed_at)
         directory.mkdir(parents=True, exist_ok=True)
