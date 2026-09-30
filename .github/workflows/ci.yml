@@ -19,16 +19,35 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Create project environment
+        shell: bash
+        run: python -m venv .venv
       - name: Install project
-        run: python -m pip install --upgrade pip && pip install -e ".[dev]"
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then PYTHON_BIN=".venv/Scripts/python.exe"; else PYTHON_BIN=".venv/bin/python"; fi
+          "$PYTHON_BIN" -m pip install --upgrade pip
+          "$PYTHON_BIN" -m pip install -e ".[dev]"
       - name: Repository validation
-        run: python scripts/validate_repo.py
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then PYTHON_BIN=".venv/Scripts/python.exe"; else PYTHON_BIN=".venv/bin/python"; fi
+          "$PYTHON_BIN" scripts/validate_repo.py
       - name: Manual authority negative tests
-        run: python -m pytest tests/test_gate6f_manual_authority.py -q
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then PYTHON_BIN=".venv/Scripts/python.exe"; else PYTHON_BIN=".venv/bin/python"; fi
+          "$PYTHON_BIN" -m pytest tests/test_gate6f_manual_authority.py -q
       - name: Replay integrity tests
-        run: python -m pytest tests/test_gate5e_5f_integrity.py -q
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then PYTHON_BIN=".venv/Scripts/python.exe"; else PYTHON_BIN=".venv/bin/python"; fi
+          "$PYTHON_BIN" -m pytest tests/test_gate5e_5f_integrity.py -q
       - name: Validate Skill package
-        run: python skills/meridian-alpha/scripts/validate_package.py skills/meridian-alpha
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then PYTHON_BIN=".venv/Scripts/python.exe"; else PYTHON_BIN=".venv/bin/python"; fi
+          "$PYTHON_BIN" skills/meridian-alpha/scripts/validate_package.py skills/meridian-alpha
       - name: Scan high-risk credential patterns
         shell: bash
         run: |

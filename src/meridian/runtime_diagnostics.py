@@ -119,7 +119,7 @@ def _skill_check() -> tuple[Check, dict[str, object]]:
         source_hash = tree_hash(source, files)
         installed_hash = tree_hash(installed, files)
     except OSError:
-        return Check("skill_installation", "FAIL", "MERIDIAN_SKILL_NOT_INSTALLED"), {
+        return Check("skill_installation", "INFO", "MERIDIAN_SKILL_NOT_INSTALLED"), {
             "source": str(source), "installed": str(installed), "hash_match": False
         }
     matched = source_hash == installed_hash

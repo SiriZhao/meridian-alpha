@@ -36,8 +36,11 @@ class RuntimePaths:
         if not override and environ is None and target_platform.startswith("win"):
             import winreg
             try:
-                with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as key:
-                    stored, _ = winreg.QueryValueEx(key, "MERIDIAN_HOME")
+                open_key = getattr(winreg, "OpenKey")  # noqa: B009 - cross-platform type-safe lookup
+                current_user = getattr(winreg, "HKEY_CURRENT_USER")  # noqa: B009
+                query_value = getattr(winreg, "QueryValueEx")  # noqa: B009
+                with open_key(current_user, "Environment") as key:
+                    stored, _ = query_value(key, "MERIDIAN_HOME")
                     override = str(stored) if stored else None
             except FileNotFoundError:
                 pass
