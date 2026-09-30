@@ -48,7 +48,7 @@ from meridian.trading_calendar import session_context
 
 
 def test_runtime_root_resolution(tmp_path):
-    explicit = RuntimePaths.from_environment({'MERIDIAN_HOME':str(tmp_path), 'LOCALAPPDATA':'C:/ignored'}, platform='win32')
+    explicit = RuntimePaths.from_environment({'MERIDIAN_HOME':str(tmp_path), 'LOCALAPPDATA':'C:/ignored'}, platform=sys.platform)
     assert explicit.home == tmp_path
     assert RuntimePaths.from_environment({'LOCALAPPDATA':'C:/local'}, platform='win32').home == Path('C:/local/MeridianAlpha')
     with pytest.raises(RuntimeError):

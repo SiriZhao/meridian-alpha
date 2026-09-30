@@ -146,7 +146,7 @@ def publish_staged_report(staged: Path, destination: Path) -> None:
         staged.replace(destination)
         return
     except OSError as error:
-        if getattr(error, "winerror", None) != 17 or destination.exists():
+        if (getattr(error, "winerror", None) != 17 and getattr(error, "errno", None) != 17) or destination.exists():
             raise
 
     content = staged.read_bytes()

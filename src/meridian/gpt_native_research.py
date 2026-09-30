@@ -1136,7 +1136,7 @@ class GPTNativeResearchOrchestrator:
         )
         deadline = DeadlineBudget(started, started + budget.total_seconds, budget.cleanup_seconds)
         def remaining() -> int:
-            return max(0, int(deadline.remaining_seconds - budget.cleanup_seconds))
+            return max(0, math.ceil(deadline.remaining_seconds - budget.cleanup_seconds))
         primary: PrimaryAnalystOutput | None = None
         skeptic: SkepticOutput | None = None
         scenarios: ScenarioOutput | None = None

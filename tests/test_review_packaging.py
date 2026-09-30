@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
+import pytest
 
+
+@pytest.mark.skipif(sys.platform != "win32", reason="PowerShell packaging helper is Windows-only")
 def test_review_archive_excludes_secret_and_runtime_paths(tmp_path: Path) -> None:
     root = tmp_path / "source"
     root.mkdir()

@@ -160,7 +160,7 @@ def _mcp_check() -> tuple[Check, dict[str, object]]:
             configured = False
     missing = sorted(required - set(names))
     return Check(
-        "mcp_tools", "PASS" if not missing and configured else "WARN",
+        "mcp_tools", "PASS" if not missing and configured else "INFO",
         "registered_and_discovered" if not missing and configured else (
             "missing=" + ",".join(missing) if missing else "MCP_NOT_DISCOVERED_BY_CODEX"
         ),
@@ -211,14 +211,14 @@ def report(
     checks.append(
         Check(
             "codex_cli",
-            "PASS" if codex_executable else "WARN",
+            "PASS" if codex_executable else "INFO",
             "available; authentication is managed by Codex CLI"
             if codex_executable
             else "CODEX_NOT_INSTALLED",
         )
     )
     codex_version_status, codex_version = _codex_version(codex_executable)
-    checks.append(Check("codex_compatibility", codex_version_status if codex_executable else "WARN", f"{codex_version}; minimum 0.153.0"))
+    checks.append(Check("codex_compatibility", codex_version_status if codex_executable else "INFO", f"{codex_version}; minimum 0.153.0"))
     checks.append(Check("codex_auth_mode", "PASS", AUTH_MODE))
     skill_check, skill = _skill_check()
     checks.append(skill_check)
