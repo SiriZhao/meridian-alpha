@@ -2,8 +2,9 @@
 
 ## Setup
 
-Use Python 3.12. From a fresh clone, run `python -m pip install -e ".[dev]"` or
-`uv sync --group dev`. The project does not require broker credentials or an
+Use Python 3.12 (`py -3.12` on Windows or `python3.12` on Linux). From a fresh
+clone, create a 3.12 virtual environment, then run `python -m pip install -e .`
+with `pytest`, `ruff` and `pyright`, or use `uv sync --group dev`. The project does not require broker credentials or an
 external runtime for tests.
 
 ## Validation

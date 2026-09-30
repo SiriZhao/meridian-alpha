@@ -124,7 +124,10 @@ def _skill_check() -> tuple[Check, dict[str, object]]:
         }
     matched = source_hash == installed_hash
     return Check(
-        "skill_installation", "PASS" if matched else "WARN",
+        # A globally installed Skill may intentionally lag a fresh checkout.
+        # Keep the mismatch visible without making runtime health fail closed;
+        # the installed Skill is not an execution or persistence dependency.
+        "skill_installation", "PASS" if matched else "INFO",
         "source_and_installed_hash_match" if matched else "MERIDIAN_SKILL_HASH_MISMATCH",
     ), {"source": str(source), "installed": str(installed), "source_hash": source_hash,
         "installed_hash": installed_hash, "hash_match": matched, "file_count": len(files)}

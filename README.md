@@ -26,7 +26,8 @@ and [clean installation](reports/meridian-clean-install-acceptance.md).
 
 ## Install (Windows PowerShell)
 
-Use Python 3.12 and uv. From this checkout:
+Use Python 3.12 and uv. On Windows, select it explicitly with `py -3.12`; on
+Linux use `python3.12`. From this checkout:
 
 ```powershell
 uv sync --group dev --inexact
