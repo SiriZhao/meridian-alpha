@@ -355,8 +355,7 @@ def test_model_deadline_rejects_result_after_host_suspend(tmp_path, monkeypatch)
             '', cwd=tmp_path, environment=dict(os.environ), budget_seconds=5)
 
 
-@pytest.mark.skipif(os.name != 'nt', reason='Windows inherited pipe regression')
-def test_model_timeout_terminates_windows_child_tree(tmp_path):
+def test_model_timeout_terminates_child_process_tree(tmp_path):
     from time import monotonic
 
     from meridian.gpt_native_research import run_bounded_model_process

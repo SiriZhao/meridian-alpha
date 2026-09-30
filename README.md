@@ -158,12 +158,12 @@ so diagnostics remain visible; the launcher preserves the process exit code.
 
 ## Maintenance
 
-Core regression: `uv run --no-sync pytest`, `uv run --no-sync ruff check .`,
-`uv run --no-sync pyright`. The subprocess E2E creates a fresh runtime outside
+Core regression: `python scripts/validate_repo.py` (or the equivalent `uv run`
+commands for pytest, Ruff and Pyright). The subprocess E2E creates a fresh runtime outside
 the checkout, runs twice, checks SQLite integrity and persisted reports.
 
 See [runtime baseline](docs/runtime-baseline.md), [maintenance backlog](MAINTENANCE.md)
-and [runtime details](docs/runtime.md). Historical Gate/ROUND documents remain
+and [development guide](DEVELOPMENT.md). Historical Gate/ROUND documents remain
 for audit only and are not the daily operating instructions.
 
 

@@ -15,6 +15,7 @@ import math
 import os
 import re
 import shutil
+import signal
 import subprocess
 import time
 from collections.abc import Callable, Mapping, Sequence
@@ -59,8 +60,15 @@ def _terminate_model_process(process: subprocess.Popen[str]) -> dict[str, str | 
             process.kill()
     elif process.poll() is None:
         result["cancellation_attempted"] = True
-        result["cancellation_method"] = "PROCESS_KILL"
-        process.kill()
+        if os.name != "nt":
+            result["cancellation_method"] = "PROCESS_GROUP_KILL"
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except (OSError, ProcessLookupError):
+                process.kill()
+        else:
+            result["cancellation_method"] = "PROCESS_KILL"
+            process.kill()
     try:
         process.wait(timeout=5)
     except subprocess.TimeoutExpired:
@@ -83,7 +91,8 @@ def run_bounded_model_process(command: list[str], prompt: str, *, cwd: Path,
     spawn_started = datetime.now(UTC)
     with subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           text=True, encoding='utf-8', errors='replace', cwd=cwd, env=environment,
-                          creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0) as process:  # noqa: S603
+                          creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0,
+                          start_new_session=os.name != 'nt') as process:  # noqa: S603
         spawn_completed = datetime.now(UTC)
         pending: str | None = prompt
         while True:

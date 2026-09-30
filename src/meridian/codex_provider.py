@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import shutil
+import signal
 import subprocess
 import time
 from collections.abc import Callable, Mapping, Sequence
@@ -248,15 +249,28 @@ def _default_runner(
         env=dict(environment),
         shell=False,
         creationflags=creationflags,
+        start_new_session=os.name != "nt",
     )
     try:
         stdout, stderr = process.communicate(input=input_text, timeout=timeout_seconds)
     except subprocess.TimeoutExpired as error:
-        process.kill()
+        if os.name != "nt":
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except (OSError, ProcessLookupError):
+                process.kill()
+        else:
+            process.kill()
         process.communicate()
         raise TimeoutError from error
     except KeyboardInterrupt:
-        process.kill()
+        if os.name != "nt":
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except (OSError, ProcessLookupError):
+                process.kill()
+        else:
+            process.kill()
         process.communicate()
         raise
     return ProcessResult(returncode=process.returncode, stdout=stdout, stderr=stderr)
