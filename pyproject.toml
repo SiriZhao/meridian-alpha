@@ -18,6 +18,13 @@ dev = [
   "ruff>=0.9,<1",
 ]
 
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "pyright>=1.1.390",
+  "ruff>=0.9,<1",
+]
+
 [project.scripts]
 meridian = "meridian.application_cli:main"
 meridian-mcp = "meridian.mcp_server:main"
