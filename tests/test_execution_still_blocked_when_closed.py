@@ -9,6 +9,7 @@ def test_paper_execution_remains_blocked_when_research_is_complete(
     tmp_path: Path, monkeypatch
 ) -> None:
     service = MeridianApplicationService(RuntimePaths(tmp_path / "runtime"))
+    assert service.paper_init()["status"] == "PAPER_INITIALIZED"
     closed_daily = {
         "run_id": "daily-closed",
         "information_cutoff": "2026-09-12T16:00:00+00:00",
@@ -41,6 +42,7 @@ def test_paper_execution_remains_blocked_when_research_is_complete(
 
 def test_open_market_with_stale_data_remains_blocked(tmp_path: Path, monkeypatch) -> None:
     service = MeridianApplicationService(RuntimePaths(tmp_path / "runtime"))
+    assert service.paper_init()["status"] == "PAPER_INITIALIZED"
     stale_daily = {
         "run_id": "daily-open-stale",
         "information_cutoff": "2026-09-08T14:00:00+00:00",

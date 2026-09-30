@@ -95,7 +95,10 @@ class ResearchBudgetPolicy(PolicyModel):
 class ResearchBudget(PolicyModel):
     """Finite wall-clock budget for the GPT-native advisory pipeline."""
 
-    total_seconds: int = Field(default=42, ge=1, le=600)
+    total_seconds: int = Field(default=48, ge=1, le=600)
+    # Production policy sets an explicit cleanup margin; legacy injected
+    # fixtures may omit it for compatibility.
+    cleanup_seconds: int = Field(default=0, ge=0, le=30)
     primary_seconds: int = Field(default=16, ge=1, le=300)
     skeptic_seconds: int = Field(default=10, ge=1, le=300)
     scenario_seconds: int = Field(default=8, ge=1, le=300)
@@ -103,8 +106,11 @@ class ResearchBudget(PolicyModel):
 
     @model_validator(mode="after")
     def stages_fit_total_budget(self) -> ResearchBudget:
-        if self.primary_seconds + self.skeptic_seconds + self.scenario_seconds + self.synthesis_seconds > self.total_seconds:
-            raise ValueError("research stage budgets cannot exceed total_seconds")
+        stage_total = self.primary_seconds + self.skeptic_seconds + self.scenario_seconds + self.synthesis_seconds
+        if stage_total + self.cleanup_seconds > self.total_seconds:
+            raise ValueError("research stage budgets must leave cleanup margin")
+        if any(stage >= self.total_seconds for stage in (self.primary_seconds, self.skeptic_seconds, self.scenario_seconds, self.synthesis_seconds)):
+            raise ValueError("research child budget must be less than parent budget")
         return self
 class EvidencePacketPolicy(PolicyModel):
     """Conservative bounds for Meridian-owned evidence packets."""

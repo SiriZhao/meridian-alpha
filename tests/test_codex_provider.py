@@ -24,7 +24,15 @@ def settings(*, retries: int = 1, count: int = 3):
     assert configured is not None
     budget = configured.budget.model_copy(update={"max_graph_tickers_per_run": count})
     return configured.model_copy(
-        update={"live_enabled": True, "llm_max_retries": retries, "budget": budget}
+        # These tests exercise the legacy CodexCliProvider contract. Keep its
+        # CLI-default route independent from the production GPT-native model
+        # selected in policies/models.yaml.
+        update={
+            "model": "codex-default",
+            "live_enabled": True,
+            "llm_max_retries": retries,
+            "budget": budget,
+        }
     )
 
 

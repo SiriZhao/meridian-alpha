@@ -3,7 +3,12 @@ from decimal import Decimal
 
 import pytest
 
-from meridian.fundamentals import CanonicalMetric, CertifiedFundamentalFact, build_snapshot
+from meridian.fundamentals import (
+    CanonicalMetric,
+    CertifiedFundamentalFact,
+    build_snapshot,
+    canonical_definition,
+)
 from meridian.schemas import EvidencePointInTimeStatus
 
 T = datetime(2026, 8, 30, tzinfo=UTC)
@@ -44,3 +49,9 @@ def test_fcf_has_lineage_and_later_restatement_cannot_leak():
 def test_non_certified_or_invalid_duration_rejected():
     with pytest.raises(ValueError):
         CertifiedFundamentalFact.model_validate({**fact("REVENUE", "1").model_dump(), "available_at": T - timedelta(seconds=1)})
+
+
+def test_sec_productive_assets_alias_maps_to_capex():
+    definition = canonical_definition("us-gaap", "PaymentsToAcquireProductiveAssets")
+    assert definition is not None
+    assert definition.canonical_metric is CanonicalMetric.CAPEX

@@ -170,10 +170,13 @@ class ResearchDecisionContext(StableModel):
     failure_status: ResearchFailureStatus | None = None
     authority: Literal["ADVISORY_ONLY"] = "ADVISORY_ONLY"
     output: DailyResearchOutput | None = None
+    native_research_validated: bool = False
 
     @model_validator(mode="after")
     def available_requires_output(self) -> ResearchDecisionContext:
-        if (self.status is ResearchProviderStatus.AVAILABLE) != (self.output is not None):
+        if self.output is not None and self.native_research_validated:
+            raise ValueError("RESEARCH_OUTPUT_SOURCE_AMBIGUOUS")
+        if (self.status is ResearchProviderStatus.AVAILABLE) != (self.output is not None or self.native_research_validated):
             raise ValueError("RESEARCH_STATUS_OUTPUT_MISMATCH")
         return self
 

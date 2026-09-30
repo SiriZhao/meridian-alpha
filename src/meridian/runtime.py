@@ -10,7 +10,7 @@ import os
 import sys
 from collections.abc import Mapping
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 
 class RuntimePathError(RuntimeError):
@@ -29,10 +29,11 @@ class RuntimePaths:
         cls, environ: Mapping[str, str] | None = None, *, platform: str | None = None
     ) -> RuntimePaths:
         environment = os.environ if environ is None else environ
+        target_platform = platform or sys.platform
         override = environment.get("MERIDIAN_HOME")
         # A long-lived desktop host may predate the Windows installation setting.
         # Read only this explicitly named non-secret user variable, never credentials.
-        if not override and environ is None and (platform or sys.platform).startswith("win"):
+        if not override and environ is None and target_platform.startswith("win"):
             import winreg
             try:
                 with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as key:
@@ -42,7 +43,7 @@ class RuntimePaths:
                 pass
         if override:
             home = Path(override).expanduser()
-        elif (platform or sys.platform).startswith("win"):
+        elif target_platform.startswith("win"):
             local_app_data = environment.get("LOCALAPPDATA")
             if not local_app_data:
                 if environment.get("MERIDIAN_DEVELOPMENT") == "1":
@@ -55,9 +56,9 @@ class RuntimePaths:
             home = Path(environment.get("XDG_STATE_HOME", Path.home() / ".local" / "state")) / "meridian-alpha"
         cache_override = environment.get("MERIDIAN_CACHE")
         cache_root = Path(cache_override).expanduser() if cache_override else None
-        if not home.is_absolute():
+        if not _is_absolute_for_platform(home, target_platform):
             raise RuntimePathError("RUNTIME_HOME_INVALID:MERIDIAN_HOME must be absolute")
-        if cache_root is not None and not cache_root.is_absolute():
+        if cache_root is not None and not _is_absolute_for_platform(cache_root, target_platform):
             raise RuntimePathError("RUNTIME_CACHE_INVALID:MERIDIAN_CACHE must be absolute")
         return cls(home=home, cache_root=cache_root)
 
@@ -136,6 +137,11 @@ class RuntimePaths:
     def as_dict(self) -> dict[str, str]:
         return {"home": str(self.home), **{name: str(path) for name, path in self.directories().items()}}
 
+
+def _is_absolute_for_platform(value: str | os.PathLike[str], platform: str) -> bool:
+    """Evaluate path syntax for the target platform, not the test host OS."""
+    text = os.fspath(value)
+    return (PureWindowsPath(text) if platform.startswith("win") else PurePosixPath(text)).is_absolute()
 
 def project_root() -> Path:
     """Locate development resources without ever using it as writable state."""

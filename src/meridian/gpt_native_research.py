@@ -8,6 +8,7 @@ weight nor create an order.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import math
@@ -20,7 +21,7 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 from uuid import uuid4
 
 from pydantic import AwareDatetime, Field, ValidationError, model_validator
@@ -28,32 +29,62 @@ from pydantic import AwareDatetime, Field, ValidationError, model_validator
 from meridian.codex_schema import evidence_bound_schema, strict_output_schema
 from meridian.config import ResearchSettings
 from meridian.daily_research import DailyResearchInput
+from meridian.deadlines import DeadlineBudget
 from meridian.runtime import RuntimePaths
 from meridian.runtime_io import atomic_write, research_temporary_directory
 from meridian.schemas import StableModel
 
 
-def _terminate_model_process(process: subprocess.Popen[str]) -> None:
+def _terminate_model_process(process: subprocess.Popen[str]) -> dict[str, str | bool | int | None]:
     """Windows wrappers retain pipes in descendants unless the whole tree exits."""
+    result: dict[str, str | bool | int | None] = {
+        "cancellation_attempted": False,
+        "cancellation_method": "NOT_REQUIRED",
+        "cancellation_succeeded": process.poll() is not None,
+        "process_returncode_after_cancel": process.poll(),
+    }
     if os.name == 'nt' and process.poll() is None:
+        result["cancellation_attempted"] = True
+        result["cancellation_method"] = "TASKKILL_TREE"
         taskkill = Path(os.environ['SystemRoot']) / 'System32' / 'taskkill.exe'
-        result = subprocess.run([str(taskkill), '/PID', str(process.pid), '/T', '/F'],
-                                capture_output=True, timeout=5, check=False,
-                                creationflags=subprocess.CREATE_NO_WINDOW)  # noqa: S603
-        if result.returncode != 0 and process.poll() is None:
+        taskkill_result = subprocess.run(
+            [str(taskkill), '/PID', str(process.pid), '/T', '/F'],
+            capture_output=True,
+            timeout=5,
+            check=False,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )  # noqa: S603
+        if taskkill_result.returncode != 0 and process.poll() is None:
+            result["cancellation_method"] = "TASKKILL_TREE_THEN_PROCESS_KILL"
             process.kill()
-            raise RuntimeError('MODEL_PROCESS_TREE_TERMINATION_FAILED')
     elif process.poll() is None:
+        result["cancellation_attempted"] = True
+        result["cancellation_method"] = "PROCESS_KILL"
         process.kill()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        result["cancellation_succeeded"] = False
+        result["process_returncode_after_cancel"] = process.poll()
+        return result
+    result["cancellation_succeeded"] = process.poll() is not None
+    result["process_returncode_after_cancel"] = process.poll()
+    return result
 
 
 def run_bounded_model_process(command: list[str], prompt: str, *, cwd: Path,
                               environment: dict[str, str], budget_seconds: float) -> subprocess.CompletedProcess[str]:
     """Include suspended Windows time in the deadline; retain sanitized timeout evidence."""
     started_wall, started_monotonic = time.time(), time.monotonic()
+    def byte_len(value: str | bytes | None) -> int:
+        if isinstance(value, bytes):
+            return len(value)
+        return len((value or "").encode("utf-8", errors="replace"))
+    spawn_started = datetime.now(UTC)
     with subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           text=True, encoding='utf-8', errors='replace', cwd=cwd, env=environment,
                           creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0) as process:  # noqa: S603
+        spawn_completed = datetime.now(UTC)
         pending: str | None = prompt
         while True:
             remaining = budget_seconds - max(time.time()-started_wall, time.monotonic()-started_monotonic)
@@ -63,16 +94,64 @@ def run_bounded_model_process(command: list[str], prompt: str, *, cwd: Path,
                 pending = None
                 if remaining > 0:
                     continue
-                _terminate_model_process(process)
-                stdout, stderr = process.communicate(timeout=5)
-                raise subprocess.TimeoutExpired(command, budget_seconds, output=stdout, stderr=stderr) from None
+                cancellation = _terminate_model_process(process)
+                try:
+                    stdout, stderr = process.communicate(timeout=5)
+                except subprocess.TimeoutExpired as drain_error:
+                    stdout = drain_error.stdout or ""
+                    stderr = drain_error.stderr or ""
+                    cancellation["pipe_drain_succeeded"] = False
+                else:
+                    cancellation["pipe_drain_succeeded"] = True
+                timeout = subprocess.TimeoutExpired(
+                    command, budget_seconds, output=stdout, stderr=stderr
+                )
+                timeout.cancellation = cancellation  # type: ignore[attr-defined]
+                timeout.timing = {  # type: ignore[attr-defined]
+                    "codex_process_spawn_started_at": spawn_started.isoformat(),
+                    "codex_process_spawn_completed_at": spawn_completed.isoformat(),
+                    "codex_process_exit_at": datetime.now(UTC).isoformat(),
+                    "stdout_collection_completed_at": datetime.now(UTC).isoformat(),
+                    "taskkill_invoked": bool(cancellation.get("cancellation_attempted")),
+                    "process_already_exited_before_kill": False,
+                    "stdout_bytes": byte_len(stdout),
+                    "stderr_bytes": byte_len(stderr),
+                }
+                raise timeout from None
             except BaseException:
                 _terminate_model_process(process)
-                process.wait(timeout=5)
                 raise
-            if max(time.time()-started_wall, time.monotonic()-started_monotonic) > budget_seconds:
-                raise subprocess.TimeoutExpired(command, budget_seconds, output=stdout, stderr=stderr)
-            return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+            # communicate() returned only after the child exited and both
+            # pipes drained. Scheduler/pipe-drain jitter must not discard a
+            # complete result after the process has already exited. A large
+            # wall-vs-monotonic gap still indicates host suspension and must
+            # remain fail-closed.
+            wall_elapsed = time.time() - started_wall
+            monotonic_elapsed = time.monotonic() - started_monotonic
+            if wall_elapsed > budget_seconds and wall_elapsed - monotonic_elapsed > 1.0:
+                timeout = subprocess.TimeoutExpired(command, budget_seconds, output=stdout, stderr=stderr)
+                timeout.cancellation = {  # type: ignore[attr-defined]
+                    "cancellation_attempted": False,
+                    "cancellation_method": "NOT_REQUIRED_PROCESS_EXITED_AFTER_SUSPEND",
+                    "cancellation_succeeded": True,
+                    "process_returncode_after_cancel": process.returncode,
+                    "pipe_drain_succeeded": True,
+                }
+                raise timeout
+            completed = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+            completed.timing = {  # type: ignore[attr-defined]
+                "codex_process_spawn_started_at": spawn_started.isoformat(),
+                "codex_process_spawn_completed_at": spawn_completed.isoformat(),
+                "codex_first_stdout_at": datetime.now(UTC).isoformat() if stdout else None,
+                "codex_first_stderr_at": datetime.now(UTC).isoformat() if stderr else None,
+                "codex_process_exit_at": datetime.now(UTC).isoformat(),
+                "stdout_collection_completed_at": datetime.now(UTC).isoformat(),
+                "stdout_bytes": byte_len(stdout),
+                "stderr_bytes": byte_len(stderr),
+                "taskkill_invoked": False,
+                "process_already_exited_before_kill": True,
+            }
+            return completed
 
 
 class ResearchState(StrEnum):
@@ -286,6 +365,15 @@ class DecisionSynthesisOutput(StableModel):
         return self
 
 
+class NativeResearchChainOutput(StableModel):
+    """One bounded model response containing all four logical research roles."""
+
+    primary: PrimaryAnalystOutput
+    skeptic: SkepticOutput
+    scenarios: ScenarioOutput
+    synthesis: DecisionSynthesisOutput
+
+
 class ConfidenceComposition(StableModel):
     system_confidence: float = Field(ge=0, le=1)
     llm_self_confidence: float | None = Field(default=None, ge=0, le=1)
@@ -439,7 +527,15 @@ class CodexResearchModelRuntime:
         "sign in to", "please log in", "please login", "login required", "unauthorized",
         "invalid api key", "credential is invalid",
     )
-    _rate_markers = ("rate limit", "too many requests", " 429", "[429]")
+    _rate_markers = (
+        "rate limit",
+        "too many requests",
+        "usage limit",
+        "purchase more credits",
+        "out of credits",
+        " 429",
+        "[429]",
+    )
     _model_markers = ("model not found", "unknown model", "unsupported model", "model unavailable")
     _sandbox_markers = ("sandbox setup failed", "failed to create sandbox", "apply deny-read", "permission denied", "not permitted")
     _config_markers = ("invalid argument", "unknown option", "unknown config", "invalid configuration", "config error", "error loading config")
@@ -499,6 +595,7 @@ class CodexResearchModelRuntime:
         else:
             stderr_class = "EMPTY"
         resolved = re.search(r'^model: ([A-Za-z0-9._-]{1,80})\s*$', stderr, re.MULTILINE)
+        stderr_hash = hashlib.sha256(stderr.encode("utf-8", errors="replace")).hexdigest()[:16] if stderr else None
         return {
             "resolved_model": resolved.group(1) if resolved else None,
             "exit_code": exit_code,
@@ -510,7 +607,38 @@ class CodexResearchModelRuntime:
             "config_indicator": config,
             "stdout_present": bool(stdout),
             "stderr_present": bool(stderr),
+            "stderr_summary": f"{stderr_class}:{stderr_hash}" if stderr_hash else stderr_class,
         }
+
+    @staticmethod
+    def _invocation_diagnostic(
+        diagnostic: dict[str, str | bool | int | None],
+        *,
+        budget_seconds: int,
+        prompt: str,
+        process_exit_state: str,
+        schema_state: str,
+        remaining_budget_ms: int | None = None,
+        timeout_source: str | None = None,
+        cancellation: Mapping[str, str | bool | int | None] | None = None,
+    ) -> dict[str, str | bool | int | None]:
+        values = {
+            **diagnostic,
+            "shared_invocation_id": diagnostic.get("shared_invocation_id") or uuid4().hex,
+            "configured_budget_seconds": budget_seconds,
+            "invocation_mode": "CODEX_EXEC_EPHEMERAL_STDIN",
+            "prompt_bytes": len(prompt.encode("utf-8")),
+            "deadline_ms": budget_seconds * 1000,
+            "process_exit_state": process_exit_state,
+            "schema_state": schema_state,
+        }
+        if remaining_budget_ms is not None:
+            values["remaining_budget_ms"] = max(0, remaining_budget_ms)
+        if timeout_source is not None:
+            values["timeout_source"] = timeout_source
+        if cancellation:
+            values.update(cancellation)
+        return values
 
     @staticmethod
     def _result(
@@ -622,6 +750,7 @@ class CodexResearchModelRuntime:
                     catalog.update(str(item) for item in explicit_ids.values())
                 bounded = evidence_bound_schema(schema, catalog)
                 schema_path.write_text(json.dumps(strict_output_schema(bounded)), encoding="utf-8")
+                schema_bytes = schema_path.stat().st_size
                 prompt = json.dumps(
                     {
                         "role": role,
@@ -651,7 +780,26 @@ class CodexResearchModelRuntime:
                 stdout = str(getattr(process, "stdout", ""))
                 stderr = str(getattr(process, "stderr", ""))
                 elapsed = int((time.monotonic() - started) * 1000)
+                timing = getattr(process, "timing", {})
                 diagnostic = self._diagnostic(exit_code=returncode, stdout=stdout, stderr=stderr)
+                diagnostic = self._invocation_diagnostic(
+                    diagnostic,
+                    budget_seconds=budget_seconds,
+                    prompt=prompt,
+                    process_exit_state="EXITED",
+                    schema_state="NOT_VALIDATED" if returncode else "PROVIDER_ACCEPTED",
+                    remaining_budget_ms=max(0, int((budget_seconds * 1000) - elapsed)),
+                )
+                if isinstance(timing, Mapping):
+                    diagnostic.update(timing)
+                diagnostic.update({
+                    "research_started_at": started_at.isoformat(),
+                    "research_completed_at": datetime.now(UTC).isoformat(),
+                    "effective_timeout_seconds": budget_seconds,
+                    "total_codex_ms": elapsed,
+                    "total_research_ms": elapsed,
+                    "schema_bytes": schema_bytes,
+                })
                 if returncode != 0:
                     status = (
                         InvocationStatus.SCHEMA_ERROR if diagnostic["stderr_class"] == "INVALID_OUTPUT_SCHEMA"
@@ -680,7 +828,38 @@ class CodexResearchModelRuntime:
         except subprocess.TimeoutExpired as error:
             def output_text(value: str | bytes | None) -> str:
                 return value.decode("utf-8", errors="replace") if isinstance(value, bytes) else value or ""
-            diagnostic = self._diagnostic(exit_code=None, stdout=output_text(error.stdout), stderr=output_text(error.stderr))
+            diagnostic = self._diagnostic(
+                exit_code=None,
+                stdout=output_text(error.stdout),
+                stderr=output_text(error.stderr),
+            )
+            cancellation = getattr(error, "cancellation", None)
+            timing = getattr(error, "timing", {})
+            diagnostic = self._invocation_diagnostic(
+                diagnostic,
+                budget_seconds=budget_seconds,
+                prompt=prompt if "prompt" in locals() else "",
+                process_exit_state=(
+                    "TERMINATED"
+                    if isinstance(cancellation, Mapping)
+                    and cancellation.get("cancellation_succeeded") is True
+                    else "TERMINATION_UNCONFIRMED"
+                ),
+                schema_state="NOT_RETURNED",
+                remaining_budget_ms=0,
+                timeout_source="SUBPROCESS_DEADLINE",
+                cancellation=cancellation if isinstance(cancellation, Mapping) else None,
+            )
+            if isinstance(timing, Mapping):
+                diagnostic.update(timing)
+            diagnostic.update({
+                "research_started_at": started_at.isoformat(),
+                "research_completed_at": datetime.now(UTC).isoformat(),
+                "effective_timeout_seconds": budget_seconds,
+                "total_codex_ms": int((time.monotonic() - started) * 1000),
+                "total_research_ms": int((time.monotonic() - started) * 1000),
+                "schema_bytes": schema_path.stat().st_size if "schema_path" in locals() and schema_path.is_file() else 0,
+            })
             return self._result(
                 status=InvocationStatus.TIMEOUT, role=role, model=model,
                 reasoning_effort=reasoning_effort, started_at=started_at,
@@ -698,6 +877,33 @@ class CodexResearchModelRuntime:
                 reasoning_effort=reasoning_effort, started_at=started_at,
                 duration_ms=int((time.monotonic() - started) * 1000), error_type="PROCESS_ERROR",
             )
+
+    def invoke_chain(
+        self,
+        input_data: dict[str, Any],
+        budget_seconds: int,
+        *,
+        model: str,
+        reasoning_effort: str,
+    ) -> ModelInvocationResult:
+        """Run all logical research roles in one bounded Codex process."""
+        chain_input = {
+            **input_data,
+            "workflow": [
+                "PRIMARY_ANALYST: form an evidence-bound thesis.",
+                "SKEPTIC: challenge that thesis and identify missing evidence.",
+                "SCENARIO_ANALYSIS: produce coherent bull/base/bear scenarios.",
+                "DECISION_SYNTHESIS: synthesize research only; never size or price an order.",
+            ],
+        }
+        return self.invoke(
+            "RESEARCH_CHAIN",
+            chain_input,
+            NativeResearchChainOutput.model_json_schema(),
+            budget_seconds,
+            model=model,
+            reasoning_effort=reasoning_effort,
+        )
 
 class FakeResearchModelRuntime:
     """Deterministic role-to-result runtime for unit and evaluation tests."""
@@ -771,6 +977,15 @@ class GPTNativeResearchOrchestrator:
                     references.update(claim.contradicting_evidence_ids)
             elif isinstance(parsed, SkepticOutput):
                 references.update(parsed.contradicting_evidence)
+            elif isinstance(parsed, DecisionSynthesisOutput):
+                references.update(parsed.key_support)
+            elif isinstance(parsed, NativeResearchChainOutput):
+                references.update(parsed.primary.evidence_used)
+                references.update(parsed.skeptic.contradicting_evidence)
+                references.update(parsed.synthesis.key_support)
+                for claim in parsed.primary.supporting_claims:
+                    references.update(claim.supporting_evidence_ids)
+                    references.update(claim.contradicting_evidence_ids)
             if not references <= allowed_ids:
                 raise ValueError("UNSUPPORTED_EVIDENCE_ID")
             return result.model_copy(update={"schema_valid": True}), parsed
@@ -809,6 +1024,82 @@ class GPTNativeResearchOrchestrator:
             configured.reasoning_effort,
             min(budget_seconds, configured.timeout_seconds),
         )
+
+    @classmethod
+    def _shared_chain_config(
+        cls, settings: ResearchSettings
+    ) -> tuple[str, str, int] | None:
+        """Use one process only when every logical role has the same model route."""
+        budget = settings.native_budget
+        routes = (
+            cls._role_config(
+                settings,
+                "PRIMARY_ANALYST",
+                settings.primary_model or settings.model,
+                budget.primary_seconds,
+            ),
+            cls._role_config(
+                settings,
+                "SKEPTIC",
+                settings.skeptic_model or settings.model,
+                budget.skeptic_seconds,
+            ),
+            cls._role_config(
+                settings,
+                "SCENARIO_ANALYSIS",
+                settings.scenario_model or settings.model,
+                budget.scenario_seconds,
+            ),
+            cls._role_config(
+                settings,
+                "DECISION_SYNTHESIS",
+                settings.synthesis_model or settings.model,
+                budget.synthesis_seconds,
+            ),
+        )
+        models = {route[0] for route in routes}
+        efforts = {route[1] for route in routes}
+        if len(models) != 1 or len(efforts) != 1:
+            return None
+        return (
+            next(iter(models)),
+            next(iter(efforts)),
+            min(budget.total_seconds, settings.timeout_seconds),
+        )
+
+    @staticmethod
+    def _shared_stage_result(
+        chain: ModelInvocationResult,
+        *,
+        role: str,
+        output: StableModel | None,
+        configured_budget_seconds: int | None = None,
+        inherited_remaining_seconds: float | None = None,
+    ) -> ModelInvocationResult:
+        diagnostic = {
+            **chain.diagnostic,
+            "shared_invocation": True,
+            "shared_invocation_role": "RESEARCH_CHAIN",
+            "logical_stage": role,
+            "shared_duration_non_additive": True,
+            "role_deadline_enforcement": "NOT_INDEPENDENT_SHARED_PROCESS",
+            "role_elapsed_ms": None,
+            "role_configured_budget_seconds": configured_budget_seconds,
+            "role_effective_deadline_seconds": (
+                min(configured_budget_seconds, max(0.0, inherited_remaining_seconds))
+                if configured_budget_seconds is not None and inherited_remaining_seconds is not None
+                else None
+            ),
+        }
+        diagnostic.setdefault("shared_invocation_id", uuid4().hex)
+        return chain.model_copy(
+            update={
+                "role": role,
+                "output": output.model_dump(mode="json") if output is not None else None,
+                "diagnostic": diagnostic,
+            }
+        )
+
     def run(self, request: DailyResearchInput, *, research_data_status: str, execution_data_status: str, execution_state: ExecutionState, settings: ResearchSettings, run_id: str | None = None, preflight_auth_blocked: bool = False) -> NativeResearchResult:
         started = time.monotonic()
         run_id = run_id or "native-" + uuid4().hex
@@ -834,8 +1125,9 @@ class GPTNativeResearchOrchestrator:
         synthesis_model, synthesis_effort, synthesis_limit = self._role_config(
             settings, "DECISION_SYNTHESIS", settings.synthesis_model or settings.model, budget.synthesis_seconds
         )
+        deadline = DeadlineBudget(started, started + budget.total_seconds, budget.cleanup_seconds)
         def remaining() -> int:
-            return max(0, int(budget.total_seconds - (time.monotonic() - started)))
+            return max(0, int(deadline.remaining_seconds - budget.cleanup_seconds))
         primary: PrimaryAnalystOutput | None = None
         skeptic: SkepticOutput | None = None
         scenarios: ScenarioOutput | None = None
@@ -851,26 +1143,80 @@ class GPTNativeResearchOrchestrator:
                 for name in self.stage_names
             }
         elif settings.live_enabled and remaining() > 0:
-            raw = self.runtime.invoke("PRIMARY_ANALYST", base_input, PrimaryAnalystOutput.model_json_schema(), min(primary_limit, remaining()), model=primary_model, reasoning_effort=primary_effort)
-            stages["PRIMARY_ANALYST"], parsed = self._parse(raw, PrimaryAnalystOutput, allowed_ids)
-            logging.getLogger(run_id).info('[LLM] PRIMARY_ANALYST=%s duration_ms=%s', stages['PRIMARY_ANALYST'].status.value, raw.duration_ms)
-            primary = parsed if isinstance(parsed, PrimaryAnalystOutput) else None
-            skeptic_input = {**base_input, "primary": primary.model_dump(mode="json") if primary else None, "instruction": "Attempt to disprove the primary thesis. Do not optimize for a trade."}
-            if remaining() > 0:
-                raw = self.runtime.invoke("SKEPTIC", skeptic_input, SkepticOutput.model_json_schema(), min(skeptic_limit, remaining()), model=skeptic_model, reasoning_effort=skeptic_effort)
-                stages["SKEPTIC"], parsed = self._parse(raw, SkepticOutput, allowed_ids)
-                logging.getLogger(run_id).info('[LLM] SKEPTIC=%s duration_ms=%s', stages['SKEPTIC'].status.value, raw.duration_ms)
-                skeptic = parsed if isinstance(parsed, SkepticOutput) else None
-            if remaining() > 0:
-                raw = self.runtime.invoke("SCENARIO_ANALYSIS", {**base_input, "primary": primary.model_dump(mode="json") if primary else None, "skeptic": skeptic.model_dump(mode="json") if skeptic else None}, ScenarioOutput.model_json_schema(), min(scenario_limit, remaining()), model=scenario_model, reasoning_effort=scenario_effort)
-                stages["SCENARIO_ANALYSIS"], parsed = self._parse(raw, ScenarioOutput, allowed_ids)
-                logging.getLogger(run_id).info('[LLM] SCENARIO_ANALYSIS=%s duration_ms=%s', stages['SCENARIO_ANALYSIS'].status.value, raw.duration_ms)
-                scenarios = parsed if isinstance(parsed, ScenarioOutput) else None
-            if primary is not None and remaining() > 0:
-                raw = self.runtime.invoke("DECISION_SYNTHESIS", {**base_input, "primary": primary.model_dump(mode="json"), "skeptic": skeptic.model_dump(mode="json") if skeptic else None, "scenarios": scenarios.model_dump(mode="json") if scenarios else None, "risk_constraints": {"execution_authority": "NONE"}}, DecisionSynthesisOutput.model_json_schema(), min(synthesis_limit, remaining()), model=synthesis_model, reasoning_effort=synthesis_effort)
-                stages["DECISION_SYNTHESIS"], parsed = self._parse(raw, DecisionSynthesisOutput, allowed_ids)
-                logging.getLogger(run_id).info('[LLM] DECISION_SYNTHESIS=%s duration_ms=%s', stages['DECISION_SYNTHESIS'].status.value, raw.duration_ms)
-                synthesis = parsed if isinstance(parsed, DecisionSynthesisOutput) else None
+            chain_invoker = getattr(self.runtime, "invoke_chain", None)
+            chain_config = self._shared_chain_config(settings)
+            if callable(chain_invoker) and chain_config is not None:
+                chain_model, chain_effort, chain_limit = chain_config
+                raw = cast(Callable[..., ModelInvocationResult], chain_invoker)(
+                    base_input,
+                    min(chain_limit, remaining()),
+                    model=chain_model,
+                    reasoning_effort=chain_effort,
+                )
+                checked, parsed = self._parse(
+                    raw, NativeResearchChainOutput, allowed_ids
+                )
+                checked = checked.model_copy(update={
+                    "diagnostic": {
+                        **checked.diagnostic,
+                        "shared_invocation_id": checked.diagnostic.get("shared_invocation_id") or uuid4().hex,
+                    }
+                })
+                chain_output = (
+                    parsed if isinstance(parsed, NativeResearchChainOutput) else None
+                )
+                primary = chain_output.primary if chain_output else None
+                skeptic = chain_output.skeptic if chain_output else None
+                scenarios = chain_output.scenarios if chain_output else None
+                synthesis = chain_output.synthesis if chain_output else None
+                outputs: dict[str, StableModel | None] = {
+                    "PRIMARY_ANALYST": primary,
+                    "SKEPTIC": skeptic,
+                    "SCENARIO_ANALYSIS": scenarios,
+                    "DECISION_SYNTHESIS": synthesis,
+                }
+                stages = {
+                    name: self._shared_stage_result(
+                        checked,
+                        role=name,
+                        output=outputs[name],
+                        configured_budget_seconds={
+                            "PRIMARY_ANALYST": budget.primary_seconds,
+                            "SKEPTIC": budget.skeptic_seconds,
+                            "SCENARIO_ANALYSIS": budget.scenario_seconds,
+                            "DECISION_SYNTHESIS": budget.synthesis_seconds,
+                        }[name],
+                        inherited_remaining_seconds=remaining(),
+                    )
+                    for name in self.stage_names
+                }
+                logging.getLogger(run_id).info(
+                    "[LLM] RESEARCH_CHAIN=%s duration_ms=%s budget_seconds=%s",
+                    checked.status.value,
+                    checked.duration_ms,
+                    chain_limit,
+                )
+            else:
+                raw = self.runtime.invoke("PRIMARY_ANALYST", base_input, PrimaryAnalystOutput.model_json_schema(), min(primary_limit, remaining()), model=primary_model, reasoning_effort=primary_effort)
+                stages["PRIMARY_ANALYST"], parsed = self._parse(raw, PrimaryAnalystOutput, allowed_ids)
+                logging.getLogger(run_id).info('[LLM] PRIMARY_ANALYST=%s duration_ms=%s', stages['PRIMARY_ANALYST'].status.value, raw.duration_ms)
+                primary = parsed if isinstance(parsed, PrimaryAnalystOutput) else None
+                skeptic_input = {**base_input, "primary": primary.model_dump(mode="json") if primary else None, "instruction": "Attempt to disprove the primary thesis. Do not optimize for a trade."}
+                if remaining() > 0:
+                    raw = self.runtime.invoke("SKEPTIC", skeptic_input, SkepticOutput.model_json_schema(), min(skeptic_limit, remaining()), model=skeptic_model, reasoning_effort=skeptic_effort)
+                    stages["SKEPTIC"], parsed = self._parse(raw, SkepticOutput, allowed_ids)
+                    logging.getLogger(run_id).info('[LLM] SKEPTIC=%s duration_ms=%s', stages['SKEPTIC'].status.value, raw.duration_ms)
+                    skeptic = parsed if isinstance(parsed, SkepticOutput) else None
+                if remaining() > 0:
+                    raw = self.runtime.invoke("SCENARIO_ANALYSIS", {**base_input, "primary": primary.model_dump(mode="json") if primary else None, "skeptic": skeptic.model_dump(mode="json") if skeptic else None}, ScenarioOutput.model_json_schema(), min(scenario_limit, remaining()), model=scenario_model, reasoning_effort=scenario_effort)
+                    stages["SCENARIO_ANALYSIS"], parsed = self._parse(raw, ScenarioOutput, allowed_ids)
+                    logging.getLogger(run_id).info('[LLM] SCENARIO_ANALYSIS=%s duration_ms=%s', stages['SCENARIO_ANALYSIS'].status.value, raw.duration_ms)
+                    scenarios = parsed if isinstance(parsed, ScenarioOutput) else None
+                if primary is not None and remaining() > 0:
+                    raw = self.runtime.invoke("DECISION_SYNTHESIS", {**base_input, "primary": primary.model_dump(mode="json"), "skeptic": skeptic.model_dump(mode="json") if skeptic else None, "scenarios": scenarios.model_dump(mode="json") if scenarios else None, "risk_constraints": {"execution_authority": "NONE"}}, DecisionSynthesisOutput.model_json_schema(), min(synthesis_limit, remaining()), model=synthesis_model, reasoning_effort=synthesis_effort)
+                    stages["DECISION_SYNTHESIS"], parsed = self._parse(raw, DecisionSynthesisOutput, allowed_ids)
+                    logging.getLogger(run_id).info('[LLM] DECISION_SYNTHESIS=%s duration_ms=%s', stages['DECISION_SYNTHESIS'].status.value, raw.duration_ms)
+                    synthesis = parsed if isinstance(parsed, DecisionSynthesisOutput) else None
         else:
             stages = {name: ModelInvocationResult(status=InvocationStatus.NOT_AVAILABLE, model="DISABLED", error_type="LIVE_RESEARCH_DISABLED") for name in self.stage_names}
         missing = tuple(name for name, result in stages.items() if result.status is not InvocationStatus.SUCCESS)
@@ -934,7 +1280,55 @@ def persist_research_trace(result: NativeResearchResult, paths: RuntimePaths, an
     """Persist bounded audit metadata, intentionally excluding raw prompts and account context."""
     directory = paths.reports / analysis_time.date().isoformat() / result.run_id
     directory.mkdir(parents=True, exist_ok=True)
-    trace = {"schema_version": "meridian-research-trace.v1", "run_id": result.run_id, "research_state": result.research_state.value, "decision_state": result.decision_state.value, "execution_state": result.execution_state.value, "evidence_count": len(result.evidence), "stages": [{"stage": name, "input_evidence_ids": [item.evidence_id for item in result.evidence], "output_claim_ids": [claim.claim_id for claim in result.claims] if name == "PRIMARY_ANALYST" else [], "duration_ms": stage.duration_ms, "status": stage.status.value, "schema_valid": stage.schema_valid, "error_type": stage.error_type} for name, stage in result.stages.items()], "degradation_reasons": list(result.degradation_reasons), "authority": result.authority}
+    trace = {
+        "schema_version": "meridian-research-trace.v1",
+        "run_id": result.run_id,
+        "research_state": result.research_state.value,
+        "decision_state": result.decision_state.value,
+        "execution_state": result.execution_state.value,
+        "evidence_count": len(result.evidence),
+        "stages": [
+            {
+                "stage": name,
+                "input_evidence_ids": [item.evidence_id for item in result.evidence],
+                "output_claim_ids": [claim.claim_id for claim in result.claims]
+                if name == "PRIMARY_ANALYST" else [],
+                "start_timestamp": stage.started_at.isoformat(),
+                "end_timestamp": stage.finished_at.isoformat(),
+                "duration_ms": stage.duration_ms,
+                "status": stage.status.value,
+                "schema_valid": stage.schema_valid,
+                "error_type": stage.error_type,
+                "model": stage.model,
+                "reasoning_effort": stage.reasoning_effort,
+                "attempt": stage.attempt_count,
+                "exit_code": stage.exit_code,
+                "telemetry": {
+                    key: stage.diagnostic[key]
+                    for key in (
+                        "prompt_bytes", "deadline_ms", "remaining_budget_ms",
+                        "timeout_source", "process_exit_state", "schema_state",
+                "shared_invocation", "shared_invocation_role",
+                        "shared_invocation_id",
+                        "research_started_at", "codex_process_spawn_started_at",
+                        "codex_process_spawn_completed_at", "codex_first_stdout_at",
+                        "codex_first_stderr_at", "codex_process_exit_at",
+                        "stdout_collection_completed_at", "schema_parse_started_at",
+                        "schema_parse_completed_at", "research_completed_at",
+                        "spawn_ms", "time_to_first_stdout_ms", "model_process_ms",
+                        "stdout_collection_ms", "schema_parse_ms", "total_codex_ms",
+                        "total_research_ms", "effective_timeout_seconds", "stdout_bytes",
+                        "stderr_bytes", "cancellation_reason", "taskkill_invoked",
+                        "process_already_exited_before_kill",
+                    )
+                    if key in stage.diagnostic
+                },
+            }
+            for name, stage in result.stages.items()
+        ],
+        "degradation_reasons": list(result.degradation_reasons),
+        "authority": result.authority,
+    }
     path = directory / "research_trace.json"
     temporary = directory / f"research_trace.{uuid4().hex}.tmp"
     temporary.write_text(json.dumps(trace, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")

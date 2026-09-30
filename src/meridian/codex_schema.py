@@ -4,7 +4,8 @@ from __future__ import annotations
 from typing import Any
 
 EVIDENCE_FIELDS = frozenset({'evidence_used', 'supporting_evidence_ids',
-    'contradicting_evidence_ids', 'contradicting_evidence', 'evidence_ids'})
+    'contradicting_evidence_ids', 'contradicting_evidence', 'evidence_ids',
+    'key_support'})
 
 
 def evidence_bound_schema(value: Any, evidence_ids: set[str]) -> Any:

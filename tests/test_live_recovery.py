@@ -213,6 +213,16 @@ def test_schema_error_is_not_misclassified_from_sandbox_banner():
     assert diagnostic['sandbox_indicator'] is False
 
 
+def test_usage_limit_is_classified_as_rate_limited_without_retaining_message():
+    diagnostic = CodexResearchModelRuntime._diagnostic(
+        exit_code=1,
+        stderr="You've hit your usage limit. Purchase more credits or try again later.",
+    )
+    assert diagnostic["stderr_class"] == "RATE_LIMIT"
+    assert diagnostic["rate_limit_indicator"] is True
+    assert "purchase more credits" not in json.dumps(diagnostic).lower()
+
+
 def test_evidence_schema_requires_catalog_ids_without_relaxing_validation():
     original = PrimaryAnalystOutput.model_json_schema()
     bound = evidence_bound_schema(original, {'one', 'two'})
@@ -324,9 +334,12 @@ def test_model_process_deadline_and_pipes(tmp_path):
     result = run_bounded_model_process([sys.executable, '-c', 'import sys; print(sys.stdin.read())'],
         'public synthetic input', cwd=tmp_path, environment=environment, budget_seconds=5)
     assert result.returncode == 0 and result.stdout.strip() == 'public synthetic input'
-    with pytest.raises(subprocess.TimeoutExpired):
+    with pytest.raises(subprocess.TimeoutExpired) as timeout:
         run_bounded_model_process([sys.executable, '-c', 'import time; time.sleep(20)'],
             '', cwd=tmp_path, environment=environment, budget_seconds=0.2)
+    cancellation = cast(Any, timeout.value).cancellation
+    assert cancellation['cancellation_attempted'] is True
+    assert cancellation['cancellation_succeeded'] is True
 
 
 def test_model_deadline_rejects_result_after_host_suspend(tmp_path, monkeypatch):
@@ -358,6 +371,7 @@ def test_model_timeout_terminates_windows_child_tree(tmp_path):
                                   environment=dict(os.environ), budget_seconds=1)
     assert monotonic() - started < 10
     assert error.value.stdout is not None
+    assert cast(Any, error.value).cancellation['cancellation_succeeded'] is True
     child_pid = int(error.value.stdout.strip())
     assert process_start_time(child_pid) is None
 
@@ -406,6 +420,8 @@ def test_live_pipeline_integration_with_explicit_synthetic_adapters(tmp_path, mo
                     reference = input_data['evidence'][0]['evidence_id']
                     value['evidence_used'] = [reference]
                     value['supporting_claims'][0]['supporting_evidence_ids'] = [reference]
+                elif role == 'DECISION_SYNTHESIS':
+                    value['key_support'] = [input_data['evidence'][0]['evidence_id']]
             return ModelInvocationResult(status=InvocationStatus.SUCCESS, output=value)
 
     account = AccountSnapshot(snapshot_id='synthetic', account_alias='synthetic', provider='synthetic',

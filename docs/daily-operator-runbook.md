@@ -61,6 +61,20 @@ call `paper reset` in normal operation; it requires an exact explicit
 5. Current canonical output is research-only. Read the actual research status. A DRAFT
    does not have sealed seven-gate manual authority or a certified quote.
 
+For explicit Host research, use the prepare/result/resume lifecycle. The result
+must copy the job's `job_id`, `run_id`, `market_snapshot_id` as
+`research_snapshot_id`, and `as_of` as `research_as_of`, and must declare
+model/runtime provenance. On resume:
+
+- `EXACT` uses the bound snapshot;
+- `REVALIDATED` records old/new references after bounded deterministic price-only reconciliation;
+- `REFRESH_REQUIRED` creates a new job and does not classify market drift as an LLM failure;
+- wrong IDs/snapshot, malformed output, timeout, and duplicate conflict are Host failures.
+
+Read `status_dimensions` before the top-level status. `MARKET_CLOSED`, research
+waiting, research refresh, Host failure, deterministic risk blocking, and a
+paper no-fill are intentionally different outcomes.
+
 No broker execution or automatic orders. Missing fresh account/market facts
 cannot be inferred from conversation or fabricated. Use fixture input only for
 explicit regression, never for a real account request.

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -185,19 +187,23 @@ def test_paper_run_uses_canonical_daily_then_prevents_same_day_duplicate(
 ) -> None:
     paths = RuntimePaths.from_environment({"MERIDIAN_HOME": str(tmp_path)})
     service = MeridianApplicationService(paths)
+    assert service.paper_init()["status"] == "PAPER_INITIALIZED"
     seen: list[Path] = []
 
-    def canonical(snapshot: Path | None, market_fixture: Path | None = None, *, research_live_enabled: bool = False) -> dict[str, object]:
+    def canonical(snapshot: Path | None, market_fixture: Path | None = None, *, research_live_enabled: bool = False, run_purpose: str = "OPERATIONAL_DAILY") -> dict[str, object]:
         assert snapshot is not None and snapshot.is_file()
         diagnostic, _ = inspect_snapshot(snapshot, max_age_seconds=3600)
         assert diagnostic.source_kind == "PAPER_LEDGER"
         assert research_live_enabled and market_fixture is None
+        assert run_purpose == "OPERATIONAL_PAPER_DAILY"
         seen.append(snapshot)
         return _canonical_daily_payload()
 
     monkeypatch.setattr(service, "daily", canonical)
     first = service.paper_run()
     assert first["status"] == "PAPER_READY"
+    assert first["run_type"] == "PAPER_DAILY"
+    assert first["run_purpose"] == "OPERATIONAL_PAPER_DAILY"
     assert first["paper_execution"]["quote_certification"] == "BLOCKED"  # type: ignore[index]
     assert first["manual_authority"] == "BLOCKED"
     outputs = first["output_files"]
@@ -230,17 +236,138 @@ def test_paper_run_fails_closed_when_canonical_research_is_not_available(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     service = MeridianApplicationService(RuntimePaths.from_environment({"MERIDIAN_HOME": str(tmp_path)}))
+    assert service.paper_init()["status"] == "PAPER_INITIALIZED"
     payload = _canonical_daily_payload()
     payload["research_status"] = "NOT_CONFIGURED"
 
-    def canonical(snapshot: Path | None, market_fixture: Path | None = None, *, research_live_enabled: bool = False) -> dict[str, object]:
+    seen_purposes: list[str] = []
+
+    def canonical(snapshot: Path | None, market_fixture: Path | None = None, *, research_live_enabled: bool = False, run_purpose: str = "OPERATIONAL_DAILY") -> dict[str, object]:
+        seen_purposes.append(run_purpose)
         return payload
 
     monkeypatch.setattr(service, "daily", canonical)
-    result = service.paper_run()
+    result = service.paper_run(run_purpose="ACCEPTANCE_VALIDATION")
     assert result["status"] == "PAPER_BLOCKED"
+    assert result["run_purpose"] == "ACCEPTANCE_VALIDATION"
+    assert seen_purposes == ["ACCEPTANCE_VALIDATION"]
     assert "PAPER_EXECUTION_BLOCKED_RESEARCH_NOT_CONFIGURED" in result["blockers"]  # type: ignore[operator]
     assert service.paper_trades()["trades"] == []
+
+
+def test_paper_run_never_creates_missing_database_or_account(tmp_path: Path) -> None:
+    paths = RuntimePaths.from_environment({"MERIDIAN_HOME": str(tmp_path / "runtime")})
+    service = MeridianApplicationService(paths)
+
+    missing_database = service.paper_run()
+
+    assert missing_database["status"] == "PAPER_BLOCKED"
+    assert missing_database["error_code"] == "STORAGE_UNAVAILABLE"
+    assert missing_database["auto_initialized"] is False
+    assert not paths.db.exists()
+
+    assert service.init()["status"] == "INIT_COMPLETE"
+    missing_account = service.paper_run()
+    assert missing_account["status"] == "PAPER_BLOCKED"
+    assert missing_account["error_code"] == "PAPER_ACCOUNT_NOT_FOUND"
+    assert missing_account["auto_initialized"] is False
+    assert service._paper_ledger().state(DEFAULT_ACCOUNT) is None
+
+
+def test_duplicate_paper_run_short_circuits_before_market_or_research(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    paths = RuntimePaths.from_environment({"MERIDIAN_HOME": str(tmp_path)})
+    service = MeridianApplicationService(paths)
+    assert service.paper_init()["status"] == "PAPER_INITIALIZED"
+    trading_date = datetime.now(ZoneInfo("America/New_York")).date().isoformat()
+    status, fills = service._paper_ledger().execute(
+        DEFAULT_ACCOUNT,
+        trading_date=trading_date,
+        canonical_run_id="daily-authoritative",
+        intents=(),
+    )
+    assert status == "PAPER_NO_TRADE" and fills == ()
+
+    def should_not_run(*args: object, **kwargs: object) -> dict[str, object]:
+        raise AssertionError("duplicate invoked canonical research workflow")
+
+    monkeypatch.setattr(service, "daily", should_not_run)
+    monkeypatch.setattr(
+        PaperLedger,
+        "write_snapshot",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("duplicate wrote snapshot")),
+    )
+    before = service._paper_ledger().state(DEFAULT_ACCOUNT)
+    result = service.paper_run()
+    after = service._paper_ledger().state(DEFAULT_ACCOUNT)
+
+    assert result["status"] == "PAPER_ALREADY_EXECUTED"
+    assert result["blockers"] == ["PAPER_DAILY_IDEMPOTENCY_ALREADY_EXECUTED"]
+    lineage = result["idempotency"]
+    assert isinstance(lineage, dict)
+    assert lineage["attempted_run_id"] != lineage["authoritative_existing_run_id"]
+    assert lineage["authoritative_existing_run_id"] == "daily-authoritative"
+    assert lineage["ledger_mutated_current_run"] is False
+    assert lineage["orders_created_current_run"] == 0
+    assert lineage["fills_created_current_run"] == 0
+    assert result["research"]["status"] == "SKIPPED"  # type: ignore[index]
+    assert result["research"]["invoked_in_current_run"] is False  # type: ignore[index]
+    assert result["decision"]["status"] == "SKIPPED"  # type: ignore[index]
+    assert result["forward_evidence"]["status"] == "SKIPPED"  # type: ignore[index]
+    outputs = result["output_files"]
+    assert isinstance(outputs, dict)
+    health = json.loads(Path(str(outputs["run_health_json"])).read_text(encoding="utf-8"))
+    assert health["run_id"] == result["paper_run_id"]
+    assert health["idempotency"]["attempted_run_id"] == lineage["attempted_run_id"]
+    assert all(stage["status"] == "SKIPPED" for stage in health["stages"])
+    assert all(stage.get("source_run_id") is None for stage in health["stages"])
+    assert before == after
+
+
+def test_failed_daily_row_does_not_trigger_early_duplicate_short_circuit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    paths = RuntimePaths.from_environment({"MERIDIAN_HOME": str(tmp_path)})
+    service = MeridianApplicationService(paths)
+    assert service.paper_init()["status"] == "PAPER_INITIALIZED"
+    trading_date = datetime.now(ZoneInfo("America/New_York")).date().isoformat()
+    with sqlite3.connect(paths.db) as connection:
+        connection.execute(
+            "INSERT INTO paper_daily_runs(account_name,trading_date,canonical_run_id,order_intent_hash,execution_status,created_at) VALUES(?,?,?,?,?,?)",
+            (DEFAULT_ACCOUNT, trading_date, "daily-failed", "hash", "PAPER_BLOCKED", datetime.now(UTC).isoformat()),
+        )
+    called: list[str] = []
+
+    def canonical(*args: object, **kwargs: object) -> dict[str, object]:
+        called.append(str(kwargs.get("run_purpose")))
+        return _canonical_daily_payload() | {"trading_date": trading_date}
+
+    monkeypatch.setattr(service, "daily", canonical)
+    result = service.paper_run()
+    assert called == ["OPERATIONAL_PAPER_DAILY"]
+    assert result["status"] in {"PAPER_READY", "PAPER_NO_TRADE", "PAPER_BLOCKED"}
+
+
+def test_paper_execution_race_has_one_authoritative_owner(tmp_path: Path) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    first = ledger(tmp_path)
+    first.initialize()
+    trading_date = "2099-01-03"
+
+    def execute(run_id: str) -> str:
+        return ledger(tmp_path).execute(
+            DEFAULT_ACCOUNT,
+            trading_date=trading_date,
+            canonical_run_id=run_id,
+            intents=(),
+        )[0]
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        statuses = list(pool.map(execute, ("daily-race-a", "daily-race-b")))
+    assert sorted(statuses) == ["PAPER_ALREADY_EXECUTED", "PAPER_NO_TRADE"]
+    assert ledger(tmp_path).daily_execution(DEFAULT_ACCOUNT, trading_date) is not None
 
 
 def test_paper_order_builder_applies_cash_and_existing_policy(tmp_path: Path) -> None:

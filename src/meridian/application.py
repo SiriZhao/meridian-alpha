@@ -9,6 +9,7 @@ import logging
 import os
 import sqlite3
 import sys
+from collections.abc import Mapping
 from contextlib import closing
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -42,9 +43,16 @@ from meridian.gpt_native_research import (
     ExecutionState,
     GPTNativeResearchOrchestrator,
     ResearchMemory,
+    ResearchState,
     persist_research_trace,
 )
-from meridian.host_llm import HostJobStage, accept_result, create_job, load_job
+from meridian.host_llm import (
+    HostJobStage,
+    accept_result,
+    create_job,
+    load_job,
+    validate_symbol_research,
+)
 from meridian.host_readiness import (
     ReadinessGateResult,
     ReadinessStatus,
@@ -54,6 +62,11 @@ from meridian.host_readiness import (
 )
 from meridian.intelligence import ResearchPacket
 from meridian.intelligence_tools import dip_scout
+from meridian.market_identity import (
+    MarketConsistencyStatus,
+    canonical_market_reference,
+    compare_market_snapshots,
+)
 from meridian.market_status import MarketStatus, market_status
 from meridian.operational_data import FreshnessPolicy
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
@@ -70,6 +83,17 @@ from meridian.runtime_io import run_lock
 from meridian.schemas import MarketSnapshot, RunStatus
 from meridian.shadow_evaluation import ShadowMode, ShadowResearchRunner
 from meridian.temporal import ResearchTemporalContext
+
+CANONICAL_RUN_PURPOSES = frozenset(
+    {"OPERATIONAL_DAILY", "OPERATIONAL_PAPER_DAILY", "ACCEPTANCE_VALIDATION"}
+)
+
+
+def digest(value: object) -> str:
+    """Stable digest used for report and forward-evidence lineage."""
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
+    ).hexdigest()
 
 
 class MeridianApplicationService:
@@ -291,7 +315,10 @@ class MeridianApplicationService:
         market_fixture: Path | None = None,
         *,
         research_live_enabled: bool = False,
+        run_purpose: str = "OPERATIONAL_DAILY",
     ) -> dict[str, object]:
+        if run_purpose not in CANONICAL_RUN_PURPOSES:
+            raise ValueError("RUN_PURPOSE_INVALID")
         self.paths.ensure_directories()
         self.paths.preflight()
         invocation = uuid4().hex
@@ -306,7 +333,12 @@ class MeridianApplicationService:
         try:
             with run_lock(self.paths.locks, invocation):
                 payload = self._daily(
-                    snapshot_path, market_fixture, logger, log_path, research_live_enabled
+                    snapshot_path,
+                    market_fixture,
+                    logger,
+                    log_path,
+                    research_live_enabled,
+                    run_purpose,
                 )
             logger.log(
                 logging.ERROR if payload.get("runtime_status") == "FAILED" else logging.INFO,
@@ -333,6 +365,7 @@ class MeridianApplicationService:
         logger: logging.Logger,
         log_path: Path,
         research_live_enabled: bool,
+        run_purpose: str,
     ) -> dict[str, object]:
         started = monotonic()
         logger.info("Database initialization and preflight started")
@@ -479,10 +512,10 @@ class MeridianApplicationService:
         if settings is not None and research_live_enabled:
             # Paper runs opt in locally; the global models.yaml default stays unchanged.
             settings = settings.model_copy(
-                update={"live_enabled": True, "timeout_seconds": min(settings.timeout_seconds, 30)}
+                update={"live_enabled": True}
             )
 
-        def digest(value: object) -> str:
+        def configuration_digest(value: object) -> str:
             return hashlib.sha256(
                 json.dumps(value, sort_keys=True, default=str).encode()
             ).hexdigest()
@@ -511,18 +544,14 @@ class MeridianApplicationService:
             else "FAILED"
         )
 
-        def semantic_quote_payload(values: dict[str, MarketSnapshot]) -> dict[str, dict[str, object]]:
-            return {
-                ticker: {
-                    key: value
-                    for key, value in quote.model_dump(mode="json").items()
-                    if key not in {"timestamp", "freshness_state"}
-                }
-                for ticker, quote in sorted(values.items())
-            }
-
         host_resume_job = None
         host_result_invalidated = False
+        market_consistency: dict[str, object] = {
+            "status": "INVALID",
+            "reason": "NO_HOST_RESEARCH_JOB",
+            "old_reference": None,
+            "new_reference": canonical_market_reference(research_quotes),
+        }
         if host_job_path:
             host_resume_job = load_job(Path(host_job_path))
             if host_resume_job.stage is not HostJobStage.RESEARCH:
@@ -538,7 +567,9 @@ class MeridianApplicationService:
                 }
             except ValueError as error:
                 raise ValueError("HOST_LLM_RESULT_STALE") from error
-            if semantic_quote_payload(frozen_quotes) != semantic_quote_payload(research_quotes):
+            consistency = compare_market_snapshots(frozen_quotes, research_quotes)
+            market_consistency = consistency.as_dict()
+            if consistency.status is MarketConsistencyStatus.REFRESH_REQUIRED:
                 old_run_id = host_resume_job.run_id
                 from meridian.host_llm import HostLLMResult
                 rebuilt_job, rebuilt_path = create_job(
@@ -572,9 +603,7 @@ class MeridianApplicationService:
                     strategy_context={
                         "mode": "PAPER_ONLY",
                         "execution_authority": "NONE",
-                        "market_reference": digest(
-                            {k: v.model_dump(mode="json") for k, v in research_quotes.items()}
-                        ),
+                        "market_reference": canonical_market_reference(research_quotes),
                     },
                     research_questions=("Assess the supplied current market evidence.",),
                     required_output_schema=HostLLMResult.model_json_schema(),
@@ -584,15 +613,22 @@ class MeridianApplicationService:
                 host_result_invalidated = True
                 host_resume_job = rebuilt_job
                 startup["host_llm_recovery"] = {
-                    "status": "REBUILT",
-                    "reason": "HOST_LLM_RESULT_STALE",
+                    "status": "REFRESH_REQUIRED",
+                    "reason": "RESEARCH_REFRESH_REQUIRED",
                     "old_run_id": old_run_id,
                     "new_job_path": str(rebuilt_path),
                 }
-            else:
-                # Resume uses the exact research snapshot from the job. A later
-                # provider poll may update timestamps without changing decision facts.
+            elif consistency.status is MarketConsistencyStatus.REVALIDATED:
+                startup["host_llm_recovery"] = {
+                    "status": "REVALIDATED",
+                    "reason": consistency.reason,
+                    "old_reference": consistency.old_reference,
+                    "new_reference": consistency.new_reference,
+                }
+            elif consistency.status is MarketConsistencyStatus.EXACT:
                 research_quotes = frozen_quotes
+            else:
+                raise ValueError("RESEARCH_REFRESH_REQUIRED")
 
         eligible_research_tickers = tuple(
             ticker
@@ -652,9 +688,7 @@ class MeridianApplicationService:
             analysis_cutoff=cutoff,
             mode="FIXTURE" if market_fixture or snapshot.source_kind == "FIXTURE" else "LIVE",
             snapshot_reference=snapshot.content_hash or "UNAVAILABLE",
-            market_reference=digest(
-                {symbol: quote.model_dump(mode="json") for symbol, quote in research_quotes.items()}
-            ),
+            market_reference=canonical_market_reference(research_quotes),
             temporal_context=ResearchTemporalContext(
                 run_id=parent_id,
                 trading_date=cutoff.astimezone(ZoneInfo("America/New_York")).date(),
@@ -664,7 +698,7 @@ class MeridianApplicationService:
                 timezone="America/New_York",
                 portfolio_snapshot_id=account.snapshot_id,
             ),
-            policy_reference=digest(
+            policy_reference=configuration_digest(
                 {name: value.model_dump(mode="json") for name, value in vars(policies).items()}
             ),
             provider=settings.provider if settings else "UNCONFIGURED",
@@ -711,7 +745,8 @@ class MeridianApplicationService:
                     context=ResearchDecisionContext(research_run_id="host-" + parent_id, parent_run_id=parent_id,
                         input_hash=request.input_hash, analysis_cutoff=cutoff, status=ResearchProviderStatus.NOT_RUN),
                     prompt_created_at=cutoff, started_at=cutoff, finished_at=cutoff, duration_seconds=0, attempts=0,
-                    provider="HOST_CODEX", model="HOST", error_code="HOST_LLM_REQUIRED",
+                    provider="HOST_CODEX", model="HOST",
+                    error_code=("RESEARCH_REFRESH_REQUIRED" if host_result_invalidated else "HOST_LLM_REQUIRED"),
                     next_action=f"Codex host must read {job_path} and write a validated result JSON; rerun with MERIDIAN_HOST_RESULT.",
                     preparation_diagnostics={"execution_mode": "HOST_CODEX", "job_path": str(job_path), "result_path": None})
             else:
@@ -721,14 +756,30 @@ class MeridianApplicationService:
                     expected_refs = {item.reference for item in request.observations}
                     if not expected_refs <= set(host_result.evidence):
                         raise ValueError("HOST_LLM_RESULT_INVALID")
-                    regime = host_result.market_regime.upper()
-                    direction = "BULLISH" if "BULL" in regime else "BEARISH" if "BEAR" in regime else "NEUTRAL"
-                    output = DailyResearchOutput(results=tuple(SymbolResearch(ticker=item.ticker,
-                        claim_kind="MODEL_INFERENCE", direction=direction,
-                        research_conviction=Decimal(str(host_result.confidence)), thesis=host_result.summary,
-                        risks=host_result.risks, cited_evidence_ids=(item.reference,),
-                        data_limitations=host_result.uncertainties or ("HOST_RESULT_LIMITATIONS_UNSPECIFIED",))
-                        for item in request.observations))
+                    allowed_by_symbol = {item.ticker: {item.reference} for item in request.observations}
+                    if request.evidence_package:
+                        raw_evidence = request.evidence_package.get("evidence", [])
+                        if isinstance(raw_evidence, list):
+                            for evidence_item in raw_evidence:
+                                if not isinstance(evidence_item, dict):
+                                    continue
+                                symbol = str(evidence_item.get("symbol", ""))
+                                evidence_id = evidence_item.get("evidence_id")
+                                if evidence_id and symbol in allowed_by_symbol and evidence_item.get("validation_status") in {"PASS", "DEGRADED"}:
+                                    allowed_by_symbol[symbol].add(str(evidence_id))
+                    analyses = validate_symbol_research(host_result, allowed_by_symbol)
+                    results = []
+                    for observation in request.observations:
+                        analysis = analyses[observation.ticker]
+                        results.append(SymbolResearch(
+                            ticker=observation.ticker, claim_kind="MODEL_INFERENCE",
+                            direction=analysis.direction,
+                            research_conviction=Decimal(str(analysis.confidence)),
+                            thesis=analysis.thesis, risks=analysis.risks,
+                            cited_evidence_ids=tuple(analysis.evidence_refs),
+                            data_limitations=analysis.data_limitations or host_result.uncertainties or ("HOST_RESULT_LIMITATIONS_UNSPECIFIED",),
+                        ))
+                    output = DailyResearchOutput(results=tuple(results))
                     output.validate_input(request)
                     host_research = ResearchStageResult(
                         context=ResearchDecisionContext(research_run_id="host-" + parent_id, parent_run_id=parent_id,
@@ -783,10 +834,57 @@ class MeridianApplicationService:
                 run_id=parent_id,
             )
             now = datetime.now(UTC)
+            native_stages = tuple(native_result.stages.values())
+            research_started = min(
+                (stage.started_at for stage in native_stages),
+                default=now,
+            )
+            research_finished = max(
+                (stage.finished_at for stage in native_stages),
+                default=now,
+            )
+            stage_latency = {
+                name: {
+                    "start_timestamp": stage.started_at.isoformat(),
+                    "end_timestamp": stage.finished_at.isoformat(),
+                    "duration_ms": stage.duration_ms,
+                    "deadline_ms": stage.diagnostic.get("deadline_ms"),
+                    "remaining_budget_ms": stage.diagnostic.get("remaining_budget_ms"),
+                    "timeout_source": stage.diagnostic.get("timeout_source"),
+                    "model": stage.model,
+                    "reasoning_effort": stage.reasoning_effort,
+                    "attempt": stage.attempt_count,
+                    "exit_code": stage.exit_code,
+                    "schema_valid": stage.schema_valid,
+                    "shared_invocation": stage.diagnostic.get("shared_invocation", False),
+                    "shared_invocation_id": stage.diagnostic.get("shared_invocation_id"),
+                    "role_deadline_enforcement": stage.diagnostic.get("role_deadline_enforcement", "SUBPROCESS_PER_ROLE"),
+                    "role_elapsed_ms": stage.diagnostic.get("role_elapsed_ms", stage.duration_ms if not stage.diagnostic.get("shared_invocation") else None),
+                    "role_configured_budget_seconds": stage.diagnostic.get("role_configured_budget_seconds"),
+                    "role_effective_deadline_seconds": stage.diagnostic.get("role_effective_deadline_seconds"),
+                    "effective_timeout_ms": stage.diagnostic.get("deadline_ms"),
+                    "effective_reasoning_effort": stage.reasoning_effort,
+                }
+                for name, stage in native_result.stages.items()
+            }
+            shared_invocation = any(item["shared_invocation"] for item in stage_latency.values())
             native_status = (
-                ResearchProviderStatus.CODEX_TIMEOUT
+                ResearchProviderStatus.AVAILABLE
+                if native_result.research_state is ResearchState.READY
+                and native_result.synthesis is not None
+                else ResearchProviderStatus.CODEX_RATE_LIMITED
+                if any(
+                    stage.status.value == "RATE_LIMITED"
+                    for stage in native_result.stages.values()
+                )
+                else ResearchProviderStatus.CODEX_TIMEOUT
                 if any(
                     stage.status.value == "TIMEOUT"
+                    for stage in native_result.stages.values()
+                )
+                else ResearchProviderStatus.CODEX_SCHEMA_ERROR
+                if any(
+                    stage.status.value == "SCHEMA_ERROR"
                     for stage in native_result.stages.values()
                 )
                 else ResearchProviderStatus.CODEX_PROCESS_ERROR
@@ -803,16 +901,53 @@ class MeridianApplicationService:
                     input_hash=request.input_hash,
                     analysis_cutoff=cutoff,
                     status=native_status,
+                    native_research_validated=(native_status is ResearchProviderStatus.AVAILABLE),
                 ),
-                prompt_created_at=now,
-                started_at=now,
-                finished_at=now,
-                duration_seconds=0,
-                attempts=0,
+                prompt_created_at=research_started,
+                started_at=research_started,
+                finished_at=research_finished,
+                request_sent_at=research_started,
+                response_received_at=research_finished if native_status is ResearchProviderStatus.AVAILABLE else None,
+                duration_seconds=max(
+                    (stage.duration_ms for stage in native_result.stages.values()),
+                    default=0,
+                )
+                / 1000,
+                attempts=(
+                    1
+                    if any(
+                        stage.diagnostic.get("shared_invocation") is True
+                        for stage in native_result.stages.values()
+                    )
+                    else sum(
+                        stage.status.value not in {"NOT_RUN", "NOT_RUN_AUTH_BLOCKED"}
+                        for stage in native_result.stages.values()
+                    )
+                ),
                 provider="GPT_NATIVE_V1",
                 model=settings.model,
-                error_code=None,
+                error_code=(
+                    None
+                    if native_status is ResearchProviderStatus.AVAILABLE
+                    else native_status.value
+                ),
                 next_action="Research remains advisory; deterministic execution gates remain authoritative.",
+                provider_diagnostics={
+                    "shared_invocation": shared_invocation,
+                    "shared_invocation_id": next((item.get("shared_invocation_id") for item in stage_latency.values() if item.get("shared_invocation_id")), None),
+                    "budget_seconds": settings.native_budget.total_seconds,
+                    "configured_research_budget_ms": settings.native_budget.total_seconds * 1000,
+                    "reasoning_effort": next((item["reasoning_effort"] for item in stage_latency.values() if item["reasoning_effort"]), settings.reasoning_effort),
+                    "requested_reasoning_effort": settings.reasoning_effort,
+                    "effective_reasoning_effort": next((item["reasoning_effort"] for item in stage_latency.values() if item["reasoning_effort"]), settings.reasoning_effort),
+                    "schema_valid": all(item["schema_valid"] for item in stage_latency.values()),
+                    "elapsed_ms": int((research_finished - research_started).total_seconds() * 1000),
+                    "effective_subprocess_deadline_ms": max((item.get("deadline_ms") or 0 for item in stage_latency.values()), default=0),
+                    "stage_latency": stage_latency,
+                    "total_research_latency_ms": int(
+                        (research_finished - research_started).total_seconds() * 1000
+                    ),
+                },
             )
             research_mode = native_result.research_state.value
             research_degradation = {
@@ -823,6 +958,15 @@ class MeridianApplicationService:
                 ),
                 "fallback_reason": ",".join(native_result.degradation_reasons) or None,
                 "evidence_synthesis": "GPT_NATIVE_EVIDENCE_FIRST",
+                "latency": {
+                    "primary_ms": stage_latency["PRIMARY_ANALYST"]["duration_ms"],
+                    "skeptic_ms": stage_latency["SKEPTIC"]["duration_ms"],
+                    "scenario_ms": stage_latency["SCENARIO_ANALYSIS"]["duration_ms"],
+                    "synthesis_ms": stage_latency["DECISION_SYNTHESIS"]["duration_ms"],
+                    "total_ms": int((research_finished - research_started).total_seconds() * 1000),
+                    "budget_ms": settings.native_budget.total_seconds * 1000,
+                    "shared_invocation": shared_invocation,
+                },
             }
         elif host_mode and host_research is not None:
             research = host_research
@@ -885,6 +1029,7 @@ class MeridianApplicationService:
                     native_result.model_dump(mode="json") if native_result is not None else None
                 ),
                 "research_input": request.model_dump(mode="json"),
+                "research_market_consistency": market_consistency,
                 "data_auto_retrieval": research.preparation_diagnostics,
                 "research_universe": universe_plan.model_dump(mode="json")
                 if universe_plan
@@ -1031,6 +1176,8 @@ class MeridianApplicationService:
             {
                 "timestamp": cutoff.isoformat(),
                 "trading_date": cutoff.astimezone(ZoneInfo("America/New_York")).date().isoformat(),
+                "run_type": "CANONICAL_DAILY",
+                "run_purpose": run_purpose,
                 "runtime_status": "PASS" if preflight["status"] != "FAIL" else "FAILED",
                 "database_status": "PASS",
                 "startup_diagnostics": startup,
@@ -1071,6 +1218,50 @@ class MeridianApplicationService:
                 "elapsed_seconds": round(monotonic() - started, 3),
             }
         )
+        research_dimension = (
+            "READY"
+            if research.context.status is ResearchProviderStatus.AVAILABLE
+            else "REFRESH_REQUIRED"
+            if research.error_code == "RESEARCH_REFRESH_REQUIRED"
+            else "WAITING"
+            if research.error_code == "HOST_LLM_REQUIRED"
+            else "FAILED"
+            if research.context.status is ResearchProviderStatus.INVALID_RESPONSE
+            else "DEGRADED"
+        )
+        result.report["status_dimensions"] = {
+            "DATA": {
+                "status": "READY"
+                if daily_data_status == "PASS"
+                else "DEGRADED"
+                if daily_data_status == "MARKET_CLOSED"
+                else "BLOCKED",
+                "reason": market_error or daily_data_status,
+            },
+            "RESEARCH": {"status": research_dimension, "reason": research.error_code},
+            "DECISION": {
+                "status": "READY"
+                if result.decision.overall_status
+                in {RunStatus.DRAFT, RunStatus.NO_ACTION, RunStatus.NO_CAPITAL}
+                else "FAILED"
+                if result.decision.overall_status is RunStatus.FAILED
+                else "BLOCKED",
+                "reason": result.decision.overall_status.value,
+            },
+            "RISK": {
+                "status": "READY"
+                if result.decision.target_portfolio is not None and analysis_ok
+                else "WAITING"
+                if research_dimension in {"WAITING", "REFRESH_REQUIRED"}
+                else "BLOCKED",
+                "reason": "DETERMINISTIC_GATES",
+            },
+            "PAPER": {"status": "WAITING", "reason": "PAPER_SINK_NOT_EVALUATED"},
+            "HOST_LLM": {
+                "status": research_dimension if host_mode else "READY",
+                "reason": research.error_code if host_mode else "NATIVE_OR_ADAPTER_PATH",
+            },
+        }
         market_ok = result.report["data_status"] == "PASS"
         snapshot_fresh = (
             evaluated_at - account.as_of
@@ -1575,6 +1766,20 @@ class MeridianApplicationService:
             f"Drawdown: **{performance.get('drawdown', 'NOT_AVAILABLE')}**",
             "",
         ]
+        idempotency = payload.get("idempotency", {})
+        if isinstance(idempotency, dict):
+            raw_blockers = payload.get("blockers", [])
+            blockers_for_reason = raw_blockers if isinstance(raw_blockers, list) else []
+            lines.extend([
+                "## Idempotency", "",
+                f"Status: **{idempotency.get('status', 'NOT_RUN')}**",
+                f"Attempted run: `{idempotency.get('attempted_run_id', payload.get('canonical_run_id', 'UNKNOWN'))}`",
+                f"Authoritative existing run: `{idempotency.get('authoritative_existing_run_id', 'NONE')}`",
+                f"Reason: **{blockers_for_reason[0] if blockers_for_reason else 'NONE'}**",
+                "Current-run work: market retrieval **SKIPPED**; research **SKIPPED**; decision **SKIPPED**; paper execution **SKIPPED**.",
+                f"Side effects: orders **{idempotency.get('orders_created_current_run', 0)}**; fills **{idempotency.get('fills_created_current_run', 0)}**; ledger mutation **{'YES' if idempotency.get('ledger_mutated_current_run') else 'NO'}**.",
+                "",
+            ])
         lines.extend(["", "### Evidence sources (expandable)", ""])
         if isinstance(evidence_catalog, list) and evidence_catalog:
             lines.extend(
@@ -1702,22 +1907,228 @@ class MeridianApplicationService:
             outputs["run_health_error"] = "RUN_HEALTH_PERSISTENCE_FAILED"
         return outputs
 
-    def paper_run(self, account_name: str = DEFAULT_ACCOUNT) -> dict[str, object]:
+    def _paper_duplicate_short_circuit(
+        self,
+        *,
+        account_name: str,
+        account_status: dict[str, object],
+        trading_date: str,
+        existing: Mapping[str, object],
+        run_purpose: str,
+    ) -> dict[str, object]:
+        """Persist a cheap, explicit duplicate attempt without running daily stages."""
+        now = datetime.now(UTC)
+        attempted_run_id = "daily-duplicate-" + uuid4().hex
+        paper_run_id = "paper-" + attempted_run_id
+        reason = "PAPER_DAILY_IDEMPOTENCY_ALREADY_EXECUTED"
+        authoritative_run_id = str(existing.get("canonical_run_id") or "UNKNOWN")
+        idempotency = {
+            "status": "ALREADY_EXECUTED",
+            "account": account_name,
+            "trading_date": trading_date,
+            "attempted_run_id": attempted_run_id,
+            "authoritative_existing_run_id": authoritative_run_id,
+            "authoritative_existing_run_status": str(existing.get("execution_status") or "UNKNOWN"),
+            "orders_created_current_run": 0,
+            "fills_created_current_run": 0,
+            "ledger_mutated_current_run": False,
+            "broker_interaction_current_run": False,
+        }
+        stage_names = (
+            "PRE_FLIGHT", "MARKET_QUOTE", "HISTORICAL_DATA", "BENCHMARK_DATA",
+            "DATA_VALIDATION", "RESEARCH", "PRIMARY_ANALYST", "SKEPTIC",
+            "SCENARIO_ANALYSIS", "DECISION_SYNTHESIS", "DECISION", "PORTFOLIO",
+            "PAPER_EXECUTION", "REPORT_GENERATION", "REPORT_PERSISTENCE", "RUN_FINALIZATION",
+        )
+        stages = [
+            {
+                "stage": name,
+                "status": "SKIPPED",
+                "reason": reason,
+                "stage_source": "CURRENT_RUN",
+                "source_run_id": None,
+                "invoked_in_current_run": False,
+            }
+            for name in stage_names
+        ]
+        canonical_payload: dict[str, object] = {
+            "run_id": attempted_run_id,
+            "analysis_time": now.isoformat(),
+            "information_cutoff": now.isoformat(),
+            "trading_date": trading_date,
+            "status": "PAPER_ALREADY_EXECUTED",
+            "runtime_status": "PASS",
+            "run_purpose": run_purpose,
+            "run_type": "PAPER_DAILY",
+            "execution_mode": "NORMAL",
+            "data_status": "SKIPPED",
+            "research_status": "SKIPPED",
+            "portfolio_status": "SKIPPED",
+            "decision_context": {
+                "research_status": "SKIPPED",
+                "research": None,
+                "invoked_in_current_run": False,
+            },
+            "research": {
+                "status": "SKIPPED",
+                "reason": reason,
+                "invoked_in_current_run": False,
+                "source_run_id": None,
+            },
+            "decision": {"status": "SKIPPED", "reason": reason},
+            "gates": [],
+            "stages": stages,
+            "idempotency": idempotency,
+            "market_observations": {},
+            "provider_probes": {},
+            "data_auto_retrieval": {"status": "SKIPPED", "reason": reason},
+            "forward_evidence": {
+                "status": "SKIPPED",
+                "reason": reason,
+                "freeze": {"status": "SKIPPED", "reason": reason},
+                "outcomes": {"status": "SKIPPED", "reason": reason},
+                "authority": "SHADOW_EVIDENCE_ONLY_NO_AUTOMATIC_PROMOTION",
+            },
+            "readiness": {
+                "recommendation_readiness": "BLOCKED",
+                "research_readiness": "NOT_RUN",
+                "decision_pipeline_status": "NOT_RUN",
+                "manual_execution_readiness": "BLOCKED",
+                "blockers": [reason],
+            },
+            "snapshot_provenance": {"status": "SKIPPED", "reason": reason},
+            "blocked_reasons": [reason],
+            "errors": [],
+            "next_actions": ["Use the authoritative existing paper daily run; no duplicate work was performed."],
+            "account": account_status,
+            "status_dimensions": {
+                "DATA": {"status": "SKIPPED", "reason": reason},
+                "RESEARCH": {"status": "SKIPPED", "reason": reason},
+                "DECISION": {"status": "SKIPPED", "reason": reason},
+                "PAPER": {"status": "DEGRADED", "reason": "PAPER_ALREADY_EXECUTED"},
+            },
+            "manual_authority": {"status": "BLOCKED"},
+            "safe_analysis": {"status": "SKIPPED", "reason": reason},
+        }
+        canonical = self._complete_report(canonical_payload)
+        paper_payload: dict[str, object] = {
+            "schema_version": "meridian-paper-daily.v1",
+            "paper_run_id": paper_run_id,
+            "canonical_run_id": attempted_run_id,
+            "run_type": "PAPER_DAILY",
+            "run_purpose": run_purpose,
+            "analysis_time": now.isoformat(),
+            "trading_date": trading_date,
+            "status": "PAPER_ALREADY_EXECUTED",
+            "runtime_status": "PASS",
+            "account": account_status,
+            "portfolio": {
+                "cash": account_status.get("cash"),
+                "realized_pnl": account_status.get("realized_pnl"),
+                "positions": account_status.get("positions", []),
+            },
+            "performance": {"status": "NOT_MARKED", "reason": "DUPLICATE_RUN_NO_MARKET_READ"},
+            "startup_diagnostics": {"market_status": {"status": "SKIPPED", "trading_date": trading_date}},
+            "execution_mode": "NORMAL",
+            "market": {"status": "SKIPPED", "session": "NOT_RUN", "observations": {}, "provider_probes": {}},
+            "research": canonical.get("research", {}),
+            "data_auto_retrieval": canonical.get("data_auto_retrieval", {}),
+            "research_universe": {"status": "SKIPPED", "reason": reason},
+            "forward_evidence": canonical.get("forward_evidence", {}),
+            "decision": {"status": "SKIPPED", "context": canonical.get("decision_context"), "gates": []},
+            "paper_execution": {
+                "status": "PAPER_ALREADY_EXECUTED",
+                "readiness": "BLOCKED",
+                "authority": "PAPER_EXECUTION_ONLY",
+                "quote_certification": "BLOCKED",
+                "intent_count": 0,
+                "fills": [],
+            },
+            "stages": stages,
+            "idempotency": idempotency,
+            "status_dimensions": canonical.get("status_dimensions", {}),
+            "recommendation_readiness": "BLOCKED",
+            "manual_authority": "BLOCKED",
+            "quote_certification": "BLOCKED",
+            "auto_initialized": False,
+            "blockers": [reason],
+            "next_actions": canonical.get("next_actions", []),
+            "canonical_output_files": canonical.get("output_files", {}),
+            "orders": [],
+            "fills": [],
+        }
+        try:
+            paper_outputs = self._persist_paper_report(paper_payload)
+        except OSError:
+            paper_outputs = {}
+            paper_payload["blockers"] = [reason, "PAPER_REPORT_WRITE_FAILED"]
+        paper_payload["output_files"] = {**paper_outputs, **{
+            "canonical_report_json": canonical.get("report_json"),
+            "canonical_report_markdown": canonical.get("report_markdown"),
+        }}
+        return paper_payload
+
+    def paper_run(
+        self,
+        account_name: str = DEFAULT_ACCOUNT,
+        *,
+        run_purpose: str = "OPERATIONAL_PAPER_DAILY",
+    ) -> dict[str, object]:
         """Run the existing canonical daily flow against one durable paper account."""
+        if run_purpose not in CANONICAL_RUN_PURPOSES:
+            raise ValueError("RUN_PURPOSE_INVALID")
+        if not self.paths.db.is_file():
+            return self._paper_storage_blocked(
+                account_name,
+                error_code="STORAGE_UNAVAILABLE",
+                blocker="PAPER_LEDGER_DATABASE_NOT_FOUND",
+                next_action=(
+                    "Restore access to the configured persistent ledger. Use `paper init` only "
+                    "for an intentional first-time setup; `paper run` never creates a ledger."
+                ),
+            )
         initialized = self.init()
         if initialized["status"] == "INIT_FAILED":
-            return {
-                **initialized,
-                "status": "PAPER_BLOCKED",
-                "paper_execution": {"status": "BLOCKED"},
-            }
+            return self._paper_storage_blocked(
+                account_name,
+                error_code="STORAGE_UNAVAILABLE",
+                blocker=str(initialized.get("error_code", "MERIDIAN_DATABASE_INIT_FAILED")),
+                next_action=str(initialized.get("next_step", "Restore persistent ledger access.")),
+                details=initialized,
+            )
         ledger = self._paper_ledger()
-        account = ledger.state(account_name)
-        auto_initialized = False
+        try:
+            account = ledger.state(account_name)
+        except (OSError, sqlite3.Error) as error:
+            return self._paper_storage_blocked(
+                account_name,
+                error_code="STORAGE_UNAVAILABLE",
+                blocker="PAPER_LEDGER_READ_FAILED",
+                next_action="Check database permissions, locks and schema with doctor; preserve the existing database.",
+                details={"warnings": [type(error).__name__]},
+            )
         if account is None:
-            if account_name != DEFAULT_ACCOUNT:
-                raise ValueError("PAPER_ACCOUNT_NOT_FOUND")
-            _, auto_initialized = ledger.initialize(account_name)
+            return self._paper_storage_blocked(
+                account_name,
+                error_code="PAPER_ACCOUNT_NOT_FOUND",
+                blocker="PAPER_ACCOUNT_NOT_FOUND",
+                next_action=(
+                    "Verify MERIDIAN_HOME points to the authoritative runtime. If this is an "
+                    "intentional first-time setup, create the account explicitly with `paper init`."
+                ),
+            )
+        # Resolve the operational trading date from the authoritative NYSE
+        # timezone before creating a snapshot or invoking any expensive stage.
+        trading_date = datetime.now(ZoneInfo("America/New_York")).date().isoformat()
+        existing = ledger.authoritative_daily_execution(account_name, trading_date)
+        if existing is not None:
+            return self._paper_duplicate_short_circuit(
+                account_name=account_name,
+                account_status=ledger.status(account_name),
+                trading_date=trading_date,
+                existing=existing,
+                run_purpose=run_purpose,
+            )
         snapshot_path = ledger.write_snapshot(self.paths.cache / "paper-snapshots", account_name)
         previous_llm_mode = os.environ.get("MERIDIAN_LLM_MODE")
         explicit_host_handoff = bool(
@@ -1729,7 +2140,11 @@ class MeridianApplicationService:
         try:
             # Normal local paper runs execute the configured native runtime.
             # HOST_CODEX is reserved for an explicit job/result handoff.
-            daily = self.daily(snapshot_path, research_live_enabled=True)
+            daily = self.daily(
+                snapshot_path,
+                research_live_enabled=True,
+                run_purpose=run_purpose,
+            )
         finally:
             if explicit_host_handoff:
                 if previous_llm_mode is None:
@@ -1851,10 +2266,14 @@ class MeridianApplicationService:
         daily_manual_authority = (
             daily_manual_authority if isinstance(daily_manual_authority, dict) else {}
         )
+        daily_dimensions = daily.get("status_dimensions")
+        daily_dimensions = daily_dimensions if isinstance(daily_dimensions, dict) else {}
         payload: dict[str, object] = {
             "schema_version": "meridian-paper-daily.v1",
             "paper_run_id": paper_run_id,
             "canonical_run_id": canonical_run_id,
+            "run_type": "PAPER_DAILY",
+            "run_purpose": run_purpose,
             "analysis_time": daily.get("analysis_time", datetime.now(UTC).isoformat()),
             "trading_date": trading_date,
             "status": final_status,
@@ -1893,10 +2312,21 @@ class MeridianApplicationService:
                 "gates": daily.get("gates", []),
             },
             "paper_execution": paper_execution,
+            "status_dimensions": {
+                **daily_dimensions,
+                "PAPER": {
+                    "status": "READY"
+                    if execution_status in {"PAPER_COMPLETE", "PAPER_NO_TRADE"}
+                    else "DEGRADED"
+                    if execution_status == "PAPER_ALREADY_EXECUTED"
+                    else "BLOCKED",
+                    "reason": execution_status,
+                },
+            },
             "recommendation_readiness": daily_readiness.get("recommendation_readiness", "BLOCKED"),
             "manual_authority": daily_manual_authority.get("status", "BLOCKED"),
             "quote_certification": "BLOCKED",
-            "auto_initialized": auto_initialized,
+            "auto_initialized": False,
             "blockers": blockers,
             "next_actions": (
                 [
@@ -1926,6 +2356,39 @@ class MeridianApplicationService:
         }
         return payload
 
+    @staticmethod
+    def _paper_storage_blocked(
+        account_name: str,
+        *,
+        error_code: str,
+        blocker: str,
+        next_action: str,
+        details: Mapping[str, object] | None = None,
+    ) -> dict[str, object]:
+        """Fail closed without creating or replacing persistent paper state."""
+        payload: dict[str, object] = {
+            "status": "PAPER_BLOCKED",
+            "runtime_status": "FAILED",
+            "error_code": error_code,
+            "account": account_name,
+            "auto_initialized": False,
+            "paper_execution": {
+                "status": "BLOCKED",
+                "readiness": "BLOCKED",
+                "authority": "PAPER_EXECUTION_ONLY",
+                "fills": [],
+            },
+            "status_dimensions": {
+                "PAPER": {"status": "BLOCKED", "reason": blocker},
+            },
+            "blockers": [blocker],
+            "next_actions": [next_action],
+            "output_files": {},
+        }
+        if details:
+            payload["storage_diagnostics"] = dict(details)
+        return payload
+
     def shadow_run(self, market_fixture: Path) -> dict[str, object]:
         """Run live GPT against bounded market facts with permanently zero orders."""
         self.paths.ensure_directories()
@@ -1953,9 +2416,7 @@ class MeridianApplicationService:
             analysis_cutoff=cutoff,
             mode="LIVE",
             snapshot_reference="SHADOW_NO_ACCOUNT_SNAPSHOT",
-            market_reference=hashlib.sha256(
-                json.dumps({ticker: quote.model_dump(mode="json") for ticker, quote in quotes.items()}, sort_keys=True, default=str).encode()
-            ).hexdigest(),
+            market_reference=canonical_market_reference(quotes),
             temporal_context=ResearchTemporalContext(
                 run_id="shadow-context-" + cutoff.strftime("%Y%m%dT%H%M%S%fZ"),
                 trading_date=cutoff.astimezone(ZoneInfo("America/New_York")).date(),

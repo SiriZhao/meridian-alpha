@@ -77,18 +77,46 @@ includes fact IDs, comparable facts, and derived-metric input IDs. Resolve
 citations against those returned records. Caller-supplied bars and events are
 not independently verified sources. Missing known-at times remain UNKNOWN.
 
-For the separately operated paper daily workflow, use the installed CLI:
+For the separately operated paper daily workflow in the source checkout, use
+the repository launcher:
 
 ```powershell
-meridian paper run --account Schwab-Paper --json
+.\scripts\run_meridian.ps1 paper run --account Schwab-Paper --json
 ```
 
-Use the Python 3.12 environment where Meridian is installed. In a source
-checkout, `scripts/run_meridian.ps1` selects the project environment.
+The launcher selects the project's Python 3.12 environment.
+
+Canonical paper operation is a host-write workflow. Before invoking `doctor`
+or `paper run`, request approved host execution through the active Codex
+approval mechanism. The approval must be granted before either command starts;
+do not probe the canonical runtime from a restricted sandbox first. Run
+`.\scripts\run_meridian.ps1 doctor --json` in the approved host context and
+continue only on `PASS`, then run the canonical `Schwab-Paper` command through
+the same approved host boundary. The launcher chooses the project Python; it
+is not itself a sandbox escape or host bridge. MCP tools are not a substitute
+for host approval.
+
+If approval is still required, return `HOST_APPROVAL_REQUIRED` without running
+the canonical command. If host execution is rejected, unavailable,
+capacity-limited, or cannot enter the host context, return
+`HOST_EXECUTION_UNAVAILABLE`. Never retry through the restricted sandbox and
+never translate the absence of host execution into
+`MERIDIAN_DATABASE_INIT_FAILED` or `STORAGE_UNAVAILABLE`.
+
+After an approved run, report the canonical status, run ID, trading date,
+account, research and market-data status, decision, orders, fills, NAV,
+blockers or degraded reason, and report path. Honor Meridian's calendar and
+idempotency policy; never force a historical paper day for testing.
 
 Report `PAPER_BLOCKED` honestly with its exact blockers. Public research quotes
 are not certified execution quotes. Paper mode remains paper-only and broker
 submission remains disabled.
+
+When reading a canonical report, inspect the independent `status_dimensions`
+for `DATA`, `RESEARCH`, `DECISION`, `RISK`, `PAPER`, and `HOST_LLM`. Do not turn
+market closure, research refresh, Host unavailability, risk rejection, or a
+paper no-fill into one generic failure. A `RESEARCH_REFRESH_REQUIRED` outcome
+requires a new research job; never reuse or rewrite the stale Host result.
 
 For a user-supplied real account analysis, require a newly supplied, authorized,
 sanitized `HostAccountSnapshotEnvelope`; never use a paper ledger as a real

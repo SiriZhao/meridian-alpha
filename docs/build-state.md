@@ -1,5 +1,26 @@
 # Build state — Gate 2 (DeepSeek provider)
 
+## Current state — 2026-09-16 repository recovery
+
+The active branch is `hotfix/live-advisory-20260914`. The canonical runtime is
+GPT-native or explicit Host handoff through `MeridianApplicationService`; the
+historical Gate 2 material below is retained only as provenance.
+
+Implemented in this stabilization pass:
+
+- semantic market snapshot identity shared by daily, live advisory, and Host jobs;
+- explicit `EXACT` / `REVALIDATED` / `REFRESH_REQUIRED` reconciliation;
+- symbol-scoped Host evidence validation and duplicate-result conflict detection;
+- independent report dimensions for data, research, decision, risk, paper, and Host;
+- preservation of deterministic quantity, price, risk, reconciliation, and ledger authority;
+- no TradingAgents dependency upgrade; see the dated assessment.
+
+Validation is partially environment-blocked: static checks and compilation run
+in the project Python 3.12 environment, while pytest requires a non-sandboxed
+temporary directory and the configured authoritative runtime root is not
+accessible in the current host context. No live/paper acceptance is claimed
+without those two checks.
+
 Current acceptance: see `reports/meridian-astra-final-review.md` and
 `reports/meridian-clean-install-acceptance.md`. On 2026-09-11, 471 tests and
 clean installation passed; fresh Astra research remained quota-blocked.

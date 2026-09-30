@@ -40,3 +40,12 @@ def test_missing_model_setting_fails_fast(tmp_path: Path) -> None:
     (directory / "models.yaml").write_text("example_defaults: true\n", encoding="utf-8")
     with pytest.raises(ValueError, match="invalid policy"):
         load_policies(directory)
+
+
+def test_production_native_research_route_is_bounded_and_live_validated() -> None:
+    settings = load_policies(ROOT / "policies").models.research
+    assert settings is not None
+    assert settings.model == "gpt-5.6-luna"
+    assert settings.reasoning_effort == "low"
+    assert settings.native_budget.total_seconds == 180
+    assert settings.timeout_seconds == 180

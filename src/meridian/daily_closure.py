@@ -9,11 +9,13 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from meridian.allocation import allocate_with_fallback
 from meridian.config import Policies
 from meridian.daily_research import ResearchDecisionContext
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
+from meridian.market_identity import canonical_market_reference
 from meridian.orders import OrderPlanner, ProjectedPortfolioValidator
 from meridian.reconciliation import ReconciliationEngine, ReconciliationResult
 from meridian.risk import RiskEngine
@@ -59,8 +61,9 @@ class DailyClosureResult:
 
 
 def daily_run_id(account: AccountSnapshot, quotes: dict[str, MarketSnapshot], cutoff: datetime, policies: Policies) -> str:
-    market = _hash({ticker: quote.model_dump(mode="json") for ticker, quote in sorted(quotes.items())})
-    return "daily-" + _hash({"snapshot": account.stable_json(), "market": market, "cutoff": cutoff.isoformat(), "policy": _hash(policies.models.model_dump(mode="json"))})[:24]
+    market = canonical_market_reference(quotes)
+    trading_date = cutoff.astimezone(ZoneInfo("America/New_York")).date().isoformat()
+    return "daily-" + _hash({"snapshot": account.stable_json(), "market": market, "trading_date": trading_date, "policy": _hash(policies.models.model_dump(mode="json"))})[:24]
 
 
 class DailyClosureService:
@@ -87,7 +90,7 @@ class DailyClosureService:
     def _run(self, account: AccountSnapshot, quotes: dict[str, MarketSnapshot], *, cutoff: datetime, evaluated_at: datetime | None = None) -> DailyClosureResult:
         if cutoff.tzinfo is None or cutoff.utcoffset() is None:
             raise ValueError("DAILY_CUTOFF_TIMEZONE_REQUIRED")
-        market_hash = _hash({ticker: quote.model_dump(mode="json") for ticker, quote in sorted(quotes.items())})
+        market_hash = canonical_market_reference(quotes)
         policy_hash = _hash(self.policies.models.model_dump(mode="json"))
         run_id = daily_run_id(account, quotes, cutoff, self.policies)
         blockers = self._gates(account, quotes, cutoff, evaluated_at=evaluated_at)
@@ -216,7 +219,21 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
              f"Research: **{readiness.get('research_readiness', 'UNKNOWN')}**",
              f"Manual execution: **{readiness.get('manual_execution_readiness', 'BLOCKED')}**",
              "", "EXECUTION = MANUAL", "BROKER SUBMISSION = DISABLED", "",
-             "## Blockers", ""]
+             ""]
+    idempotency = report.get("idempotency", {})
+    if isinstance(idempotency, dict):
+        raw_blockers = report.get("blocked_reasons", [])
+        blockers_for_reason = raw_blockers if isinstance(raw_blockers, list) else []
+        lines.extend([
+            "## Idempotency", "",
+            f"Status: **{idempotency.get('status', 'NOT_RUN')}**",
+            f"Attempted run: `{idempotency.get('attempted_run_id', report.get('run_id', 'UNKNOWN'))}`",
+            f"Authoritative existing run: `{idempotency.get('authoritative_existing_run_id', 'NONE')}`",
+            f"Reason: **{blockers_for_reason[0] if blockers_for_reason else 'NONE'}**",
+            f"Current-run ledger mutation: **{'YES' if idempotency.get('ledger_mutated_current_run') else 'NO'}**",
+            "",
+        ])
+    lines.extend(["## Blockers", ""])
     blockers = list(report.get("blocked_reasons", [])) + list(readiness.get("blockers", []))  # type: ignore[arg-type]
     lines.extend(f"- {item}" for item in dict.fromkeys(blockers))
     snapshot = report.get("snapshot_provenance", {})

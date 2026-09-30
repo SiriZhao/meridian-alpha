@@ -45,6 +45,62 @@ broker. It has no brokerage execution capability and must never grow one.
   unverified data is represented explicitly, never invented.
 - Changes to system boundaries require an ADR.
 
+## Codex canonical-runtime execution boundary
+
+Treat the following user intents as the canonical `Schwab-Paper` daily
+workflow: “运行今日 Meridian Alpha”, “运行今天的 Meridian Alpha”, “今日 paper
+run”, “运行 Schwab-Paper”, and equivalent wording.
+
+The canonical runtime is `E:\MeridianAlphaRuntime`, the canonical database is
+`E:\MeridianAlphaRuntime\db\meridian.sqlite3`, and the canonical account is
+`Schwab-Paper`. Any command that can mutate that runtime MUST use Codex's
+approved host execution mechanism. This includes `paper run`, canonical daily
+runs, ledger changes, report generation, cache atomic writes, migrations,
+runtime write probes, and `doctor` because it performs write probes. In Codex
+environments that expose shell escalation, invoke these commands with
+`sandbox_permissions=require_escalated` (or the equivalent approved-host
+control). Never first try a canonical write command in the restricted sandbox.
+
+Approval is a prerequisite, not an error-recovery step. While approval has not
+been granted, do not run the command and report `HOST_APPROVAL_REQUIRED`. If
+approved host execution is unavailable, rejected, capacity-limited, or cannot
+enter a host context, report `HOST_EXECUTION_UNAVAILABLE`. Never fall back to a
+restricted sandbox, and do not classify an unattempted host command as
+`MERIDIAN_DATABASE_INIT_FAILED` or `STORAGE_UNAVAILABLE`. If a command really
+runs in an approved host context and returns a storage failure, preserve its
+actual diagnostic.
+
+For a canonical daily request, follow this order:
+
+1. Confirm the repository root, project `.venv`, configured canonical runtime,
+   `Schwab-Paper` account, current date, and Meridian trading-calendar policy
+   without changing the runtime.
+2. Request approved host execution before any canonical-runtime write or write
+   probe.
+3. In the approved host context run
+   `.\scripts\run_meridian.ps1 doctor --json`. Continue only when it returns
+   `PASS`.
+4. In the same approved host boundary run
+   `.\scripts\run_meridian.ps1 paper run --account Schwab-Paper --json`.
+5. Read the canonical result and report status, run ID, trading date, account,
+   research status, market-data status, decision, orders, fills, NAV, blockers
+   or degraded reason, and report path.
+6. Verify that the run used the canonical root and account, did not create a
+   duplicate canonical day, and produced no broker or live-order side effect.
+
+Both commands require approved host execution. If the product grants approval
+per command, obtain approval for each; neither command may run in the sandbox.
+Do not force a historical trading date or create a paper day for testing. In
+particular, do not recreate the existing 2026-09-18 canonical run. Repository
+tests and read-only source inspection may run in the sandbox when they do not
+write the canonical runtime.
+
+The repository launcher selects the project Python and runtime configuration;
+it does not cross the Codex sandbox boundary by itself. The MCP server exposes
+Meridian tools and delegation surfaces; it is not an approved-host bridge.
+Project instructions and the Meridian skill must therefore route canonical
+writes through Codex host approval before invoking the launcher.
+
 ## Quality gates
 
 Run the applicable checks before handoff:

@@ -30,6 +30,7 @@ from meridian.gpt_native_research import (
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.host_readiness import ReadinessStatus, inspect_snapshot
 from meridian.live_features import collect_live_features
+from meridian.market_identity import canonical_market_reference
 from meridian.paper import DEFAULT_ACCOUNT, PaperLedger, PaperSettings
 from meridian.quotes import (
     MarketQuoteProvider,
@@ -301,11 +302,20 @@ class LiveAdvisoryService:
         report['model_runtime'] = {'reasoning_effort': settings.reasoning_effort,
                                    'role_timeout_seconds': role_timeout, 'model': settings.model}
         # Dedicated production budget is explicit in launcher/log, not a gate override.
+        # ``role_timeout`` is the complete chain deadline.  The native runtime
+        # uses one shared Codex process for the four logical roles; multiplying
+        # this value by four silently defeated the live-advisory bound and let a
+        # single call run until the global 180s settings timeout.
+        primary_budget = max(1, int(role_timeout * 0.40))
+        skeptic_budget = max(1, int(role_timeout * 0.25))
+        scenario_budget = max(1, int(role_timeout * 0.20))
+        synthesis_budget = max(1, role_timeout - primary_budget - skeptic_budget - scenario_budget)
         settings = settings.model_copy(update={
             'live_enabled': True,
+            'timeout_seconds': role_timeout,
             'models': {key: value.model_copy(update={'timeout_seconds': role_timeout}) for key, value in settings.models.items()},
-            'native_budget': ResearchBudget(total_seconds=role_timeout * 4, primary_seconds=role_timeout,
-                skeptic_seconds=role_timeout, scenario_seconds=role_timeout, synthesis_seconds=role_timeout),
+            'native_budget': ResearchBudget(total_seconds=role_timeout, primary_seconds=primary_budget,
+                skeptic_seconds=skeptic_budget, scenario_seconds=scenario_budget, synthesis_seconds=synthesis_budget),
         })
         envelope: HostAccountSnapshotEnvelope | None = None
         account: AccountSnapshot | None = None
@@ -395,7 +405,7 @@ class LiveAdvisoryService:
             return report
         references = {symbol:digest(row) for symbol,row in valid_rows.items()}
         request = DailyResearchInput(parent_run_id=run_id, analysis_cutoff=cutoff, mode='LIVE',
-                    snapshot_reference='IN_MEMORY_ONLY', market_reference=digest(rows), policy_reference=digest(policies.risk.model_dump()),
+                    snapshot_reference='IN_MEMORY_ONLY', market_reference=canonical_market_reference(rows), policy_reference=digest(policies.risk.model_dump()),
                     provider='codex_cli', model=settings.model,
                     temporal_context=ResearchTemporalContext(run_id=run_id, trading_date=cutoff.astimezone(NEW_YORK).date(),
                         as_of=cutoff, information_cutoff=cutoff, market_session=session_context(cutoff),
@@ -413,7 +423,10 @@ class LiveAdvisoryService:
         if preflight.status != 'READY':
             report['blockers'].append('LLM_PREFLIGHT_' + preflight.status)
             return report
-        logger.info('[RESEARCH] starting GPT native chain; per-role budget=%s', role_timeout)
+        logger.info(
+            '[RESEARCH] starting GPT native chain; bounded process budget=%s',
+            min(settings.native_budget.total_seconds, settings.timeout_seconds),
+        )
         native = GPTNativeResearchOrchestrator(runtime, memory=ResearchMemory(self.paths.data/'research'/'memory')).run(
                     request, research_data_status='PASS' if fresh else 'BLOCKED', execution_data_status='BLOCKED_PUBLIC_QUOTE',
                     execution_state=ExecutionState.BLOCKED_STALE_EXECUTION_QUOTE, settings=settings, run_id=run_id)

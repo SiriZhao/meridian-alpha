@@ -1,5 +1,38 @@
 # Architecture
 
+## Canonical runtime recovered on 2026-09-16
+
+```text
+CLI / PowerShell / Skill paper command / MCP Host-envelope tool
+  -> MeridianApplicationService
+  -> account validation + operational market snapshot
+  -> research preparation
+  -> GPT-native runtime OR explicit HOST_CODEX job/result handoff
+  -> deterministic DailyClosureService
+  -> allocation + risk + reconciliation + order planning
+  -> optional Schwab-Paper transaction
+  -> persistent ledger + canonical daily report
+```
+
+`application.py` is the production orchestration owner. `daily_app.py`,
+`daily_cli.py`, `cli.py`, historical gate scripts, and the TradingAgents adapter
+are compatibility/diagnostic surfaces; they must not become a second production
+decision path. No broker SDK is reachable from the canonical chain.
+
+Research/market consistency is a deterministic boundary. A Host job records its
+job ID, analysis as-of, semantic market snapshot ID, universe, quote timestamps,
+evidence IDs, and model/runtime provenance. Resume accepts an exact reference,
+permits only bounded price-only revalidation with both references retained, or
+returns `RESEARCH_REFRESH_REQUIRED`. Wrong job IDs, wrong snapshot IDs,
+malformed output, duplicate conflicts, and unavailable Host runtime remain
+separate Host failures.
+
+Reports derive six machine-readable dimensions from the existing canonical
+states: `DATA`, `RESEARCH`, `DECISION`, `RISK`, `PAPER`, and `HOST_LLM`. This is
+a report projection, not a second state machine. Market closure, stale data,
+research waiting/refresh, model failure, deterministic risk blocking, and
+paper no-fill therefore remain distinguishable.
+
 ## Current Astra Skill foundation (2026-09-11)
 
 Acceptance is **BLOCKED_WITH_EVIDENCE**, not production-ready; see

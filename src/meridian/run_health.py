@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 from datetime import UTC, datetime
+from enum import StrEnum
 from pathlib import Path
 from uuid import uuid4
 
@@ -29,6 +30,18 @@ STAGES = (
     "REPORT_PERSISTENCE",
     "RUN_FINALIZATION",
 )
+
+
+class WorkflowStageStatus(StrEnum):
+    """Stable lifecycle vocabulary used by canonical and paper reports."""
+
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+    DEGRADED = "DEGRADED"
+    BLOCKED = "BLOCKED"
+    NOT_RUN = "NOT_RUN"
+    SKIPPED = "SKIPPED"
+    INHERITED = "INHERITED"
 
 
 def _stage(
@@ -118,8 +131,8 @@ def build_run_health(payload: dict[str, object]) -> dict[str, object]:
                     end,
                     status,
                     str(error) if error else None,
-                    stage_source=("CANONICAL_RUN" if is_paper else None),
-                    source_run_id=(canonical_run_id if is_paper else None),
+                    stage_source=(str(source.get("stage_source")) if source.get("stage_source") else ("CANONICAL_RUN" if is_paper and "stage_source" not in source else None)),
+                    source_run_id=(str(source.get("source_run_id")) if source.get("source_run_id") else (canonical_run_id if is_paper and "source_run_id" not in source else None)),
                 )
             )
         else:
@@ -221,6 +234,7 @@ def build_run_health(payload: dict[str, object]) -> dict[str, object]:
         "execution_authority": "NONE",
         "execution_state": intelligence.get("execution_state"),
         "execution_data_status": intelligence.get("execution_data_status"),
+        "idempotency": payload.get("idempotency"),
     }
     if is_paper and canonical_run_id:
         result["canonical_run_id"] = canonical_run_id

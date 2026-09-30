@@ -3,6 +3,20 @@
 US-equity portfolio decision support. All current outputs are research-only;
 there is no broker execution and a DRAFT is not authorization to enter an order.
 
+Meridian Alpha is independent from Personal Alpha Terminal. No implementation,
+runtime state, account semantics, or migration path is shared between them.
+Meridian remains `PAPER_ONLY`; `AUTO_EXECUTION = FALSE`; real broker writes and
+live orders are unsupported.
+
+Current canonical operation is one application service shared by CLI, the
+PowerShell launcher, the Skill paper command, and MCP Host-envelope delegation.
+Daily reports expose independent `DATA`, `RESEARCH`, `DECISION`, `RISK`,
+`PAPER`, and `HOST_LLM` status dimensions. A Host research result is bound to
+its job, as-of time, symbol universe, quote timestamps, evidence IDs, market
+snapshot ID, and model/runtime provenance. Resume classifies market movement as
+`EXACT`, explicitly `REVALIDATED`, or `REFRESH_REQUIRED`; market drift is not
+reported as a generic LLM failure.
+
 Final maintainer acceptance on 2026-09-11: **BLOCKED_WITH_EVIDENCE**.
 Source validation and a real clean wheel installation passed. The one fresh
 GPT-6 Astra acceptance session hit its usage limit before reading the Skill or
@@ -104,6 +118,15 @@ with evidence; no fixture, prior LLM response or stale quote is substituted.
 Public quotes remain `PUBLIC_RESEARCH_QUOTE`, never certified execution quotes.
 Paper execution does not grant manual authority and broker submission remains
 disabled.
+
+The GPT research layer may perform primary analysis, skepticism, scenarios,
+and synthesis. It cannot choose executable quantity or price, mutate the paper
+ledger, bypass deterministic risk gates, or acquire broker authority.
+
+TradingAgents remains an optional, disabled-by-default legacy research adapter.
+It is not installed by the base runtime and is not part of the canonical daily
+path. See the current upstream assessment in
+[`docs/tradingagents-upgrade-assessment-2026-09-16.md`](docs/tradingagents-upgrade-assessment-2026-09-16.md).
 
 Useful read-only commands are:
 

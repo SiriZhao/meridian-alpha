@@ -62,7 +62,7 @@ _DEFINITIONS = (
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.NET_INCOME, raw_concepts=("NetIncomeLoss",), expected_units=("USD",), context_type=FundamentalContextType.QUARTER),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.DILUTED_EPS, raw_concepts=("EarningsPerShareDiluted",), expected_units=("USD/shares",), context_type=FundamentalContextType.QUARTER),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.OPERATING_CASH_FLOW, raw_concepts=("NetCashProvidedByUsedInOperatingActivities",), expected_units=("USD",), context_type=FundamentalContextType.QUARTER),
-    CanonicalMetricDefinition(canonical_metric=CanonicalMetric.CAPEX, raw_concepts=("PaymentsToAcquirePropertyPlantAndEquipment",), expected_units=("USD",), context_type=FundamentalContextType.QUARTER),
+    CanonicalMetricDefinition(canonical_metric=CanonicalMetric.CAPEX, raw_concepts=("PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsToAcquireProductiveAssets"), expected_units=("USD",), context_type=FundamentalContextType.QUARTER, notes="SEC issuers may label capex as purchases of productive assets."),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.CASH_AND_EQUIVALENTS, raw_concepts=("CashAndCashEquivalentsAtCarryingValue",), expected_units=("USD",), context_type=FundamentalContextType.INSTANT),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.TOTAL_ASSETS, raw_concepts=("Assets",), expected_units=("USD",), context_type=FundamentalContextType.INSTANT),
     CanonicalMetricDefinition(canonical_metric=CanonicalMetric.TOTAL_LIABILITIES, raw_concepts=("Liabilities",), expected_units=("USD",), context_type=FundamentalContextType.INSTANT),

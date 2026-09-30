@@ -30,6 +30,10 @@ def main() -> int:
     parser.add_argument("--currency", default="USD")
     parser.add_argument("--confirm-reset")
     parser.add_argument("--run-id")
+    parser.add_argument(
+        "--run-purpose",
+        choices=("OPERATIONAL_DAILY", "OPERATIONAL_PAPER_DAILY", "ACCEPTANCE_VALIDATION"),
+    )
     args = parser.parse_args()
     service = None
     try:
@@ -76,7 +80,11 @@ def main() -> int:
                 "auto_execution": False, "manual_confirmation_required": True}
 
         elif args.command == "daily":
-            payload = service.daily(Path(args.snapshot) if args.snapshot else None, Path(args.market_fixture) if args.market_fixture else None)
+            payload = service.daily(
+                Path(args.snapshot) if args.snapshot else None,
+                Path(args.market_fixture) if args.market_fixture else None,
+                run_purpose=args.run_purpose or "OPERATIONAL_DAILY",
+            )
         elif args.command == "shadow-run" and args.market_fixture:
             payload = service.shadow_run(Path(args.market_fixture))
         elif args.command == "paper" and args.subcommand == "init":
@@ -86,7 +94,10 @@ def main() -> int:
                 currency=args.currency,
             )
         elif args.command == "paper" and args.subcommand == "run":
-            payload = service.paper_run(args.account)
+            payload = service.paper_run(
+                args.account,
+                run_purpose=args.run_purpose or "OPERATIONAL_PAPER_DAILY",
+            )
         elif args.command == "paper" and args.subcommand == "status":
             payload = service.paper_status(args.account)
         elif args.command == "paper" and args.subcommand == "history":
@@ -111,8 +122,8 @@ def main() -> int:
         elif str(error) == "PAPER_RESET_CONFIRMATION_REQUIRED":
             code, category, message = "PAPER_RESET_CONFIRMATION_REQUIRED", "USER_FIXABLE", "Reset requires --confirm-reset with the exact paper account name; no account state changed."
         else:
-            code, category, message = "MERIDIAN_INPUT_INVALID", "DATA_QUALITY", "Supply a valid sanitized HostAccountSnapshotEnvelope and market fixture; run snapshot validate first."
-        payload = {"status": "FAILED", "runtime_status": "FAILED", "error_code": code, "category": category, "message": message, "path": str(getattr(error, "filename", None) or ""), "logs_path": str(service.paths.logs) if service else None, "automatic_recovery": "No destructive recovery attempted"}
+            code, category, message = "MERIDIAN_INPUT_INVALID", "DATA_QUALITY", "Canonical input validation failed; inspect validation_error and validate the sanitized account/market inputs."
+        payload = {"status": "FAILED", "runtime_status": "FAILED", "error_code": code, "category": category, "message": message, "validation_error": str(error) if code == "MERIDIAN_INPUT_INVALID" else None, "path": str(getattr(error, "filename", None) or ""), "logs_path": str(service.paths.logs) if service else None, "automatic_recovery": "No destructive recovery attempted"}
         if isinstance(error, OSError):
             payload["filesystem"] = getattr(error, "detail", filesystem_detail(error, "APPLICATION_IO", Path(error.filename or ".")))
         payload.update({"run_id": "failed-" + uuid4().hex,

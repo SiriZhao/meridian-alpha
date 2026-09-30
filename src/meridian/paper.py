@@ -340,7 +340,23 @@ class PaperLedger:
         self.store.migrate()
         with closing(self.store.connect()) as connection:
             row = self._daily_row(connection, account_name, trading_date)
-            return dict(row) if row else None
+            if row is None:
+                return None
+            # Only a committed paper execution owns the trading date.  A
+            # diagnostic/failed row must never prevent a legitimate retry.
+            if row["execution_status"] not in {"PAPER_COMPLETE", "PAPER_NO_TRADE"}:
+                return None
+            return dict(row)
+
+    def authoritative_daily_execution(
+        self, account_name: str, trading_date: str
+    ) -> dict[str, str] | None:
+        """Return the committed owner of a paper trading date, if any.
+
+        This is an optimization read only.  ``execute`` retains the
+        transactionally protected final idempotency check for races.
+        """
+        return self.daily_execution(account_name, trading_date)
 
     def build_order_intents(
         self,
@@ -446,7 +462,11 @@ class PaperLedger:
             account = self._state(connection, account_name)
             if account is None:
                 raise ValueError("PAPER_ACCOUNT_NOT_FOUND")
-            if self._daily_row(connection, account_name, trading_date) is not None:
+            existing_daily = self._daily_row(connection, account_name, trading_date)
+            if existing_daily is not None and existing_daily["execution_status"] in {
+                "PAPER_COMPLETE",
+                "PAPER_NO_TRADE",
+            }:
                 return "PAPER_ALREADY_EXECUTED", ()
             cash = account.cash
             realized = account.realized_pnl
@@ -508,12 +528,21 @@ class PaperLedger:
                 "UPDATE paper_accounts SET cash=?, realized_pnl=?, ledger_version=? WHERE account_name=?",
                 (_amount(cash), _amount(realized), version, account_name),
             )
-            connection.execute(
-                "INSERT INTO paper_daily_runs(account_name,trading_date,canonical_run_id,order_intent_hash,execution_status,created_at) VALUES(?,?,?,?,?,?)",
-                (account_name, trading_date, canonical_run_id, intent_hash,
-                 "PAPER_COMPLETE" if fills else "PAPER_NO_TRADE", observed.isoformat()),
-            )
-            return ("PAPER_COMPLETE" if fills else "PAPER_NO_TRADE"), tuple(fills)
+            execution_status = "PAPER_COMPLETE" if fills else "PAPER_NO_TRADE"
+            if existing_daily is None:
+                connection.execute(
+                    "INSERT INTO paper_daily_runs(account_name,trading_date,canonical_run_id,order_intent_hash,execution_status,created_at) VALUES(?,?,?,?,?,?)",
+                    (account_name, trading_date, canonical_run_id, intent_hash,
+                     execution_status, observed.isoformat()),
+                )
+            else:
+                # A prior diagnostic/failed marker does not own the date and
+                # may be replaced by this atomically committed execution.
+                connection.execute(
+                    "UPDATE paper_daily_runs SET canonical_run_id=?, order_intent_hash=?, execution_status=?, created_at=? WHERE account_name=? AND trading_date=?",
+                    (canonical_run_id, intent_hash, execution_status, observed.isoformat(), account_name, trading_date),
+                )
+            return execution_status, tuple(fills)
 
     def record_nav(
         self,
