@@ -7,6 +7,23 @@ clone, create a 3.12 virtual environment, then run `python -m pip install -e
 ".[dev]"`, or use `uv sync --group dev`. The project does not require broker credentials or an
 external runtime for tests.
 
+For an independent clone on Windows:
+
+```powershell
+git clone https://github.com/SiriZhao/meridian-alpha.git
+cd meridian-alpha
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip check
+.\.venv\Scripts\python.exe scripts/validate_repo.py
+```
+
+On Linux replace environment creation with `python3.12 -m venv .venv`
+and use `.venv/bin/python`. These commands install from project metadata;
+`uv sync --frozen --group dev` instead installs the checked-in lockfile.
+Do not inherit `PYTHONPATH`, runtime overrides, or credentials from another
+checkout. CI exercises independent Python 3.12 environments on both platforms.
+
 ## Validation
 
 Run the cross-platform entrypoint:
@@ -43,3 +60,8 @@ started in an isolated process group so timeout cleanup covers descendants.
 Keep `main` stable and create `chore/*`, `fix/*`, or `feature/*` branches from
 it. Do not force-push, rewrite history, enable a broker, or commit runtime data,
 credentials, caches or `.env` files.
+
+`.tmp/` and `dist/` are local generated artifacts, not source inputs. Historical
+tracked artifacts were removed from the current tree without deleting local
+copies or rewriting history; durable audit records remain in `docs/` and
+`reports/`. Published audit documents use `<USER_HOME>` for personal paths.

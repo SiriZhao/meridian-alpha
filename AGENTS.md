@@ -103,6 +103,23 @@ writes through Codex host approval before invoking the launcher.
 
 ## Quality gates
 
+## Development quick start
+
+- Python 3.12; create `.venv`, then install with `python -m pip install -e ".[dev]"`.
+- Run `python scripts/validate_repo.py` using that environment: Ruff, Pyright,
+  full offline pytest, and CLI smoke. See `DEVELOPMENT.md` for fresh-clone steps.
+- Architecture: Market/Data -> Research -> Decision -> Execution Plan -> Paper/Ledger.
+- Core code: `src/meridian`; regression coverage: `tests`; contracts and policy:
+  `schemas`, `prompts`, `policies`. Windows launchers live in `scripts`.
+- Tests must isolate runtime state; never use the canonical database for tests.
+- Default account: `Schwab-Paper`; broker submission: `DISABLED`.
+  HSBC holdings and credentials are outside Meridian Alpha.
+- Start development branches from `origin/main`; preserve user changes and
+  remote history. Completion requires full validation, reviewed diff, clean
+  working tree, and matching local/remote SHA when publishing is authorized.
+
+## Individual checks
+
 Run the applicable checks before handoff:
 
 ```powershell

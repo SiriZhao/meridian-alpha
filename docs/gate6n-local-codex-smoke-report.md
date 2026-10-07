@@ -5,7 +5,7 @@
 | Field | Result |
 |---|---|
 | Codex Skill discovered | YES — listed as `meridian-alpha` in this restarted Codex session’s available-skills registry |
-| Skill source | `C:\Users\YOGA Pro16\.codex\skills\meridian-alpha` |
+| Skill source | `<USER_HOME>\.codex\skills\meridian-alpha` |
 | Skill name/description | `name: meridian-alpha`; read-only US-equity decision-support description verified |
 | Skill version | `meridian-alpha-skill-v1` |
 | Gate 6M release reference | Source commit `3166beeb6f214a289ec4372ce713da7b076bd34a`; no `v1.0.0-rc1` tag exists |
