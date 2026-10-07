@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "meridian-paper-daily.v1.schema.json",
+  "title": "meridian-paper-daily.v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "meridian-paper-daily.v1"
+    },
+    "canonical_state": {
+      "$ref": "meridian-canonical-run.v1.schema.json"
+    },
+    "paper_run_id": {
+      "type": "string"
+    },
+    "canonical_run_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "trading_date": {
+      "type": "string"
+    },
+    "broker_submission": {
+      "const": "DISABLED"
+    }
+  },
+  "required": [
+    "schema_version",
+    "paper_run_id",
+    "canonical_run_id",
+    "status"
+  ],
+  "additionalProperties": true
+}

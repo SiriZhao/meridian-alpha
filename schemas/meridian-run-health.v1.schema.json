@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "meridian-run-health.v1.schema.json",
+  "title": "meridian-run-health.v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "meridian-run-health.v1"
+    },
+    "canonical_state": {
+      "$ref": "meridian-canonical-run.v1.schema.json"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "overall_status": {
+      "type": "string"
+    },
+    "research": {
+      "type": "object"
+    },
+    "market_data": {
+      "type": "object"
+    },
+    "stages": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_id",
+    "overall_status"
+  ],
+  "additionalProperties": true
+}

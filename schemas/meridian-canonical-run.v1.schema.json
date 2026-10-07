@@ -1,0 +1,581 @@
+{
+  "$defs": {
+    "CanonicalDecisionState": {
+      "additionalProperties": false,
+      "properties": {
+        "result_status": {
+          "title": "Result Status",
+          "type": "string"
+        },
+        "order_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Order Count"
+        },
+        "orders": {
+          "default": [],
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Orders",
+          "type": "array"
+        },
+        "context": {
+          "additionalProperties": true,
+          "title": "Context",
+          "type": "object"
+        }
+      },
+      "required": [
+        "result_status"
+      ],
+      "title": "CanonicalDecisionState",
+      "type": "object"
+    },
+    "CanonicalExecutionState": {
+      "additionalProperties": false,
+      "properties": {
+        "execution_state": {
+          "$ref": "#/$defs/ExecutionState"
+        },
+        "result_status": {
+          "title": "Result Status",
+          "type": "string"
+        },
+        "order_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Order Count"
+        },
+        "fill_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fill Count"
+        },
+        "authority": {
+          "default": "NONE",
+          "title": "Authority",
+          "type": "string"
+        },
+        "broker_submission": {
+          "const": "DISABLED",
+          "default": "DISABLED",
+          "title": "Broker Submission",
+          "type": "string"
+        },
+        "broker_side_effects": {
+          "const": false,
+          "default": false,
+          "title": "Broker Side Effects",
+          "type": "boolean"
+        },
+        "fills": {
+          "default": [],
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Fills",
+          "type": "array"
+        }
+      },
+      "required": [
+        "execution_state",
+        "result_status"
+      ],
+      "title": "CanonicalExecutionState",
+      "type": "object"
+    },
+    "CanonicalIdempotencyState": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/IdempotencyState"
+        },
+        "attempted_run_id": {
+          "title": "Attempted Run Id",
+          "type": "string"
+        },
+        "authoritative_existing_run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Authoritative Existing Run Id"
+        },
+        "ledger_mutated_current_run": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ledger Mutated Current Run"
+        },
+        "orders_created_current_run": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Orders Created Current Run"
+        },
+        "fills_created_current_run": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fills Created Current Run"
+        }
+      },
+      "required": [
+        "state",
+        "attempted_run_id"
+      ],
+      "title": "CanonicalIdempotencyState",
+      "type": "object"
+    },
+    "CanonicalMarketState": {
+      "additionalProperties": false,
+      "properties": {
+        "result_status": {
+          "title": "Result Status",
+          "type": "string"
+        },
+        "session": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session"
+        },
+        "quote_certification": {
+          "title": "Quote Certification",
+          "type": "string"
+        },
+        "provider_probes": {
+          "additionalProperties": true,
+          "title": "Provider Probes",
+          "type": "object"
+        },
+        "providers_attempted": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Providers Attempted",
+          "type": "array"
+        },
+        "providers_used": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Providers Used",
+          "type": "array"
+        },
+        "fallbacks_used": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Fallbacks Used",
+          "type": "array"
+        },
+        "observations": {
+          "additionalProperties": true,
+          "title": "Observations",
+          "type": "object"
+        }
+      },
+      "required": [
+        "result_status",
+        "quote_certification"
+      ],
+      "title": "CanonicalMarketState",
+      "type": "object"
+    },
+    "CanonicalResearchState": {
+      "additionalProperties": false,
+      "properties": {
+        "execution_state": {
+          "$ref": "#/$defs/ExecutionState"
+        },
+        "result_status": {
+          "title": "Result Status",
+          "type": "string"
+        },
+        "research_state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Research State"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mode"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "llm_available": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llm Available"
+        },
+        "fallback_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fallback Reason"
+        },
+        "intelligence": {
+          "additionalProperties": true,
+          "title": "Intelligence",
+          "type": "object"
+        },
+        "details": {
+          "additionalProperties": true,
+          "title": "Details",
+          "type": "object"
+        }
+      },
+      "required": [
+        "execution_state",
+        "result_status"
+      ],
+      "title": "CanonicalResearchState",
+      "type": "object"
+    },
+    "CanonicalStageResult": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "execution_state": {
+          "$ref": "#/$defs/ExecutionState"
+        },
+        "result_status": {
+          "title": "Result Status",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "CURRENT_RUN",
+            "CANONICAL_RUN",
+            "LEGACY_REPORT",
+            "UNRECORDED"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "source_run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Run Id"
+        }
+      },
+      "required": [
+        "name",
+        "execution_state",
+        "result_status",
+        "source"
+      ],
+      "title": "CanonicalStageResult",
+      "type": "object"
+    },
+    "ExecutionState": {
+      "enum": [
+        "UNKNOWN",
+        "EXECUTED",
+        "INHERITED",
+        "REUSED",
+        "BLOCKED",
+        "FAILED",
+        "NOT_REACHED",
+        "NOT_APPLICABLE"
+      ],
+      "title": "ExecutionState",
+      "type": "string"
+    },
+    "IdempotencyState": {
+      "enum": [
+        "EXECUTED_THIS_RUN",
+        "REUSED_EXISTING_CANONICAL_RUN",
+        "IDEMPOTENCY_BLOCKED_DUPLICATE",
+        "NOT_APPLICABLE",
+        "NOT_REACHED",
+        "FAILED"
+      ],
+      "title": "IdempotencyState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "meridian-canonical-run.v1",
+      "default": "meridian-canonical-run.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "canonical_run_id": {
+      "title": "Canonical Run Id",
+      "type": "string"
+    },
+    "paper_run_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Paper Run Id"
+    },
+    "trading_date": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trading Date"
+    },
+    "account": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Account"
+    },
+    "result_status": {
+      "title": "Result Status",
+      "type": "string"
+    },
+    "nav": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Nav"
+    },
+    "cash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cash"
+    },
+    "position_count": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Position Count"
+    },
+    "positions": {
+      "default": [],
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Positions",
+      "type": "array"
+    },
+    "market": {
+      "$ref": "#/$defs/CanonicalMarketState"
+    },
+    "research": {
+      "$ref": "#/$defs/CanonicalResearchState"
+    },
+    "decision": {
+      "$ref": "#/$defs/CanonicalDecisionState"
+    },
+    "execution": {
+      "$ref": "#/$defs/CanonicalExecutionState"
+    },
+    "idempotency": {
+      "$ref": "#/$defs/CanonicalIdempotencyState"
+    },
+    "stages": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CanonicalStageResult"
+      },
+      "title": "Stages",
+      "type": "array"
+    },
+    "blockers": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Blockers",
+      "type": "array"
+    },
+    "next_actions": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Next Actions",
+      "type": "array"
+    },
+    "status_dimensions": {
+      "additionalProperties": true,
+      "title": "Status Dimensions",
+      "type": "object"
+    },
+    "readiness": {
+      "additionalProperties": true,
+      "title": "Readiness",
+      "type": "object"
+    },
+    "manual_authority": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Manual Authority"
+    }
+  },
+  "required": [
+    "run_id",
+    "canonical_run_id",
+    "result_status",
+    "market",
+    "research",
+    "decision",
+    "execution",
+    "idempotency"
+  ],
+  "title": "CanonicalRunSnapshot",
+  "type": "object"
+}

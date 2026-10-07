@@ -346,7 +346,27 @@ def test_failed_daily_row_does_not_trigger_early_duplicate_short_circuit(
     monkeypatch.setattr(service, "daily", canonical)
     result = service.paper_run()
     assert called == ["OPERATIONAL_PAPER_DAILY"]
-    assert result["status"] in {"PAPER_READY", "PAPER_NO_TRADE", "PAPER_BLOCKED"}
+    assert result["status"] == "PAPER_READY"
+    assert service._paper_ledger().authoritative_daily_execution(DEFAULT_ACCOUNT, trading_date)["canonical_run_id"] == "daily-paper-canonical"  # type: ignore[index]
+
+
+def test_late_duplicate_race_does_not_mark_nav_or_claim_fills(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    service = MeridianApplicationService(RuntimePaths(tmp_path))
+    assert service.paper_init()["status"] == "PAPER_INITIALIZED"
+    payload = _canonical_daily_payload()
+    payload["status"] = "NO_ACTION"
+    def canonical(*args, **kwargs):
+        service._paper_ledger().execute(DEFAULT_ACCOUNT, trading_date=str(payload["trading_date"]),
+            canonical_run_id="daily-race-winner", intents=())
+        return payload
+    monkeypatch.setattr(service, "daily", canonical)
+    monkeypatch.setattr(PaperLedger, "record_nav", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("duplicate marked NAV")))
+    result = service.paper_run()
+    assert result["status"] == "PAPER_ALREADY_EXECUTED"
+    assert result["idempotency"]["authoritative_existing_run_id"] == "daily-race-winner"  # type: ignore[index]
+    assert result["idempotency"]["ledger_mutated_current_run"] is False  # type: ignore[index]
+    assert result["paper_execution"]["intent_count"] == 0  # type: ignore[index]
+    assert result["paper_execution"]["fills"] == []  # type: ignore[index]
 
 
 def test_paper_execution_race_has_one_authoritative_owner(tmp_path: Path) -> None:

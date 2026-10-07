@@ -13,6 +13,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from meridian.allocation import allocate_with_fallback
+from meridian.canonical_run import display, render_canonical_audit, seal_canonical_report
 from meridian.config import Policies
 from meridian.daily_research import ResearchDecisionContext
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
@@ -161,6 +162,7 @@ def publish_staged_report(staged: Path, destination: Path) -> None:
 
 def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[Path, Path]:
     """One writer for completed analysis and rejected-input diagnostics."""
+    canonical = seal_canonical_report(report)
     paths.ensure_directories()
     as_of = datetime.fromisoformat(str(report["analysis_time"]))
     directory = paths.reports / as_of.date().isoformat() / str(report["run_id"])
@@ -222,12 +224,12 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
              "", "EXECUTION = MANUAL", "BROKER SUBMISSION = DISABLED", "",
              ""]
     idempotency = report.get("idempotency", {})
-    if isinstance(idempotency, dict):
+    if isinstance(idempotency, dict) and idempotency:
         raw_blockers = report.get("blocked_reasons", [])
         blockers_for_reason = raw_blockers if isinstance(raw_blockers, list) else []
         lines.extend([
             "## Idempotency", "",
-            f"Status: **{idempotency.get('status', 'NOT_RUN')}**",
+            f"Status: **{canonical.idempotency.state}**",
             f"Attempted run: `{idempotency.get('attempted_run_id', report.get('run_id', 'UNKNOWN'))}`",
             f"Authoritative existing run: `{idempotency.get('authoritative_existing_run_id', 'NONE')}`",
             f"Reason: **{blockers_for_reason[0] if blockers_for_reason else 'NONE'}**",
@@ -273,11 +275,11 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
                       f"diagnostic: {research.get('error_code') or 'none'}.",
                       f"Auth mode: **{diagnostics.get('auth_mode', 'CHATGPT_MANAGED_CODEX')}**; "
                       f"reasoning: **{diagnostics.get('reasoning_effort', 'medium')}**; "
-                      f"schema: **{'PASS' if diagnostics.get('schema_valid') else 'FAIL'}**; "
+                      f"schema: **{'NOT_AVAILABLE' if diagnostics.get('schema_valid') is None else 'PASS' if diagnostics['schema_valid'] else 'FAIL'}**; "
                       f"elapsed: **{diagnostics.get('elapsed_ms', 0)} ms**.",
-                      f"Research status: **{context.get('status', 'NOT_RUN')}**; "
-                      f"recommendation: **{structured.get('recommended_action', 'NO_ACTION')}**; "
-                      f"confidence: **{structured.get('confidence', 'NOT_AVAILABLE')}**."])
+                      f"Research status: **{canonical.research.result_status}**; "
+                      f"advisory recommendation: **{display(structured.get('recommended_action'))}**; "
+                      f"confidence: **{display(canonical.research.confidence)}**."])
         output = context.get("output") if isinstance(context, dict) else None
         if isinstance(output, dict):
             # Indented text renders model prose as literal content, never links/HTML.
@@ -331,6 +333,7 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
     orders = report.get("orders", [])
     if isinstance(orders, list):
         lines.extend(f"- {order['side']} {order['quantity']} {order['ticker']} @ {order.get('preferred_limit')}" for order in orders if isinstance(order, dict))
+    lines.append(render_canonical_audit(canonical))
     temporary_md = markdown_path.with_suffix(".tmp")
     temporary_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
     publish_staged_report(temporary_md, markdown_path)

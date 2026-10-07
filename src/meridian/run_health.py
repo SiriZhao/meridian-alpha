@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from uuid import uuid4
 
+from meridian.canonical_run import canonical_snapshot, first, mapping, optional_text, sequence
+from meridian.daily_closure import publish_staged_report
 from meridian.runtime import RuntimePaths
 
 STAGES = (
@@ -26,9 +27,6 @@ STAGES = (
     "DECISION",
     "PORTFOLIO",
     "PAPER_EXECUTION",
-    "REPORT_GENERATION",
-    "REPORT_PERSISTENCE",
-    "RUN_FINALIZATION",
 )
 
 
@@ -81,163 +79,83 @@ def _stage(
 
 
 def build_run_health(payload: dict[str, object]) -> dict[str, object]:
+    """Project the canonical business state and recorded receipt timings only."""
+    canonical = canonical_snapshot(payload)
     now = datetime.now(UTC).isoformat()
     started = str(payload.get("analysis_time") or now)
-    raw_stages = payload.get("stages", [])
-    observed: dict[str, dict[str, object]] = {}
-    if isinstance(raw_stages, list):
-        for item in raw_stages:
-            if isinstance(item, dict):
-                observed[str(item.get("stage", "")).upper()] = item
-    aliases = {
-        "MARKET_QUOTE": "MARKET",
-        "HISTORICAL_DATA": "MARKET",
-        "BENCHMARK_DATA": "MARKET",
-        "DATA_VALIDATION": "MARKET",
-        "PORTFOLIO": "DECISION",
-    }
-    intelligence = payload.get("research_intelligence", {})
-    intelligence = intelligence if isinstance(intelligence, dict) else {}
-    native_stages = intelligence.get("stages", {})
-    native_stages = native_stages if isinstance(native_stages, dict) else {}
-    is_paper = bool(payload.get("paper_run_id"))
-    canonical_run_id = str(payload.get("canonical_run_id") or "") or None
+    observed = {str(item.get("stage", "")).upper(): item
+                for item in sequence(payload.get("stages")) if isinstance(item, dict)}
+    native_stages = mapping(canonical.research.intelligence.get("stages"))
+    truth = {stage.name: stage for stage in canonical.stages}
     stages = []
-    for name in STAGES:
-        native = native_stages.get(name)
-        if isinstance(native, dict):
-            stage = _stage(
-                name,
-                started,
-                started,
-                str(native.get("status") or "UNKNOWN"),
-                str(native.get("error_type")) if native.get("error_type") else None,
-            )
-            stage["elapsed_ms"] = int(native.get("duration_ms") or 0)
-            stage["model"] = native.get("model")
-            stage["schema_valid"] = bool(native.get("schema_valid"))
-            stages.append(stage)
-            continue
-        source = observed.get(name) or observed.get(aliases.get(name, ""))
-        if source:
-            begin = str(source.get("start") or started)
-            end = str(source.get("finish") or now)
-            status = str(source.get("status") or "UNKNOWN")
-            error = source.get("error_code")
-            stages.append(
-                _stage(
-                    name,
-                    begin,
-                    end,
-                    status,
-                    str(error) if error else None,
-                    stage_source=(str(source.get("stage_source")) if source.get("stage_source") else ("CANONICAL_RUN" if is_paper and "stage_source" not in source else None)),
-                    source_run_id=(str(source.get("source_run_id")) if source.get("source_run_id") else (canonical_run_id if is_paper and "source_run_id" not in source else None)),
-                )
-            )
-        else:
-            if is_paper and canonical_run_id:
-                stages.append(
-                    _stage(
-                        name,
-                        started,
-                        now,
-                        "INHERITED",
-                        stage_source="CANONICAL_RUN",
-                        source_run_id=canonical_run_id,
-                    )
-                )
-            else:
-                status = (
-                    "PASS"
-                    if name in {"REPORT_GENERATION", "REPORT_PERSISTENCE", "RUN_FINALIZATION"}
-                    else "NOT_RECORDED"
-                )
-                stages.append(_stage(name, started, now, status))
-    probes = payload.get("provider_probes", {})
-    probes = probes if isinstance(probes, dict) else {}
-    research = payload.get("research", {})
-    research = research if isinstance(research, dict) else {}
-    blockers = payload.get("blocked_reasons", payload.get("blockers", []))
-    blockers = blockers if isinstance(blockers, list) else []
-    orders = payload.get("orders", [])
-    orders = orders if isinstance(orders, list) else []
-    paper = payload.get("paper_execution", {})
-    paper = paper if isinstance(paper, dict) else {}
-    market = payload.get("market", {})
-    market = market if isinstance(market, dict) else {}
-    decision = payload.get("decision", {})
-    decision = decision if isinstance(decision, dict) else {}
-    cache = payload.get("cache", {})
-    cache = cache if isinstance(cache, dict) else {}
-    finished = datetime.now(UTC)
-    try:
-        duration_ms = max(
-            0, round((finished - datetime.fromisoformat(started)).total_seconds() * 1000)
-        )
-    except ValueError:
-        duration_ms = 0
-    result = {
+    for name in dict.fromkeys((*STAGES, *truth)):
+        fact = truth.get(name)
+        source = observed.get(name, {})
+        native = mapping(native_stages.get(name))
+        stage = _stage(name, str(source.get("start") or started),
+            str(source.get("finish") or started),
+            fact.result_status if fact else "NOT_RECORDED",
+            optional_text(first(source.get("error_code"), native.get("error_type"))),
+            stage_source=fact.source if fact else "UNRECORDED",
+            source_run_id=fact.source_run_id if fact else None)
+        stage.update({"execution_state": fact.execution_state.value if fact else "UNKNOWN",
+                      "result_status": fact.result_status if fact else "UNKNOWN",
+                      "source_run_id": fact.source_run_id if fact else None})
+        if native:
+            stage.update({"elapsed_ms": native.get("duration_ms"), "model": native.get("model"),
+                          "schema_valid": native.get("schema_valid")})
+        stages.append(stage)
+    intelligence = canonical.research.intelligence
+    claims = sequence(intelligence.get("claims"))
+    paper = canonical.execution
+    research = canonical.research
+    market = canonical.market
+    elapsed = payload.get("elapsed_seconds")
+    # Do not claim cache misses, writes, finalization or persistence success
+    # where the canonical producer recorded no measurement.
+    result: dict[str, object] = {
         "schema_version": "meridian-run-health.v1",
-        "run_id": str(payload.get("run_id") or payload.get("paper_run_id") or "UNKNOWN"),
-        "started_at": started,
-        "finished_at": finished.isoformat(),
-        "duration_ms": duration_ms,
-        "overall_status": payload.get("status", "ERROR"),
-        "stages": stages,
-        "market_data": {
-            "status": payload.get(
-                "data_status",
-                market.get("status", "UNKNOWN"),
-            ),
-            "symbols": probes,
-            "providers_attempted": [],
-            "providers_used": [],
-            "fallbacks_used": [],
-            "warnings": [],
-        },
-        "research": {
-            "status": payload.get("research_status", research.get("status", "NOT_RUN")),
-            "research_mode": research.get("research_mode", "OFFLINE_RESEARCH"),
-            "research_confidence": research.get("research_confidence"),
-            "llm_available": research.get("llm_available", False),
-            "fallback_reason": research.get("fallback_reason"),
-            "research_state": intelligence.get("research_state"),
+        "run_id": canonical.run_id,
+        "canonical_run_id": canonical.canonical_run_id,
+        "canonical_state": canonical.model_dump(mode="json"),
+        "trading_date": canonical.trading_date, "account": canonical.account,
+        "started_at": started, "finished_at": payload.get("finished_at"), "projected_at": now,
+        "duration_ms": round(elapsed * 1000) if isinstance(elapsed, (float, int)) else None,
+        "overall_status": canonical.result_status, "stages": stages,
+        "portfolio": {"nav": canonical.nav, "cash": canonical.cash, "position_count": canonical.position_count},
+        "market_data": {"status": market.result_status, "session": market.session,
+            "symbols": market.provider_probes, "providers_attempted": list(market.providers_attempted),
+            "providers_used": list(market.providers_used), "fallbacks_used": list(market.fallbacks_used),
+            "quote_certification": market.quote_certification, "warnings": sequence(payload.get("warnings"))},
+        "research": {"status": research.result_status, "execution_state": research.execution_state.value,
+            "research_mode": research.mode, "research_confidence": research.confidence,
+            "llm_available": research.llm_available, "fallback_reason": research.fallback_reason,
+            "research_state": research.research_state,
             "research_data_status": intelligence.get("research_data_status"),
-            "evidence_count": len(intelligence.get("evidence", [])) if isinstance(intelligence.get("evidence", []), list) else 0,
-            "supported_claims": sum(1 for item in intelligence.get("claims", []) if isinstance(item, dict) and item.get("status") == "SUPPORTED") if isinstance(intelligence.get("claims", []), list) else 0,
-            "conflicted_claims": sum(1 for item in intelligence.get("claims", []) if isinstance(item, dict) and item.get("status") == "CONFLICTED") if isinstance(intelligence.get("claims", []), list) else 0,
-            "system_confidence": (intelligence.get("confidence", {}) or {}).get("system_confidence") if isinstance(intelligence.get("confidence", {}), dict) else None,
-        },
-        "decision": {
-            "status": decision.get("status", payload.get("status")),
-            "blocking_reason": blockers[0] if blockers else None,
-            "orders_created": len(orders),
-            "decision_state": intelligence.get("decision_state"),
-        },
-        "paper_execution": {
-            "status": paper.get("status", "NOT_RUN"),
-            "orders_executed": len(paper.get("fills", []))
-            if isinstance(paper.get("fills", []), list)
-            else 0,
-        },
-        "cache": {
-            "reads": 0,
-            "writes": 0,
-            "hits": sum(1 for value in cache.values() if value),
-            "misses": 0,
-            "stale_rejected": 0,
-        },
-        "warnings": payload.get("warnings", []),
-        "errors": payload.get("errors", []),
-        "blocking_reason": blockers[0] if blockers else None,
-        "execution_authority": "NONE",
+            "evidence_count": len(sequence(intelligence.get("evidence"))),
+            "supported_claims": sum(1 for c in claims if mapping(c).get("status") == "SUPPORTED"),
+            "conflicted_claims": sum(1 for c in claims if mapping(c).get("status") == "CONFLICTED"),
+            "system_confidence": mapping(intelligence.get("confidence")).get("system_confidence")},
+        "decision": {"status": canonical.decision.result_status,
+            "orders_created": canonical.decision.order_count,
+            "blocking_reason": canonical.blockers[0] if canonical.blockers else None,
+            "decision_state": intelligence.get("decision_state")},
+        "paper_execution": {"status": paper.result_status, "execution_state": paper.execution_state.value,
+            "orders_executed": paper.fill_count, "intent_count": paper.order_count, "authority": paper.authority},
+        "cache": {"reads": None, "writes": None, "hits": None, "misses": None, "stale_rejected": None},
+        "warnings": sequence(payload.get("warnings")), "errors": sequence(payload.get("errors")),
+        "blocking_reason": canonical.blockers[0] if canonical.blockers else None,
+        "execution_authority": "NONE", "broker_submission": paper.broker_submission,
+        "broker_side_effects": paper.broker_side_effects,
         "execution_state": intelligence.get("execution_state"),
         "execution_data_status": intelligence.get("execution_data_status"),
         "idempotency": payload.get("idempotency"),
+        "idempotency_state": canonical.idempotency.model_dump(mode="json"),
+        "status_dimensions": canonical.status_dimensions,
+        "readiness": canonical.readiness,
+        "manual_authority": canonical.manual_authority,
     }
-    if is_paper and canonical_run_id:
-        result["canonical_run_id"] = canonical_run_id
+    if canonical.paper_run_id:
         result["stage_source"] = "CANONICAL_RUN"
     return result
 
@@ -260,19 +178,7 @@ def persist_run_health(payload: dict[str, object], paths: RuntimePaths) -> Path:
             handle.write(data)
             handle.flush()
             os.fsync(handle.fileno())
-        try:
-            os.replace(temporary, destination)
-        except OSError as error:
-            # Some Windows encrypted runtime volumes reject ReplaceFile across
-            # their virtualized backing store (WinError 17). Preserve the
-            # receipt with a flushed copy rather than silently losing health.
-            if getattr(error, "winerror", None) != 17:
-                raise
-            with temporary.open("rb") as source, destination.open("wb") as target:
-                shutil.copyfileobj(source, target)
-                target.flush()
-                os.fsync(target.fileno())
-            temporary.unlink(missing_ok=True)
+        publish_staged_report(temporary, destination)
     finally:
         temporary.unlink(missing_ok=True)
     return destination

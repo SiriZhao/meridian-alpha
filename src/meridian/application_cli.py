@@ -10,6 +10,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from meridian.application import MeridianApplicationService
+from meridian.canonical_run import cli_summary
 from meridian.host_readiness import ReadinessStatus, RecommendationReadiness
 from meridian.runtime import RuntimePathError
 from meridian.runtime_io import filesystem_detail
@@ -36,12 +37,13 @@ def main() -> int:
     )
     args = parser.parse_args()
     service = None
+    payload: dict[str, object]
     try:
         service = MeridianApplicationService()
         if args.command == "version":
             payload = service.version()
         elif args.command == "paths":
-            payload = service.paths_status()
+            payload = dict(service.paths_status())
         elif args.command == "doctor":
             payload = service.doctor()
         elif args.command == "init":
@@ -131,6 +133,8 @@ def main() -> int:
                         "errors": [code], "next_actions": [message], "output_files": {}})
         print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
         return 3
+    if "canonical_state" in payload:
+        payload["summary"] = cli_summary(payload)
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, default=str, sort_keys=True))
     else:
@@ -140,7 +144,7 @@ def main() -> int:
     if payload.get("exit_code") == 3:
         return 3
     status = str(payload.get("status", "PASS"))
-    return 0 if status in {"PASS", "INIT_COMPLETE", "INIT_ALREADY_COMPLETE", "NO_ACTION", "NO_CAPITAL", "DRAFT", "PAPER_INITIALIZED", "PAPER_ACCOUNT_ALREADY_EXISTS", "PAPER_ACCOUNT_READY", "PAPER_HISTORY", "PAPER_TRADES", "PAPER_COMPLETE", "PAPER_NO_TRADE", "PAPER_ALREADY_EXECUTED", "PAPER_RESET_COMPLETE"} else 2 if status in {"DEGRADED", "BLOCKED_STALE_ACCOUNT", "BLOCKED_STALE_MARKET", "INSUFFICIENT_FORWARD_EVIDENCE", "PAPER_BLOCKED", "PAPER_ACCOUNT_NOT_FOUND"} else 3
+    return 0 if status in {"PASS", "INIT_COMPLETE", "INIT_ALREADY_COMPLETE", "NO_ACTION", "NO_CAPITAL", "DRAFT", "PAPER_INITIALIZED", "PAPER_ACCOUNT_ALREADY_EXISTS", "PAPER_ACCOUNT_READY", "PAPER_HISTORY", "PAPER_TRADES", "PAPER_READY", "PAPER_COMPLETE", "PAPER_NO_TRADE", "PAPER_ALREADY_EXECUTED", "PAPER_RESET_COMPLETE"} else 2 if status in {"DEGRADED", "BLOCKED_STALE_ACCOUNT", "BLOCKED_STALE_MARKET", "INSUFFICIENT_FORWARD_EVIDENCE", "PAPER_BLOCKED", "PAPER_WAITING_FOR_MARKET", "PAPER_ACCOUNT_NOT_FOUND"} else 3
 
 
 if __name__ == "__main__":

@@ -19,6 +19,13 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from meridian.audit import SCHEMA_VERSION, AuditStore
+from meridian.canonical_run import (
+    canonical_snapshot,
+    display,
+    render_canonical_audit,
+    seal_canonical_report,
+    sequence,
+)
 from meridian.config import load_forward_evidence_policy, load_policies
 from meridian.daily_closure import (
     DailyClosureResult,
@@ -72,6 +79,7 @@ from meridian.operational_data import FreshnessPolicy
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
 from meridian.paper import DEFAULT_ACCOUNT, DEFAULT_INITIAL_CASH, PaperLedger, PaperSettings
 from meridian.portfolio_snapshot import PortfolioSnapshot
+from meridian.report_bundle import finalize_report_bundle, verify_report_bundle
 from meridian.research_agents.audit import write_research_audit
 from meridian.research_agents.preparation import ResearchPreparationService
 from meridian.research_stage import CanonicalResearchStage
@@ -1536,11 +1544,15 @@ class MeridianApplicationService:
             }
             try:
                 result["run_health_json"] = str(persist_run_health(result, self.paths))
+                result["report_bundle_json"] = str(finalize_report_bundle(
+                    result, json_path, markdown_path, Path(str(result["run_health_json"]))
+                ))
             except OSError as error:
+                code = "REPORT_BUNDLE_PERSISTENCE_FAILED" if "run_health_json" in result else "RUN_HEALTH_PERSISTENCE_FAILED"
                 logging.getLogger("meridian.run_health").error(
-                    "RUN_HEALTH_PERSISTENCE_FAILED error_type=%s", type(error).__name__
+                    "%s error_type=%s", code, type(error).__name__
                 )
-                result["run_health_error"] = "RUN_HEALTH_PERSISTENCE_FAILED"
+                result["run_health_error"] = code
             return result
         except OSError:
             # Analysis may already be durable. Keep its identity and append a failure
@@ -1596,6 +1608,12 @@ class MeridianApplicationService:
                 )
             except (OSError, sqlite3.Error):
                 failure["audit_failure_recorded"] = False
+            # The failure receipt retains the original decision but updates
+            # report-level truth; never return a stale successful snapshot.
+            snapshot = seal_canonical_report(payload)
+            failure["canonical_state"] = snapshot.model_copy(update={
+                "result_status": "FAILED", "next_actions": tuple(failure["next_actions"]),
+            }).model_dump(mode="json")
             return failure
 
     def _paper_ledger(self) -> PaperLedger:
@@ -1673,6 +1691,9 @@ class MeridianApplicationService:
         return quotes
 
     def _persist_paper_report(self, payload: dict[str, object]) -> dict[str, str]:
+        payload.setdefault("run_id", payload["paper_run_id"])
+        payload.setdefault("broker_submission", "DISABLED")
+        snapshot = seal_canonical_report(payload)
         analysis = datetime.fromisoformat(str(payload["analysis_time"]))
         run_id = str(payload["paper_run_id"])
         directory = self.paths.reports / analysis.date().isoformat() / run_id
@@ -1752,8 +1773,8 @@ class MeridianApplicationService:
             "",
             "## Portfolio",
             "",
-            f"NAV: **${performance.get('nav', 'UNKNOWN')}**",
-            f"Cash: **${performance.get('cash', portfolio.get('cash', 'UNKNOWN'))}**",
+            f"NAV: **${display(snapshot.nav)}**",
+            f"Cash: **${display(snapshot.cash)}**",
             f"Market value: **${performance.get('market_value', 'UNKNOWN')}**",
             f"Realized P&L: **${portfolio.get('realized_pnl', 'UNKNOWN')}**",
             "",
@@ -1767,16 +1788,16 @@ class MeridianApplicationService:
             "",
         ]
         idempotency = payload.get("idempotency", {})
-        if isinstance(idempotency, dict):
+        if isinstance(idempotency, dict) and idempotency:
             raw_blockers = payload.get("blockers", [])
             blockers_for_reason = raw_blockers if isinstance(raw_blockers, list) else []
             lines.extend([
                 "## Idempotency", "",
-                f"Status: **{idempotency.get('status', 'NOT_RUN')}**",
+                f"Status: **{snapshot.idempotency.state}**",
                 f"Attempted run: `{idempotency.get('attempted_run_id', payload.get('canonical_run_id', 'UNKNOWN'))}`",
                 f"Authoritative existing run: `{idempotency.get('authoritative_existing_run_id', 'NONE')}`",
                 f"Reason: **{blockers_for_reason[0] if blockers_for_reason else 'NONE'}**",
-                "Current-run work: market retrieval **SKIPPED**; research **SKIPPED**; decision **SKIPPED**; paper execution **SKIPPED**.",
+                f"Current-run work: **{snapshot.idempotency.state}**; stage execution and sources are recorded in the canonical audit.",
                 f"Side effects: orders **{idempotency.get('orders_created_current_run', 0)}**; fills **{idempotency.get('fills_created_current_run', 0)}**; ledger mutation **{'YES' if idempotency.get('ledger_mutated_current_run') else 'NO'}**.",
                 "",
             ])
@@ -1807,17 +1828,17 @@ class MeridianApplicationService:
                 "",
                 "## Market",
                 "",
-                f"Status: **{market.get('status', 'NOT_RUN')}**; session: **{market.get('session', 'UNKNOWN')}**.",
+                f"Status: **{snapshot.market.result_status}**; session: **{display(snapshot.market.session)}**.",
                 "Public observations are research quotes only; quote certification remains BLOCKED.",
                 "",
                 "## Today's Decisions",
                 "",
-                f"Deterministic decision: **{decision.get('status', 'NOT_RUN')}**.",
-                f"Paper order intents: **{execution.get('intent_count', 0)}**.",
+                f"Deterministic decision: **{snapshot.decision.result_status}**.",
+                f"Paper order intents: **{display(snapshot.execution.order_count)}**.",
                 "",
                 "## Risk",
                 "",
-                "Existing long-only, cash reserve, position, concentration and turnover constraints were applied.",
+                "Review the recorded deterministic gates below; missing evidence grants no manual authority.",
                 "",
                 "## Today's Paper Trades",
                 "",
@@ -1837,13 +1858,13 @@ class MeridianApplicationService:
                 "",
                 "## Research",
                 "",
-                "Research: **CODEX / GPT**",
-                f"Status: **{research_context.get('status', 'NOT_RUN')}**",
+                f"Research provider: **{display(research.get('provider'))}** (advisory only)",
+                f"Status: **{snapshot.research.result_status}**; execution: **{snapshot.research.execution_state}**",
                 f"Model: **{research_diagnostics.get('model_requested', research.get('model', 'CLI_DEFAULT'))}**",
                 f"Reasoning: **{research_diagnostics.get('reasoning_effort', 'medium')}**",
-                f"Structured validation: **{'PASS' if research_diagnostics.get('schema_valid') else 'FAIL'}**",
-                f"Confidence: **{research_response.get('confidence', 'NOT_AVAILABLE')}**",
-                f"Recommendation: **{research_response.get('recommended_action', 'NO_ACTION')}**",
+                f"Structured validation: **{'NOT_AVAILABLE' if research_diagnostics.get('schema_valid') is None else 'PASS' if research_diagnostics['schema_valid'] else 'FAIL'}**",
+                f"Confidence: **{display(snapshot.research.confidence)}**",
+                f"Advisory recommendation: **{display(research_response.get('recommended_action'))}**",
                 f"Elapsed: **{research_diagnostics.get('elapsed_ms', 0)} ms**",
                 f"Diagnostic: **{research.get('error_code') or 'none'}**",
                 "",
@@ -1894,17 +1915,22 @@ class MeridianApplicationService:
                 "",
             ]
         )
+        lines.append(render_canonical_audit(snapshot))
         temporary_md = markdown_path.with_suffix(".tmp")
         temporary_md.write_text("\n".join(lines), encoding="utf-8")
         publish_staged_report(temporary_md, markdown_path)
         outputs = {"paper_report_json": str(json_path), "paper_report_markdown": str(markdown_path)}
         try:
             outputs["run_health_json"] = str(persist_run_health(payload, self.paths))
+            outputs["report_bundle_json"] = str(finalize_report_bundle(
+                payload, json_path, markdown_path, Path(outputs["run_health_json"])
+            ))
         except OSError as error:
+            code = "REPORT_BUNDLE_PERSISTENCE_FAILED" if "run_health_json" in outputs else "RUN_HEALTH_PERSISTENCE_FAILED"
             logging.getLogger("meridian.run_health").error(
-                "RUN_HEALTH_PERSISTENCE_FAILED error_type=%s", type(error).__name__
+                "%s error_type=%s", code, type(error).__name__
             )
-            outputs["run_health_error"] = "RUN_HEALTH_PERSISTENCE_FAILED"
+            outputs["run_health_error"] = code
         return outputs
 
     def _paper_duplicate_short_circuit(
@@ -1938,7 +1964,7 @@ class MeridianApplicationService:
             "PRE_FLIGHT", "MARKET_QUOTE", "HISTORICAL_DATA", "BENCHMARK_DATA",
             "DATA_VALIDATION", "RESEARCH", "PRIMARY_ANALYST", "SKEPTIC",
             "SCENARIO_ANALYSIS", "DECISION_SYNTHESIS", "DECISION", "PORTFOLIO",
-            "PAPER_EXECUTION", "REPORT_GENERATION", "REPORT_PERSISTENCE", "RUN_FINALIZATION",
+            "PAPER_EXECUTION",
         )
         stages = [
             {
@@ -2202,7 +2228,7 @@ class MeridianApplicationService:
         fills = ()
         intents = ()
         if not blockers:
-            previous = ledger.daily_execution(account_name, trading_date)
+            previous = ledger.authoritative_daily_execution(account_name, trading_date)
             if previous is not None:
                 execution_status = "PAPER_ALREADY_EXECUTED"
                 blockers.append("PAPER_DAILY_IDEMPOTENCY_ALREADY_EXECUTED")
@@ -2234,7 +2260,9 @@ class MeridianApplicationService:
                     )
                 fills = paper_fills
         paper_fills = tuple(fills)
-        performance = ledger.record_nav(
+        if execution_status == "PAPER_ALREADY_EXECUTED" and "PAPER_DAILY_IDEMPOTENCY_ALREADY_EXECUTED" not in blockers:
+            blockers.append("PAPER_DAILY_IDEMPOTENCY_ALREADY_EXECUTED")
+        performance = None if execution_status == "PAPER_ALREADY_EXECUTED" else ledger.record_nav(
             account_name,
             trading_date=trading_date,
             canonical_run_id=canonical_run_id,
@@ -2252,7 +2280,8 @@ class MeridianApplicationService:
             "quote_kind": "PUBLIC_RESEARCH_QUOTE",
             "quote_certification": "BLOCKED",
             "market_session": market_session,
-            "intent_count": len(intents),
+            "intent_count": len(intents) if execution_status != "PAPER_ALREADY_EXECUTED" else 0,
+            "attempted_intent_count": len(intents),
             "fills": [item.as_dict() for item in paper_fills],
             "slippage_bps": str(ledger.settings.slippage_bps),
             "commission_per_order": str(ledger.settings.commission_per_order),
@@ -2303,6 +2332,29 @@ class MeridianApplicationService:
                 "quote_certification": "BLOCKED",
             },
             "research": daily.get("research", {"status": research_status}),
+            "research_status": research_status,
+            "research_intelligence": daily.get("research_intelligence"),
+            "stages": [
+                {**stage, "stage_source": "CANONICAL_RUN", "source_run_id": canonical_run_id}
+                for stage in sequence(daily.get("stages")) if isinstance(stage, dict)
+            ] + [{
+                "stage": "PAPER_EXECUTION", "status": execution_status,
+                "execution_state": "EXECUTED" if execution_status in {"PAPER_COMPLETE", "PAPER_NO_TRADE"} else "BLOCKED",
+                "stage_source": "CURRENT_RUN", "source_run_id": paper_run_id,
+            }],
+            "idempotency": {
+                "state": "IDEMPOTENCY_BLOCKED_DUPLICATE" if execution_status == "PAPER_ALREADY_EXECUTED" else "EXECUTED_THIS_RUN",
+                "attempted_run_id": canonical_run_id,
+                "authoritative_existing_run_id": (
+                    str((ledger.authoritative_daily_execution(account_name, trading_date) or {}).get("canonical_run_id"))
+                    if execution_status == "PAPER_ALREADY_EXECUTED" else None
+                ),
+                "orders_created_current_run": len(intents) if execution_status != "PAPER_ALREADY_EXECUTED" else 0,
+                "fills_created_current_run": len(paper_fills),
+                "ledger_mutated_current_run": execution_status in {"PAPER_COMPLETE", "PAPER_NO_TRADE"} or performance is not None,
+                "ledger_version_changed_current_run": account_status.get("ledger_version") != account.ledger_version,
+                "broker_interaction_current_run": False,
+            },
             "data_auto_retrieval": daily.get("data_auto_retrieval", {}),
             "research_universe": daily.get("research_universe", {}),
             "forward_evidence": daily.get("forward_evidence", {"status": "NOT_RUN"}),
@@ -2477,13 +2529,22 @@ class MeridianApplicationService:
 
     def latest_report(self) -> dict[str, object]:
         reports = sorted(
-            self.paths.reports.glob("*/*/daily.json"),
+            [*self.paths.reports.glob("*/*/daily.json"), *self.paths.reports.glob("*/*/paper-daily.json")],
             key=lambda item: item.stat().st_mtime,
             reverse=True,
         )
         if not reports:
             return {"found": False, "status": "REPORT_NOT_FOUND"}
         raw = json.loads(reports[0].read_text(encoding="utf-8"))
+        receipt = reports[0].parent / "report_bundle.json"
+        publication = "LEGACY_UNVERIFIED" if "canonical_state" not in raw else "INCOMPLETE"
+        if receipt.exists():
+            try:
+                verify_report_bundle(receipt)
+                publication = "COMPLETE"
+            except (OSError, ValueError):
+                publication = "INVALID"
+        snapshot = canonical_snapshot(raw)
         safe_keys = (
             "run_id",
             "readiness",
@@ -2500,7 +2561,14 @@ class MeridianApplicationService:
         return {
             "found": True,
             "status": "OK",
-            "report": {key: raw.get(key) for key in safe_keys},
+            "report": {**{key: raw.get(key) for key in safe_keys},
+                "canonical_summary": snapshot.model_dump(mode="json", include={
+                    "run_id": True, "canonical_run_id": True, "paper_run_id": True, "trading_date": True, "result_status": True,
+                    "nav": True, "cash": True, "position_count": True, "idempotency": True, "status_dimensions": True,
+                    "research": {"execution_state", "result_status", "confidence", "llm_available"},
+                    "execution": {"execution_state", "result_status", "order_count", "fill_count", "broker_submission"},
+                })},
+            "publication_status": publication,
             "execution": "MANUAL",
             "broker_submission": "DISABLED",
         }
