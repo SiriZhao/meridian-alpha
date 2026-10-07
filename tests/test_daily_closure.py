@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import errno
 import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
+
+import pytest
 
 from meridian.config import load_policies
 from meridian.daily_closure import (
@@ -53,13 +56,35 @@ def test_report_publication_handles_windows_cross_device_rename(tmp_path: Path, 
     staged.write_text('{"complete": true}\n', encoding="utf-8")
 
     def reject_replace(self: Path, target: Path) -> None:
-        raise OSError(0, "The system cannot move the file to a different disk drive", None, 17)
+        error = OSError(0, "The system cannot move the file to a different disk drive")
+        error.winerror = 17
+        raise error
 
     monkeypatch.setattr(Path, "replace", reject_replace)
     publish_staged_report(staged, destination)
 
     assert destination.read_text(encoding="utf-8") == '{"complete": true}\n'
     assert staged.exists()
+
+
+@pytest.mark.parametrize("error_code", [errno.EXDEV, errno.EEXIST, errno.EACCES])
+def test_report_publication_classifies_posix_errors(tmp_path: Path, monkeypatch, error_code: int) -> None:
+    staged, destination = tmp_path / "daily.tmp", tmp_path / "daily.json"
+    staged.write_text("complete", encoding="utf-8")
+
+    def reject_replace(self: Path, target: Path) -> None:
+        raise OSError(error_code, "publication error")
+
+    monkeypatch.setattr(Path, "replace", reject_replace)
+    if error_code == errno.EXDEV:
+        publish_staged_report(staged, destination)
+        assert destination.read_text(encoding="utf-8") == "complete"
+    else:
+        with pytest.raises(OSError) as caught:
+            publish_staged_report(staged, destination)
+        assert caught.value.errno == error_code
+        assert not destination.exists()
+    assert staged.read_text(encoding="utf-8") == "complete"
 
 
 def test_stale_missing_and_future_market_fail_closed() -> None:
