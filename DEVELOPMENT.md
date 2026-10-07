@@ -60,3 +60,8 @@ started in an isolated process group so timeout cleanup covers descendants.
 Keep `main` stable and create `chore/*`, `fix/*`, or `feature/*` branches from
 it. Do not force-push, rewrite history, enable a broker, or commit runtime data,
 credentials, caches or `.env` files.
+
+`.tmp/` and `dist/` are local generated artifacts, not source inputs. Historical
+tracked artifacts were removed from the current tree without deleting local
+copies or rewriting history; durable audit records remain in `docs/` and
+`reports/`. Published audit documents use `<USER_HOME>` for personal paths.

@@ -231,7 +231,7 @@ Canonical Schwab-Paper result on September 11, 2026:
 - forward evidence: BLOCKED
 
 Paper report:
-C:/Users/YOGA Pro16/AppData/Local/MeridianAlpha/reports/2026-09-11/paper-daily-2a4dc111b24fd466967d279c/paper-daily.md
+<USER_HOME>/AppData/Local/MeridianAlpha/reports/2026-09-11/paper-daily-2a4dc111b24fd466967d279c/paper-daily.md
 
 RESEARCH_INVALID_RESPONSE did not recur.
 

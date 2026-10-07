@@ -13,7 +13,7 @@ Acceptance date: 2026-09-11 (Asia/Shanghai)
 - Codex CLI: `codex-cli 0.154.0`
 - Skill canonical file count: `10`
 - Skill source hash: `b0ce2f4f39378592f2499c55361234fe159847d7d22aa39cceecb6045b916b32`
-- Installed Skill path: `C:\Users\YOGA Pro16\.codex\skills\meridian-alpha`
+- Installed Skill path: `<USER_HOME>\.codex\skills\meridian-alpha`
 - Installed Skill hash: matched source during the clean-room doctor run.
 - Full test collection: `449`
 

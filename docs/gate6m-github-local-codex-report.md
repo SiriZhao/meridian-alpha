@@ -28,8 +28,8 @@ release, issue, or label was created.
 | Skill ZIP | `dist/meridian-alpha-skill-v1.zip` |
 | Actual ZIP SHA256 | `8e770f7e858a774d2cf0357f4bc0bf44711301e11b15e08d7b5d36aec652ac47` |
 | Package validation | `SKILL_PACKAGE_VALID` (source, installed, and clean-room ZIP) |
-| Codex home | `C:\Users\YOGA Pro16\.codex` |
-| Installed Skill path | `C:\Users\YOGA Pro16\.codex\skills\meridian-alpha` |
+| Codex home | `<USER_HOME>\.codex` |
+| Installed Skill path | `<USER_HOME>\.codex\skills\meridian-alpha` |
 | Install method | `LOCAL_VERIFIED_FALLBACK` from release commit; GitHub release unavailable |
 | Installed manifest | `c7cb9bb7962e85050c5a77a9202bbb4832f663d219a97bb2b85b4202acb342d5` |
 | Source/installed manifest match | YES |

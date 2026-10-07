@@ -17,12 +17,12 @@ This is an external-data blocker, not a Skill-routing failure.
 The user-provided legacy paths were absent:
 
 - `E:\CSDIY\Vibe Coding Project\personal-alpha-terminal-skill\skill`
-- `C:\Users\Administrator\.codex\skills\personal-alpha-terminal`
+- `<USER_HOME>\.codex\skills\personal-alpha-terminal`
 
 The actual Skill source and installation are:
 
 - repository: `E:\CSDIY\Vibe Coding Project\meridian-alpha\skills\meridian-alpha`
-- installed: `C:\Users\YOGA Pro16\.codex\skills\meridian-alpha`
+- installed: `<USER_HOME>\.codex\skills\meridian-alpha`
 
 Their `SKILL.md` files have the same SHA-256:
 `FE37028C99EF43CBDFDA8BEDC0959D1D759B7CEB4266A9F1F84E0C35FB000AA2`.
