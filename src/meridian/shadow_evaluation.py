@@ -237,7 +237,11 @@ class ResearchQualityEvaluator:
         memory_consistency = None
         if result.prior_memory is not None and result.primary is not None:
             memory_consistency = 1.0 if result.prior_memory.direction == result.primary.direction else 0.0
-        latency = sum(item.duration_ms for item in result.stages.values())
+        measured_invocations: dict[str, int] = {}
+        for name, item in result.stages.items():
+            key = str(item.diagnostic.get("shared_invocation_id") or "RESEARCH_CHAIN") if item.diagnostic.get("shared_invocation") else name
+            measured_invocations[key] = max(measured_invocations.get(key, 0), item.duration_ms)
+        latency = sum(measured_invocations.values())
         applicability = {
             "grounding_rate": "APPLICABLE" if claims_count else "NOT_APPLICABLE_NO_MODEL_OUTPUT",
             "hallucination_rate": "APPLICABLE" if claims_count else "NOT_APPLICABLE_NO_MODEL_OUTPUT",
@@ -252,7 +256,7 @@ class ResearchQualityEvaluator:
             contradiction_detection_rate=contradiction_rate,
             schema_success_rate=completed / stage_count if stage_count else None,
             stage_completion_rate=completed / stage_count if stage_count else None,
-            hallucinated_market_fact_count=len(flags),
+            hallucinated_market_fact_count=len(flags) + int(result.stages["PRIMARY_ANALYST"].diagnostic.get("rejected_numeric_claim_count") or 0),
             unverifiable_numeric_claim_count=sum("UNVERIFIABLE_NUMERIC_CLAIM" in flag for flag in flags),
             stale_evidence_usage_count=stale,
             confidence_vs_evidence_gap=gap,

@@ -11,6 +11,7 @@ from typing import Any
 
 from pydantic import AwareDatetime, Field, model_validator
 
+from meridian.provider_resilience import FailureCategory
 from meridian.schemas import StableModel
 from meridian.trusted_web_market import TrustedWebMarketEvidence
 
@@ -177,6 +178,8 @@ class ProviderFailure(StableModel):
     retryable: bool = False
     occurred_at: AwareDatetime
     attempt: int = Field(ge=1, le=10)
+    normalized_category: FailureCategory = FailureCategory.UNKNOWN
+    raw_category: str | None = None
 
 
 class ProviderHealth(StableModel):

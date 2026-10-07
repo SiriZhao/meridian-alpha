@@ -393,6 +393,8 @@ class YahooChartQuoteProvider:
                 closes = ((result.get("indicators") or {}).get("quote") or [{}])[0].get(
                     "close"
                 ) or []
+                if not isinstance(timestamps, list) or not isinstance(closes, list) or len(timestamps) != len(closes):
+                    raise ValueError("Yahoo quote array schema drift")
                 valid = [
                     (ts, close)
                     for ts, close in zip(timestamps, closes, strict=False)
@@ -402,16 +404,22 @@ class YahooChartQuoteProvider:
                     raise ValueError("Yahoo chart response has no last price")
                 epoch, price = valid[-1]
             observed = datetime.fromtimestamp(float(epoch), tz=UTC)
-        except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as error:
+        except (KeyError, IndexError, TypeError, ValueError, AttributeError, OverflowError) as error:
             raise QuoteProviderMalformed("Yahoo chart response is malformed") from error
         retrieved = self.clock()
-        bar_times = result.get("timestamp") or []
-        bar_values = ((result.get("indicators") or {}).get("quote") or [{}])[0]
-        local_date = observed.astimezone(ZoneInfo("America/New_York")).date()
-        past = [(ts, value) for ts, value in zip(bar_times, bar_values.get("close") or [], strict=False)
-                if value is not None and datetime.fromtimestamp(ts, UTC).astimezone(ZoneInfo("America/New_York")).date() < local_date]
-        current_open = next((value for ts, value in reversed(list(zip(bar_times, bar_values.get("open") or [], strict=False)))
-                             if datetime.fromtimestamp(ts, UTC).astimezone(ZoneInfo("America/New_York")).date() == local_date), None)
+        try:
+            bar_times = result.get("timestamp") or []
+            bar_values = ((result.get("indicators") or {}).get("quote") or [{}])[0]
+            local_date = observed.astimezone(ZoneInfo("America/New_York")).date()
+            closes, opens = bar_values.get("close") or [], bar_values.get("open") or []
+            if any(values and (not isinstance(values, list) or len(values) != len(bar_times)) for values in (closes, opens)):
+                raise ValueError("Yahoo quote context array schema drift")
+            past = [(ts, value) for ts, value in zip(bar_times, closes, strict=False)
+                    if value is not None and datetime.fromtimestamp(ts, UTC).astimezone(ZoneInfo("America/New_York")).date() < local_date]
+            current_open = next((value for ts, value in reversed(list(zip(bar_times, opens, strict=False)))
+                                 if datetime.fromtimestamp(ts, UTC).astimezone(ZoneInfo("America/New_York")).date() == local_date), None)
+        except (ValueError, TypeError, KeyError, AttributeError, IndexError, OverflowError, OSError) as error:
+            raise QuoteProviderMalformed("Yahoo quote context is malformed") from error
         return QuoteNormalizer(self.security_master).normalize(
             {
                 "provider_symbol": provider_symbol,
@@ -503,7 +511,7 @@ class NasdaqApiQuoteProvider:
                 )
             if observed.tzinfo is None:
                 observed = observed.replace(tzinfo=ZoneInfo(security.timezone)).astimezone(UTC)
-        except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+        except (KeyError, TypeError, ValueError, AttributeError) as error:
             raise QuoteProviderMalformed("Nasdaq quote response is malformed") from error
         retrieved = self.clock()
         return QuoteNormalizer(self.security_master).normalize(

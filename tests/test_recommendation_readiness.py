@@ -268,4 +268,6 @@ def test_final_probe_and_provider_health_use_same_cutoff(monkeypatch) -> None:
     assert result.provider_health["AAPL"]["primary"] == "STALE"
     probe = result.provider_probes["AAPL"]["primary"]
     assert isinstance(probe, dict)
-    assert probe["status"] == "STALE" and probe["error_category"] == "DATA_QUALITY"
+    assert probe["status"] == "STALE" and probe["error_category"] == "STALE_DATA"
+    assert probe["normalized_category"] == "STALE_DATA"
+    assert probe["attempt_normalized_category"] is None

@@ -102,7 +102,14 @@ def build_run_health(payload: dict[str, object]) -> dict[str, object]:
                       "result_status": fact.result_status if fact else "UNKNOWN",
                       "source_run_id": fact.source_run_id if fact else None})
         if native:
-            stage.update({"elapsed_ms": native.get("duration_ms"), "model": native.get("model"),
+            timing = mapping(native.get("diagnostic"))
+            shared = timing.get("shared_invocation") is True
+            stage.update({"elapsed_ms": None if shared else native.get("duration_ms"), "model": native.get("model"),
+                          "shared_invocation_id": timing.get("shared_invocation_id"),
+                          "shared_invocation_wall_ms": native.get("duration_ms") if shared else None,
+                          "logical_participation": True,
+                          "role_configured_budget_seconds": timing.get("role_configured_budget_seconds"),
+                          "duration_semantics": "NON_ADDITIVE_SHARED_PROCESS" if shared else "INDEPENDENT_PROCESS",
                           "schema_valid": native.get("schema_valid")})
         stages.append(stage)
     intelligence = canonical.research.intelligence
@@ -153,6 +160,7 @@ def build_run_health(payload: dict[str, object]) -> dict[str, object]:
         "idempotency_state": canonical.idempotency.model_dump(mode="json"),
         "status_dimensions": canonical.status_dimensions,
         "readiness": canonical.readiness,
+        "forward_evidence": canonical.forward_evidence,
         "manual_authority": canonical.manual_authority,
     }
     if canonical.paper_run_id:

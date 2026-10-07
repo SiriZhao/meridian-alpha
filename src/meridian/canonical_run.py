@@ -119,6 +119,7 @@ class CanonicalRunSnapshot(FrozenState):
     status_dimensions: dict[str, object] = Field(default_factory=dict)
     readiness: dict[str, object] = Field(default_factory=dict)
     manual_authority: str | None = None
+    forward_evidence: dict[str, object] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def coherent_identity_and_authority(self) -> CanonicalRunSnapshot:
@@ -297,6 +298,7 @@ def snapshot_from_legacy(payload: dict[str, object]) -> CanonicalRunSnapshot:
         next_actions=tuple(str(x) for x in sequence(payload.get("next_actions")) if isinstance(x, str)),
         status_dimensions=deepcopy(mapping(payload.get("status_dimensions"))),
         readiness=deepcopy(mapping(payload.get("readiness"))),
+        forward_evidence=deepcopy(mapping(payload.get("forward_evidence"))),
         manual_authority=optional_text(first(mapping(payload.get("manual_authority")).get("status"),
             payload.get("manual_authority") if isinstance(payload.get("manual_authority"), str) else None)),
     )
@@ -304,6 +306,10 @@ def snapshot_from_legacy(payload: dict[str, object]) -> CanonicalRunSnapshot:
 
 def canonical_snapshot(payload: dict[str, object]) -> CanonicalRunSnapshot:
     persisted = payload.get("canonical_state")
+    if isinstance(persisted, dict) and "forward_evidence" not in persisted:
+        # Pre-extension snapshots kept this recorded fact in the enclosing
+        # report. Import it once; an explicitly sealed empty value stays empty.
+        persisted = {**persisted, "forward_evidence": deepcopy(mapping(payload.get("forward_evidence")))}
     return CanonicalRunSnapshot.model_validate(persisted) if persisted is not None else snapshot_from_legacy(payload)
 
 
@@ -312,6 +318,7 @@ def seal_canonical_report(payload: dict[str, object]) -> CanonicalRunSnapshot:
     # Legacy presentation fields are serializers of the sealed truth, too.
     # Auxiliary analytics stay as recorded; they never replace these facts.
     payload.update({"status": snapshot.result_status, "research_status": snapshot.research.result_status,
+        "forward_evidence": deepcopy(snapshot.forward_evidence),
         "research": deepcopy(snapshot.research.details),
         "research_intelligence": deepcopy(snapshot.research.intelligence) or None})
     if snapshot.idempotency.state is not IdempotencyState.NOT_APPLICABLE:
@@ -364,6 +371,23 @@ def render_canonical_audit(snapshot: CanonicalRunSnapshot) -> str:
     }
     lines = ["## Canonical audit", "", "| Fact | Value |", "| --- | --- |"]
     lines.extend(f"| {key} | {display(value)} |" for key, value in fields.items())
+    summaries: list[str] = []
+    for symbol, probe in sorted(snapshot.market.provider_probes.items()):
+        observation = mapping(probe)
+        states = mapping(observation.get("provider_health"))
+        if states:
+            summaries.append(f"{symbol}: {observation.get('selection', 'UNKNOWN')}; " + ", ".join(f"{provider} {mapping(state).get('status', 'UNKNOWN')}" for provider, state in sorted(states.items())))
+    if summaries:
+        lines.extend(["", "Provider health (observational; routing authority unchanged):", *[f"- {item}" for item in summaries]])
+    confidence = mapping(snapshot.research.intelligence.get("confidence"))
+    if confidence.get("composer_version"):
+        lines.extend(["", f"Confidence source: {confidence['composer_version']}; deterministic evidence components; advisory authority only."])
+    shared_ids = {mapping(mapping(stage).get("diagnostic")).get("shared_invocation_id") for stage in mapping(snapshot.research.intelligence.get("stages")).values() if mapping(mapping(stage).get("diagnostic")).get("shared_invocation")}
+    if shared_ids:
+        lines.extend(["", f"Research used {len(shared_ids)} shared invocation(s); role participation is logical and role durations are non-additive."])
+    if snapshot.forward_evidence:
+        forward = mapping(snapshot.forward_evidence.get("summary"))
+        lines.extend(["", f"Forward evidence: {forward.get('evaluation_readiness', snapshot.forward_evidence.get('status', 'UNKNOWN'))}; verified samples {forward.get('sample_count', 'UNKNOWN')}; SHADOW_EVIDENCE_ONLY / NO_AUTOMATIC_PROMOTION."])
     lines.extend(["", "| Stage | Execution | Result | Source |", "| --- | --- | --- | --- |"])
     lines.extend(f"| {s.name} | {s.execution_state} | {s.result_status} | {s.source} ({display(s.source_run_id)}) |" for s in snapshot.stages)
     lines.extend(["", "Advisory research has no order, fill, position or broker authority.", "",
@@ -434,6 +458,8 @@ def assert_report_projection_consistency(canonical: dict[str, object], markdown:
         raise AssertionError("REPORT_PROJECTION_DRIFT")
     if not (health["readiness"] == expected.readiness):
         raise AssertionError("REPORT_PROJECTION_DRIFT")
+    if health.get("forward_evidence") != expected.forward_evidence:
+        raise AssertionError("FORWARD_EVIDENCE_PROJECTION_DRIFT")
     if not (health["manual_authority"] == expected.manual_authority):
         raise AssertionError("REPORT_PROJECTION_DRIFT")
 

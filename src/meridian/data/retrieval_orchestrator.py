@@ -10,7 +10,6 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
 
 from meridian.analytics.derived_market_features import derive_market_features
 from meridian.data.models import (
@@ -31,6 +30,8 @@ from meridian.data.models import (
 )
 from meridian.data.providers.base import RetrievalProvider, RetrievalProviderError
 from meridian.market import Bar
+from meridian.provider_resilience import classify_failure
+from meridian.runtime_io import atomic_write
 
 _NUMERICAL = {
     DataCategory.PRICE_HISTORY,
@@ -67,6 +68,8 @@ class EvidenceCache:
         path = self._path(requirement, as_of)
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
+            if payload.get("cache_key") != self._digest(requirement, as_of) or payload.get("content_hash") != hashlib.sha256(json.dumps(payload["evidence"], sort_keys=True, separators=(",", ":")).encode()).hexdigest():
+                return ()
             records = tuple(EvidenceRecord.model_validate(item) for item in payload["evidence"])
         except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
             return ()
@@ -75,9 +78,11 @@ class EvidenceCache:
             item.expires_at is None
             or item.expires_at <= now
             or item.timestamp > as_of
+            or (item.available_at or item.retrieved_at) > as_of
             or (item.available_at is not None and item.available_at > as_of)
             or item.as_of != as_of
             or item.requirement_key != requirement.key
+            or item.validation_status is ValidationStatus.REJECTED
             for item in records
         ):
             return ()
@@ -96,7 +101,9 @@ class EvidenceCache:
             return
         self.directory.mkdir(parents=True, exist_ok=True)
         path = self._path(requirement, as_of)
-        temporary = path.with_name(path.name + "." + uuid4().hex + ".tmp")
+        if any(item.expires_at is None for item in records):
+            raise ValueError("EVIDENCE_CACHE_EXPIRY_REQUIRED")
+        serialized = [item.model_dump(mode="json") for item in records]
         payload = {
             "cache_key": self._digest(requirement, as_of),
             "as_of": as_of.isoformat(),
@@ -105,16 +112,10 @@ class EvidenceCache:
             "expires_at": min(
                 item.expires_at for item in records if item.expires_at is not None
             ).isoformat(),
-            "evidence": [item.model_dump(mode="json") for item in records],
+            "evidence": serialized,
+            "content_hash": hashlib.sha256(json.dumps(serialized, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
         }
-        try:
-            temporary.write_text(
-                json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str),
-                encoding="utf-8",
-            )
-            temporary.replace(path)
-        finally:
-            temporary.unlink(missing_ok=True)
+        atomic_write(path, json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str))
 
 
 class DataQualityGate:
@@ -133,7 +134,7 @@ class DataQualityGate:
     ) -> tuple[DataQualityScore, DataStatus]:
         accepted = tuple(
             item for item in evidence if item.validation_status is not ValidationStatus.REJECTED
-            and item.timestamp <= as_of and (item.expires_at is None or item.expires_at > as_of)
+            and item.timestamp <= as_of and (item.available_at or item.retrieved_at) <= as_of and (item.expires_at is None or item.expires_at > as_of)
         )
         keys = {item.requirement_key for item in accepted}
         required = tuple(item for item in requirements if item.required)
@@ -326,6 +327,8 @@ class RetrievalOrchestrator:
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.providers = tuple(providers)
+        if not 0 <= max_retries <= 9 or circuit_breaker_failures < 1:
+            raise ValueError("PROVIDER_RETRY_POLICY_INVALID")
         self.cache = cache
         self.quality_gate = quality_gate or DataQualityGate()
         self.audit_root = audit_root
@@ -357,8 +360,11 @@ class RetrievalOrchestrator:
                 ),
             )
         )
-        evidence = list(existing_evidence)
+        # Circuits bound this retrieval only: a subsequent run probes recovery.
+        self._failures = {}
+        evidence = [item for item in existing_evidence if item.validation_status is not ValidationStatus.REJECTED and item.timestamp <= as_of and (item.available_at or item.retrieved_at) <= as_of and (item.expires_at is None or item.expires_at > as_of)]
         results: list[ProviderResult] = []
+        gaps: list[str] = []
         present = {item.requirement_key for item in evidence}
         for requirement in ordered:
             if requirement.key in present:
@@ -393,8 +399,8 @@ class RetrievalOrchestrator:
                 if self.cache:
                     try:
                         self.cache.store(requirement, accepted, as_of=as_of)
-                    except OSError:
-                        pass
+                    except (OSError, ValueError):
+                        gaps.append("RESEARCH_CACHE_WRITE_FAILED:" + requirement.key)
         evidence.extend(self._derive(evidence, as_of=as_of))
         unique = {item.evidence_id: item for item in evidence if item.evidence_id}
         evidence_tuple = tuple(unique.values())
@@ -428,6 +434,7 @@ class RetrievalOrchestrator:
             rounds=rounds,
             planner_summary=planner_summary,
             unresolved=quality.blocking_missing,
+            data_gaps=tuple(gaps),
         )
         self._audit(package)
         return package
@@ -437,12 +444,17 @@ class RetrievalOrchestrator:
     ) -> ProviderResult:
         started = time.monotonic()
         last_error = RetrievalProviderError("PROVIDER_FAILED")
+        attempts_performed = 0
         for attempt in range(1, self.max_retries + 2):
+            attempts_performed = attempt
             try:
                 records = provider.retrieve(requirement, as_of=as_of)
-                if not records or any(
+                if not records:
+                    raise RetrievalProviderError("EMPTY_DATA")
+                if any(
                     item.requirement_key != requirement.key
                     or item.timestamp > as_of
+                    or (item.available_at or item.retrieved_at) > as_of
                     or item.as_of != as_of
                     or (item.available_at is not None and item.available_at > as_of)
                     for item in records
@@ -462,8 +474,9 @@ class RetrievalOrchestrator:
                 if not error.retryable or attempt > self.max_retries:
                     break
                 self.sleeper(0.1 * (2 ** (attempt - 1)))
-            except (OSError, TimeoutError):
-                last_error = RetrievalProviderError("PROVIDER_TEMPORARY_FAILURE", retryable=True)
+            except OSError as error:
+                last_error = RetrievalProviderError("PROVIDER_" + classify_failure(error).value, retryable=True)
+                last_error.__cause__ = error
                 if attempt > self.max_retries:
                     break
                 self.sleeper(0.1 * (2 ** (attempt - 1)))
@@ -481,7 +494,9 @@ class RetrievalOrchestrator:
                 reason=last_error.code,
                 retryable=last_error.retryable,
                 occurred_at=completed,
-                attempt=min(self.max_retries + 1, 10),
+                attempt=attempts_performed,
+                raw_category=last_error.code,
+                normalized_category=classify_failure(last_error),
             ),
             health=self._health(provider.provider_name),
             elapsed_ms=round((time.monotonic() - started) * 1000),
@@ -616,6 +631,7 @@ class RetrievalOrchestrator:
                         source="derived-from:" + (history.evidence_id or "UNKNOWN"),
                         source_type=SourceType.DETERMINISTIC_DERIVED,
                         retrieved_at=datetime.now(UTC),
+                        available_at=max(item.available_at or item.retrieved_at for item in (history, *([benchmark_record] if benchmark_record else []), *([histories["QQQ"]] if "QQQ" in histories else []))),
                         provider="meridian-derived-market-features-v1",
                         confidence=history.confidence,
                         raw_reference="|".join(item.evidence_id or item.raw_reference for item in (history, *([benchmark_record] if benchmark_record else []), *([histories["QQQ"]] if "QQQ" in histories else []))),

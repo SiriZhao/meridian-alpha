@@ -353,6 +353,9 @@ class ResearchPreparationService:
                 source="canonical-market-stage",
                 source_type=SourceType.STRUCTURED_PROVIDER,
                 retrieved_at=retrieved_at,
+                # Received canonical inputs already belong to this immutable
+                # cutoff. Assembly time is retained separately as retrieval.
+                available_at=request.analysis_cutoff,
                 provider="operational-provider-chain",
                 confidence=Decimal("0.85"),
                 raw_reference=item.reference,
@@ -379,6 +382,7 @@ class ResearchPreparationService:
                     source="meridian-account-snapshot-validation",
                     source_type=SourceType.PORTFOLIO_REFERENCE,
                     retrieved_at=retrieved_at,
+                    available_at=request.analysis_cutoff,
                     provider="meridian",
                     confidence=Decimal("1"),
                     raw_reference=request.snapshot_reference,
@@ -396,6 +400,7 @@ class ResearchPreparationService:
                     source=str(self.strategy_profile_path),
                     source_type=SourceType.POLICY,
                     retrieved_at=retrieved_at,
+                    available_at=request.analysis_cutoff,
                     provider="meridian-policy",
                     confidence=Decimal("1"),
                     raw_reference=request.policy_reference,

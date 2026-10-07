@@ -52,9 +52,10 @@ def test_hallucinated_numeric_claim_is_flagged() -> None:
         RuntimePaths(Path(".pytest_tmp") / "shadow-hallucination"),
         orchestrator=GPTNativeResearchOrchestrator(FakeResearchModelRuntime(catalog)),
     ).run(result, settings(), run_id="shadow-hallucination")
-    # It is retained only as GPT-derived output and flagged; it never becomes market data.
+    # Ungrounded supported claims are rejected before synthesis and remain
+    # auditable as sanitized counts, never as usable market facts.
     assert record.quality_metrics.hallucinated_market_fact_count == 1
-    assert record.stages["PRIMARY_ANALYST"]["status"] == "SUCCESS"
+    assert record.stages["PRIMARY_ANALYST"]["status"] == "SCHEMA_ERROR"
 
 
 def test_role_routing_is_external_and_bounded(tmp_path: Path) -> None:

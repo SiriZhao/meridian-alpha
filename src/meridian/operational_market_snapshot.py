@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+import sqlite3
 from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
@@ -34,6 +36,7 @@ from meridian.operational_data import (
     OperationalRefreshService,
     OperationalSnapshot,
 )
+from meridian.provider_resilience import ProviderHealthStore, classify_failure
 from meridian.quotes import NasdaqApiQuoteProvider, YahooChartQuoteProvider
 from meridian.runtime import RuntimePaths
 from meridian.runtime_io import atomic_write
@@ -61,12 +64,28 @@ class ResilientHistoricalProvider:
         self.last_diagnostics: dict[str, dict[str, object]] = {}
 
     def _path(self, symbol: str) -> Path:
+        if not re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,15}", symbol.upper()):
+            raise ValueError("HISTORICAL_SYMBOL_INVALID")
         return self.cache_directory / f"{symbol.upper()}-daily.json"
 
-    def _load(self, symbol: str, as_of: datetime) -> HistoricalBarSeries | None:
+    @staticmethod
+    def _validate(series: HistoricalBarSeries, symbol: str, start: date, end: date, cutoff: datetime) -> None:
+        if series.canonical_symbol != symbol.upper() or not series.bars:
+            raise HistoricalProviderMalformed("HISTORICAL_EMPTY_OR_IDENTITY_MISMATCH")
+        if series.bars[-1].session != latest_completed_session(cutoff):
+            raise HistoricalProviderMalformed("HISTORICAL_STALE_DATA")
+        if any(bar.available_at > cutoff or bar.retrieved_at > cutoff or bar.observed_at > cutoff or bar.session < start or bar.session > end for bar in series.bars):
+            raise HistoricalProviderMalformed("HISTORICAL_TIME_BOUNDARY_INVALID")
+
+    def _load(self, symbol: str, as_of: datetime, start: date, end: date) -> HistoricalBarSeries | None:
         try:
             raw = json.loads(self._path(symbol).read_text(encoding="utf-8"))
             series = HistoricalBarSeries.model_validate(raw["series"])
+            if raw.get("content_hash") != hashlib.sha256(series.stable_json().encode()).hexdigest():
+                return None
+            self._validate(series, symbol, start, end, as_of)
+            if raw.get("request_start") != start.isoformat() or raw.get("request_end") != end.isoformat():
+                return None
             if (
                 raw.get("schema_version") != self.schema_version
                 or series.canonical_symbol != symbol.upper()
@@ -90,30 +109,48 @@ class ResilientHistoricalProvider:
                     "warnings": (*series.warnings, "CACHE_RECOVERY"),
                 }
             )
-        except (OSError, KeyError, ValueError, json.JSONDecodeError):
+        except (OSError, KeyError, ValueError, TypeError, AttributeError):
             return None
 
     def get_series(
         self, symbol: str, start: date, end: date, *, as_of: datetime, live: bool = False
     ) -> HistoricalBarSeries:
-        cached = self._load(symbol, as_of)
+        cached = self._load(symbol, as_of, start, end)
         if cached is not None:
             return cached
         failures: list[str] = []
+        attempts: list[dict[str, object]] = []
+        provider_health: dict[str, object] = {}
+        def health(provider: str, category: str | None, started: datetime, completed: datetime, fallback: bool) -> None:
+            try:
+                provider_health[provider] = ProviderHealthStore(self.cache_directory / "provider-health.sqlite3").record(provider=provider, symbol=symbol, channel="LIVE_HISTORY" if live else "REPLAY_HISTORY", category=category, latency_ms=max(0, round((completed - started).total_seconds() * 1000)), completed_at=completed, fallback=fallback)
+            except (OSError, sqlite3.Error):
+                provider_health[provider] = {"status": "TELEMETRY_UNAVAILABLE", "routing_effect": "NONE_OBSERVATIONAL_ONLY"}
         for index, provider in enumerate(self.providers):
+            started = datetime.now(UTC)
+            provider_name = str(getattr(provider, "provider_name", type(provider).__name__))
             try:
                 series = provider.get_series(symbol, start, end, as_of=as_of, live=live)
-                if not series.bars:
-                    raise HistoricalProviderMalformed("empty historical series")
-                self.cache_directory.mkdir(parents=True, exist_ok=True)
+                cutoff = datetime.now(UTC) if live else as_of
+                self._validate(series, symbol, start, end, cutoff)
                 payload = {
                     "schema_version": self.schema_version,
                     "retrieved_at": datetime.now(UTC).isoformat(),
                     "source": series.provider,
                     "market_timestamp": series.bars[-1].observed_at.isoformat(),
                     "series": series.model_dump(mode="json"),
+                    "content_hash": hashlib.sha256(series.stable_json().encode()).hexdigest(),
+                    "request_start": start.isoformat(), "request_end": end.isoformat(),
                 }
-                atomic_write(self._path(symbol), json.dumps(payload, sort_keys=True))
+                cache_status = "WRITE_OK"
+                try:
+                    atomic_write(self._path(symbol), json.dumps(payload, sort_keys=True))
+                except OSError:
+                    cache_status = "WRITE_FAILED"
+                    failures.append("HISTORICAL_CACHE_WRITE_FAILED")
+                completed = datetime.now(UTC)
+                health(provider_name, None, started, completed, index > 0)
+                attempts.append({"provider": provider_name, "attempted_at": started.isoformat(), "completed_at": completed.isoformat(), "latency_ms": max(0, round((completed - started).total_seconds() * 1000)), "raw_category": None, "normalized_category": None, "selected": True, "source_timestamp": series.bars[-1].observed_at.isoformat(), "received_at": series.bars[-1].retrieved_at.isoformat(), "session": series.bars[-1].session.isoformat(), "freshness": "CURRENT", "fallback_reason": failures[0] if index else None})
                 self.last_diagnostics[symbol] = {
                     "provider_used": series.provider,
                     "fallback_path": [
@@ -131,9 +168,16 @@ class ResilientHistoricalProvider:
                     "cross_source_deviation": None,
                     "confidence": "NORMAL" if index == 0 else "DEGRADED",
                     "warnings": failures,
+                    "attempts": attempts, "cache_status": cache_status,
+                    "provider_health": provider_health,
+                    "quote_certification_status": "BLOCKED",
                 }
                 return series
-            except (HistoricalProviderError, OSError, ValueError) as error:
+            except (HistoricalProviderError, OSError, ValueError, TypeError, KeyError, AttributeError, ArithmeticError) as error:
+                completed = datetime.now(UTC)
+                category = "STALE_DATA" if str(error) == "HISTORICAL_STALE_DATA" else "EMPTY_DATA" if str(error) == "HISTORICAL_EMPTY_OR_IDENTITY_MISMATCH" else classify_failure(error).value
+                health(provider_name, category, started, completed, index + 1 < len(self.providers))
+                attempts.append({"provider": provider_name, "attempted_at": started.isoformat(), "completed_at": completed.isoformat(), "latency_ms": max(0, round((completed - started).total_seconds() * 1000)), "raw_category": type(error).__name__, "normalized_category": category, "selected": False})
                 failures.append(
                     f"{getattr(provider, 'provider_name', type(provider).__name__)}:{type(error).__name__}"
                 )
@@ -152,6 +196,8 @@ class ResilientHistoricalProvider:
             "cross_source_deviation": None,
             "confidence": "NONE",
             "warnings": failures,
+            "attempts": attempts, "quote_certification_status": "BLOCKED",
+            "provider_health": provider_health,
         }
         raise HistoricalProviderError("HISTORICAL_DATA_UNAVAILABLE")
 
@@ -329,6 +375,7 @@ class OperationalMarketSnapshotService:
                 "selection": refresh.selected_lane,
                 "cache": {"status": refresh.cache_status, "hit": refresh.cache_hit},
                 "data_quality_mode": refresh.data_quality_mode,
+                "provider_health": dict(refresh.provider_health or {}),
                 "history": {"status": "NOT_RUN"},
             }
             cache[symbol] = refresh.cache_hit
@@ -383,6 +430,8 @@ class OperationalMarketSnapshotService:
         if live:
             analysis_time = datetime.now(UTC)
         for symbol, observation in observations.items():
+            history_probe = probes[symbol].get("history")
+            probes[symbol]["history"] = {**getattr(self.historical, "last_diagnostics", {}).get(symbol, {}), **(history_probe if isinstance(history_probe, dict) else {})}
             for lane, result in (
                 ("primary", observation.primary),
                 ("secondary", observation.secondary),
@@ -395,6 +444,9 @@ class OperationalMarketSnapshotService:
                     }
                 lane_payload = probes[symbol][lane]
                 if isinstance(lane_payload, dict):
+                    category = result.normalized_category.value if result.normalized_category else None
+                    if result.quote is not None and lane_payload["status"] != "OK":
+                        category = "STALE_DATA" if lane_payload["status"] == "STALE" else category or "INVALID_RESPONSE"
                     health[symbol][lane] = str(lane_payload["status"])
                     lane_payload.update(
                         {
@@ -405,11 +457,13 @@ class OperationalMarketSnapshotService:
                             if result.completed_at
                             else None,
                             "request_mode": "LIVE" if live else "REPLAY",
-                            "error_category": None
-                            if lane_payload["status"] == "OK"
-                            else "DATA_QUALITY"
-                            if result.quote is not None
-                            else "PROVIDER_FAILURE",
+                            "error_category": category,
+                            "raw_category": result.raw_category,
+                            "normalized_category": category,
+                            "attempt_normalized_category": result.normalized_category.value if result.normalized_category else None,
+                            "latency_ms": result.latency_ms,
+                            "selected": observation.selected is not None and observation.selected is result.quote,
+                            "fallback_reason": observation.primary.normalized_category.value if observation.selected_lane in {"FALLBACK", "CACHE"} and observation.primary.normalized_category else None,
                         }
                     )
             if observation.selected is not None:
@@ -450,6 +504,8 @@ class OperationalMarketSnapshotService:
         selected = refresh.selected
         if selected is None:
             raise ValueError("SYMBOL_MISSING")
+        if selected.currency != DEFAULT_SECURITY_MASTER.resolve(symbol).currency:
+            raise ValueError("MARKET_CURRENCY_MISMATCH")
         if live:
             analysis_time = datetime.now(UTC)
         series = self.historical.get_series(
@@ -477,6 +533,7 @@ class OperationalMarketSnapshotService:
             raise ValueError("HISTORICAL_DATA_STALE")
         if diagnostic is not None:
             diagnostic["history"] = {
+                **getattr(self.historical, "last_diagnostics", {}).get(symbol, {}),
                 "status": "PASS",
                 "provider": series.provider,
                 "latest_session": latest.session.isoformat(),

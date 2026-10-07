@@ -564,6 +564,11 @@
       ],
       "default": null,
       "title": "Manual Authority"
+    },
+    "forward_evidence": {
+      "additionalProperties": true,
+      "title": "Forward Evidence",
+      "type": "object"
     }
   },
   "required": [

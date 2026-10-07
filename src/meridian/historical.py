@@ -517,18 +517,23 @@ class YahooChartHistoricalProvider:
             currency = str(result["meta"].get("currency") or security.currency).upper()
             opens, highs, lows = quote["open"], quote["high"], quote["low"]
             closes, volumes = quote["close"], quote["volume"]
-        except (KeyError, IndexError, TypeError, json.JSONDecodeError) as error:
+        except (KeyError, IndexError, TypeError, AttributeError, ValueError) as error:
             raise HistoricalProviderMalformed("Yahoo historical response is malformed") from error
         retrieved = self.clock()
         if retrieved.tzinfo is None or retrieved.utcoffset() is None:
             raise ValueError("historical provider clock must be timezone-aware")
         rows: list[Mapping[str, Any]] = []
+        if not isinstance(timestamps, list) or not all(isinstance(values, list) and len(values) == len(timestamps) for values in (opens, highs, lows, closes, volumes)):
+            raise HistoricalProviderMalformed("Yahoo historical array schema drift")
         for timestamp, opening, high, low, close, volume in zip(
             timestamps, opens, highs, lows, closes, volumes, strict=False
         ):
             if any(value is None for value in (timestamp, opening, high, low, close, volume)):
                 continue
-            session = datetime.fromtimestamp(float(timestamp), tz=UTC).date()
+            try:
+                session = datetime.fromtimestamp(float(timestamp), tz=UTC).date()
+            except (ValueError, TypeError, OverflowError, OSError) as error:
+                raise HistoricalProviderMalformed("Yahoo historical timestamp invalid") from error
             calendar = TradingCalendarName(security.trading_calendar)
             if session < start or session > end or session > as_of.astimezone(UTC).date():
                 continue
@@ -642,7 +647,7 @@ class NasdaqHistoricalProvider:
             rows = ((document.get("data") or {}).get("tradesTable") or {}).get("rows") or []
             if not isinstance(rows, list) or not rows:
                 raise ValueError("no historical rows")
-        except (TypeError, ValueError, json.JSONDecodeError) as error:
+        except (TypeError, ValueError, AttributeError) as error:
             raise HistoricalProviderMalformed("Nasdaq historical response is malformed") from error
         retrieved = self.clock()
         normalized: list[Mapping[str, Any]] = []
@@ -663,7 +668,7 @@ class NasdaqHistoricalProvider:
                     row.get("high") or row.get("highPrice"),
                     row.get("low") or row.get("lowPrice"),
                     row.get("close") or row.get("closePrice"),
-                    row.get("volume") or row.get("shareVolume"),
+                    row.get("volume") if row.get("volume") is not None else row.get("shareVolume"),
                 )
                 if any(value in (None, "", "N/A") for value in required_values):
                     continue
@@ -673,6 +678,8 @@ class NasdaqHistoricalProvider:
                 except ValueError:
                     session = date.fromisoformat(raw_date[:10])
                 if session < start or session > end or session > as_of.date():
+                    continue
+                if session_close(session, TradingCalendarName(security.trading_calendar)) > as_of:
                     continue
                 normalized.append(
                     {

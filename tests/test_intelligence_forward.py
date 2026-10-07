@@ -128,6 +128,9 @@ def test_forward_ingestion_waits_for_maturity_and_is_idempotent(tmp_path: Path) 
     repeat = ledger.ingest_prices(observed_at=prediction.maturity_at, prices={"AAPL": Decimal("110"), "SPY": Decimal("510")})
     assert repeat["appended"] == []
     status = ledger.evaluate()
-    assert status["maturity_status"] == "NOT_MATURE"
+    assert status["maturity_status"] == "OUTCOMES_RECORDED"
+    assert status["sample_count"] == 0
+    assert status["unverified_outcome_count"] == 2
+    assert status["evaluation_readiness"] == "INSUFFICIENT_VERIFIED_SAMPLES"
     assert status["promotion_readiness"] == "NOT_ELIGIBLE_AUTOMATIC_PROMOTION_DISABLED"
 

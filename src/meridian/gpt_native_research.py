@@ -22,7 +22,7 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Protocol, cast
+from typing import Any, Literal, Protocol, cast
 from uuid import uuid4
 
 from pydantic import AwareDatetime, Field, ValidationError, model_validator
@@ -387,6 +387,9 @@ class ConfidenceComposition(StableModel):
     system_confidence: float = Field(ge=0, le=1)
     llm_self_confidence: float | None = Field(default=None, ge=0, le=1)
     components: dict[str, float]
+    composer_version: str = "ConfidenceComposer.v1"
+    authority: Literal["ADVISORY_ONLY_NO_EXECUTION_AUTHORITY"] = "ADVISORY_ONLY_NO_EXECUTION_AUTHORITY"
+    provenance: str = "DETERMINISTIC_EVIDENCE_COMPONENTS_WITH_SEPARATE_LLM_SELF_CONFIDENCE"
 
 
 class ResearchMemoryRecord(StableModel):
@@ -433,7 +436,13 @@ class NativeResearchResult(StableModel):
     missing_stages: tuple[str, ...] = ()
     disagreement_score: float = Field(ge=0, le=1)
     degradation_reasons: tuple[str, ...] = ()
-    authority: str = "ADVISORY_ONLY_NO_EXECUTION_AUTHORITY"
+    authority: Literal["ADVISORY_ONLY_NO_EXECUTION_AUTHORITY"] = "ADVISORY_ONLY_NO_EXECUTION_AUTHORITY"
+
+    @model_validator(mode="after")
+    def ready_requires_typed_outputs(self) -> NativeResearchResult:
+        if self.research_state is ResearchState.READY and (any(output is None for output in (self.primary, self.skeptic, self.scenarios, self.synthesis)) or any(stage.status is not InvocationStatus.SUCCESS or not stage.schema_valid for stage in self.stages.values()) or len(self.stages) != 4):
+            raise ValueError("RESEARCH_READY_REQUIRES_VALIDATED_ROLE_OUTPUTS")
+        return self
 
 
 class ResearchMemory:
@@ -442,10 +451,13 @@ class ResearchMemory:
     def __init__(self, directory: Path) -> None:
         self.directory = directory
 
-    def load(self, symbol: str) -> ResearchMemoryRecord | None:
+    def load(self, symbol: str, *, as_of: datetime | None = None) -> ResearchMemoryRecord | None:
+        if not re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,14}", symbol):
+            raise ValueError("RESEARCH_MEMORY_SYMBOL_INVALID")
         path = self.directory / f"{symbol}.json"
         try:
-            return ResearchMemoryRecord.model_validate_json(path.read_text(encoding="utf-8"))
+            record = ResearchMemoryRecord.model_validate_json(path.read_text(encoding="utf-8"))
+            return record if record.symbol == symbol and (as_of is None or record.last_updated <= as_of) else None
         except FileNotFoundError:
             return None
         except (OSError, ValueError):
@@ -829,6 +841,8 @@ class CodexResearchModelRuntime:
                         error_type="OUTPUT_MISSING", exit_code=returncode, diagnostic=diagnostic,
                     )
                 output = json.loads(output_path.read_text(encoding="utf-8"))
+                if not isinstance(output, dict) or not output:
+                    return self._result(status=InvocationStatus.SCHEMA_ERROR, role=role, model=model, reasoning_effort=reasoning_effort, started_at=started_at, duration_ms=elapsed, error_type="EMPTY_OR_NON_OBJECT_OUTPUT", exit_code=returncode, diagnostic=diagnostic)
                 return self._result(
                     status=InvocationStatus.SUCCESS, role=role, model=model,
                     reasoning_effort=reasoning_effort, started_at=started_at, duration_ms=elapsed,
@@ -874,7 +888,7 @@ class CodexResearchModelRuntime:
                 reasoning_effort=reasoning_effort, started_at=started_at,
                 duration_ms=int((time.monotonic() - started) * 1000), error_type="TIMEOUT", diagnostic=diagnostic,
             )
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, UnicodeError):
             return self._result(
                 status=InvocationStatus.SCHEMA_ERROR, role=role, model=model,
                 reasoning_effort=reasoning_effort, started_at=started_at,
@@ -974,11 +988,18 @@ class GPTNativeResearchOrchestrator:
 
     @staticmethod
     def _parse(result: ModelInvocationResult, model_type: type[StableModel], allowed_ids: set[str]) -> tuple[ModelInvocationResult, StableModel | None]:
-        if result.status is not InvocationStatus.SUCCESS or result.output is None:
+        if result.status is not InvocationStatus.SUCCESS:
             return result, None
+        if not result.output:
+            return result.model_copy(update={"status": InvocationStatus.SCHEMA_ERROR, "schema_valid": False, "error_type": "EMPTY_STRUCTURED_RESPONSE", "output": None}), None
         references: set[str] = set()
+        rejected_claims: tuple[ResearchClaim, ...] = ()
         try:
             parsed = model_type.model_validate(result.output)
+            primary_output = parsed.primary if isinstance(parsed, NativeResearchChainOutput) else parsed if isinstance(parsed, PrimaryAnalystOutput) else None
+            rejected_claims = tuple(claim for claim in primary_output.supporting_claims if claim.status is ClaimStatus.SUPPORTED and not claim.supporting_evidence_ids) if primary_output else ()
+            if rejected_claims:
+                raise ValueError("SUPPORTED_CLAIM_WITHOUT_EVIDENCE")
             if isinstance(parsed, PrimaryAnalystOutput):
                 references.update(parsed.evidence_used)
                 for claim in parsed.supporting_claims:
@@ -1000,6 +1021,9 @@ class GPTNativeResearchOrchestrator:
             return result.model_copy(update={"schema_valid": True}), parsed
         except ValueError as error:
             diagnostic = dict(result.diagnostic)
+            if rejected_claims:
+                diagnostic["rejected_ungrounded_claim_count"] = len(rejected_claims)
+                diagnostic["rejected_numeric_claim_count"] = sum(bool(re.search(r"\d", claim.statement)) for claim in rejected_claims)
             if isinstance(error, ValidationError):
                 diagnostic['validation_errors'] = json.dumps([
                     {'type': item['type'], 'location': item['loc']}
@@ -1007,7 +1031,7 @@ class GPTNativeResearchOrchestrator:
                 ])
                 error_type = 'OUTPUT_VALIDATION_ERROR'
             else:
-                error_type = 'UNSUPPORTED_EVIDENCE_ID'
+                error_type = 'SUPPORTED_CLAIM_WITHOUT_EVIDENCE' if str(error) == 'SUPPORTED_CLAIM_WITHOUT_EVIDENCE' else 'UNSUPPORTED_EVIDENCE_ID'
                 diagnostic['unsupported_reference_count'] = len(references - allowed_ids)
             return result.model_copy(
                 update={
@@ -1094,11 +1118,9 @@ class GPTNativeResearchOrchestrator:
             "role_deadline_enforcement": "NOT_INDEPENDENT_SHARED_PROCESS",
             "role_elapsed_ms": None,
             "role_configured_budget_seconds": configured_budget_seconds,
-            "role_effective_deadline_seconds": (
-                min(configured_budget_seconds, max(0.0, inherited_remaining_seconds))
-                if configured_budget_seconds is not None and inherited_remaining_seconds is not None
-                else None
-            ),
+            "role_effective_deadline_seconds": None,
+            "shared_process_effective_deadline_seconds": chain.diagnostic.get("effective_timeout_seconds"),
+            "parent_remaining_after_invocation_seconds": inherited_remaining_seconds,
         }
         diagnostic.setdefault("shared_invocation_id", uuid4().hex)
         return chain.model_copy(
@@ -1114,7 +1136,7 @@ class GPTNativeResearchOrchestrator:
         run_id = run_id or "native-" + uuid4().hex
         evidence = self._evidence(request)
         stages = {name: ModelInvocationResult(status=InvocationStatus.NOT_RUN) for name in self.stage_names}
-        memories = [self.memory.load(item.ticker) for item in request.observations] if self.memory else []
+        memories = [self.memory.load(item.ticker, as_of=request.analysis_cutoff) for item in request.observations] if self.memory else []
         prior = next((item for item in memories if item is not None), None)
         if research_data_status != "PASS" or not evidence:
             confidence = self.composer.compose(evidence, research_data_status=research_data_status, primary=None, skeptic=None, scenarios=None)
@@ -1305,6 +1327,8 @@ def persist_research_trace(result: NativeResearchResult, paths: RuntimePaths, an
                 "start_timestamp": stage.started_at.isoformat(),
                 "end_timestamp": stage.finished_at.isoformat(),
                 "duration_ms": stage.duration_ms,
+                "role_elapsed_ms": None if stage.diagnostic.get("shared_invocation") else stage.duration_ms,
+                "duration_semantics": "NON_ADDITIVE_SHARED_PROCESS" if stage.diagnostic.get("shared_invocation") else "INDEPENDENT_PROCESS",
                 "status": stage.status.value,
                 "schema_valid": stage.schema_valid,
                 "error_type": stage.error_type,
@@ -1329,6 +1353,8 @@ def persist_research_trace(result: NativeResearchResult, paths: RuntimePaths, an
                         "total_research_ms", "effective_timeout_seconds", "stdout_bytes",
                         "stderr_bytes", "cancellation_reason", "taskkill_invoked",
                         "process_already_exited_before_kill",
+                        "shared_invocation_id", "shared_duration_non_additive",
+                        "role_elapsed_ms", "role_configured_budget_seconds",
                     )
                     if key in stage.diagnostic
                 },

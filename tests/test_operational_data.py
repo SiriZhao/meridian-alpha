@@ -57,7 +57,9 @@ def test_disagreement_invalid_response_and_cache_corruption(tmp_path: Path) -> N
     path = cache._path("AAPL", "primary")
     path.write_text("not-json", encoding="utf-8")
     assert cache.load("AAPL", "primary") is None
-    assert path.with_suffix(".json.corrupt").exists()
+    quarantined = list(tmp_path.glob(path.name + ".*.corrupt"))
+    assert len(quarantined) == 1
+    assert quarantined[0].read_text(encoding="utf-8") == "not-json"
 
 
 def test_completed_session_handles_weekend_and_holiday() -> None:

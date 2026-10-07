@@ -8,16 +8,19 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+import sqlite3
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, date, datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from enum import StrEnum
 from pathlib import Path
 from typing import Protocol
 from urllib.error import HTTPError, URLError
 from uuid import uuid4
 
+from meridian.provider_resilience import FailureCategory, ProviderHealthStore, classify_failure
 from meridian.quotes import (
     QuoteObservation,
     QuoteProviderError,
@@ -65,12 +68,20 @@ class FreshnessPolicy:
         _aware(as_of, "as_of")
         if observation.timestamp > as_of or observation.received_at > as_of:
             return OperationalProviderStatus.INVALID_RESPONSE
+        if observation.available_at is not None and observation.available_at > as_of:
+            return OperationalProviderStatus.INVALID_RESPONSE
+        if observation.quality is not OperationalProviderStatus.OK:
+            return observation.quality
+        if observation.session == "OPEN" and session_context(observation.timestamp) != "REGULAR":
+            return OperationalProviderStatus.INVALID_RESPONSE
         age = (as_of - observation.timestamp).total_seconds()
         if age > self.quote_max_age_seconds:
             return OperationalProviderStatus.STALE
         # A recent timestamp during a scheduled closure is not a fresh trade.
         # Prior-session closes remain diagnostic context, never a stale override.
         if session_context(observation.timestamp) == "CLOSED":
+            return OperationalProviderStatus.INVALID_RESPONSE
+        if session_context(as_of) == "REGULAR" and session_context(observation.timestamp) != "REGULAR":
             return OperationalProviderStatus.INVALID_RESPONSE
         return OperationalProviderStatus.OK
 
@@ -142,14 +153,19 @@ class OperationalQuote:
     session: str
     quality: OperationalProviderStatus = OperationalProviderStatus.OK
     provenance: Mapping[str, str] | None = None
+    available_at: datetime | None = None
 
     def __post_init__(self) -> None:
-        if not self.symbol or self.price <= 0 or not self.price.is_finite():
+        if not self.symbol or not self.price.is_finite() or self.price <= 0:
             raise ValueError("operational quote requires a positive symbol and price")
         _aware(self.timestamp, "timestamp")
         _aware(self.received_at, "received_at")
         if self.timestamp > self.received_at:
             raise ValueError("operational quote timestamp is after received_at")
+        if self.available_at is not None:
+            _aware(self.available_at, "available_at")
+            if not self.timestamp <= self.available_at <= self.received_at:
+                raise ValueError("operational quote availability is inconsistent")
         if len(self.currency) != 3:
             raise ValueError("operational quote currency must be ISO-4217")
 
@@ -161,7 +177,10 @@ class OperationalQuote:
     def from_shadow_quote(cls, quote: QuoteObservation) -> OperationalQuote:
         if quote.last is None:
             raise ValueError("operational quote requires provider last price")
-        return cls(symbol=quote.canonical_symbol, price=quote.last, timestamp=quote.observed_at, received_at=quote.retrieved_at, provider=quote.provider, source_type="PUBLIC_SHADOW_LAST", currency=quote.currency, session=quote.market_status.value, quality=OperationalProviderStatus.OK, provenance={"provider_symbol": quote.provider_symbol, "source": quote.source, "shadow_only": "true"})
+        if quote.available_at > quote.retrieved_at:
+            raise ValueError("MARKET_AVAILABILITY_AFTER_RECEIPT")
+        quality = OperationalProviderStatus.INVALID_RESPONSE if quote.quality_status.value in {"INVALID", "FUTURE", "MARKET_DATA_CONFLICT"} else OperationalProviderStatus.STALE if quote.quality_status.value == "STALE" else OperationalProviderStatus.OK
+        return cls(symbol=quote.canonical_symbol, price=quote.last, timestamp=quote.observed_at, received_at=quote.retrieved_at, available_at=quote.available_at, provider=quote.provider, source_type="PUBLIC_SHADOW_LAST", currency=quote.currency, session=quote.market_status.value, quality=quality, provenance={"provider_symbol": quote.provider_symbol, "source": quote.source, "shadow_only": "true"})
 
 
 def _aware(value: datetime, name: str) -> None:
@@ -183,6 +202,12 @@ class ProviderResult:
     quote: OperationalQuote | None = None
     attempted_at: datetime | None = None
     completed_at: datetime | None = None
+    raw_category: str | None = None
+    normalized_category: FailureCategory | None = None
+
+    @property
+    def latency_ms(self) -> int | None:
+        return max(0, round((self.completed_at - self.attempted_at).total_seconds() * 1000)) if self.completed_at and self.attempted_at else None
 
 
 @dataclass(frozen=True)
@@ -199,6 +224,7 @@ class OperationalSnapshot:
     cache_status: str = "NOT_CONFIGURED"
     selected_lane: str = "NONE"
     data_quality_mode: str = "DATA_DEGRADED"
+    provider_health: Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
         _aware(self.analysis_time, "analysis_time")
@@ -218,8 +244,11 @@ class OperationalCache:
         self.directory = directory
 
     def _path(self, symbol: str, provider: str) -> Path:
+        if not re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,15}", symbol) or not re.fullmatch(r"[A-Za-z0-9._\-]{1,128}", provider):
+            raise ValueError("OPERATIONAL_CACHE_IDENTITY_INVALID")
         safe = "".join(char for char in f"{provider}-{symbol}" if char.isalnum() or char in "-_")
-        return self.directory / f"{safe}.json"
+        identity = hashlib.sha256(json.dumps([provider, symbol], separators=(",", ":")).encode()).hexdigest()[:16]
+        return self.directory / f"{safe}-{identity}.json"
 
     def load(self, symbol: str, provider: str) -> OperationalQuote | None:
         path = self._path(symbol, provider)
@@ -236,10 +265,13 @@ class OperationalCache:
             actual = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
             if actual != declared:
                 raise ValueError("cache hash mismatch")
-            return OperationalQuote(symbol=str(body["symbol"]), price=Decimal(str(body["price"])), timestamp=datetime.fromisoformat(str(body["timestamp"])), received_at=datetime.fromisoformat(str(body["received_at"])), provider=str(body["provider"]), source_type=str(body["source_type"]), currency=str(body["currency"]), session=str(body["session"]), quality=OperationalProviderStatus(str(body["quality"])), provenance=body.get("provenance"))
-        except (OSError, ValueError, KeyError, json.JSONDecodeError):
+            quote = OperationalQuote(symbol=str(body["symbol"]), price=Decimal(str(body["price"])), timestamp=datetime.fromisoformat(str(body["timestamp"])), received_at=datetime.fromisoformat(str(body["received_at"])), available_at=datetime.fromisoformat(str(body["available_at"])) if body.get("available_at") else None, provider=str(body["provider"]), source_type=str(body["source_type"]), currency=str(body["currency"]), session=str(body["session"]), quality=OperationalProviderStatus(str(body["quality"])), provenance=body.get("provenance"))
+            if quote.symbol != symbol or raw.get("key_provider", quote.provider) != provider:
+                raise ValueError("cache identity mismatch")
+            return quote
+        except (OSError, ValueError, KeyError, TypeError, InvalidOperation):
             try:
-                path.replace(path.with_suffix(path.suffix + ".corrupt"))
+                path.replace(path.with_suffix(path.suffix + "." + uuid4().hex + ".corrupt"))
             except OSError:
                 pass
             return None
@@ -251,8 +283,9 @@ class OperationalCache:
         body["price"] = str(quote.price)
         body["timestamp"] = quote.timestamp.isoformat()
         body["received_at"] = quote.received_at.isoformat()
+        body["available_at"] = quote.available_at.isoformat() if quote.available_at else None
         body["quality"] = quote.quality.value
-        payload = {"schema_version": self.schema_version, "quote": body, "content_hash": hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()}
+        payload = {"schema_version": self.schema_version, "key_provider": provider or quote.provider, "quote": body, "content_hash": hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()}
         temporary = path.with_name(path.name + "." + uuid4().hex + ".tmp")
         try:
             temporary.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":")), encoding="utf-8")
@@ -278,10 +311,15 @@ class OperationalRefreshService:
         secondary = self._fetch(self.secondary, symbol, analysis_time, live=live) if self.secondary else ProviderResult("trusted-web-evidence", OperationalProviderStatus.UNAVAILABLE, "OUTER_ASTRA_VALIDATION_REQUIRED")
         if live:
             analysis_time = datetime.now(UTC)
-            primary = replace(primary, status=self.policy.quote_status(primary.quote, as_of=analysis_time)) if primary.quote is not None else primary
-            secondary = replace(secondary, status=self.policy.quote_status(secondary.quote, as_of=analysis_time)) if secondary.quote is not None else secondary
+            def revalidate(result: ProviderResult) -> ProviderResult:
+                if result.quote is None:
+                    return result
+                status = self.policy.quote_status(result.quote, as_of=analysis_time)
+                category = FailureCategory.STALE_DATA if status is OperationalProviderStatus.STALE else result.normalized_category or FailureCategory.INVALID_RESPONSE if status is not OperationalProviderStatus.OK else None
+                return replace(result, status=status, normalized_category=category)
+            primary, secondary = revalidate(primary), revalidate(secondary)
         selected = primary.quote if primary.status is OperationalProviderStatus.OK else secondary.quote if secondary.status is OperationalProviderStatus.OK else None
-        selected_lane = "PRIMARY" if selected is primary.quote else "FALLBACK" if selected is secondary.quote else "NONE"
+        selected_lane = "PRIMARY" if selected is not None and selected is primary.quote else "FALLBACK" if selected is not None and selected is secondary.quote else "NONE"
         cache_hit = False
         cache_status = "NOT_CONFIGURED" if self.cache is None else "NOT_USED"
         if selected is None and self.cache is not None:
@@ -294,7 +332,11 @@ class OperationalRefreshService:
                     selected, cache_hit = cached, True
                     selected_lane, cache_status = "CACHE", "HIT"
                     break
-        if selected is not None and self.cache is not None and not cache_hit:
+        conflict = None
+        if primary.status is OperationalProviderStatus.OK and secondary.status is OperationalProviderStatus.OK and primary.quote is not None and secondary.quote is not None:
+            conflict = abs(primary.quote.price - secondary.quote.price) / primary.quote.price
+        conflict_block = conflict is not None and conflict > self.discrepancy_tolerance_percent
+        if selected is not None and self.cache is not None and not cache_hit and not conflict_block:
             try:
                 self.cache.store(selected, provider=primary.provider if selected is primary.quote else secondary.provider)
                 cache_status = "WRITE_OK"
@@ -302,14 +344,19 @@ class OperationalRefreshService:
                 # Cache is an availability lane, never authority. A cache ACL/EFS
                 # failure must not discard an already-validated provider quote.
                 cache_status = "WRITE_FAILED"
-        conflict = None
-        if primary.status is OperationalProviderStatus.OK and secondary.status is OperationalProviderStatus.OK and primary.quote is not None and secondary.quote is not None:
-            conflict = abs(primary.quote.price - secondary.quote.price) / primary.quote.price
-        conflict_block = conflict is not None and conflict > self.discrepancy_tolerance_percent
         readiness = OperationalReadiness.OPERATIONAL_READY if selected is not None and self.policy.quote_status(selected, as_of=analysis_time) is OperationalProviderStatus.OK and not conflict_block else OperationalReadiness.OPERATIONAL_DEGRADED
         provider_degraded = primary.status is not OperationalProviderStatus.OK or secondary.status is not OperationalProviderStatus.OK
         data_quality_mode = "DATA_DEGRADED" if provider_degraded or cache_status in {"HIT", "MISS", "WRITE_FAILED"} or conflict_block else "NORMAL"
-        return OperationalSnapshot(analysis_time=analysis_time, information_cutoff=analysis_time, primary=primary, secondary=secondary, selected=selected, readiness=readiness, research_readiness=OperationalReadiness.RESEARCH_BLOCKED, conflict_percent=conflict, cache_hit=cache_hit, cache_status=cache_status, selected_lane=selected_lane, data_quality_mode=data_quality_mode)
+        provider_health: dict[str, object] = {}
+        if self.cache is not None and isinstance(getattr(self.cache, "directory", None), Path):
+            for result in (primary, secondary):
+                if result.completed_at is None:
+                    continue
+                try:
+                    provider_health[result.provider] = ProviderHealthStore(self.cache.directory / "provider-health.sqlite3").record(provider=result.provider, symbol=symbol, channel="LIVE_QUOTE" if live else "REPLAY_QUOTE", category=result.normalized_category.value if result.normalized_category else None, latency_ms=result.latency_ms or 0, completed_at=result.completed_at, fallback=selected_lane in {"FALLBACK", "CACHE"})
+                except (OSError, sqlite3.Error):
+                    provider_health[result.provider] = {"status": "TELEMETRY_UNAVAILABLE", "routing_effect": "NONE_OBSERVATIONAL_ONLY"}
+        return OperationalSnapshot(analysis_time=analysis_time, information_cutoff=analysis_time, primary=primary, secondary=secondary, selected=selected, readiness=readiness, research_readiness=OperationalReadiness.RESEARCH_BLOCKED, conflict_percent=conflict, cache_hit=cache_hit, cache_status=cache_status, selected_lane=selected_lane, data_quality_mode=data_quality_mode, provider_health=provider_health)
 
     def _fetch(self, provider: OperationalQuoteProvider, symbol: str, as_of: datetime, *, live: bool = False) -> ProviderResult:
         started = datetime.now(UTC)
@@ -317,17 +364,19 @@ class OperationalRefreshService:
             quote = OperationalQuote.from_shadow_quote(provider.get_quote(symbol, as_of=None if live else as_of))
             if quote.symbol != symbol:
                 raise ValueError("MARKET_SYMBOL_MISMATCH")
-            return ProviderResult(provider.provider_name, self.policy.quote_status(quote, as_of=as_of), "public operational observation; not PIT certified", quote, started, datetime.now(UTC))
+            status = self.policy.quote_status(quote, as_of=max(as_of, quote.received_at) if live else as_of)
+            category = FailureCategory.STALE_DATA if status is OperationalProviderStatus.STALE else FailureCategory.SESSION_MISMATCH if quote.session == "OPEN" and session_context(quote.timestamp) != "REGULAR" else FailureCategory.INVALID_RESPONSE if status is not OperationalProviderStatus.OK else None
+            return ProviderResult(provider.provider_name, status, "public operational observation; not PIT certified", quote, started, datetime.now(UTC), status.value if category else None, category)
         except QuoteProviderTimeout:
-            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "timeout", attempted_at=started, completed_at=datetime.now(UTC))
-        except (QuoteProviderMalformed, ValueError):
-            return ProviderResult(provider.provider_name, OperationalProviderStatus.INVALID_RESPONSE, "invalid_response", attempted_at=started, completed_at=datetime.now(UTC))
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "timeout", attempted_at=started, completed_at=datetime.now(UTC), raw_category="PROVIDER_TIMEOUT", normalized_category=FailureCategory.TIMEOUT)
+        except (QuoteProviderMalformed, ValueError, TypeError, KeyError, AttributeError, IndexError, ArithmeticError) as error:
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.INVALID_RESPONSE, "invalid_response", attempted_at=started, completed_at=datetime.now(UTC), raw_category=type(error).__name__, normalized_category=classify_failure(error))
         except QuoteProviderError as error:
             cause = error.__cause__
             detail = f"http_{cause.code}" if isinstance(cause, HTTPError) else "timeout" if isinstance(cause, TimeoutError) else "network_unavailable" if isinstance(cause, URLError) else "provider_error"
-            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, detail, attempted_at=started, completed_at=datetime.now(UTC))
-        except OSError:
-            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "network_unavailable", attempted_at=started, completed_at=datetime.now(UTC))
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, detail, attempted_at=started, completed_at=datetime.now(UTC), raw_category=error.code, normalized_category=classify_failure(error))
+        except OSError as error:
+            return ProviderResult(provider.provider_name, OperationalProviderStatus.UNAVAILABLE, "network_unavailable", attempted_at=started, completed_at=datetime.now(UTC), raw_category=type(error).__name__, normalized_category=classify_failure(error))
 
 
 def data_status(snapshot: OperationalSnapshot | None = None) -> dict[str, object]:

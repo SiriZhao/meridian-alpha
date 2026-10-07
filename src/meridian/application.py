@@ -916,11 +916,7 @@ class MeridianApplicationService:
                 finished_at=research_finished,
                 request_sent_at=research_started,
                 response_received_at=research_finished if native_status is ResearchProviderStatus.AVAILABLE else None,
-                duration_seconds=max(
-                    (stage.duration_ms for stage in native_result.stages.values()),
-                    default=0,
-                )
-                / 1000,
+                duration_seconds=(research_finished - research_started).total_seconds(),
                 attempts=(
                     1
                     if any(
@@ -941,6 +937,9 @@ class MeridianApplicationService:
                 ),
                 next_action="Research remains advisory; deterministic execution gates remain authoritative.",
                 provider_diagnostics={
+                    "output_contract": "NATIVE_TYPED_ROLE_OUTPUTS_IN_RESEARCH_INTELLIGENCE",
+                    "legacy_output_omission": "INTENTIONAL_DIFFERENT_SCHEMA",
+                    "confidence_provenance": {"composer": "ConfidenceComposer.v1", "source": "research_intelligence.confidence", "authority": "ADVISORY_ONLY_NO_EXECUTION_AUTHORITY"},
                     "shared_invocation": shared_invocation,
                     "shared_invocation_id": next((item.get("shared_invocation_id") for item in stage_latency.values() if item.get("shared_invocation_id")), None),
                     "budget_seconds": settings.native_budget.total_seconds,
@@ -967,10 +966,10 @@ class MeridianApplicationService:
                 "fallback_reason": ",".join(native_result.degradation_reasons) or None,
                 "evidence_synthesis": "GPT_NATIVE_EVIDENCE_FIRST",
                 "latency": {
-                    "primary_ms": stage_latency["PRIMARY_ANALYST"]["duration_ms"],
-                    "skeptic_ms": stage_latency["SKEPTIC"]["duration_ms"],
-                    "scenario_ms": stage_latency["SCENARIO_ANALYSIS"]["duration_ms"],
-                    "synthesis_ms": stage_latency["DECISION_SYNTHESIS"]["duration_ms"],
+                    "primary_ms": stage_latency["PRIMARY_ANALYST"]["role_elapsed_ms"],
+                    "skeptic_ms": stage_latency["SKEPTIC"]["role_elapsed_ms"],
+                    "scenario_ms": stage_latency["SCENARIO_ANALYSIS"]["role_elapsed_ms"],
+                    "synthesis_ms": stage_latency["DECISION_SYNTHESIS"]["role_elapsed_ms"],
                     "total_ms": int((research_finished - research_started).total_seconds() * 1000),
                     "budget_ms": settings.native_budget.total_seconds * 1000,
                     "shared_invocation": shared_invocation,
@@ -1445,6 +1444,9 @@ class MeridianApplicationService:
                     observed_at=cutoff,
                     prices=quote_prices,
                     source="CANONICAL_OPERATIONAL_MARKET_SNAPSHOT",
+                    # Intraday public observations are not verified horizon
+                    # closes or corporate-action-adjusted outcome evidence.
+                    observations={},
                 )
             else:
                 forward_freeze = {
@@ -1456,7 +1458,7 @@ class MeridianApplicationService:
                     "reason": "CANONICAL_MARKET_NOT_READY",
                 }
             forward_summary = forward_ledger.evaluate(
-                minimum_samples=forward_policy.minimum_mature_samples
+                minimum_samples=forward_policy.minimum_mature_samples, as_of=cutoff
             )
             result.report["forward_evidence"] = {
                 "status": forward_summary["status"],
