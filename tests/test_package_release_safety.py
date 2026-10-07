@@ -31,5 +31,3 @@ def test_skill_archive_rejects_sensitive_filenames_before_read(tmp_path: Path, f
     with pytest.raises(ValueError, match="SECRET_LIKE_FILENAME"):
         build(source, tmp_path / "output.zip")
     assert not (tmp_path / "output.zip").exists()
-
-
