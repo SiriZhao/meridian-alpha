@@ -8,6 +8,10 @@ runtime state, account semantics, or migration path is shared between them.
 Meridian remains `PAPER_ONLY`; `AUTO_EXECUTION = FALSE`; real broker writes and
 live orders are unsupported.
 
+The pipeline is `Market/Data -> Research -> Decision -> Execution Plan -> Paper/Ledger`.
+Research supplies grounded analysis; deterministic policy controls sizing,
+prices, risk gates and simulated fills.
+
 Current canonical operation is one application service shared by CLI, the
 PowerShell launcher, the Skill paper command, and MCP Host-envelope delegation.
 Daily reports expose independent `DATA`, `RESEARCH`, `DECISION`, `RISK`,
@@ -104,8 +108,10 @@ For the default persistent paper account, the only daily command is:
 .\scripts\run_meridian.ps1 paper run --account Schwab-Paper --json
 ```
 
-On its first use it creates `Schwab-Paper` with USD 100,000.00 cash. Later
-runs load the same SQLite ledger and never reset it. The command creates a
+`paper run` requires an existing `Schwab-Paper` account. Missing account or
+storage returns a blocked result; it never initializes or resets the ledger.
+Explicit `paper init` is a separate setup action. Daily runs load the same
+SQLite ledger. The command creates a
 fresh internal `PAPER_LEDGER` account observation, calls the existing canonical
 daily path, invokes the Codex CLI advisory stage through its saved
 ChatGPT-managed login, evaluates deterministic decisions and gates, and simulates
@@ -119,6 +125,11 @@ with evidence; no fixture, prior LLM response or stale quote is substituted.
 Public quotes remain `PUBLIC_RESEARCH_QUOTE`, never certified execution quotes.
 Paper execution does not grant manual authority and broker submission remains
 disabled.
+
+Canonical operation uses `E:\MeridianAlphaRuntime`. In Codex, both Doctor
+and paper run require approved host execution because they write runtime
+state. Run Doctor first and continue only on `PASS`; the PowerShell launcher
+does not grant host permissions. See [the canonical workflow](docs/canonical-production-workflow.md).
 
 The GPT research layer may perform primary analysis, skepticism, scenarios,
 and synthesis. It cannot choose executable quantity or price, mutate the paper
