@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 ABSOLUTE = re.compile(r"(?:[A-Z]:" + r"[\\\\/]|^/" + "Users/|^/" + "home/)")
-SECRET_NAME = re.compile(r"(?i)(^|[._-])(env|credential|secret|token|password)([._-]|$)")
+SECRET_NAME = re.compile(r"(?i)(^|[._-])(env|credentials?|secrets?|tokens?|passwords?)([._-]|$)")
 LINK = re.compile(r"\]\(([^)]+)\)")
 FORBIDDEN_DIRS = {".git", ".venv", "venv", "runs", "var", "logs", "__pycache__"}
 
@@ -37,7 +37,7 @@ def main() -> int:
         relative = path.relative_to(root)
         if any(part in FORBIDDEN_DIRS for part in relative.parts):
             return fail(f"forbidden runtime path: {relative}")
-        if SECRET_NAME.search(path.name):
+        if any(SECRET_NAME.search(part) for part in relative.parts):
             return fail(f"secret-like filename: {relative}")
         if path.is_symlink() and not path.resolve().is_relative_to(root):
             return fail(f"symlink escapes package: {relative}")

@@ -9,10 +9,17 @@ $root = (Resolve-Path $SourceRoot).Path
 $output = [IO.Path]::GetFullPath($OutputPath)
 $manifestOutput = [IO.Path]::GetFullPath($ManifestPath)
 $secretName = [regex]::new('^(\.env|\.env\..+)$', [Text.RegularExpressions.RegexOptions]::IgnoreCase)
-$excludedDirectories = @('.git', '.venv', 'vendor_cache', 'artifacts', 'secrets', 'credentials', 'var', '.pytest_cache', '.ruff_cache', '.pyright', '.pytest_tmp', '__pycache__', 'logs', 'cache')
+$excludedDirectories = @('.git', '.venv', 'venv', '.agents', '.codex', '.aws', '.ssh', '.tmp', '.runtime', 'dist', 'runs', 'vendor_cache', 'artifacts', 'secrets', 'credentials', 'var', '.pytest_cache', '.ruff_cache', '.pyright', '.pytest_tmp', '.pytest-tmp', '__pycache__', 'logs', 'cache')
 $excludedExtensions = @('.db', '.sqlite', '.sqlite3', '.key', '.pem', '.p12', '.pfx')
 $suspiciousName = [regex]::new('(?i)(secret|credential|password|token|api[-_]?key)')
 $staging = Join-Path ([IO.Path]::GetTempPath()) ("meridian-review-" + [guid]::NewGuid().ToString("N"))
+$staging = [IO.Path]::GetFullPath($staging)
+$temporaryRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([char[]]('\\/')) + [IO.Path]::DirectorySeparatorChar
+if (-not $staging.StartsWith($temporaryRoot, [StringComparison]::OrdinalIgnoreCase) -or
+    -not ([IO.Path]::GetFileName($staging)).StartsWith('meridian-review-')) {
+    throw 'REVIEW_STAGING_PATH_INVALID'
+}
+$stagedArchive = $output + '.' + [guid]::NewGuid().ToString('N') + '.tmp.zip'
 
 function Test-ExcludedPath([IO.FileInfo]$File) {
     $relative = $File.FullName.Substring($root.Length).TrimStart([char[]]('\\/'))
@@ -21,6 +28,8 @@ function Test-ExcludedPath([IO.FileInfo]$File) {
     if ($suspiciousName.IsMatch($File.Name)) { return $true }
     if ($parts | Where-Object { $excludedDirectories -contains $_ -or $_ -like '*pycache*' }) { return $true }
     if ($excludedExtensions -contains $File.Extension.ToLowerInvariant()) { return $true }
+    if ($File.Name -match '(?i)\.(sqlite3?|db)(-wal|-shm|-journal)?$') { return $true }
+    if ($File.Attributes -band [IO.FileAttributes]::ReparsePoint) { return $true }
     if ([IO.Path]::GetFullPath($File.FullName) -eq $output) { return $true }
     if ([IO.Path]::GetFullPath($File.FullName) -eq $manifestOutput) { return $true }
     return $false
@@ -58,10 +67,12 @@ try {
     $parentManifest = Split-Path -Parent $manifestOutput
     New-Item -ItemType Directory -Path $parentManifest -Force | Out-Null
     $manifest | Set-Content -LiteralPath $manifestOutput -Encoding UTF8
-    if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output -Force }
-    Compress-Archive -Path (Join-Path $staging '*') -DestinationPath $output -CompressionLevel Optimal
+    Compress-Archive -Path (Join-Path $staging '*') -DestinationPath $stagedArchive -CompressionLevel Optimal
+    if (Test-Path -LiteralPath $output) { [IO.File]::Replace($stagedArchive, $output, [NullString]::Value) }
+    else { [IO.File]::Move($stagedArchive, $output) }
     Write-Output "Created review archive: $output"
 }
 finally {
+    if (Test-Path -LiteralPath $stagedArchive) { Remove-Item -LiteralPath $stagedArchive -Force }
     if (Test-Path -LiteralPath $staging) { Remove-Item -LiteralPath $staging -Recurse -Force }
 }

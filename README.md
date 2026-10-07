@@ -34,7 +34,7 @@ Use Python 3.12 and uv. On Windows, select it explicitly with `py -3.12`; on
 Linux use `python3.12`. From this checkout:
 
 ```powershell
-uv sync --group dev --inexact
+uv sync --frozen --group dev --inexact
 ```
 
 `--inexact` preserves already installed optional research packages. If uv is not
@@ -54,8 +54,12 @@ identifiers in configuration or input files.
 
 ## Market research evidence
 
-The active market-research path is **local cache → Yahoo structured data →
-Astra trusted-web evidence → UNKNOWN**. Yahoo public data and Astra-supplied
+The operational quote path is **Yahoo → Nasdaq fallback → freshness-validated
+cache → explicit unavailable**. Provider attempts and primary failures remain
+in JSON; provider health never grants authority. Public quotes remain
+`PUBLIC_RESEARCH_QUOTE`, with execution quote certification `BLOCKED`.
+Research evidence separately supports cache, structured providers and trusted-web
+submissions. Public data and Astra-supplied
 web evidence are research-only and never execution quotes. When Yahoo is stale
 or unavailable, Astra may browse trusted sources and submit compact facts to
 the read-only `validate_market_evidence` tool. Meridian validates source URLs,

@@ -24,6 +24,20 @@ and use `.venv/bin/python`. These commands install from project metadata;
 Do not inherit `PYTHONPATH`, runtime overrides, or credentials from another
 checkout. CI exercises independent Python 3.12 environments on both platforms.
 
+For reproducible release/CI validation, install from the checked-in lock with
+the same uv version as the Windows bootstrap and CI:
+
+```powershell
+python -m pip install uv==0.12.7
+python -m uv sync --frozen --group dev
+.venv\Scripts\python.exe -m ensurepip
+.venv\Scripts\python.exe scripts\validate_repo.py
+```
+
+Use `.venv/bin/python` for the final two commands on Linux. After syncing,
+`python -m uv` may no longer be installed inside the project environment;
+the completed sync is unaffected. Install uv separately for repeated syncs.
+
 ## Validation
 
 Run the cross-platform entrypoint:
@@ -32,8 +46,12 @@ Run the cross-platform entrypoint:
 python scripts/validate_repo.py
 ```
 
-It runs Ruff, Pyright, the complete offline pytest suite, and a CLI help smoke
-test. Pytest uses the repository-local `.pytest-tmp` directory, which is
+It checks dependency integrity, Ruff, Pyright, the complete offline pytest
+suite, CLI help and `scripts/safe_acceptance.py` in an optimized fresh process.
+That smoke uses disposable runtimes, synthetic market/research inputs, no-trade
+and simulated-fill paths, duplicate protection, report hashes, canonical/
+Markdown/health consistency and a separate CLI process. It does not validate
+live GPT or a regular-market session. Pytest uses `.pytest-tmp`, which is
 ignored by Git and avoids stale system temp permissions on Windows.
 
 ## Layout and boundaries
@@ -47,6 +65,11 @@ ignored by Git and avoids stale system temp permissions on Windows.
 Meridian is paper-only. The canonical account is `Schwab-Paper`, broker
 submission is always `DISABLED`, and GPT/Codex has no broker, order or ledger
 authority. HSBC holdings are outside this system.
+
+Paper runs serialize the complete lifecycle per account with an OS lock;
+concurrent launches fail before research. SQLite transactions remain the final
+duplicate-mutation guard. Corrupt lock metadata is preserved for inspection.
+Canonical runtime writes and Doctor probes still require approved host execution.
 
 ## Windows and Linux
 
