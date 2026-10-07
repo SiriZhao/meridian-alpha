@@ -55,10 +55,11 @@ def test_report_publication_handles_windows_cross_device_rename(tmp_path: Path, 
     destination = tmp_path / "daily.json"
     staged.write_text('{"complete": true}\n', encoding="utf-8")
 
+    class CrossDeviceWindowsError(OSError):
+        winerror = 17
+
     def reject_replace(self: Path, target: Path) -> None:
-        error = OSError(0, "The system cannot move the file to a different disk drive")
-        error.winerror = 17
-        raise error
+        raise CrossDeviceWindowsError(0, "The system cannot move the file to a different disk drive")
 
     monkeypatch.setattr(Path, "replace", reject_replace)
     publish_staged_report(staged, destination)
