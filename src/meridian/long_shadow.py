@@ -13,6 +13,7 @@ import hashlib
 import json
 import re
 from collections.abc import Mapping, Sequence
+from contextlib import contextmanager, nullcontext
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
@@ -27,6 +28,7 @@ from meridian.reproducibility import (
     OFFLINE_SOAK_SCENARIOS,
     ProviderHealthStatus,
 )
+from meridian.runtime_io import atomic_write, run_lock
 from meridian.schemas import StableModel
 
 _SENSITIVE = re.compile(
@@ -163,6 +165,18 @@ class ShadowRunLedger:
         self.content_hash = declared
 
     def append(self, record: ShadowRunRecord) -> ShadowRunRecord:
+        with run_lock(self.path.parent, record.run_id, name=self.path.name + ".writer"):
+            if self.path.exists():
+                self._records = {}
+                self._load()
+            previous = self._records.copy()
+            try:
+                return self._append(record)
+            except BaseException:
+                self._records = previous
+                raise
+
+    def _append(self, record: ShadowRunRecord) -> ShadowRunRecord:
         existing = self._records.get(record.run_id)
         if existing is not None:
             if existing.record_hash != record.record_hash:
@@ -182,10 +196,8 @@ class ShadowRunLedger:
             "records": rows,
             "content_hash": digest,
         }
-        temp = self.path.with_name(self.path.name + ".tmp")
         try:
-            temp.write_text(_canonical(envelope), encoding="utf-8")
-            temp.replace(self.path)
+            atomic_write(self.path, _canonical(envelope))
         except OSError as error:
             raise ValueError("SHADOW_LEDGER_CORRUPT:write-failed") from error
         self.content_hash = digest
@@ -205,12 +217,15 @@ class ShadowPerformanceRecord(StableModel):
     recommendation_weight: Decimal = Field(ge=0, le=1)
     target_weight: Decimal = Field(ge=0, le=1)
     execution_assumption: ExecutionAssumption
-    actual_outcome_return: Decimal | None = None
+    actual_outcome_return: Decimal | None = Field(default=None, allow_inf_nan=False)
     outcome_available_at: datetime | None = None
     outcome_status: str = "PENDING"
 
     @model_validator(mode="after")
     def check_outcome(self) -> ShadowPerformanceRecord:
+        for value in (self.decision_as_of, self.outcome_available_at):
+            if value is not None and (value.tzinfo is None or value.utcoffset() is None):
+                raise ValueError("shadow outcome timestamps must be timezone-aware")
         if self.actual_outcome_return is None and self.outcome_available_at is not None:
             raise ValueError("outcome timestamp requires an outcome")
         if self.actual_outcome_return is not None and self.outcome_available_at is None:
@@ -230,10 +245,30 @@ class ShadowPerformanceLedger:
             self._load()
 
     def add(self, row: ShadowPerformanceRecord) -> ShadowPerformanceRecord:
+        with self._mutation():
+            return self._add(row)
+
+    @contextmanager
+    def _mutation(self):
+        guard = run_lock(self.path.parent, "shadow-performance", name=self.path.name + ".writer") if self.path is not None else nullcontext()
+        with guard:
+            if self.path is not None and self.path.exists():
+                self._rows = {}
+                self._load()
+            previous = self._rows.copy()
+            try:
+                yield
+            except BaseException:
+                self._rows = previous
+                raise
+
+    def _add(self, row: ShadowPerformanceRecord, *, outcome_join: bool = False) -> ShadowPerformanceRecord:
         key = (row.run_id, row.ticker, row.horizon)
         old = self._rows.get(key)
         if old is not None and old != row:
-            raise ValueError("SHADOW_OUTCOME_IMMUTABLE")
+            outcome_fields = {"actual_outcome_return", "outcome_available_at", "outcome_status"}
+            if not outcome_join or old.actual_outcome_return is not None or old.model_dump(exclude=outcome_fields) != row.model_dump(exclude=outcome_fields):
+                raise ValueError("SHADOW_OUTCOME_IMMUTABLE")
         self._rows[key] = row
         if self.path is not None:
             self._persist()
@@ -247,19 +282,24 @@ class ShadowPerformanceLedger:
         available_at: datetime,
         observed_at: datetime,
     ) -> ShadowPerformanceRecord:
+        with self._mutation():
+            return self._join_forward_outcome(key, outcome_return=outcome_return, available_at=available_at, observed_at=observed_at)
+
+    def _join_forward_outcome(self, key: tuple[str, str, OutcomeHorizon], *, outcome_return: Decimal,
+                             available_at: datetime, observed_at: datetime) -> ShadowPerformanceRecord:
+        if observed_at.tzinfo is None or observed_at.utcoffset() is None or available_at.tzinfo is None or available_at.utcoffset() is None:
+            raise ValueError("shadow outcome timestamps must be timezone-aware")
         if available_at > observed_at:
             raise ValueError("FORWARD_OUTCOME_NOT_YET_AVAILABLE")
         old = self._rows.get(key)
         if old is None:
             raise KeyError("unknown shadow performance row")
-        joined = old.model_copy(
-            update={
+        joined = ShadowPerformanceRecord.model_validate(old.model_dump() | {
                 "actual_outcome_return": outcome_return,
                 "outcome_available_at": available_at,
                 "outcome_status": "AVAILABLE",
-            }
-        )
-        return self.add(joined)
+            })
+        return self._add(joined, outcome_join=True)
 
     def _load(self) -> None:
         if self.path is None:
@@ -292,9 +332,8 @@ class ShadowPerformanceLedger:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         rows = [self._rows[key].model_dump(mode="json") for key in sorted(self._rows, key=str)]
         digest = hashlib.sha256(_canonical(rows).encode()).hexdigest()
-        self.path.write_text(
+        atomic_write(self.path,
             _canonical({"schema_version": "gate6d-performance.v1", "records": rows, "content_hash": digest}),
-            encoding="utf-8",
         )
 
     @property
@@ -436,8 +475,12 @@ def derive_daily_health(
     manual_gates_pass: bool = False,
 ) -> DailySystemHealth:
     normalized = {name: str(status.value if isinstance(status, ProviderHealthStatus) else status).upper() for name, status in components.items()}
+    if not normalized:
+        normalized = {"observations": "UNKNOWN"}
     red_values = {"UNAVAILABLE", "STALE", "FAIL", "FAILED", "INVALID", "BLOCKED"}
     yellow_values = {"DEGRADED", "UNVERIFIED", "UNKNOWN", "ABSTAIN"}
+    healthy_values = {"PASS", "OK", "HEALTHY", "AVAILABLE", "READY", "CERTIFIED"}
+    yellow_values.update(value for value in normalized.values() if value not in red_values | healthy_values)
     reasons = tuple(f"{name}:{value}" for name, value in sorted(normalized.items()) if value in red_values | yellow_values)
     if any(value in red_values for value in normalized.values()):
         level = SystemHealthLevel.RED
@@ -449,7 +492,7 @@ def derive_daily_health(
         level=level,
         components=normalized,
         reasons=reasons,
-        manual_entry_allowed=manual_gates_pass and level is not SystemHealthLevel.RED,
+        manual_entry_allowed=manual_gates_pass and level is SystemHealthLevel.GREEN,
     )
 
 
@@ -542,6 +585,18 @@ class ShadowSessionLedger:
             raise ValueError("SHADOW_SESSION_CORRUPT:invalid-envelope") from error
 
     def append(self, record: ShadowSessionRecord) -> ShadowSessionRecord:
+        with run_lock(self.path.parent, record.run_id, name=self.path.name + ".writer"):
+            if self.path.exists():
+                self._records = {}
+                self._load()
+            previous = self._records.copy()
+            try:
+                return self._append(record)
+            except BaseException:
+                self._records = previous
+                raise
+
+    def _append(self, record: ShadowSessionRecord) -> ShadowSessionRecord:
         existing = self._records.get(record.run_id)
         if existing is not None:
             if existing.record_hash != record.record_hash:
@@ -561,10 +616,8 @@ class ShadowSessionLedger:
             "records": rows,
             "content_hash": digest,
         }
-        temp = self.path.with_name(self.path.name + ".tmp")
         try:
-            temp.write_text(_canonical(envelope), encoding="utf-8")
-            temp.replace(self.path)
+            atomic_write(self.path, _canonical(envelope))
         except OSError as error:
             raise ValueError("SHADOW_SESSION_CORRUPT:write-failed") from error
         self.content_hash = digest

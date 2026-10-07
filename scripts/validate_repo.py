@@ -24,12 +24,14 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     python = sys.executable
     steps = [
+        ("dependency integrity", [python, "-m", "pip", "check"]),
         ("ruff", [python, "-m", "ruff", "check", "."]),
         ("pyright", [python, "-m", "pyright"]),
     ]
     if not args.skip_tests:
         steps.append(("pytest", [python, "-m", "pytest", "-q"]))
     steps.append(("cli smoke", [python, "-m", "meridian", "--help"]))
+    steps.append(("safe paper acceptance", [python, "-O", "scripts/safe_acceptance.py"]))
     return 0 if all(run_step(label, command, root) for label, command in steps) else 1
 
 

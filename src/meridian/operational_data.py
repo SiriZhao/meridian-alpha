@@ -27,6 +27,7 @@ from meridian.quotes import (
     QuoteProviderMalformed,
     QuoteProviderTimeout,
 )
+from meridian.runtime_io import atomic_write
 from meridian.trading_calendar import (
     NEW_YORK,
     is_trading_session,
@@ -286,15 +287,7 @@ class OperationalCache:
         body["available_at"] = quote.available_at.isoformat() if quote.available_at else None
         body["quality"] = quote.quality.value
         payload = {"schema_version": self.schema_version, "key_provider": provider or quote.provider, "quote": body, "content_hash": hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()}
-        temporary = path.with_name(path.name + "." + uuid4().hex + ".tmp")
-        try:
-            temporary.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":")), encoding="utf-8")
-            temporary.replace(path)
-        finally:
-            try:
-                temporary.unlink(missing_ok=True)
-            except OSError:
-                pass
+        atomic_write(path, json.dumps(payload, sort_keys=True, separators=(",", ":")))
 
 
 class OperationalRefreshService:

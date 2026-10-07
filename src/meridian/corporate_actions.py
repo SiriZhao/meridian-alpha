@@ -12,6 +12,7 @@ from pathlib import Path
 
 from pydantic import Field, model_validator
 
+from meridian.runtime_io import atomic_write, run_lock
 from meridian.schemas import StableModel
 
 
@@ -88,6 +89,12 @@ class FirstSeenLedgerRow(StableModel):
     first_seen_at: datetime
     payload_hash: str
 
+    @model_validator(mode="after")
+    def validate_timestamp(self) -> FirstSeenLedgerRow:
+        if self.first_seen_at.tzinfo is None or self.first_seen_at.utcoffset() is None:
+            raise ValueError("first_seen_at must be timezone-aware")
+        return self
+
 
 class FirstSeenLedger:
     """Append-only first-observed metadata ledger; it never backdates rows."""
@@ -104,6 +111,20 @@ class FirstSeenLedger:
         return tuple(self._rows[key] for key in sorted(self._rows))
 
     def record(self, event: CorporateActionEvent) -> FirstSeenLedgerRow:
+        if self.path is None:
+            return self._record(event)
+        with run_lock(self.path.parent, event.event_id or "first-seen", name=self.path.name + ".writer"):
+            self._rows = {}
+            if self.path.exists():
+                self._load(self.path)
+            previous = self._rows.copy()
+            try:
+                return self._record(event)
+            except BaseException:
+                self._rows = previous
+                raise
+
+    def _record(self, event: CorporateActionEvent) -> FirstSeenLedgerRow:
         now = self.clock()
         if now.tzinfo is None or now.utcoffset() is None:
             raise ValueError("ledger clock must be timezone-aware")
@@ -126,8 +147,7 @@ class FirstSeenLedger:
     def _persist(self) -> None:
         if self.path is None:
             return
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps([row.model_dump(mode="json") for row in self.rows], sort_keys=True), encoding="utf-8")
+        atomic_write(self.path, json.dumps([row.model_dump(mode="json") for row in self.rows], sort_keys=True))
 
     def _load(self, path: Path) -> None:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -135,6 +155,8 @@ class FirstSeenLedger:
             raise ValueError("first-seen ledger must be a list")
         for item in payload:
             row = FirstSeenLedgerRow.model_validate(item)
+            if row.event_id in self._rows:
+                raise ValueError("FIRST_SEEN_LEDGER_DUPLICATE_EVENT")
             self._rows[row.event_id] = row
 
 

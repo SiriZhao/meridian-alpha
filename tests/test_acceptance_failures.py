@@ -72,12 +72,12 @@ def test_database_failure_preserves_history(tmp_path: Path, kind: str):
 def test_report_write_failure_keeps_original_run_identity(tmp_path: Path):
     code = '''from pathlib import Path
 from meridian.application_cli import main
-original = Path.write_text
-def fail_markdown(self, *args, **kwargs):
-    if self.name == "daily.tmp" and self.with_suffix(".json").exists():
+original = Path.replace
+def fail_markdown(self, target, *args, **kwargs):
+    if Path(target).name == "daily.md" and Path(target).with_suffix(".json").exists():
         raise PermissionError("simulated report failure")
-    return original(self, *args, **kwargs)
-Path.write_text = fail_markdown
+    return original(self, target, *args, **kwargs)
+Path.replace = fail_markdown
 raise SystemExit(main())
 '''
     exit_code, result = cli(tmp_path, ["daily", "--json"], code=code)

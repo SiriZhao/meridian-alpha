@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
+from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from meridian.allocation import allocate_with_fallback
@@ -160,6 +161,19 @@ def publish_staged_report(staged: Path, destination: Path) -> None:
         raise OSError("report publication verification failed")
 
 
+def persist_report_content(destination: Path, content: str) -> None:
+    """Flush exclusive staging before publication; clean up failed staging."""
+    temporary = destination.with_name(destination.name + "." + uuid4().hex + ".tmp")
+    try:
+        with temporary.open("x", encoding="utf-8", newline="\n") as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        publish_staged_report(temporary, destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[Path, Path]:
     """One writer for completed analysis and rejected-input diagnostics."""
     canonical = seal_canonical_report(report)
@@ -168,9 +182,7 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
     directory = paths.reports / as_of.date().isoformat() / str(report["run_id"])
     directory.mkdir(parents=True, exist_ok=True)
     json_path, markdown_path = directory / "daily.json", directory / "daily.md"
-    temporary = json_path.with_suffix(".tmp")
-    temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
-    publish_staged_report(temporary, json_path)
+    persist_report_content(json_path, json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True, default=str) + "\n")
     readiness = report.get("readiness", {})
     readiness = readiness if isinstance(readiness, dict) else {}
     forward = report.get("forward_evidence", {})
@@ -334,9 +346,7 @@ def persist_run_report(report: dict[str, object], paths: RuntimePaths) -> tuple[
     if isinstance(orders, list):
         lines.extend(f"- {order['side']} {order['quantity']} {order['ticker']} @ {order.get('preferred_limit')}" for order in orders if isinstance(order, dict))
     lines.append(render_canonical_audit(canonical))
-    temporary_md = markdown_path.with_suffix(".tmp")
-    temporary_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    publish_staged_report(temporary_md, markdown_path)
+    persist_report_content(markdown_path, "\n".join(lines) + "\n")
     return json_path, markdown_path
 
 

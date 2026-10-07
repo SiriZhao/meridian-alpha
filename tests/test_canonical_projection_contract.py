@@ -241,12 +241,12 @@ def test_bundle_rejects_tampered_artifact(tmp_path: Path) -> None:
 
 
 def test_partial_persistence_never_publishes_complete_bundle(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    original = Path.write_text
-    def reject_markdown(path: Path, *args, **kwargs):
-        if path.name == "paper-daily.tmp" and path.with_suffix(".json").exists():
+    original = Path.replace
+    def reject_markdown(path: Path, target: Path, *args, **kwargs):
+        if target.name == "paper-daily.md" and target.with_suffix(".json").exists():
             raise PermissionError("injected markdown publication failure")
-        return original(path, *args, **kwargs)
-    monkeypatch.setattr(Path, "write_text", reject_markdown)
+        return original(path, target, *args, **kwargs)
+    monkeypatch.setattr(Path, "replace", reject_markdown)
     with pytest.raises(PermissionError):
         MeridianApplicationService(RuntimePaths(tmp_path))._persist_paper_report(fixture("first_no_action"))
     assert list(tmp_path.rglob("paper-daily.json"))

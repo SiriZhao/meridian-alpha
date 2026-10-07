@@ -23,6 +23,7 @@ import yaml
 from meridian.audit import AuditStore
 from meridian.config import ExecutionPolicy, RiskPolicy
 from meridian.host_account import HostAccountSnapshotEnvelope, HostCoverageStatus, HostPosition
+from meridian.runtime_io import atomic_write
 from meridian.schemas import Side
 
 DEFAULT_ACCOUNT = "Schwab-Paper"
@@ -327,7 +328,7 @@ class PaperLedger:
         envelope = self.export_snapshot(account_name, observed_at=observed_at)
         directory.mkdir(parents=True, exist_ok=True)
         path = directory / f"{envelope.snapshot_id}.json"
-        path.write_text(envelope.model_dump_json(indent=2) + "\n", encoding="utf-8")
+        atomic_write(path, envelope.model_dump_json(indent=2) + "\n")
         return path
 
     def _daily_row(self, connection: sqlite3.Connection, account_name: str, trading_date: str) -> sqlite3.Row | None:

@@ -18,6 +18,7 @@ from urllib.request import Request, urlopen
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from meridian.runtime_io import atomic_write
 from meridian.schemas import (
     AgentSignal,
     AlphaScore,
@@ -980,9 +981,8 @@ class GroundedResearchReplayStore:
             "content_hash": self._digest(artifact),
             "artifact": artifact.model_dump(mode="json"),
         }
-        path.write_text(
+        atomic_write(path,
             json.dumps(payload, sort_keys=True, separators=(",", ":")),
-            encoding="utf-8",
         )
         return path
 
@@ -1006,7 +1006,7 @@ class GroundedResearchReplayStore:
         if not path.is_file():
             raise FileNotFoundError(path.name)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        if payload.get("schema_version") != self.schema_version or payload.get("artifact_type") != kind:
+        if not isinstance(payload, dict) or payload.get("schema_version") != self.schema_version or payload.get("artifact_type") != kind:
             raise ValueError("unsupported replay schema version or artifact type")
         artifact = model.model_validate(payload.get("artifact"))
         artifact_values = artifact.model_dump()

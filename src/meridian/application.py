@@ -32,8 +32,8 @@ from meridian.daily_closure import (
     DailyClosureService,
     daily_run_id,
     load_market_fixture,
+    persist_report_content,
     persist_run_report,
-    publish_staged_report,
 )
 from meridian.daily_research import (
     DailyResearchInput,
@@ -1702,12 +1702,9 @@ class MeridianApplicationService:
         directory.mkdir(parents=True, exist_ok=True)
         json_path = directory / "paper-daily.json"
         markdown_path = directory / "paper-daily.md"
-        temporary = json_path.with_suffix(".tmp")
-        temporary.write_text(
+        persist_report_content(json_path,
             json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True, default=str) + "\n",
-            encoding="utf-8",
         )
-        publish_staged_report(temporary, json_path)
         portfolio = payload.get("portfolio", {})
         portfolio = portfolio if isinstance(portfolio, dict) else {}
         performance = payload.get("performance", {})
@@ -1918,9 +1915,7 @@ class MeridianApplicationService:
             ]
         )
         lines.append(render_canonical_audit(snapshot))
-        temporary_md = markdown_path.with_suffix(".tmp")
-        temporary_md.write_text("\n".join(lines), encoding="utf-8")
-        publish_staged_report(temporary_md, markdown_path)
+        persist_report_content(markdown_path, "\n".join(lines))
         outputs = {"paper_report_json": str(json_path), "paper_report_markdown": str(markdown_path)}
         try:
             outputs["run_health_json"] = str(persist_run_health(payload, self.paths))
@@ -2097,6 +2092,21 @@ class MeridianApplicationService:
         return paper_payload
 
     def paper_run(
+        self,
+        account_name: str = DEFAULT_ACCOUNT,
+        *,
+        run_purpose: str = "OPERATIONAL_PAPER_DAILY",
+    ) -> dict[str, object]:
+        """Serialize a paper account's full lifecycle, including report publication."""
+        if run_purpose not in CANONICAL_RUN_PURPOSES:
+            raise ValueError("RUN_PURPOSE_INVALID")
+        if not self.paths.db.is_file():
+            return self._paper_run(account_name, run_purpose=run_purpose)
+        lock_name = "paper-" + hashlib.sha256(account_name.encode()).hexdigest()[:24]
+        with run_lock(self.paths.locks, "paper-daily", name=lock_name):
+            return self._paper_run(account_name, run_purpose=run_purpose)
+
+    def _paper_run(
         self,
         account_name: str = DEFAULT_ACCOUNT,
         *,

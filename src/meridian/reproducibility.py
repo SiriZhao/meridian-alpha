@@ -14,6 +14,7 @@ from typing import Any
 
 from pydantic import Field, model_validator
 
+from meridian.runtime_io import atomic_write, run_lock
 from meridian.schemas import StableModel
 
 _SENSITIVE_CACHE_KEY = re.compile(
@@ -258,6 +259,18 @@ class ReplaySafeObservationCache:
         self.file_hash = declared_file
 
     def put(self, record: CachedObservation) -> CachedObservation:
+        with run_lock(self.path.parent, record.cache_key, name=self.path.name + ".writer"):
+            if self.path.exists():
+                self._records = {}
+                self._load(self.path)
+            previous = self._records.copy()
+            try:
+                return self._put(record)
+            except BaseException:
+                self._records = previous
+                raise
+
+    def _put(self, record: CachedObservation) -> CachedObservation:
         existing = self._records.get(record.cache_key)
         if existing is not None:
             if self._duplicate_conflict(existing, record):
@@ -283,10 +296,8 @@ class ReplaySafeObservationCache:
             "content_hash": content_hash,
             "file_hash": file_hash,
         }
-        temp = self.path.with_name(self.path.name + ".tmp")
         try:
-            temp.write_text(_canonical_json(envelope), encoding="utf-8")
-            temp.replace(self.path)
+            atomic_write(self.path, _canonical_json(envelope))
         except OSError as error:
             raise ValueError("CACHE_CORRUPT:write-failed") from error
         self.content_hash = content_hash

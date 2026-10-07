@@ -164,10 +164,16 @@ def run_lock(directory: Path, run_id: str, name: str = "production"):
             raise FilesystemFailure(error, "LOCK_ACTIVE_DUPLICATE_PROCESS", metadata) from error
         try:
             if metadata.exists():
-                previous = json.loads(metadata.read_text(encoding="utf-8"))
+                try:
+                    previous = json.loads(metadata.read_text(encoding="utf-8"))
+                    if not isinstance(previous, dict) or not {"hostname", "pid", "process_start_time"} <= previous.keys():
+                        raise ValueError("invalid lock metadata")
+                    previous_pid = int(previous["pid"])
+                except (ValueError, TypeError) as error:
+                    raise OSError("LOCK_METADATA_CORRUPT: preserve metadata and inspect ownership") from error
                 if previous["hostname"] != socket.gethostname():
                     raise OSError("LOCK_HOST_IDENTITY_MISMATCH")
-                actual = process_start_time(int(previous["pid"]))
+                actual = process_start_time(previous_pid)
                 if actual is not None and actual == previous["process_start_time"]:
                     raise OSError("LOCK_ACTIVE_DUPLICATE_PROCESS")
                 metadata.unlink()

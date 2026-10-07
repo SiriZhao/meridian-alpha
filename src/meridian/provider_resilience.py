@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import sqlite3
 from collections import Counter
+from contextlib import closing
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
@@ -65,7 +66,7 @@ class ProviderHealthStore:
     def record(self, *, provider: str, symbol: str, channel: str, category: str | None,
                latency_ms: int, completed_at: datetime, fallback: bool) -> dict[str, object]:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(self.path, timeout=2) as connection:
+        with closing(sqlite3.connect(self.path, timeout=2)) as connection, connection:
             connection.execute("CREATE TABLE IF NOT EXISTS attempts (id INTEGER PRIMARY KEY, provider TEXT, symbol TEXT, channel TEXT, category TEXT, latency INTEGER, completed TEXT, fallback INTEGER)")
             connection.execute("INSERT INTO attempts(provider,symbol,channel,category,latency,completed,fallback) VALUES(?,?,?,?,?,?,?)",
                                (provider, symbol, channel, category, latency_ms, completed_at.isoformat(), int(fallback)))

@@ -43,7 +43,7 @@ def finalize_report_bundle(payload: dict[str, object], json_path: Path,
 def verify_report_bundle(path: Path) -> dict[str, object]:
     """Fresh consumers must verify the final receipt and all sibling files."""
     receipt = json.loads(path.read_text(encoding="utf-8"))
-    if receipt.get("schema_version") != "meridian-report-bundle.v1" or receipt.get("status") != "COMPLETE":
+    if not isinstance(receipt, dict) or receipt.get("schema_version") != "meridian-report-bundle.v1" or receipt.get("status") != "COMPLETE":
         raise ValueError("REPORT_BUNDLE_INCOMPLETE")
     files = receipt.get("files")
     if not isinstance(files, dict) or len(files) != 3:

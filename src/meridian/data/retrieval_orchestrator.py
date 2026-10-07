@@ -68,6 +68,8 @@ class EvidenceCache:
         path = self._path(requirement, as_of)
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(payload, dict) or not isinstance(payload.get("evidence"), list):
+                return ()
             if payload.get("cache_key") != self._digest(requirement, as_of) or payload.get("content_hash") != hashlib.sha256(json.dumps(payload["evidence"], sort_keys=True, separators=(",", ":")).encode()).hexdigest():
                 return ()
             records = tuple(EvidenceRecord.model_validate(item) for item in payload["evidence"])
