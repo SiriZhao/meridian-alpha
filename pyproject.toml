@@ -77,6 +77,7 @@ ignore = ["E501"]
 include = ["src", "tests"]
 pythonVersion = "3.12"
 typeCheckingMode = "basic"
+strict = ["src/meridian/alpha_lab.py", "src/meridian/dated_close.py", "src/meridian/lab_evaluation.py"]
 reportMissingTypeStubs = "none"
 venvPath = '.'
 venv = '.venv'

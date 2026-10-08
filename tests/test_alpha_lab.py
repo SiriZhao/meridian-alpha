@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 from datetime import date, timedelta
-from decimal import Decimal, localcontext
+from decimal import ROUND_DOWN, Decimal, Inexact, localcontext
 from pathlib import Path
 
 import pytest
@@ -144,6 +144,10 @@ def test_adjustment_receipt_binds_actions_and_counts_shares() -> None:
     assert result.return_at_horizon == Decimal(".1")
     with pytest.raises(ValueError, match="AMBIGUOUS"):
         holding_period_return(Decimal("100"), Decimal("54"), (split, split))
+    result = holding_period_return(Decimal("101"), Decimal("110"), ())
+    with localcontext() as context:
+        context.prec = 8
+        assert holding_period_return(Decimal("101"), Decimal("110"), ()) == result
 
 
 def test_maturity_delayed_publication_and_missingness() -> None:
@@ -189,6 +193,11 @@ def test_archive_crash_retry_and_conflict(tmp_path: Path, monkeypatch: pytest.Mo
     assert load_reviewed_pairs(path) == (value,)
     with pytest.raises(ValueError, match="IMMUTABLE"):
         append_reviewed_pair(path, value.model_copy(update={"reviewer_reference": "changed"}))
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    raw["pairs"][0]["terminal"]["price"] = "999"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    with pytest.raises(ValueError, match="REVIEW_PROVENANCE_INVALID"):
+        load_reviewed_pairs(path)
 
 
 def test_close_archive_parallel_process_contention_and_safe_retry(tmp_path: Path) -> None:
@@ -265,6 +274,38 @@ def test_challengers_reproducible_missing_research_contributes_zero() -> None:
     markdown = render_lab_report(report)
     recovered = json.loads(markdown.split("```json\n")[1].split("\n```")[0])
     assert recovered == report
+
+
+def test_certified_research_digest_and_precision_are_reproducible() -> None:
+    from tests.test_alpha_research_budget import T, certified
+    certificate = certified("BULLISH", Decimal(".8"))
+    data = LabInput(symbol="AAPL", as_of=T, daily_return=Decimal(".05"), daily_return_available_at=T, evidence_origin="SYNTHETIC_FIXTURE")
+    first = challenger_scores(data, certificate)
+    assert first[3].research_contribution > 0 and first[3].certificate_id == certificate.certificate_id
+    with localcontext() as context:
+        context.prec = 8
+        context.rounding = ROUND_DOWN
+        context.traps[Inexact] = True
+        assert challenger_scores(data, certificate) == first
+    plain, enhanced = lab_report(data), lab_report(data, certificate)
+    assert plain["input_digest"] == enhanced["input_digest"]
+    assert plain["experiment_digest"] != enhanced["experiment_digest"]
+    assert enhanced["evaluation_status"] == "NOT_EVALUABLE" and enhanced["financial_sample_count"] == 0
+    with pytest.raises(ValueError, match="CUTOFF_MISMATCH"):
+        challenger_scores(data.model_copy(update={"as_of": T + timedelta(seconds=1)}), certificate)
+
+
+def test_unrepresentable_arithmetic_cannot_invent_return_or_score() -> None:
+    value = pair()
+    changed = review(value.model_copy(update={"prediction": value.prediction.model_copy(update={"price": Decimal("1E-1000000")})}))
+    result = evaluate_close(changed, as_of=value.prediction.maturity_at + timedelta(days=1))
+    assert result.validation_status is CloseStatus.ADJUSTMENT_UNKNOWN
+    assert result.return_at_horizon is None and not result.financial_sample_eligible
+    data = lab_input()
+    bars = list(data.bars)
+    bars[0] = bars[0].model_copy(update={"close": Decimal("1E-1000000")})
+    scores = challenger_scores(data.model_copy(update={"bars": tuple(bars)}))
+    assert scores[2].score is None and scores[2].status == "INSUFFICIENT_EVIDENCE"
 
 
 def test_history_and_label_cutoff_fail_closed() -> None:
