@@ -2,7 +2,7 @@
   "schema_version": "meridian-terminal-checkpoint.v1",
   "branch": "codex/research-terminal",
   "recovery_head": "f2d06396268af9ba560f839a82012aa693fe60c0",
-  "phase": "READ_ONLY_JOURNAL_REPAIR_VALIDATED",
+  "phase": "ENGINEERING_ACCEPTED_DOCUMENTATION_DELIVERY",
   "completed": [
     "Clean worktree and remote PR identity verified",
     "Function-level capability and side-effect audit",
@@ -11,33 +11,67 @@
     "Existing native shared-chain bridge and numerical correspondence guards",
     "Seven-view Chinese terminal and decision brief",
     "Versioned 13-workflow Skill and allowlist receipt contracts",
-    "82 targeted tests; Ruff; schema and Skill validation"
+    "82 targeted tests; Ruff; schema and Skill validation",
+    "Approved host final source and independent frozen clone full validation",
+    "Windows/Ubuntu source CI and authority/replay checks",
+    "Operator guide, authority matrix, threat model, scorecard, observability and fixture sample"
   ],
   "remaining": [
-    "Final repaired-source full validation",
-    "Independent repaired-source clone validation",
-    "Windows/Linux CI verification",
-    "Final documentation/checkpoint delivery"
+    "Documentation-only delivery commit/push and final HEAD CI verification",
+    "Independent external live GPT/provider and qualified financial validation"
   ],
   "targeted_validation": "PASS: 66 journal/terminal/live bridge/runtime tests in 13.03s; Ruff and Pyright clean",
-  "full_validation": "PRE_JOURNAL_REPAIR_PASS: source 1030 tests in 224.46s; independent frozen clone 1030 tests in 243.59s; all validate_repo stages passed",
+  "full_validation": "PASS: approved-host source 1035 in 208.85s; independent frozen clone 1035 in 211.68s; all validate_repo stages passed",
   "late_audit": "SQLite mode=ro on an isolated WAL database created -wal and -shm. Shared guarded read-only connection now refuses WAL headers and journal sidecars without checkpointing or immutable reads. Regression covers WAL, -wal, -shm, -journal, ordinary read/write rejection and MCP refusal.",
   "known_blockers": [
     "REAL_FINANCIAL_VALIDATION_PENDING",
     "EXPECTED_RETURN_UNCALIBRATED",
     "EXTERNAL_OPERATOR_ACTION_REQUIRED"
   ],
-  "exact_next_action": "Commit reviewed journal boundary repair, push, validate frozen repaired source and independent clone at the same SHA; inspect Windows/Linux CI; finish operator/security/acceptance docs.",
+  "exact_next_action": "Commit only reviewed documentation, push without history rewrite, verify local/remote delivery SHA and its CI. Future operator: load genuinely qualified history, sanctioned current account input and same-cutoff evidence; run external live GPT acceptance under Mission 3 boundaries.",
   "quant_engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
   "algorithm_coefficients_changed": false,
   "uncommitted_groups": [
-    "src/meridian readonly storage and callers",
-    "tests/test_readonly_storage.py",
-    "ADR/checkpoint repair evidence",
-    "Operator/security guide and synthetic sample"
+    "README/operator runbook links",
+    "research-terminal architecture/operator/security/acceptance/sample/checkpoint documentation"
   ],
   "broker_submission": "DISABLED",
   "canonical_runtime_mutated": false,
   "financial_alpha": "ALPHA_NOT_YET_DEMONSTRATED",
-  "source_head": "0cc400ad905dd3ff33b886223d0ab555b6e8971d"
+  "source_head": "383257a05390260a5bb048b691dd3a5b3a3fb7a9",
+  "ci": {
+    "source_sha": "383257a05390260a5bb048b691dd3a5b3a3fb7a9",
+    "push_run": 37823722805,
+    "pr_run": 37823731074,
+    "conclusion": "SUCCESS_BOTH_RUNS",
+    "windows": "1035 passed",
+    "ubuntu": "1033 passed, 2 skipped",
+    "manual_authority": "21 passed each",
+    "replay_integrity": "8 passed each"
+  },
+  "sandbox_validation": {
+    "source": "1 failed, 1034 passed in 281.74s",
+    "clone": "1 failed, 1034 passed in 284.46s",
+    "reason": "existing child-process tree termination restricted; same unchanged test on approved host passed in 1.87s",
+    "assertions_weakened": false
+  },
+  "acceptance": {
+    "engineering": "ENGINEERING_COMPLETE_BOUNDED_INTEGRATION",
+    "synthetic": "SYNTHETIC_VALIDATION_COMPLETE",
+    "real_financial": "REAL_FINANCIAL_VALIDATION_PENDING",
+    "live_provider": "NOT_RUN",
+    "external_gpt": "NOT_RUN",
+    "financial_alpha": "ALPHA_NOT_YET_DEMONSTRATED"
+  },
+  "read_only_journal_limit": "WAL/journal review refused; concurrent mode reconfiguration requires OS read-only permission",
+  "source_commits": [
+    "0cc400ad905dd3ff33b886223d0ab555b6e8971d",
+    "383257a05390260a5bb048b691dd3a5b3a3fb7a9"
+  ],
+  "evidence_hashes": {
+    ".tmp/mission4-approved-validation-383257a.log": "2fd0f494cbfa68ece2e429415eaa393497c94522d77042386b6f9281ddbef20a",
+    ".tmp/mission4-clone-0cc400a/.tmp/clone-approved-validation-383257a.log": "cfd7b1280ff493b3f0b5a69ae26bb4d5d99ce8dc194dffa149c9fdbf5a979b5c",
+    ".tmp/mission4-final-identity.json": "daf0e665d9758d0aefa154688059ef68f2c8ad351a181305af9a85b838a5abdf",
+    ".tmp/mission4-wal-before.json": "4acf8faa386afc485d9fa6594833ead9b626449786071a41e897cd161980f5ef"
+  }
 }

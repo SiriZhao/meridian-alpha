@@ -34,3 +34,25 @@ Acceptance limitations from Mission 3 remain: insufficient verified adjusted
 history, unknown ETF look-through, uncalibrated expected returns/probabilities,
 and external operator action for full native live acceptance. Engineering tests
 cannot resolve these financial or host evidence blockers.
+
+## Delivered capability map
+
+| Capability | Status | Concrete integration / remaining boundary |
+|---|---|---|
+| Quant MCP research | IMPLEMENTED | `research_terminal.quant_terminal_snapshot` calls the existing `build_research_packet`; three typed MCP tools expose factors, rankings, regime, targets and lineage |
+| Portfolio what-if | IMPLEMENTED | `portfolio_what_if` validates a sanctioned in-memory account, applies existing RiskEngine and calculates declared shocks; no order or ledger path |
+| Native Quant evidence | IMPLEMENTED | `terminal_model_context` / `review_terminal` bind the numerical view to the existing four-role native chain; parser checks exact numerical citations and nested timestamps |
+| Decision brief | IMPLEMENTED | `generate_decision_brief` separates facts, Quant, GPT, conditional prose, constraints, unknowns and possible action; stale prices and speculative probabilities are withheld |
+| Terminal | IMPLEMENTED | `meridian terminal` prints seven read-only Chinese views or full JSON from an explicit bounded history request; no canonical application initialization |
+| Read-only storage / cache | IMPLEMENTED | Guarded SQLite mode=ro refuses journal review, missing paths remain absent; MCP provider cache/health writes and runtime write/subprocess probes are disabled |
+| Memoization / planner | PARTIAL | Fixed bounded Quant planner and 13 typed workflow plans with freshness/hash-bound receipt reuse; not a general autonomous concurrent provider/model planner |
+| Observability | PARTIAL | Quant/risk/report timing, memoization, shared model invocation accounting and quality scorecard; real provider/model cost and controlled review-time improvement remain unmeasured |
+| Skill instruction contract | IMPLEMENTED | Thirteen workflows ship typed tool allowlists, evidence, missing-data, risk, output, time/call and no-side-effect boundaries; compatibility Skill archive filename remains v1 |
+| Experiment / forward tools | IMPLEMENTED | Existing frozen registries, inspection CLI and matured forward evaluation reused; no duplicate registry or outcome store |
+| Real alpha / fundamentals / ETF overlap | BLOCKED_BY_DATA | No new qualified OOS data, authenticated history, calibrated expected return or look-through source introduced |
+| Legacy compatibility diagnostics | LEGACY | `quant_metrics` and disabled intelligence-provider helpers retain their old meaning; they are not relabelled as V2.2 |
+
+OS read-only permission remains the enforcement boundary against concurrent
+SQLite journal-mode reconfiguration; application guards do not replace it.
+All integration acceptance is engineering-fixture evidence, not actual live
+provider/model acceptance or financial outperformance.

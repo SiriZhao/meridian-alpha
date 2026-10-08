@@ -1,0 +1,30 @@
+Meridian 量化研究终端 — RESEARCH_ONLY
+状态：DEGRADED
+分析截止：2021-02-11T21:00:00+00:00
+引擎：V2.2_SHADOW / e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c
+数据：SYNTHETIC_DIAGNOSTIC；获利置信度：UNKNOWN
+
+市场概览
+{"analysis_cutoff": "2021-02-11T21:00:00+00:00", "current_price": null, "regime": {"as_of": "2021-02-11T21:00:00Z", "drawdown_stress": false, "exposure_ceiling": "0.5", "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b", "reasons": ["SPY_TREND_AND_TRAILING_VOLATILITY"], "rebalance_urgency": "RISK_REDUCTION", "risk_multiplier": "0.5", "trend": "TRENDING_UP", "version": "quant-regime-v2.1", "volatility": "HIGH_VOLATILITY"}, "unknowns": ["NO_CURRENT_QUOTE_SUPPLIED", "BREADTH_UNKNOWN"]}
+
+量化因子
+  AAPL  score=0.5151129144816234124422158411  rank=3  仅供影子研究；因子已计算，排名不代表获利概率。
+  MSFT  score=0.5458082191931544573410811190  rank=2  仅供影子研究；因子已计算，排名不代表获利概率。
+  NVDA  score=0.6095096199946595842220533417  rank=1  仅供影子研究；因子已计算，排名不代表获利概率。
+
+组合风险
+{"reason": "AUTHORIZED_PAPER_SNAPSHOT_REQUIRED", "status": "BLOCKED"}
+
+研究与反证
+{"gpt_interpretation": null, "reason": "DETERMINISTIC_EVIDENCE_AVAILABLE_WITHOUT_MODEL", "status": "NOT_RUN", "unknowns": ["EXPECTED_RETURN_UNCALIBRATED", "ETF_LOOKTHROUGH_OVERLAP_UNKNOWN", "BROAD_MARKET_PARTICIPATION_UNKNOWN", "FUNDAMENTALS_DISABLED", "REAL_FINANCIAL_VALIDATION_PENDING", "CERTIFICATION_IS_CALLER_ATTESTATION_NOT_AUTHENTICATION", "SPREAD_UNKNOWN"]}
+
+决策条件
+[{"category": "HOLD", "entry_zone": null, "evidence_ids": ["terminal-a6a5933e0468e227660d8a2dc413b9dfca815d801c490b1d7bfc2705f683f192-AAPL"], "explanation_zh": "仅供影子研究；因子已计算，排名不代表获利概率。", "possible_manual_action": null, "symbol": "AAPL", "wait_reason": "FRESH_ACCOUNT_AND_EXECUTION_QUOTES_REQUIRE_INDEPENDENT_REVIEW"}, {"category": "HOLD", "entry_zone": null, "evidence_ids": ["terminal-a6a5933e0468e227660d8a2dc413b9dfca815d801c490b1d7bfc2705f683f192-MSFT"], "explanation_zh": "仅供影子研究；因子已计算，排名不代表获利概率。", "possible_manual_action": null, "symbol": "MSFT", "wait_reason": "FRESH_ACCOUNT_AND_EXECUTION_QUOTES_REQUIRE_INDEPENDENT_REVIEW"}, {"category": "HOLD", "entry_zone": null, "evidence_ids": ["terminal-a6a5933e0468e227660d8a2dc413b9dfca815d801c490b1d7bfc2705f683f192-NVDA"], "explanation_zh": "仅供影子研究；因子已计算，排名不代表获利概率。", "possible_manual_action": null, "symbol": "NVDA", "wait_reason": "FRESH_ACCOUNT_AND_EXECUTION_QUOTES_REQUIRE_INDEPENDENT_REVIEW"}]
+
+实验室
+{"alpha": "ALPHA_NOT_YET_DEMONSTRATED", "registry_command": "meridian quant inspect --dataset <sealed-dataset.json>", "status": "REAL_FINANCIAL_VALIDATION_PENDING", "synthetic_output_is_financial_evidence": false}
+
+运行健康
+{"broker_submission": "DISABLED", "canonical_strategy": "QUANT_V1_BASELINE", "model_status": "NOT_RUN", "paper_status": "NOT_RUN", "provider_status": "NOT_PROBED"}
+
+人工审核：这些结果没有订单、成交或执行授权。金融 Alpha 尚未证明。
