@@ -10,12 +10,15 @@ import os
 import subprocess
 import sys
 import tempfile
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from meridian.application import MeridianApplicationService
 from meridian.canonical_run import assert_report_projection_consistency, canonical_snapshot
+from meridian.market_status import MarketStatus, market_status
 from meridian.report_bundle import verify_report_bundle
 from meridian.runtime import RuntimePaths
 
@@ -49,6 +52,16 @@ def fixture(mode: str) -> dict[str, object]:
 
 
 def accept(root: Path) -> dict[str, object]:
+    # The acceptance fixture supplies explicitly synthetic intraday quotes.
+    # Freeze only this disposable test's market classification, not production.
+    canonical = Path("E:/MeridianAlphaRuntime").resolve()
+    if root.resolve() == canonical or canonical in root.resolve().parents:
+        raise RuntimeError("synthetic acceptance must not use canonical runtime")
+    with patch("meridian.application.market_status", side_effect=lambda cutoff: replace(market_status(cutoff), status=MarketStatus.OPEN)):
+        return _accept(root)
+
+
+def _accept(root: Path) -> dict[str, object]:
     os.environ["MERIDIAN_HOME"] = str(root)
     os.environ["MERIDIAN_CACHE"] = str(root / "cache")
     results = []
@@ -83,7 +96,12 @@ def accept(root: Path) -> dict[str, object]:
 
 
 def main() -> int:
-    with tempfile.TemporaryDirectory(prefix="meridian-safe-acceptance-") as directory:
+    workspace = Path(__file__).resolve().parents[1]
+    temporary_root = (workspace / ".tmp").resolve()
+    require(workspace == temporary_root.parent, "acceptance temporary directory stays in workspace")
+    temporary_root.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="meridian-safe-acceptance-", dir=temporary_root) as directory:
+        require(temporary_root in Path(directory).resolve().parents, "acceptance cleanup stays in workspace")
         print(json.dumps(accept(Path(directory)), indent=2))
     return 0
 
