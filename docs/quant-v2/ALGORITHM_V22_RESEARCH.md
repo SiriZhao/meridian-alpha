@@ -90,7 +90,9 @@ groups, rank blend .15/.25, and 10/25/50bps cost stress. All share dataset,
 hard risk limits, modeled fees, information cutoffs and next-session-open fill
 engine except the explicitly unconstrained SPY reference. A0-A4 here use common
 declared allocation/rebalance controls; their archived V2.1 experiment is never
-overwritten or silently equated with this new treatment.
+overwritten or silently equated with this new treatment. SPY_POLICY is a
+constrained benchmark ETF comparator; A0-A4/V22 share the five-name candidate
+universe, while SPY itself is the separately declared benchmark asset.
 
 Neutral ablations replace available group contributions with .5 without
 reweighting other groups; missing observations remain missing. They retain
@@ -200,7 +202,21 @@ Approved-host full validation subsequently passed: **955 passed in 192.81s**,
 dependency integrity, Ruff, Pyright, both artifact registries, CLI smoke and
 optimized isolated safe-paper acceptance all passed. The native timeout test
 passed in this environment; no safety test was removed or weakened.
-Independent-clone/Windows/Linux CI results will be recorded after execution.
+Independent GitHub clone at final code commit `5bdb7a4`, Python 3.12.10, its own
+48-package frozen-lock environment: **955 passed in 211.15s**, all validation
+steps passed, imports/interpreter verified inside the clone and Git status clean.
+Its CLI reproduced all 76 V2.2 replays and the archived summary exactly. A
+fresh wheel built there contains the seven contracts, both policies and eight
+checked Quant modules, matching source contents. Proofs are retained alongside
+the archive; see [V2.2 acceptance](ACCEPTANCE_V22.md).
+
+Final code [push CI 37769709023](https://github.com/SiriZhao/meridian-alpha/actions/runs/37769709023)
+and [PR CI 37769716277](https://github.com/SiriZhao/meridian-alpha/actions/runs/37769716277)
+both succeeded. Raw push logs: Windows **955 passed in 151.81s**, Ubuntu
+**953 passed / two Windows-only skips in 240.83s**. Both platforms passed 21
+manual-authority negatives, eight replay-integrity checks, packaging and artifact
+gates. No Quant test was skipped. Subsequent evidence-only tip SHA and its own
+CI are checked at handoff; engine and frozen registry identities stay unchanged.
 
 Runtime and authority remain V1 baseline, broker submission disabled, no paper
 promotion, no canonical database writes or migrations, and no live orders. The

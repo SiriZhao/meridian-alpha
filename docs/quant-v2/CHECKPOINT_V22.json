@@ -1,6 +1,6 @@
 {
   "version": "quant-v22-development-checkpoint.v1",
-  "status": "HOST_ENGINEERING_ACCEPTANCE_COMPLETE_DELIVERY_PENDING",
+  "status": "RESUMED_AUDIT_COMPLETE_GUARD_CORRECTIONS_PENDING",
   "branch": "codex/quant-engine-v2",
   "starting_head": "4664cb4fd4c32a4330155436a296f4bf65f95934",
   "parent_head": "fd7481d4de1b69b7bf174f921fd7726efaed8616",
@@ -14,14 +14,17 @@
     "Research packet and no-sell-fill checks",
     "New immutable archive: seven contracts, 82 records, 76 evaluations verified",
     "Old pinned independent clone: 92 evaluations / 88 replays exactly reproduced",
-    "All 19 test variants and actual exposure mismatch reported"
+    "All 19 test variants and actual exposure mismatch reported",
+    "Published three V2.2 commits recovered; exact-code push/PR Windows/Linux CI verified SUCCESS",
+    "Independent final-code clone/logs and two pending reproduction proofs recovered"
   ],
   "remaining": [
-    "Commit/push",
-    "Fresh-clone V22 validation/replay",
-    "Windows/Linux CI"
+    "Add post-friction/all-buy correlation and unknown-covariance guards",
+    "Require explicit ETF exemption for absent sectors and block unknown held equity sectors",
+    "Preserve both archived versions and freeze/replay separate resumed diagnostic",
+    "Full validation, independent clone/replay, commit/push and final Windows/Linux CI"
   ],
-  "next_action": "Commit reviewed artifact/docs paths, push development branch, then fresh-clone V22 validation/replay and Windows/Linux CI.",
+  "next_action": "Implement and regression-test resumed algorithm gaps without changing weights or existing archives",
   "blockers": [
     "Certified real PIT/action/membership/calendar data unavailable",
     "Expected return calibration unavailable"
@@ -31,7 +34,7 @@
   "asynchronous_work_claim": false,
   "engine_hash": "043499eda8dbbebb833968d97e72c376bba553e93e820013fc013124ca9837bb",
   "challenger_policy_hash": "e0e0c2a4972a1cce7e18a64480ca2b6798a0002a04772ff58235a74592077674",
-  "targeted_tests": "165 passed in 103.65 seconds",
+  "targeted_tests": "165 passed in 109.57 seconds on resume",
   "static_status": "Ruff PASS; Pyright 0 errors/0 warnings",
   "full_validation": "Approved-host validate_repo.py PASS: 955 passed in 192.81s; both registries, CLI and safe paper PASS. Restricted environment native cleanup failure retained in research record.",
   "uncommitted_file_list_command": "git status --short in .worktrees/quant-engine-v2",
@@ -39,19 +42,17 @@
   "synthetic_diagnostic": "76/76 evaluations complete across 19 frozen variants; financial evidence none",
   "plan_hash": "642288f0e8ffb8e1b542d17750e8ec79042f31c562432359e9672a35f3790474",
   "uncommitted_files": [
-    " M .gitignore",
-    " M DEVELOPMENT.md",
-    " M docs/architecture.md",
-    " M docs/quant-v2/ALGORITHM_V22_AUDIT.md",
-    " M docs/quant-v2/ALGORITHM_V22_RESEARCH.md",
-    " M scripts/validate_repo.py",
-    " M tests/test_quant_v22.py",
-    "?? docs/quant-v2/experiments-v22/",
-    "?? scripts/package_quant_v22.py",
-    "?? scripts/validate_quant_v22_artifacts.py"
+    "docs/quant-v2/ALGORITHM_V22_AUDIT.md",
+    "docs/quant-v2/ALGORITHM_V22_RESEARCH.md",
+    "docs/quant-v2/ACCEPTANCE_V22.md",
+    "docs/quant-v2/CHECKPOINT_V22.json",
+    "docs/quant-v2/experiments-v22/v22-reproduction-proof.json",
+    "docs/quant-v2/experiments-v22/wheel-content-proof.json"
   ],
-  "head_at_checkpoint": "c5dc594d002e199a30df016bf9656f3b26d22c05",
+  "head_at_checkpoint": "5bdb7a4408ab01ae5d712fb8af9196ab38701a7d",
   "phase_commits": [
-    "c5dc594: bounded V2.2 challenger implementation"
+    "c5dc594: bounded challenger",
+    "904f8d6: frozen V2.2 registry",
+    "5bdb7a4: installable contracts"
   ]
 }

@@ -3,7 +3,7 @@
 ## Recovered state and baseline
 
 Verified origin SiriZhao/meridian-alpha, Quant worktree at 4664cb4, clean local
-and remote codex/quant-engine-v2; parent fd7481d is already merged. PR 3 is open,
+and remote codex/quant-engine-v2; parent fd7481d is already integrated into the Quant branch. PR 3 is open,
 draft, mergeable, with no comments/reviews. Original checkout is the separate
 Forward Evidence branch and clean. No reset, overwrite or main development.
 Python 3.12 project environment; targeted baseline: 135 passed in 91.07 seconds
@@ -41,3 +41,27 @@ financial OOS, actual shock robustness, overfitting assessment or survivorship
 resolution follows from synthetic fixtures. Original V2.1 files remain immutable;
 exact archived replay requires its pinned engine commit, never relabeling it as
 V2.2. Challenger predictive_confidence remains null.
+
+## Resumed audit at 5bdb7a4
+
+The implementation, registry and wheel correction were already committed and
+pushed when this session resumed. The remaining audit/research/acceptance and
+two reproduction proofs were preserved. Current targeted baseline: 165 passed
+in 109.57 seconds. Original checkout and remote foundation remain fd7481d;
+Quant PR 3 is draft and mergeable. Both exact-code CI runs succeeded.
+
+Two further gaps require deterministic guards before final handoff:
+
+- `packet.build_research_packet`: the all-buys/no-sells scenario rechecks cash,
+  sectors, overall exposure and volatility, but omits correlated-component and
+  unknown-covariance exposure budgets. A safe intended rotation can therefore
+  depend on a sell filling to satisfy its challenger concentration policy.
+- `portfolio.allocate_challenger`: a sector-map key with value None is accepted
+  without identifying whether it is an ETF exemption or unknown equity sector.
+  Held equity metadata is checked for presence, but a missing held sector can
+  also be omitted from projected sector totals. Unknown classifications must
+  block additions; an ETF exemption requires explicit PIT asset-type metadata.
+
+The resumed changes preserve the original V2.1 and V2.2 archives and parameters.
+New engine diagnostics will use a separate immutable directory; observed
+synthetic returns will not determine a threshold or weight change.
