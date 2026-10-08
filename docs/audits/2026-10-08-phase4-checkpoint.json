@@ -2,9 +2,9 @@
   "schema_version": "meridian-development-checkpoint.v1",
   "status": "PARTIAL_COMPLETE",
   "started_at": "2026-10-08T03:45:22+00:00",
-  "checkpoint_at": "2026-10-08T07:34:58.868019+00:00",
-  "elapsed_wall_seconds": 13776,
-  "current_head": "0e019447e2b930c38a143a18f46b103ae8d1e7c7",
+  "checkpoint_at": "2026-10-08T07:45:39.696530+00:00",
+  "elapsed_wall_seconds": 14417,
+  "current_head": "8af89527b0305dbfea1ace77d3f0439bbdd9856b",
   "head_semantics": "Final tested code HEAD; evidence-only delivery commit follows.",
   "branch": "feature/forward-evidence-alpha-lab-20261008",
   "base_branch": "codex/canonical-truth-hardening",
@@ -34,7 +34,11 @@
     "Strict Pyright for portfolio_lab and fixed arithmetic contexts including precise benchmark cash policy",
     "Code HEAD source validation: 807 passed, Ruff/Pyright/dependencies/CLI/safe paper PASS",
     "Code HEAD raw CI: Windows 807 and Ubuntu 805 plus two Windows-only platform skips; push/PR PASS",
-    "Final resumed independent GitHub clone: Python 3.12.10 frozen lock, 48 packages, 807 passed in 122.60 seconds; Windows packaging PASS"
+    "Final resumed independent GitHub clone: Python 3.12.10 frozen lock, 48 packages, 807 passed in 122.60 seconds; Windows packaging PASS",
+    "Final PR CI exposed exited Linux state identity defect; corrected Z/X/x classification and malformed stat handling without assertion changes",
+    "Eleven cross-platform identity injections; 29 targeted cases PASS",
+    "Final code 8af8952: source 818 in 119.26s, clone 818 in 123.10s; static/dependency/CLI/safe paper/fresh-process/projections PASS",
+    "Final code push/PR CI PASS: Windows 818; Ubuntu 816 plus two platform skips"
   ],
   "active_task": "Resume the unfinished portfolio evaluation/research-evidence mission; do not treat this checkpoint as ten-hour completion",
   "outstanding_defects": [
@@ -204,6 +208,37 @@
       "duration_seconds": 122.6,
       "windows_packaging": "PASS",
       "runtime_isolation": "PASS"
+    },
+    {
+      "command": "PR CI 37744349982",
+      "status": "FAIL",
+      "os": "Ubuntu",
+      "passed": 804,
+      "failed": 1,
+      "skipped": 2,
+      "root_cause": "Exited Linux process stat identity was treated as alive; deterministic exit-state injections added"
+    },
+    {
+      "command": "Source and independent frozen-lock clone at final code HEAD",
+      "status": "PASS",
+      "head": "8af89527b0305dbfea1ace77d3f0439bbdd9856b",
+      "source_passed": 818,
+      "source_duration_seconds": 119.26,
+      "clone_passed": 818,
+      "clone_duration_seconds": 123.1
+    },
+    {
+      "command": "CI push 37744891605 and PR 37744897281",
+      "status": "PASS",
+      "head": "8af89527b0305dbfea1ace77d3f0439bbdd9856b",
+      "windows_passed": 818,
+      "ubuntu_passed": 816,
+      "ubuntu_skipped": 2
+    },
+    {
+      "command": "Identity and portfolio targeted regressions",
+      "status": "PASS",
+      "passed": 29
     }
   ],
   "forward_evidence": {
@@ -232,9 +267,9 @@
   "duration_claim": "Prior segment recorded 6124 elapsed seconds. Resumed segment first observed 07:05 UTC. Quota-interruption gap excluded from work claims; effective work hours not measured and ten-hour mission not claimed complete.",
   "resume": {
     "first_observed_at": "2026-10-08T07:05:10+00:00",
-    "code_head": "0e019447e2b930c38a143a18f46b103ae8d1e7c7",
-    "checkpoint_at": "2026-10-08T07:34:58.868019+00:00",
-    "active_task": "Evidence-only commit/push, final remote/clone SHA and tip CI verification",
+    "code_head": "8af89527b0305dbfea1ace77d3f0439bbdd9856b",
+    "checkpoint_at": "2026-10-08T07:45:39.696530+00:00",
+    "active_task": "Final evidence-only delivery verification; next research tasks remain in outstanding_defects",
     "completed": [
       "Predeclared horizon portfolios and fixed cost/slippage grid",
       "Earlier information cutoff enforcement for signal and portfolio evaluation",
@@ -242,7 +277,7 @@
       "14 portfolio regression cases and strict typing"
     ],
     "pending": [
-      "Evidence-only commit/push and tip CI"
+      "Final evidence-only tip remote/clone verification and CI"
     ],
     "extra_bootstrap_download": {
       "status": "CANCELLED",
@@ -250,18 +285,18 @@
       "project_packages_installed": 48,
       "uv": "0.12.7"
     },
-    "observed_segment_wall_seconds": 1788
+    "observed_segment_wall_seconds": 2429
   },
   "prior_segment_elapsed_wall_seconds": 6124,
   "elapsed_wall_semantics": "WALL_SINCE_ORIGINAL_START_INCLUDES_QUOTA_INTERRUPTION_NOT_EFFECTIVE_WORK",
   "fresh_clone": {
     "status": "PASS",
-    "head": "0e019447e2b930c38a143a18f46b103ae8d1e7c7",
+    "head": "8af89527b0305dbfea1ace77d3f0439bbdd9856b",
     "python": "3.12.10",
     "uv": "0.12.7",
     "packages": 48,
-    "passed": 807,
-    "duration_seconds": 122.6,
+    "passed": 818,
+    "duration_seconds": 123.1,
     "final_delivery_fast_forward": "PENDING_HANDOFF",
     "code_tree_must_match_tested_head": true
   }

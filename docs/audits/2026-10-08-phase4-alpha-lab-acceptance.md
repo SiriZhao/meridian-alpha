@@ -23,7 +23,8 @@ offline acceptance used closed-market wall time. The new clock fixture repairs
 those failures; gates were not relaxed.
 
 Prior validated code HEAD: `98c1d6353ea3282175817bcf951aa22048cceaec`.
-Resumed validated code HEAD: `0e019447e2b930c38a143a18f46b103ae8d1e7c7`.
+Resumed portfolio code HEAD: `0e019447e2b930c38a143a18f46b103ae8d1e7c7`.
+Latest validated code HEAD: `8af89527b0305dbfea1ace77d3f0439bbdd9856b`.
 Final delivery HEAD is the branch tip containing this report/checkpoint; remote
 verification is recorded separately to avoid a self-referential commit hash.
 
@@ -432,3 +433,39 @@ recorded 6124 elapsed seconds in its earlier segment. Effective engineering
 hours are not measured; the quota interruption is not work and there is no
 ten-hour completion claim. Source and fresh-clone code are validated; financial
 evidence, native ablations and the remaining research mission are not complete.
+
+### FINAL CI-OBSERVED EXIT-STATE REPAIR AND ACCEPTANCE
+
+The documentation-tip push CI succeeded, but PR run
+[37744349982](https://github.com/SiriZhao/meridian-alpha/actions/runs/37744349982)
+failed on Ubuntu: the original timeout cleanup test found a child's stat identity
+after termination (804 passed, one failed, two platform skips). This failure was
+not hidden by the parallel successful push or a rerun. Review found that Linux
+identity parsing ignored the process state and returned start time even for
+retained exited entries. [Linux kernel documentation](https://www.kernel.org/doc/html/latest/filesystems/proc.html)
+defines zombie state separately from running/sleeping tasks.
+
+Commit 8af8952 treats confirmed Z/X/x as exited, matching the Windows terminated
+handle behavior. Active states stay live; truncated/non-numeric stat is explicitly
+unverifiable, and permission/EIO uncertainty still fails closed. Eleven new
+deterministic injections run on both platforms, including names containing
+parentheses. No change to timeout, kill behavior, financial gates or assertions.
+
+Latest code validation: **818 passed in 119.26 seconds** in source and **818
+passed in 123.10 seconds** in the independent frozen-lock clone. All dependency,
+Ruff/Pyright, CLI, safe paper, fresh-process and report-consistency checks PASS.
+Targeted identity plus portfolio: **29 passed**. This resume added 25 tests
+(14 portfolio, 11 identity); original baseline increase is 88, not sample count.
+
+Code push [37744891605](https://github.com/SiriZhao/meridian-alpha/actions/runs/37744891605)
+and PR [37744897281](https://github.com/SiriZhao/meridian-alpha/actions/runs/37744897281)
+both PASS at 8af8952. Raw push logs: Windows **818 passed** (54.67 seconds), Ubuntu
+**816 passed/two Windows-only skips** (41.84 seconds). Both include the unchanged
+real subprocess cleanup regression, negative manual-authority and replay tests.
+
+The final evidence-only tip follows this validated code; final source/remote/
+clone SHA and tip workflows are checked at handoff. This overrides earlier test
+counts and delivery claims in the historical checkpoint sections above. Full
+research mission remains PARTIAL_COMPLETE; financial alpha remains
+INSUFFICIENT_EVIDENCE / NO_DEMONSTRATED_ALPHA, canonical host daily NOT_VERIFIED,
+production policy unchanged and real broker side effects NONE.
