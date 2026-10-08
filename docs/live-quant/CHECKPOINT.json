@@ -1,9 +1,9 @@
 {
   "version": "mission2-checkpoint.v1",
-  "status": "FINAL_ADAPTER_CITATION_CORRECTION_FULL_VALIDATION_PENDING",
+  "status": "ENGINEERING_COMPLETE_PREOPEN_DEGRADED",
   "branch": "codex/quant-live-bridge",
   "starting_head": "69eb57aa0f8464b18c98c9464b1c1d52a267c960",
-  "head_at_checkpoint": "219918a22414e141afec0b81aff886d8e4964c0a",
+  "head_at_checkpoint": "3c7aa247a024608b12765ec62470048f30b31882",
   "worktree": "E:/CSDIY/Vibe Coding Project/meridian-alpha/.worktrees/quant-engine-v2",
   "engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
   "completed": [
@@ -23,7 +23,8 @@
     "Both final-source Windows/Linux CI runs PASS",
     "All 76 frozen archived replay payloads and summary exactly reproduced",
     "Chinese fixture JSON/Markdown exactly reproduced",
-    "Sanitized acceptance proof and verified launcher/runbook/risk register complete"
+    "Sanitized acceptance proof and verified launcher/runbook/risk register complete",
+    "Final actual adapter citation contract corrected: 64 targeted, 992 full local and 992 independent tests; both CI platforms PASS at 3c7aa247a024608b12765ec62470048f30b31882"
   ],
   "remaining": [
     "New qualifying real-data observation and model inference",
@@ -49,38 +50,38 @@
     "TWO_RUN_FRESH_ACCOUNT_ACCEPTANCE_PENDING"
   ],
   "asynchronous_work_claim": false,
-  "accepted_implementation_head": "219918a22414e141afec0b81aff886d8e4964c0a",
+  "accepted_implementation_head": "3c7aa247a024608b12765ec62470048f30b31882",
   "validation": {
     "local_full": {
-      "passed": 991,
-      "seconds": 200.35,
+      "passed": 992,
+      "seconds": 224.35,
       "full_validator_pass": true
     },
     "independent_full": {
-      "passed": 991,
-      "seconds": 212.8,
+      "passed": 992,
+      "seconds": 214.04,
       "full_validator_pass": true
     },
-    "targeted": 54,
+    "targeted": 64,
     "ci": {
-      "push_run": 37792163404,
-      "pull_request_run": 37792171856,
+      "push_run": 37794420438,
+      "pull_request_run": 37794428552,
       "conclusion": "success",
-      "head": "219918a22414e141afec0b81aff886d8e4964c0a",
+      "head": "3c7aa247a024608b12765ec62470048f30b31882",
       "windows": {
-        "passed": 991,
-        "seconds": 244.8
+        "passed": 992,
+        "seconds": 272.81
       },
       "linux": {
-        "passed": 989,
+        "passed": 990,
         "skipped": 2,
-        "seconds": 254.27
+        "seconds": 200.98
       },
       "manual_authority_each": 21,
       "replay_integrity_each": 8
     }
   },
-  "remaining_engineering": ["Full local/independent/CI validation after the final adapter citation fix; 64 targeted tests already pass"],
+  "remaining_engineering": [],
   "uncommitted_at_checkpoint": [
     "docs/live-quant/ACCEPTANCE.md",
     "docs/live-quant/ACCEPTANCE_PROOF.json",

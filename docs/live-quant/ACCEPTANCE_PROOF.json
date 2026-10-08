@@ -1,16 +1,16 @@
 {
   "schema_version": "mission2-sanitized-acceptance.v1",
-  "implementation_head": "219918a22414e141afec0b81aff886d8e4964c0a",
+  "implementation_head": "3c7aa247a024608b12765ec62470048f30b31882",
   "branch": "codex/quant-live-bridge",
   "parent_head": "69eb57aa0f8464b18c98c9464b1c1d52a267c960",
   "local_final_validation": {
-    "passed": 991,
-    "seconds": 200.35,
+    "passed": 992,
+    "seconds": 224.35,
     "full_validator_pass": true
   },
   "independent_final_validation": {
-    "passed": 991,
-    "seconds": 212.8,
+    "passed": 992,
+    "seconds": 214.04,
     "full_validator_pass": true
   },
   "frozen_environment": {
@@ -142,18 +142,18 @@
   "financial_validation": "REAL_FINANCIAL_VALIDATION_PENDING",
   "alpha": "ALPHA_NOT_YET_DEMONSTRATED",
   "source_ci": {
-    "push_run": 37792163404,
-    "pull_request_run": 37792171856,
+    "push_run": 37794420438,
+    "pull_request_run": 37794428552,
     "conclusion": "success",
-    "head": "219918a22414e141afec0b81aff886d8e4964c0a",
+    "head": "3c7aa247a024608b12765ec62470048f30b31882",
     "windows": {
-      "passed": 991,
-      "seconds": 244.8
+      "passed": 992,
+      "seconds": 272.81
     },
     "linux": {
-      "passed": 989,
+      "passed": 990,
       "skipped": 2,
-      "seconds": 254.27
+      "seconds": 200.98
     },
     "manual_authority_each": 21,
     "replay_integrity_each": 8
@@ -166,5 +166,6 @@
     "summary_and_all_payloads_identical": true,
     "financial_evidence": false
   },
-  "fixture_reproduction": "JSON_FIELDS_AND_MARKDOWN_IDENTICAL; SYNTHETIC_DIAGNOSTIC_FIXTURE_ONLY"
+  "fixture_reproduction": "JSON_FIELDS_AND_MARKDOWN_IDENTICAL; SYNTHETIC_DIAGNOSTIC_FIXTURE_ONLY",
+  "actual_adapter_regression": "64 targeted tests passed in 11.43s; real Codex schema catalog includes sealed Quant and quote IDs, excludes invented IDs; no network inference"
 }

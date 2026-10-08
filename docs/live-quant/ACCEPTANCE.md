@@ -8,7 +8,7 @@ REAL_FINANCIAL_VALIDATION_PENDING / ALPHA_NOT_YET_DEMONSTRATED.
 ## Delivery and environment
 
 - Development branch: `codex/quant-live-bridge`, stacked draft [PR #4](https://github.com/SiriZhao/meridian-alpha/pull/4), base `codex/quant-engine-v2`.
-- Parent: `69eb57aa0f8464b18c98c9464b1c1d52a267c960`; bridge commits `29fe878`, `6bb42c7`, final implementation `219918a22414e141afec0b81aff886d8e4964c0a`.
+- Parent: `69eb57aa0f8464b18c98c9464b1c1d52a267c960`; bridge commits `29fe878`, `6bb42c7`, final implementation `3c7aa247a024608b12765ec62470048f30b31882`; actual-adapter citation correction `3c7aa24`.
 - Active checkout: `E:/CSDIY/Vibe Coding Project/meridian-alpha/.worktrees/quant-engine-v2`; package imports from its `src/meridian`.
 - Python: that checkout's `.venv/Scripts/python.exe`, 3.12.10. The original environment had 18 version differences; repaired with uv 0.12.7 `sync --frozen --group dev`. All 48 locked installed distributions match, plus bootstrap pip; no lock change.
 - Loaded policies: active checkout's `policies`; canonical `quant-v2.1` / QUANT_V1_BASELINE, challenger `quant-v22.yaml` / SHADOW_ONLY, research `codex_cli / gpt-5.6-luna / low`. This is the application's configured model, not an assertion about the supervising agent's model.
@@ -19,11 +19,11 @@ REAL_FINANCIAL_VALIDATION_PENDING / ALPHA_NOT_YET_DEMONSTRATED.
 
 | Check | Result |
 |---|---|
-| Final local full validate_repo, implementation 219918a | 991 passed in 200.35s; dependency integrity, Ruff, Pyright, both artifact/archive contracts, CLI and optimized safe paper acceptance PASS |
-| New bridge and existing live recovery regression | 54 passed in 9.70s; stale benchmark, future information, attribution, score overwrite, immutable records, read-only state and process-tree timeout included |
-| Independent final clone | 991 passed in 212.80s at 219918a; independent Python 3.12.10 import origin and frozen dependencies verified |
-| Source Windows/Linux CI | [Run 37792163404](https://github.com/SiriZhao/meridian-alpha/actions/runs/37792163404) PASS: Windows 991 in 244.80s; Linux 989 + 2 platform skips in 254.27s; manual authority 21 and replay integrity 8 pass on both; stacked PR CI 37792171856 also PASS |
-| Frozen resumed V2.2 registry | Independent clone at 6bb42c7: summary and all 76 archived replay payloads exactly match; protected engine unchanged at 219918a |
+| Final local full validate_repo, implementation 3c7aa24 | 992 passed in 224.35s; dependency integrity, Ruff, Pyright, both artifact/archive contracts, CLI and optimized safe paper acceptance PASS |
+| New bridge and existing live recovery regression | 64 passed in 11.43s including the native runtime; stale benchmark, future information, attribution, score overwrite, immutable records, read-only state and process-tree timeout included |
+| Independent final clone | 992 passed in 214.04s at 3c7aa24; independent Python 3.12.10 import origin and frozen dependencies verified |
+| Source Windows/Linux CI | [Run 37794420438](https://github.com/SiriZhao/meridian-alpha/actions/runs/37794420438) PASS: Windows 992 in 272.81s; Linux 990 + 2 platform skips in 200.98s; manual authority 21 and replay integrity 8 pass on both |
+| Frozen resumed V2.2 registry | Independent clone at 6bb42c7: summary and all 76 archived replay payloads exactly match; protected engine unchanged at 3c7aa24 |
 | Chinese fixture report | Independently regenerated JSON fields and Markdown exactly match committed fixture; SYNTHETIC_DIAGNOSTIC_FIXTURE_ONLY, no network/model/ledger |
 
 Initial frozen full run passed 990 tests in 221.17s; intermediate source 6bb42c7
@@ -112,3 +112,11 @@ real financial validation and alpha remain unproven. V1/parent checkout is the
 rollback path and needs no ledger change. Final documentation commit/remote SHA
 and its CI are verified externally after publication; this record identifies the
 accepted implementation source without a self-referential commit hash.
+
+Final actual-adapter audit caught a missing citation catalog entry: the final GPT
+output schema admitted quote IDs but omitted its separately supplied Quant IDs.
+Commit 3c7aa24 includes both in the strict catalog; the regression inspects the
+actual adapter-generated schema and validates a complete cited response, while
+invented IDs and additional fields remain forbidden. This is fixture-only adapter
+validation, not a successful real model call. The 219918a full checks (991 local
+and independent tests) are historical; the table above reports the final source.
