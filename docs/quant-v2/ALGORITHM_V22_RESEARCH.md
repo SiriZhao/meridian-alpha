@@ -122,4 +122,90 @@ Financial input must omit --diagnostic and independently satisfy all data gates.
 
 ## Executed results and acceptance
 
-Pending completion of the frozen diagnostic and final repository validation.
+All 76 evaluations completed under the predeclared 19-variant plan: two folds,
+validation and test, 76 distinct deterministic replays. The following table
+reports every test variant, including cost stresses and uninformative no-trade
+outcomes. Returns are cumulative **synthetic** net returns, never financial OOS
+evidence. Exposure is the average realized invested fraction; costs are modeled
+USD for the $100,000 starting account. The full registry retains all validation
+results, risk/regime diagnostics, metrics and uncertainty intervals.
+
+| Variant | Fold 1 net % | Cost USD | Exposure % | Fold 2 net % | Cost USD | Exposure % |
+|---|---:|---:|---:|---:|---:|---:|
+| CASH | 0.000 | 0.00 | 0.00 | 0.000 | 0.00 | 0.00 |
+| SPY_BUY_HOLD | -13.462 | 50.97 | 99.99 | 7.141 | 50.97 | 99.98 |
+| SPY_POLICY | -3.068 | 39.69 | 23.44 | 1.475 | 20.49 | 23.88 |
+| EQUAL_WEIGHT | -13.392 | 90.27 | 81.76 | 2.261 | 73.91 | 83.36 |
+| A0 | 9.613 | 319.54 | 36.01 | 3.934 | 750.68 | 48.58 |
+| A1 | -9.608 | 179.05 | 19.89 | 0.000 | 0.00 | 0.00 |
+| A2 | -14.710 | 186.87 | 26.93 | 0.000 | 0.00 | 0.00 |
+| A3 | -14.710 | 186.87 | 26.93 | 0.000 | 0.00 | 0.00 |
+| A4 | -8.046 | 187.99 | 17.36 | 0.000 | 0.00 | 0.00 |
+| V22 | -7.783 | 194.87 | 17.66 | 0.000 | 0.00 | 0.00 |
+| V22_NEUTRAL_ABSOLUTE | -2.778 | 73.89 | 6.57 | 0.000 | 0.00 | 0.00 |
+| V22_NEUTRAL_RELATIVE | -2.809 | 69.55 | 6.69 | 0.000 | 0.00 | 0.00 |
+| V22_NEUTRAL_TREND | -2.795 | 72.71 | 6.59 | 0.000 | 0.00 | 0.00 |
+| V22_MATCHED_BUDGET | -2.753 | 77.96 | 6.49 | 0.000 | 0.00 | 0.00 |
+| V22_RANK_BLEND_.15 | -7.788 | 199.84 | 17.68 | 0.000 | 0.00 | 0.00 |
+| V22_RANK_BLEND_.25 | -7.782 | 194.55 | 17.63 | 0.000 | 0.00 | 0.00 |
+| V22_COST_10 | -7.908 | 319.74 | 17.67 | 0.000 | 0.00 | 0.00 |
+| V22_COST_25 | -8.262 | 693.98 | 17.67 | 0.000 | 0.00 | 0.00 |
+| V22_COST_50 | -8.763 | 1294.03 | 17.49 | 0.000 | 0.00 | 0.00 |
+
+V22's fold-1 loss is slightly smaller than A4's while cost and average exposure
+are higher; this small synthetic difference is not evidence of predictive
+improvement. A0 is positive on these fixtures, and adding factors does not make
+the challenger a winner. Increasing slippage worsens V22's fold-1 result. The
+second fold's zero outcomes reflect eligibility/risk/no-trade decisions and
+contain no active-trading evidence for A1-A4 or V22.
+
+The 12 paired exposure audits include six within .001 tolerance, all in fold-2
+validation/test where both arms have zero exposure: these are uninformative.
+The other six are not matched; maximum per-session exposure difference is
+.019138377170545073 (1.91 percentage points). Nominal matched-budget tests pass,
+but **no isolated factor alpha conclusion** follows from the realized ablations.
+Group-neutral replacements retain the eligibility gates; they do not remove the
+absolute-momentum gate or disentangle every shared feature dependency.
+
+Statistical uncertainty uses paired moving blocks (5/20/60 sessions, 500
+repetitions, fixed seed 1729). Sixty-session intervals are unavailable on these
+short test folds; shorter-block intervals are pointwise descriptive summaries,
+not familywise correction, causal evidence or independent financial samples.
+No strategy was selected from these results. Parameter and cost sensitivity
+here are engineering diagnostics; real universe/provider/shock robustness and
+survivorship bias remain unresolved. Certification strings, policy approval
+references and registry timestamps are attestations requiring external review.
+
+Frozen identities:
+
+- Engine source: `043499eda8dbbebb833968d97e72c376bba553e93e820013fc013124ca9837bb`
+- Challenger policy: `e0e0c2a4972a1cce7e18a64480ca2b6798a0002a04772ff58235a74592077674`
+- Dataset: `06605fe1644d2affb631040f290b690295627ea6451370483b2679e83a4f8f3c`
+- Plan: `642288f0e8ffb8e1b542d17750e8ec79042f31c562432359e9672a35f3790474`
+
+The new immutable archive contains 82 JSON records. Seven additive V2.2 schemas
+and the archive are verified by `scripts/validate_quant_v22_artifacts.py`.
+The old five schemas and V2.1 archive were preserved byte-for-byte. An independent
+GitHub clone pinned at `4664cb4` reran the original 92 evaluations / 88 distinct
+replays; its summary and every replay JSON matched the original archived
+payload exactly. See `experiments-v22/v21-reproduction-proof.json`.
+
+### Acceptance and authority
+
+Implementation commit: `c5dc594`. Targeted acceptance: 165 passed in 103.65s;
+Ruff passed and Pyright reported zero errors/warnings. Restricted Windows full
+validation produced 954 passed / one failure in the existing native child-tree
+timeout test (cleanup could not terminate descendants within ten seconds).
+Approved-host full validation subsequently passed: **955 passed in 192.81s**,
+dependency integrity, Ruff, Pyright, both artifact registries, CLI smoke and
+optimized isolated safe-paper acceptance all passed. The native timeout test
+passed in this environment; no safety test was removed or weakened.
+Independent-clone/Windows/Linux CI results will be recorded after execution.
+
+Runtime and authority remain V1 baseline, broker submission disabled, no paper
+promotion, no canonical database writes or migrations, and no live orders. The
+V22 policy can only be SHADOW_ONLY; research packets cannot authorize trades.
+Rollback is to continue the existing V1 default and omit the optional challenger
+or packet route. Original V2.1 paper-review and shadow controls remain unchanged.
+Financial validation and calibrated expected return are pending; paper-candidate
+readiness is INSUFFICIENT_EVIDENCE. Alpha remains ALPHA_NOT_YET_DEMONSTRATED.

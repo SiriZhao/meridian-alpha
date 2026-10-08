@@ -21,6 +21,7 @@ htmlcov/
 .tmp/
 .worktrees/
 .runtime/
+docs/quant-v2/experiments*/.locks/
 dist/
 
 artifacts/

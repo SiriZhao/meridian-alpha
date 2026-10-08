@@ -24,6 +24,7 @@ Python 3.12 project environment; targeted baseline: 135 passed in 91.07 seconds
 | experiments.run_experiments | Plans sealed before replay, no fitting. Original ablations change exposure as well as signal. Registration is an attestation, not authenticated global prevention of OOS reuse. | Separate v2.2 manifest; explicit neutral-group, fixed-budget ablations; never describe unequal realized exposure as an isolated alpha effect. |
 | integration.plan_paper_candidate | Existing gates and post-planner sector checks protect incomplete sells. Real OOS lacking => insufficient evidence. | Research packet uses the same planner and projected validator for hypothetical eligible changes, never paper promotion or ledger writes. |
 | live_advisory | Public quote freshness is not execution entitlement; qualitative confidence is not quant calibration. | Add a typed research packet boundary only; do not replace live advisory, account truth or authority gates. |
+| regime.detect_regime / features._compute | The 252-price maximum drawdown is a trailing stress memory, not current drawdown from the latest peak. Stress can persist after price recovery. A 252-price window contains 251 returns; 252-session momentum needs 253 prices. | Retain the conservative risk rule and explicit window semantics. Do not describe it as a confident market forecast or relax it after inspecting synthetic returns. |
 
 ## Research qualifications
 

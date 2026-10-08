@@ -391,3 +391,13 @@ facts and execution quotes. The predeclared horizon laboratory remains a
 separate reviewed-outcome analysis; its samples are not promoted into V2
 portfolio OOS evidence. See [Quant V2 architecture](quant-v2/ARCHITECTURE.md),
 [ADR 0037](adr/0037-quant-engine-v2.md) and the documented financial limits.
+
+V2.2 adds bounded absolute/relative/trend composition with signal/risk
+attribution, proportional correlation caps, an explicit covariance estimate,
+typed future calibration/fundamental contracts and a Chinese research packet.
+It extends the same feature/portfolio/replay modules. Hypothetical changes reuse
+the manual planner and include a no-sell-fill risk scenario. The separate policy
+is SHADOW_ONLY and does not change the canonical switch; V2.1 schemas/archives
+remain preserved. See [algorithm audit](quant-v2/ALGORITHM_V22_AUDIT.md),
+[research evidence](quant-v2/ALGORITHM_V22_RESEARCH.md) and
+[ADR 0038](adr/0038-quant-v22-separated-signal-risk-and-review.md).

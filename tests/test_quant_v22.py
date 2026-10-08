@@ -1,5 +1,6 @@
 """Challenger mathematics and safety; all observations are engineering fixtures."""
 
+import zipfile
 from dataclasses import replace
 from datetime import timedelta
 from decimal import Decimal, localcontext
@@ -9,7 +10,7 @@ import pytest
 
 from meridian.config import load_policies
 from meridian.historical import HistoricalBarCertification, HistoricalBarSeries
-from meridian.quant.backtest import WalkForwardRunner, pit_correlations
+from meridian.quant.backtest import QuantDataset, WalkForwardRunner, pit_correlations
 from meridian.quant.contracts import (
     DisabledFundamentalAdapter,
     ExpectedReturnEstimate,
@@ -32,8 +33,12 @@ D = Decimal
 ROOT = Path(__file__).parents[1]
 
 
-def inputs(policy: ChallengerPolicy | None = None, index: int = 279):
+def inputs(policy: ChallengerPolicy | None = None, index: int = 279, *, frozen: bool = False):
     dataset = synthetic_dataset()
+    if frozen:
+        # Explicit bytes avoid platform-libm differences in a golden fixture.
+        with zipfile.ZipFile(ROOT / "docs/quant-v2/experiments/synthetic-full-registry.zip") as archived:
+            dataset = QuantDataset.model_validate_json(archived.read("synthetic-dataset.json"))
     history = histories(dataset)
     when = cutoff(dataset, index)
     policy = policy or ChallengerPolicy()
@@ -68,7 +73,7 @@ def test_out_of_sequence_and_duplicate_series_rejected():
 
 
 def test_golden_attribution_rank_separation_and_context():
-    _, _, _, p, fs, regime, rows = inputs()
+    _, _, _, p, fs, regime, rows = inputs(frozen=True)
     row = next(r for r in rows if r.bridge.symbol == "AAPL")
     assert row.signal_strength == D("0.4973526592241052279604352853")
     assert row.bridge.quant_score == row.signal_strength

@@ -1,0 +1,9 @@
+{
+  "status": "EXACT_V21_REPLAY_MATCH",
+  "pinned_engine_commit": "4664cb4fd4c32a4330155436a296f4bf65f95934",
+  "engine_hash": "fe6024b7167575cc512cee492f858fba0788f770440a3e0995bd0eb98c5a7e6d",
+  "evaluations": 92,
+  "distinct_replays": 88,
+  "summary_and_all_payloads_identical": true,
+  "financial_evidence": false
+}

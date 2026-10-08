@@ -122,3 +122,13 @@ credentials, caches or `.env` files.
 tracked artifacts were removed from the current tree without deleting local
 copies or rewriting history; durable audit records remain in `docs/` and
 `reports/`. Published audit documents use `<USER_HOME>` for personal paths.
+
+## Quant V2.2 research-only challenger
+
+Use project Python with `scripts/quant_v22_diagnostic.py --output .tmp/quant-v22/new-run`
+for a new isolated synthetic registry. Replay the saved dataset/plan via the
+Quant CLI; `quant packet` emits a research packet with no trade authority.
+`scripts/validate_quant_v22_artifacts.py` verifies seven contracts, the current
+archive and paired realized exposure. Full validation checks both this registry
+and the preserved V2.1 archive. Exact V2.1 replay uses pinned commit 4664cb4.
+Synthetic diagnostics never qualify financial evidence or promote a strategy.
