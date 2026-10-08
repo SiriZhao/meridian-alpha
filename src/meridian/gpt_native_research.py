@@ -766,9 +766,10 @@ class CodexResearchModelRuntime:
                 output_path = directory / "output.json"
                 catalog = {str(item['evidence_id']) for item in input_data.get('evidence', [])
                            if isinstance(item, dict) and item.get('evidence_id')}
-                explicit_ids = input_data.get('evidence_ids', {})
-                if isinstance(explicit_ids, dict):
-                    catalog.update(str(item) for item in explicit_ids.values())
+                for field in ('evidence_ids', 'quant_evidence_ids'):
+                    explicit_ids = input_data.get(field, {})
+                    if isinstance(explicit_ids, dict):
+                        catalog.update(str(item) for item in explicit_ids.values())
                 bounded = evidence_bound_schema(schema, catalog)
                 schema_path.write_text(json.dumps(strict_output_schema(bounded)), encoding="utf-8")
                 schema_bytes = schema_path.stat().st_size

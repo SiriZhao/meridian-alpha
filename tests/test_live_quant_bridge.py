@@ -333,3 +333,43 @@ def test_full_fixture_pipeline_passes_quant_to_both_gpt_stages_and_preserves_sco
         assert report['market_snapshot']['SPY']['current_price'] is None
     expected_advisory = 'PASS' if fault is None else 'NOT_RUN' if fault in {'timeout', 'stale_benchmark'} else 'FAILED'
     assert report['status_dimensions']['GPT_FINAL_ADVISORY'] == expected_advisory
+
+
+def test_real_codex_advisory_schema_accepts_only_supplied_quote_and_quant_ids(tmp_path, monkeypatch):
+    import json
+    from types import SimpleNamespace
+
+    from meridian.gpt_native_research import CodexResearchModelRuntime
+    from meridian.live_advisory import AdvisoryTheses
+
+    quote_id = 'a' * 64
+    quant_id = 'quant-' + 'b' * 64 + '-SPY'
+    inspected = []
+
+    def runner(command, prompt, environment, directory, budget_seconds):
+        schema_path = Path(command[command.index('--output-schema') + 1])
+        schema = json.loads(schema_path.read_text(encoding='utf-8'))
+        definitions = [definition for definition in schema['$defs'].values()
+                       if 'evidence_ids' in definition.get('properties', {})]
+        assert definitions
+        for definition in definitions:
+            allowed = definition['properties']['evidence_ids']['items']['enum']
+            assert set(allowed) == {quote_id, quant_id}
+            assert 'invented-quant-id' not in allowed
+            assert definition['additionalProperties'] is False
+        inspected.append(True)
+        response = {'decisions': [{'symbol': 'SPY', 'action': 'WAIT', 'confidence': 0.5,
+            'time_horizon': 'FIXTURE_ONLY', 'thesis': 'Await qualified evidence.',
+            'positive_drivers': [], 'negative_drivers': [], 'risk_flags': ['FIXTURE_ONLY'],
+            'wait_until': 'A new qualified observation', 'evidence_ids': [quote_id, quant_id]}],
+            'top_action_now': 'Wait', 'avoid_now': 'Unverified entries', 'doing_nothing_assessment': 'Preserve cash'}
+        Path(command[command.index('--output-last-message') + 1]).write_text(json.dumps(response), encoding='utf-8')
+        return SimpleNamespace(returncode=0, stdout='', stderr='')
+
+    monkeypatch.setenv('MERIDIAN_HOME', str(tmp_path))
+    runtime = CodexResearchModelRuntime(executable='codex', runner=runner, working_directory=tmp_path)
+    result = runtime.invoke('SYMBOL_ADVISORY', {
+        'evidence_ids': {'SPY': quote_id}, 'quant_evidence_ids': {'SPY': quant_id}},
+        AdvisoryTheses.model_json_schema(), 15, model='codex-default', reasoning_effort='low')
+    assert inspected == [True] and result.status.value == 'SUCCESS'
+    assert AdvisoryTheses.model_validate(result.output).decisions[0].evidence_ids == (quote_id, quant_id)

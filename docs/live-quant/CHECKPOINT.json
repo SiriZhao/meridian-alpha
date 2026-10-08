@@ -1,6 +1,6 @@
 {
   "version": "mission2-checkpoint.v1",
-  "status": "ENGINEERING_COMPLETE_PREOPEN_DEGRADED",
+  "status": "FINAL_ADAPTER_CITATION_CORRECTION_FULL_VALIDATION_PENDING",
   "branch": "codex/quant-live-bridge",
   "starting_head": "69eb57aa0f8464b18c98c9464b1c1d52a267c960",
   "head_at_checkpoint": "219918a22414e141afec0b81aff886d8e4964c0a",
@@ -80,7 +80,7 @@
       "replay_integrity_each": 8
     }
   },
-  "remaining_engineering": [],
+  "remaining_engineering": ["Full local/independent/CI validation after the final adapter citation fix; 64 targeted tests already pass"],
   "uncommitted_at_checkpoint": [
     "docs/live-quant/ACCEPTANCE.md",
     "docs/live-quant/ACCEPTANCE_PROOF.json",
