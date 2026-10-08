@@ -24,7 +24,7 @@ those failures; gates were not relaxed.
 
 Prior validated code HEAD: `98c1d6353ea3282175817bcf951aa22048cceaec`.
 Resumed portfolio code HEAD: `0e019447e2b930c38a143a18f46b103ae8d1e7c7`.
-Latest validated code HEAD: `8af89527b0305dbfea1ace77d3f0439bbdd9856b`.
+Latest validated code HEAD: `3959d1c59988acb67069b5ccbbafd855e44b8217`.
 Final delivery HEAD is the branch tip containing this report/checkpoint; remote
 verification is recorded separately to avoid a self-referential commit hash.
 
@@ -469,3 +469,23 @@ counts and delivery claims in the historical checkpoint sections above. Full
 research mission remains PARTIAL_COMPLETE; financial alpha remains
 INSUFFICIENT_EVIDENCE / NO_DEMONSTRATED_ALPHA, canonical host daily NOT_VERIFIED,
 production policy unchanged and real broker side effects NONE.
+
+### FINAL HORIZON-CALENDAR QUALIFICATION
+
+Review found that a 2026 terminal close could qualify a prediction starting in
+2025, outside the laboratory's reviewed calendar scope. Commit 3959d1c now
+requires inception session coverage too; a valid cross-year prediction without
+that coverage yields MISSING_EVIDENCE and no return. Historical v1/v2 parsing is
+unchanged; unknown qualification is not silently promoted.
+
+Final code source: **819 passed in 105.82 seconds**. Independent frozen-lock
+clone: **819 passed in 106.63 seconds**. Targeted lab/attribution/identity:
+**81 passed**. This resume adds 26 tests; total increase from 730 is 89.
+All static/dependency/CLI/safe-paper/fresh-process/report checks PASS.
+Code push [37745970170](https://github.com/SiriZhao/meridian-alpha/actions/runs/37745970170)
+and PR [37745975117](https://github.com/SiriZhao/meridian-alpha/actions/runs/37745975117)
+PASS on Windows and Ubuntu. Final code, clone and remote agree at 3959d1c;
+the following evidence-only delivery tip is checked at handoff. These are the
+authoritative final code counts; earlier sections retain chronological evidence.
+Financial samples remain insufficient, promotion/broker authority disabled,
+canonical runtime unchanged and the ten-hour research mission incomplete.

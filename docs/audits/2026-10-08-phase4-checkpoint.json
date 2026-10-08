@@ -2,9 +2,9 @@
   "schema_version": "meridian-development-checkpoint.v1",
   "status": "PARTIAL_COMPLETE",
   "started_at": "2026-10-08T03:45:22+00:00",
-  "checkpoint_at": "2026-10-08T07:45:39.696530+00:00",
-  "elapsed_wall_seconds": 14417,
-  "current_head": "8af89527b0305dbfea1ace77d3f0439bbdd9856b",
+  "checkpoint_at": "2026-10-08T07:55:15.915345+00:00",
+  "elapsed_wall_seconds": 14993,
+  "current_head": "3959d1c59988acb67069b5ccbbafd855e44b8217",
   "head_semantics": "Final tested code HEAD; evidence-only delivery commit follows.",
   "branch": "feature/forward-evidence-alpha-lab-20261008",
   "base_branch": "codex/canonical-truth-hardening",
@@ -38,7 +38,9 @@
     "Final PR CI exposed exited Linux state identity defect; corrected Z/X/x classification and malformed stat handling without assertion changes",
     "Eleven cross-platform identity injections; 29 targeted cases PASS",
     "Final code 8af8952: source 818 in 119.26s, clone 818 in 123.10s; static/dependency/CLI/safe paper/fresh-process/projections PASS",
-    "Final code push/PR CI PASS: Windows 818; Ubuntu 816 plus two platform skips"
+    "Final code push/PR CI PASS: Windows 818; Ubuntu 816 plus two platform skips",
+    "Full horizon calendar qualification rejects inception before reviewed 2026-2028 scope without fabricating return",
+    "Final source 819 in 105.82s; independent frozen clone 819 in 106.63s; 81 targeted cases; code push/PR dual-platform CI PASS"
   ],
   "active_task": "Resume the unfinished portfolio evaluation/research-evidence mission; do not treat this checkpoint as ten-hour completion",
   "outstanding_defects": [
@@ -239,6 +241,25 @@
       "command": "Identity and portfolio targeted regressions",
       "status": "PASS",
       "passed": 29
+    },
+    {
+      "command": "Final horizon calendar/source/clone validation",
+      "status": "PASS",
+      "head": "3959d1c59988acb67069b5ccbbafd855e44b8217",
+      "source_passed": 819,
+      "source_seconds": 105.82,
+      "clone_passed": 819,
+      "clone_seconds": 106.63,
+      "targeted_passed": 81
+    },
+    {
+      "command": "CI push 37745970170 and PR 37745975117",
+      "status": "PASS",
+      "head": "3959d1c59988acb67069b5ccbbafd855e44b8217",
+      "os": [
+        "Windows",
+        "Ubuntu"
+      ]
     }
   ],
   "forward_evidence": {
@@ -267,8 +288,8 @@
   "duration_claim": "Prior segment recorded 6124 elapsed seconds. Resumed segment first observed 07:05 UTC. Quota-interruption gap excluded from work claims; effective work hours not measured and ten-hour mission not claimed complete.",
   "resume": {
     "first_observed_at": "2026-10-08T07:05:10+00:00",
-    "code_head": "8af89527b0305dbfea1ace77d3f0439bbdd9856b",
-    "checkpoint_at": "2026-10-08T07:45:39.696530+00:00",
+    "code_head": "3959d1c59988acb67069b5ccbbafd855e44b8217",
+    "checkpoint_at": "2026-10-08T07:55:15.915345+00:00",
     "active_task": "Final evidence-only delivery verification; next research tasks remain in outstanding_defects",
     "completed": [
       "Predeclared horizon portfolios and fixed cost/slippage grid",
@@ -285,18 +306,18 @@
       "project_packages_installed": 48,
       "uv": "0.12.7"
     },
-    "observed_segment_wall_seconds": 2429
+    "observed_segment_wall_seconds": 3005
   },
   "prior_segment_elapsed_wall_seconds": 6124,
   "elapsed_wall_semantics": "WALL_SINCE_ORIGINAL_START_INCLUDES_QUOTA_INTERRUPTION_NOT_EFFECTIVE_WORK",
   "fresh_clone": {
     "status": "PASS",
-    "head": "8af89527b0305dbfea1ace77d3f0439bbdd9856b",
+    "head": "3959d1c59988acb67069b5ccbbafd855e44b8217",
     "python": "3.12.10",
     "uv": "0.12.7",
     "packages": 48,
-    "passed": 818,
-    "duration_seconds": 123.1,
+    "passed": 819,
+    "duration_seconds": 106.63,
     "final_delivery_fast_forward": "PENDING_HANDOFF",
     "code_tree_must_match_tested_head": true
   }
