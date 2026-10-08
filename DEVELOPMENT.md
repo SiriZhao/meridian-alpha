@@ -72,6 +72,22 @@ Markdown/health consistency and a separate CLI process. It does not validate
 live GPT or a regular-market session. Pytest uses `.pytest-tmp`, which is
 ignored by Git and avoids stale system temp permissions on Windows.
 
+### Quant V2 research-only reproduction
+
+```powershell
+.\.venv\Scripts\python.exe scripts/quant_diagnostic.py --output .tmp/quant-v2/new-diagnostic
+.\.venv\Scripts\python.exe -m meridian quant inspect --dataset DATASET.json
+.\.venv\Scripts\python.exe -m meridian quant backtest --dataset DATASET.json --plan PLAN.json --output .tmp/quant-v2/financial-oos
+```
+
+The diagnostic generates explicitly synthetic data and seals all 23 variants
+before evaluating them. For an archived synthetic dataset, backtest additionally
+requires `--diagnostic`. Financial evaluation rejects uncertified prices,
+unknown corporate-action coverage, future availability and current-survivor
+membership. This CLI never initializes the daily runtime. See
+[research report](docs/quant-v2/RESEARCH_REPORT.md) for the complete saved registry,
+mathematics, timing, costs, limitations and paper-review evidence gate.
+
 ## Layout and boundaries
 
 - `src/meridian`: domain, pipeline, research, decision, paper and reporting code

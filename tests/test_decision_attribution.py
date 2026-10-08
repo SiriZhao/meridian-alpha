@@ -95,4 +95,3 @@ def test_positive_quant_can_be_removed_by_actual_sector_cap() -> None:
     assert facts["SPY"]["reason"] == "RISK_REDUCED_TO_ZERO"
     assert facts["SPY"]["raw_score"] == "0.05"
     assert facts["SPY"]["risk_constraints_applied"]
-

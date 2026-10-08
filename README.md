@@ -209,3 +209,17 @@ its mature sample status with:
 
 See [Forward Evidence Factory](docs/forward-evidence.md) and the
 [canonical workflow](docs/canonical-production-workflow.md).
+
+## Quant Engine V2 challenger
+
+V2 adds deterministic point-in-time features, multi-horizon factor scores, SPY
+regime dimensions, constrained cost-aware targets and next-open walk-forward
+replay. V1 remains canonical; shadow is explicit opt-in and paper review is a
+separate, evidence-gated call. No automatic strategy promotion or broker orders.
+
+See [architecture](docs/quant-v2/ARCHITECTURE.md),
+[research and complete diagnostic records](docs/quant-v2/RESEARCH_REPORT.md),
+[baseline audit](QUANT_V2_BASELINE_AUDIT.md) and
+[ADR 0036](docs/adr/0036-quant-engine-v2.md).
+Verified financial OOS alpha is **not demonstrated**; synthetic diagnostics are
+engineering evidence only.
