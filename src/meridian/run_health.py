@@ -144,6 +144,7 @@ def build_run_health(payload: dict[str, object]) -> dict[str, object]:
             "conflicted_claims": sum(1 for c in claims if mapping(c).get("status") == "CONFLICTED"),
             "system_confidence": mapping(intelligence.get("confidence")).get("system_confidence")},
         "decision": {"status": canonical.decision.result_status,
+            "attribution": canonical.decision.attribution,
             "orders_created": canonical.decision.order_count,
             "blocking_reason": canonical.blockers[0] if canonical.blockers else None,
             "decision_state": intelligence.get("decision_state")},

@@ -98,7 +98,13 @@ class OrderPlanner:
         policy: ExecutionPolicy,
         risk_policy: RiskPolicy | None = None,
         decision_nav: Decimal | None = None,
+        trace: dict[str, dict[str, object]] | None = None,
     ) -> tuple[OrderDraft, ...]:
+        trace = trace if trace is not None else {}
+        for delta in reconciliation.positions:
+            trace[delta.ticker] = {"desired_trade_value": str(delta.required_delta_value),
+                                   "minimum_order_notional": str(policy.minimum_order_notional),
+                                   "reason": "NO_RECONCILIATION_DELTA" if delta.required_delta_value == 0 else "NOT_REACHED"}
         if reconciliation.status in {RunStatus.NO_CAPITAL, RunStatus.BLOCKED_STALE_ACCOUNT}:
             return ()
         engine = LimitPriceEngine()
@@ -117,6 +123,8 @@ class OrderPlanner:
                 or result.status is not RunStatus.READY_FOR_MANUAL_ENTRY
                 or result.min_acceptable_sell_price is None
             ):
+                trace[delta.ticker]["reason"] = "ORDER_POLICY_REJECTED" if result else "MISSING_QUOTE"
+                trace[delta.ticker]["policy_detail"] = result.reason if result else "Quote absent"
                 continue
             price = result.min_acceptable_sell_price
             qty = min(
@@ -124,7 +132,9 @@ class OrderPlanner:
                 (-delta.required_delta_value / price).quantize(Decimal("1"), rounding=ROUND_DOWN),
             )
             if qty <= 0 or qty * price < policy.minimum_order_notional:
+                trace[delta.ticker]["reason"] = "WHOLE_SHARE_ROUNDING" if qty <= 0 else "MINIMUM_NOTIONAL"
                 continue
+            trace[delta.ticker]["reason"] = "DRAFT"
             drafts.append(
                 OrderDraft(
                     ticker=delta.ticker,
@@ -152,12 +162,17 @@ class OrderPlanner:
                 or result.status is not RunStatus.READY_FOR_MANUAL_ENTRY
                 or result.max_acceptable_buy_price is None
             ):
+                trace[delta.ticker]["reason"] = "ORDER_POLICY_REJECTED" if result else "MISSING_QUOTE"
+                trace[delta.ticker]["policy_detail"] = result.reason if result else "Quote absent"
                 continue
             worst = result.max_acceptable_buy_price
             budget = min(delta.required_delta_value, available_cash)
             qty = (budget / worst).quantize(Decimal("1"), rounding=ROUND_DOWN)
             if qty <= 0 or qty * worst < policy.minimum_order_notional:
+                trace[delta.ticker]["reason"] = "CASH_RESERVE" if available_cash < worst else "WHOLE_SHARE_ROUNDING" if qty <= 0 else "MINIMUM_NOTIONAL"
+                trace[delta.ticker]["available_cash_after_reserve"] = str(available_cash)
                 continue
+            trace[delta.ticker]["reason"] = "DRAFT"
             notional = qty * worst
             available_cash -= notional
             drafts.append(
@@ -177,6 +192,12 @@ class OrderPlanner:
             )
         if risk_policy and decision_nav and decision_nav > 0:
             drafts = self._apply_caps(drafts, risk_policy, decision_nav)
+        final = {draft.ticker: draft for draft in drafts}
+        for ticker, row in trace.items():
+            if row["reason"] == "DRAFT" and ticker not in final:
+                row["reason"] = "ORDER_RISK_CAP_REDUCED_TO_ZERO"
+            row["final_order_eligible"] = ticker in final
+            row["final_quantity"] = str(final[ticker].quantity) if ticker in final else "0"
         return tuple(drafts)
 
     def _apply_caps(

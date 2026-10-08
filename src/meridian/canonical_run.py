@@ -74,6 +74,7 @@ class CanonicalDecisionState(FrozenState):
     order_count: int | None = None
     orders: tuple[dict[str, object], ...] = ()
     context: dict[str, object] = Field(default_factory=dict)
+    attribution: dict[str, object] = Field(default_factory=dict)
 
 
 class CanonicalExecutionState(FrozenState):
@@ -284,7 +285,8 @@ def snapshot_from_legacy(payload: dict[str, object]) -> CanonicalRunSnapshot:
             llm_available=optional_bool(research.get("llm_available")),
             fallback_reason=optional_text(research.get("fallback_reason")), intelligence=deepcopy(intelligence), details=deepcopy(research)),
         decision=CanonicalDecisionState(result_status=str(first(decision.get("status"), payload.get("status"), "UNKNOWN")), order_count=decision_count,
-            orders=tuple(deepcopy(mapping(x)) for x in sequence(order_list)), context=deepcopy(mapping(first(decision.get("context"), payload.get("decision_context"))))),
+            orders=tuple(deepcopy(mapping(x)) for x in sequence(order_list)), context=deepcopy(mapping(first(decision.get("context"), payload.get("decision_context")))),
+            attribution=deepcopy(mapping(first(decision.get("attribution"), payload.get("decision_attribution"))))),
         execution=CanonicalExecutionState(execution_state=ExecutionState.NOT_APPLICABLE if not paper_id else ExecutionState.BLOCKED if duplicate or execution_status in {"PAPER_BLOCKED", "PAPER_WAITING_FOR_MARKET"} else _execution(execution_status),
             result_status=execution_status, order_count=int(intent_count) if isinstance(intent_count, (int, str)) else None,
             fill_count=fill_count, authority=str(first(paper.get("authority"), "NONE")), fills=tuple(deepcopy(mapping(x)) for x in sequence(fill_list))),
@@ -318,6 +320,7 @@ def seal_canonical_report(payload: dict[str, object]) -> CanonicalRunSnapshot:
     # Legacy presentation fields are serializers of the sealed truth, too.
     # Auxiliary analytics stay as recorded; they never replace these facts.
     payload.update({"status": snapshot.result_status, "research_status": snapshot.research.result_status,
+        "decision_attribution": deepcopy(snapshot.decision.attribution),
         "forward_evidence": deepcopy(snapshot.forward_evidence),
         "research": deepcopy(snapshot.research.details),
         "research_intelligence": deepcopy(snapshot.research.intelligence) or None})
@@ -334,7 +337,7 @@ def seal_canonical_report(payload: dict[str, object]) -> CanonicalRunSnapshot:
             "session": snapshot.market.session, "provider_probes": deepcopy(snapshot.market.provider_probes),
             "observations": deepcopy(snapshot.market.observations), "quote_certification": snapshot.market.quote_certification}
         decision = mapping(payload.get("decision"))
-        payload["decision"] = {**decision, "status": snapshot.decision.result_status, "context": deepcopy(snapshot.decision.context)}
+        payload["decision"] = {**decision, "status": snapshot.decision.result_status, "context": deepcopy(snapshot.decision.context), "attribution": deepcopy(snapshot.decision.attribution)}
         portfolio = mapping(payload.get("portfolio"))
         payload["portfolio"] = {**portfolio, "cash": snapshot.cash, "positions": list(snapshot.positions)}
         performance = mapping(payload.get("performance"))
@@ -388,6 +391,12 @@ def render_canonical_audit(snapshot: CanonicalRunSnapshot) -> str:
     if snapshot.forward_evidence:
         forward = mapping(snapshot.forward_evidence.get("summary"))
         lines.extend(["", f"Forward evidence: {forward.get('evaluation_readiness', snapshot.forward_evidence.get('status', 'UNKNOWN'))}; verified samples {forward.get('sample_count', 'UNKNOWN')}; SHADOW_EVIDENCE_ONLY / NO_AUTOMATIC_PROMOTION."])
+    if snapshot.decision.attribution:
+        lines.extend(["", "Decision attribution (recorded pipeline facts; research is advisory):", ""])
+        for symbol, raw in sorted(mapping(snapshot.decision.attribution.get("symbols")).items()):
+            row = mapping(raw)
+            if row.get("data_available") or row.get("desired_trade_value"):
+                lines.append(f"- {symbol}: score {display(row.get('raw_score'))}; target {display(row.get('target_before_risk'))} -> {display(row.get('target_after_risk'))}; {display(row.get('reason'))}; {display(row.get('policy_detail'))}.")
     lines.extend(["", "| Stage | Execution | Result | Source |", "| --- | --- | --- | --- |"])
     lines.extend(f"| {s.name} | {s.execution_state} | {s.result_status} | {s.source} ({display(s.source_run_id)}) |" for s in snapshot.stages)
     lines.extend(["", "Advisory research has no order, fill, position or broker authority.", "",
@@ -432,6 +441,8 @@ def assert_report_projection_consistency(canonical: dict[str, object], markdown:
         raise AssertionError("REPORT_PROJECTION_DRIFT")
     if not (mapping(health["decision"])["status"] == expected.decision.result_status):
         raise AssertionError("REPORT_PROJECTION_DRIFT")
+    if mapping(health["decision"]).get("attribution", {}) != expected.decision.attribution:
+        raise AssertionError("DECISION_ATTRIBUTION_DRIFT")
     if not (mapping(health["paper_execution"])["status"] == expected.execution.result_status):
         raise AssertionError("REPORT_PROJECTION_DRIFT")
     if not (health["trading_date"] == expected.trading_date):
