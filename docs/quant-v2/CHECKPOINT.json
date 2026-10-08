@@ -1,0 +1,63 @@
+{
+  "schema_version": "meridian-quant-v2-development-checkpoint.v1",
+  "status": "ENGINEERING_COMPLETE_ALPHA_NOT_YET_DEMONSTRATED",
+  "code_and_diagnostic_head": "8072e6091036b1aed240722257d77fa3b43b111d",
+  "head_semantics": "Validated code and full diagnostic archive; evidence-only delivery commits follow.",
+  "branch": "codex/quant-engine-v2",
+  "base_branch": "feature/forward-evidence-alpha-lab-20261008",
+  "base_head": "0e019447e2b930c38a143a18f46b103ae8d1e7c7",
+  "pull_request": "https://github.com/SiriZhao/meridian-alpha/pull/3",
+  "engine_source_hash": "fe6024b7167575cc512cee492f858fba0788f770440a3e0995bd0eb98c5a7e6d",
+  "dataset_hash": "06605fe1644d2affb631040f290b690295627ea6451370483b2679e83a4f8f3c",
+  "plan_hash": "12607ae98e39d6f1cee87cd73f71b82079c58e8920efeed9d0bd44331f9cd7ac",
+  "completed": [
+    "Resumed actual isolated quant worktree and preserved original pending changes",
+    "Merged published provider/canonical/persistence/laboratory foundation without history rewrite",
+    "Implemented PIT factors, explainable A0-A4 signals and SPY regime dimensions",
+    "Implemented constrained targets, costs, no-trade gates and next-open walk-forward replay",
+    "Integrated opt-in immutable shadow and separate non-executing evidence-gated paper review",
+    "Pinned Decimal state and canonical arithmetic ordering",
+    "Repaired raw versus adjusted certification contract without execution authority",
+    "Rejected missing SPY sessions, unverified final marks and unsafe paper metadata/sector projections",
+    "Frozen approved-host validation: 913 passed in 345.69 seconds, static/dependency/CLI/safe paper PASS",
+    "Verified five schemas, all 94 archived files and all 92 synthetic evaluations/88 distinct replays",
+    "Repeated public history audit: 825 raw uncertified bars per AAPL/MSFT/SPY, zero PIT-at-close rows",
+    "Pushed development branch, matched remote SHA and created draft PR 3",
+    "Independent frozen-lock GitHub clone: 913 passed in 374.03 seconds, all checks and Windows packaging PASS",
+    "Independent clone replay: every 92 evaluation row and 88 replay payloads identical to archive",
+    "Exact-code push and PR CI passed on Windows/Ubuntu: Windows 913, Ubuntu 911 plus two platform skips"
+  ],
+  "delivery_ref_semantics": "Evidence-only tip remote SHA and CI are verified at final handoff; validated code identity is 8072e60 and engine hash remains unchanged.",
+  "ci": {
+    "push_run": "https://github.com/SiriZhao/meridian-alpha/actions/runs/37744718825",
+    "pr_run": "https://github.com/SiriZhao/meridian-alpha/actions/runs/37744910303",
+    "head": "8072e6091036b1aed240722257d77fa3b43b111d",
+    "status": "PASS",
+    "windows_passed": 913,
+    "ubuntu_passed": 911,
+    "ubuntu_skipped_platform_only": 2
+  },
+  "financial_status": "ALPHA_NOT_YET_DEMONSTRATED",
+  "paper_candidate_readiness": "INSUFFICIENT_EVIDENCE",
+  "financial_blockers": [
+    "No independently certified nonsynthetic PIT adjusted-price/action dataset",
+    "No authenticated adjustment vintage, historical membership, sector and calendar proof",
+    "No qualified real OOS strategy comparison, regime robustness or net-cost alpha",
+    "Overfitting and survivorship cannot be assessed from synthetic fixtures",
+    "Registration and certification contracts are attestations rather than authenticated signatures"
+  ],
+  "next_safe_action": "Verify evidence-only delivery ref at handoff; financial evaluation then requires independently reviewed data and a separate predeclared experiment. Do not promote V2.",
+  "safety": {
+    "canonical_account": "Schwab-Paper",
+    "default_mode": "QUANT_V1_BASELINE",
+    "broker_submission": "DISABLED",
+    "llm_authority": "ADVISORY_ONLY",
+    "automatic_promotion": false,
+    "canonical_runtime_written": false,
+    "paper_ledger_reset": false,
+    "real_broker_side_effects": false,
+    "main_merged": false
+  },
+  "rollback": "Set or retain QUANT_V1_BASELINE; preserve immutable records and ledger. No migration or reset.",
+  "duration_claim": "No ten-hour uninterrupted execution or financial alpha acceptance claim."
+}

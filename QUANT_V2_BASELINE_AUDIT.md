@@ -61,6 +61,36 @@ the canonical day before research and rechecks ownership transactionally.
 Committed provider, canonical and persistence regressions remain in the full
 suite. No runtime migrations, canonical writes or ledger resets are needed.
 
+## Resumed audit and repairs
+
+The interrupted Quant checkout was recovered at `32f6e97` on
+`codex/quant-engine-v2`, with pending numeric/boundary work preserved. The
+original checkout had two pending Phase 4 document changes; V2 development
+remained isolated. Published foundation changes through `0e01944` were merged
+without rewriting either history, including the Linux process-exit race and
+separate horizon portfolio laboratory. Quant ADR became 0037 to preserve the
+foundation's ADR 0036.
+
+Audit found that V2 required FULLY_ADJUSTED_OHLCV and
+CERTIFIED_MARKET_SESSION simultaneously, while the existing historical domain
+correctly rejects adjusted raw market-session certification. Added a distinct
+CERTIFIED_RESEARCH_PIT_ADJUSTED research contract and a real JSON round-trip
+regression. Raw/executable price boundaries and public provider certification
+remain unchanged. The contract is usable but does not authenticate a source.
+
+Added rejection of missing expected benchmark sessions and unverified final
+marks, full Decimal caller-context isolation/canonical reduction ordering, and
+held-symbol metadata plus post-planning sector validation. An incomplete SELL
+quote can leave residual sector risk; a safe desired target alone is therefore
+insufficient. Existing risk limits and manual planner remain intact.
+
+The initial confined-environment suite recorded 878 passes and one child-tree
+cleanup timeout failure (379.02 seconds). No cleanup assertion or timeout was
+relaxed. Approved-host final source validation recorded 913 passes in 345.69
+seconds with static/dependency/CLI/isolated-paper/archive checks PASS. This
+includes 106 Quant cases and the current published foundation. Independent
+clone and current GitHub CI evidence belong in the final acceptance report.
+
 ## V2 replacement boundary
 
 Add versioned PIT features, deterministic factor composition and regimes,
