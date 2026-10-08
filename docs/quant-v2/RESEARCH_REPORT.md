@@ -71,7 +71,7 @@ Optional 60-session correlation exclusion requires sufficient aligned inputs
 and is disabled by default. Market price drift is recorded separately from
 permission to add risk.
 
-Default rebalance uses 1% no-trade band, 2% maximum weight-distance trigger,
+Default rebalance uses 1% no-trade band, 2% gross weight-distance trigger,
 $100 minimum notional, 20% gross turnover ceiling and 1% ADV participation.
 Required risk exits are not suppressed by a no-trade threshold. An infeasible
 turnover/risk combination blocks the proposed trade. Expected-benefit versus
@@ -247,9 +247,40 @@ content hashes. [Archive manifest](experiments/archive-manifest.json) verifies
 each JSON and the ZIP. No personal account, credential or canonical database
 is in the archive. No stale local path is needed for reproduction.
 
-Engine hash: 71f5293d1a595e3cad212f732a244ab9351fcf1892c5d17e52ecd9658c9c4f87
+Engine hash: fe6024b7167575cc512cee492f858fba0788f770440a3e0995bd0eb98c5a7e6d
 Dataset hash: 06605fe1644d2affb631040f290b690295627ea6451370483b2679e83a4f8f3c
-Plan hash: 0bdbd11dbc7d67902f6399217505d381509c21c9602057bb007ed59d4e5ca23b
+Plan hash: 12607ae98e39d6f1cee87cd73f71b82079c58e8920efeed9d0bd44331f9cd7ac
+
+The resumed delivery pins Decimal precision, rounding, exponent bounds, traps,
+flags and reduction order independently of caller state. A distinct
+CERTIFIED_RESEARCH_PIT_ADJUSTED contract fixes the former incompatibility
+between required adjusted history and raw market-session certification. Public
+adapters still emit UNVERIFIED rows; this does not retrospectively certify data.
+JSON round-trip tests prove the adjusted research contract is usable without
+granting execution quote eligibility. Certification fields remain externally
+reviewed attestations, not authenticated source signatures or adjustment-vintage
+proof. Such proof remains necessary for financial acceptance.
+
+Missing expected SPY sessions and unverified final marks now reject replay,
+including a cash-only portfolio's final benchmark observation. Paper review
+rejects future/duplicate metadata and unknown existing holdings, and checks
+projected sector exposure after incomplete SELL quotes can suppress drafts.
+No existing safety constraint or baseline order planner was weakened.
+
+The public history audit was repeated at 2026-10-08 07:30 UTC. AAPL/MSFT/SPY
+again returned 825 raw, uncertified rows each and zero historically-known-at-
+close rows. Rejection reasons were unchanged. The new archive contains all 92
+replays under the current engine identity; no financial final OOS was consumed.
+Validate the contracts and full archived registry with:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/validate_quant_artifacts.py --require-current-engine
+```
+
+The existing exchange calendar is a deterministic policy, not an authenticated
+multi-decade session archive; exceptional historical closures and adjustment
+vintages require independent verification. The 2020-2021 synthetic fixture uses
+that policy and cannot establish historical calendar accuracy or survivorship.
 
 ## Required seven conclusions
 
