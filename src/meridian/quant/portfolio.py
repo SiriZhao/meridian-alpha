@@ -3,6 +3,7 @@
 from collections.abc import Mapping, Sequence
 from datetime import datetime
 from decimal import ROUND_DOWN, Decimal
+from typing import TYPE_CHECKING
 
 from meridian.config import RiskPolicy
 from meridian.quant.features import FeatureSnapshot
@@ -13,6 +14,11 @@ from meridian.quant.signals import AlphaScoreV2
 from meridian.schemas import StableModel, TargetPortfolio, TargetPosition
 
 D = Decimal
+
+if TYPE_CHECKING:
+    from meridian.quant.contracts import ExpectedReturnEstimate
+    from meridian.quant.policy import ChallengerPolicy
+    from meridian.quant.signals import ChallengerScore
 
 
 def correlation_key(left: str, right: str) -> tuple[str, str]:
@@ -187,3 +193,183 @@ def cost_aware_target(target: TargetPortfolio, current: Mapping[str, Decimal], *
                              action="REBALANCE" if turnover > 0 else "NO_ACTION",
                              expected_turnover=turnover, estimated_cost=estimated, expected_benefit=benefit,
                              reasons=tuple(reasons))
+
+
+class PortfolioRiskEstimate(StableModel):
+    conservative_volatility_bound: Decimal
+    shrunk_volatility_estimate: Decimal | None
+    covariance_status: str
+    correlated_components: tuple[tuple[str, ...], ...]
+    assumptions: tuple[str, ...]
+
+
+class ChallengerAllocation(StableModel):
+    preferred_target: TargetPortfolio
+    feasible_target: TargetPortfolio
+    risk: PortfolioRiskEstimate
+    modifications: tuple[str, ...]
+
+
+def _positive_semidefinite(matrix: list[list[Decimal]]) -> bool:
+    # LDL' without a numerical optimizer. Zero pivots require zero residuals.
+    n = len(matrix)
+    lower = [[D(0)] * n for _ in range(n)]
+    diagonal = [D(0)] * n
+    tolerance = D("1e-20")
+    for i in range(n):
+        diagonal[i] = matrix[i][i] - sum((lower[i][k] ** 2 * diagonal[k] for k in range(i)), D(0))
+        if diagonal[i] < -tolerance:
+            return False
+        diagonal[i] = max(D(0), diagonal[i])
+        lower[i][i] = D(1)
+        for j in range(i + 1, n):
+            residual = matrix[j][i] - sum((lower[j][k] * lower[i][k] * diagonal[k] for k in range(i)), D(0))
+            if diagonal[i] <= tolerance:
+                if abs(residual) > tolerance:
+                    return False
+            else:
+                lower[j][i] = residual / diagonal[i]
+    return True
+
+
+@deterministic_decimal
+def estimate_portfolio_risk(values: Mapping[str, Decimal], features: Mapping[str, FeatureSnapshot],
+                            correlations: Mapping[tuple[str, str], Decimal], policy: "ChallengerPolicy") -> PortfolioRiskEstimate:
+    if any(not v.is_finite() or v < 0 for v in values.values()) or sum(values.values(), D(0)) > 1:
+        raise ValueError("CHALLENGER_INVALID_RISK_WEIGHTS")
+    symbols = sorted(s for s, v in values.items() if v > 0)
+    for (a, b), value in correlations.items():
+        if a >= b or not value.is_finite() or abs(value) > 1:
+            raise ValueError("CHALLENGER_INVALID_CORRELATION_INPUT")
+    vol = {s: features[s].value("volatility_60") for s in symbols}
+    if any(v is None or v < 0 for v in vol.values()):
+        raise ValueError("CHALLENGER_RISK_VOLATILITY_UNKNOWN")
+    bounded_vol = {s: max(vol[s] or D(0), policy.controls.volatility_floor) for s in symbols}
+    bound = sum((values[s] * bounded_vol[s] for s in symbols), D(0))
+    missing = any(correlation_key(a, b) not in correlations for i, a in enumerate(symbols) for b in symbols[i + 1:])
+    matrix = [[D(1) if a == b else correlations.get(correlation_key(a, b), D(1)) for b in symbols] for a in symbols]
+    valid = not missing and _positive_semidefinite(matrix)
+    estimate = None
+    if valid:
+        variance = sum((values[a] * values[b] * bounded_vol[a] * bounded_vol[b] *
+                        (D(1) if a == b else (1 - policy.covariance_diagonal_shrinkage) * matrix[i][j])
+                        for i, a in enumerate(symbols) for j, b in enumerate(symbols)), D(0))
+        estimate = max(D(0), variance).sqrt()
+    unseen = set(symbols)
+    components = []
+    while unseen:
+        component = {min(unseen)}
+        frontier = set(component)
+        while frontier:
+            additions = {b for a in frontier for b in unseen - component
+                         if correlations.get(correlation_key(a, b), D(-1)) >= policy.cluster_correlation}
+            component |= additions
+            frontier = additions
+        unseen -= component
+        components.append(tuple(sorted(component)))
+    return PortfolioRiskEstimate(conservative_volatility_bound=bound, shrunk_volatility_estimate=estimate,
+        covariance_status="UNKNOWN_MISSING_PAIRS" if missing else "UNKNOWN_NON_PSD" if not valid else "PSD_FIXED_DIAGONAL_SHRINKAGE",
+        correlated_components=tuple(components), assumptions=("TRAILING_60_SESSION_VOLATILITY_NOT_A_FORECAST",
+        "PLUS_ONE_CORRELATION_BOUND_IS_HARD_CEILING", "FIXED_SHRINKAGE_NOT_OOS_FITTED", "CORRELATION_COMPONENTS_ARE_SINGLE_LINK_CONSERVATIVE"))
+
+
+@deterministic_decimal
+def allocate_challenger(scores: Sequence["ChallengerScore"], features: Mapping[str, FeatureSnapshot],
+                        cutoff: datetime, risk: RiskPolicy, policy: "ChallengerPolicy", regime: RegimeState,
+                        *, correlations: Mapping[tuple[str, str], Decimal],
+                        sector_map: Mapping[str, str | None] | None = None,
+                        diagnostic: bool = False) -> ChallengerAllocation:
+    if policy.diagnostic_exposure is not None and not diagnostic:
+        raise ValueError("CHALLENGER_FIXED_EXPOSURE_IS_DIAGNOSTIC_ONLY")
+    if any(s.policy_hash != policy.digest for s in scores):
+        raise ValueError("CHALLENGER_SCORE_POLICY_MISMATCH")
+    eligible = [s.bridge for s in scores if s.bridge.quant_score > 0 and not s.bridge.exclusion_reasons]
+    total = sum((s.quant_score for s in eligible), D(0))
+    preferred = {s.symbol: (1 - risk.min_cash_weight) * s.quant_score / total for s in eligible} if total else {}
+    # No security or regime multiplier is hidden in predictive strength.
+    controls = QuantPolicy.model_validate({**policy.controls.model_dump(), "strategy": "A2",
+                                          "allocation": "risk_adjusted", "correlation_limit": None})
+    initial = allocate([s.bridge for s in scores], features, cutoff, risk, controls, regime)
+    values = weights(initial)
+    changes = ["POSITION_COUNT_CAP_AND_SINGLE_INVERSE_VOLATILITY_SIZING"]
+    exposure = min(1 - risk.min_cash_weight, regime.exposure_ceiling)
+    if policy.diagnostic_exposure is not None:
+        exposure = min(exposure, policy.diagnostic_exposure)
+        changes.append("PREDECLARED_MATCHED_NOMINAL_EXPOSURE_NOT_GUARANTEED_REALIZED_EXPOSURE")
+    estimated = estimate_portfolio_risk(values, features, correlations, policy)
+    if estimated.covariance_status.startswith("UNKNOWN"):
+        exposure = min(exposure, policy.unknown_correlation_exposure)
+        changes.append(estimated.covariance_status)
+    if sum(values.values(), D(0)) > exposure:
+        scale = exposure / sum(values.values(), D(0))
+        values = {s: v * scale for s, v in values.items()}
+        changes.append("PORTFOLIO_EXPOSURE_CEILING_ONCE")
+    for component in estimated.correlated_components:
+        mass = sum((values[s] for s in component), D(0))
+        if len(component) > 1 and mass > policy.cluster_weight_cap:
+            for symbol in component:
+                values[symbol] *= policy.cluster_weight_cap / mass
+            changes.append("CORRELATED_COMPONENT_CAP:" + ",".join(component))
+    if risk.max_sector_weight < 1:
+        for symbol in sorted(values):
+            if sector_map is None or symbol not in sector_map:
+                values[symbol] = D(0)
+                changes.append("SECTOR_METADATA_UNKNOWN:" + symbol)
+        sectors = sorted({v for v in (sector_map or {}).values() if v})
+        for sector in sectors:
+            names = [s for s in sorted(values) if (sector_map or {}).get(s) == sector]
+            mass = sum((values[s] for s in names), D(0))
+            if mass > risk.max_sector_weight:
+                for symbol in names:
+                    values[symbol] *= risk.max_sector_weight / mass
+                changes.append("SECTOR_EXPOSURE_CAP:" + sector)
+    estimated = estimate_portfolio_risk(values, features, correlations, policy)
+    if estimated.conservative_volatility_bound > policy.controls.target_volatility:
+        scale = policy.controls.target_volatility / estimated.conservative_volatility_bound
+        values = {s: v * scale for s, v in values.items()}
+        changes.append("PORTFOLIO_CONSERVATIVE_VOLATILITY_CEILING_ONCE")
+    feasible = target_from_weights(values, cutoff, policy.version)
+    if not validate_weights(weights(feasible), risk):
+        raise ValueError("CHALLENGER_INFEASIBLE_RISK_TARGET")
+    return ChallengerAllocation(preferred_target=target_from_weights(preferred, cutoff, policy.version),
+        feasible_target=feasible, risk=estimate_portfolio_risk(weights(feasible), features, correlations, policy),
+        modifications=tuple(changes))
+
+
+def rebalance_decision_hash(target: TargetPortfolio, current: Mapping[str, Decimal], *, nav: Decimal,
+                            risk: RiskPolicy, policy: "ChallengerPolicy", costs: CostPolicy) -> str:
+    import hashlib
+    import json
+    return hashlib.sha256(json.dumps({"target": target.model_dump(mode="json"),
+        "current": {s: str(current[s]) for s in sorted(current)}, "nav": str(nav),
+        "risk": risk.model_dump(mode="json"), "policy": policy.digest,
+        "costs": costs.model_dump(mode="json")}, sort_keys=True).encode()).hexdigest()
+
+
+@deterministic_decimal
+def challenger_rebalance(allocation: ChallengerAllocation, current: Mapping[str, Decimal], *, nav: Decimal,
+                         risk: RiskPolicy, policy: "ChallengerPolicy", costs: CostPolicy,
+                         dollar_volumes: Mapping[str, Decimal | None], sessions_since_rebalance: int = 5,
+                         estimate: "ExpectedReturnEstimate | None" = None, feature_hash: str = "",
+                         horizon_sessions: int = 20) -> RebalanceDecision:
+    # Bind a forecast to the actual cost-adjusted proposal, after bands and
+    # turnover scaling. A forecast for an unconstrained target is not reusable.
+    result = cost_aware_target(allocation.feasible_target, current, nav=nav, risk=risk,
+        policy=policy.controls, costs=costs, sessions_since_rebalance=sessions_since_rebalance,
+        dollar_volumes=dollar_volumes)
+    result = result.model_copy(update={"target": target_from_weights(weights(result.target), result.target.as_of, policy.version)})
+    decision_hash = rebalance_decision_hash(result.target, current, nav=nav, risk=risk, policy=policy, costs=costs)
+    improvement = None if estimate is None else estimate.conservative_improvement(
+        decision_at=allocation.feasible_target.as_of, feature_hash=feature_hash,
+        decision_hash=decision_hash, horizon_sessions=horizon_sessions)
+    if improvement is not None and result.action == "REBALANCE":
+        result = cost_aware_target(result.target, current, nav=nav, risk=risk,
+            policy=policy.controls, costs=costs, sessions_since_rebalance=sessions_since_rebalance,
+            expected_improvement=improvement, dollar_volumes=dollar_volumes)
+    reasons = list(result.reasons)
+    if improvement is None:
+        reasons.append("EXPECTED_RETURN_UNCALIBRATED")
+    if costs.spread_bps is None:
+        reasons.append("SPREAD_UNKNOWN")
+    return result.model_copy(update={"reasons": tuple(dict.fromkeys(reasons)),
+        "target": target_from_weights(weights(result.target), result.target.as_of, policy.version)})

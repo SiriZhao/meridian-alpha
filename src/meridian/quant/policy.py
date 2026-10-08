@@ -83,3 +83,40 @@ class CostPolicy(StableModel):
 
 def load_quant_policy(path: Path) -> QuantPolicy:
     return QuantPolicy.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
+
+
+class ChallengerPolicy(StableModel):
+    """Research-only composition; the V2.1 contract and production file stay frozen."""
+
+    version: Literal["quant-v2.2"] = "quant-v2.2"
+    authority: Literal["SHADOW_ONLY"] = "SHADOW_ONLY"
+    controls: QuantPolicy = Field(default_factory=QuantPolicy)
+    absolute_weight: Decimal = Field(default=Decimal("0.50"), ge=0, le=1)
+    relative_weight: Decimal = Field(default=Decimal("0.25"), ge=0, le=1)
+    trend_weight: Decimal = Field(default=Decimal("0.25"), ge=0, le=1)
+    maximum_rank_blend: Decimal = Field(default=Decimal("0.20"), ge=0, le=Decimal("0.25"))
+    cluster_correlation: Decimal = Field(default=Decimal("0.80"), gt=0, le=1)
+    cluster_weight_cap: Decimal = Field(default=Decimal("0.40"), gt=0, le=1)
+    unknown_correlation_exposure: Decimal = Field(default=Decimal("0.25"), gt=0, le=1)
+    covariance_diagonal_shrinkage: Decimal = Field(default=Decimal("0.50"), ge=0, le=1)
+    # Explicit experimental neutral replacement, never missing-data reweighting.
+    neutral_groups: tuple[Literal["absolute", "relative", "trend"], ...] = ()
+    diagnostic_exposure: Decimal | None = Field(default=None, gt=0, le=1)
+
+    @model_validator(mode="after")
+    @deterministic_decimal
+    def coherent(self) -> "ChallengerPolicy":
+        if self.absolute_weight + self.relative_weight + self.trend_weight != 1:
+            raise ValueError("CHALLENGER_GROUP_WEIGHTS_MUST_SUM_TO_ONE")
+        if self.controls.mode != "QUANT_V1_BASELINE" or self.controls.paper_approved:
+            raise ValueError("CHALLENGER_HAS_NO_PAPER_SWITCH_AUTHORITY")
+        if len(set(self.neutral_groups)) != len(self.neutral_groups):
+            raise ValueError("CHALLENGER_DUPLICATE_NEUTRAL_GROUP")
+        if self.neutral_groups and self.diagnostic_exposure is None:
+            raise ValueError("CHALLENGER_ABLATION_REQUIRES_EXPLICIT_EXPOSURE")
+        return self
+
+    @property
+    def digest(self) -> str:
+        import hashlib
+        return hashlib.sha256(self.stable_json().encode()).hexdigest()

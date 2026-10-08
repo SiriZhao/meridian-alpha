@@ -3,8 +3,9 @@
 from collections.abc import Mapping, Sequence
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from meridian.quant.features import FactorValue, FeatureSnapshot
 from meridian.quant.numerics import deterministic_decimal
@@ -13,6 +14,10 @@ from meridian.quant.regime import RegimeState
 from meridian.schemas import AlphaScore, StableModel
 
 D = Decimal
+
+if TYPE_CHECKING:
+    from meridian.quant.features import ChallengerFeatureSnapshot
+    from meridian.quant.policy import ChallengerPolicy
 
 
 class FactorContribution(StableModel):
@@ -150,3 +155,145 @@ class QuantFactorEngine:
                                     score_change=final - previous.quant_score if previous else None, input_hash=snapshot.input_hash))
         return tuple(row.model_copy(update={"relative_rank": i})
                      for i, row in enumerate(sorted(rows, key=lambda r: (-r.quant_score, r.symbol)), 1))
+
+
+class ChallengerContribution(StableModel):
+    version: str = "quant-factor-contribution.v2.2"
+    name: str
+    group: str
+    symbol: str
+    as_of: datetime
+    availability_cutoff: datetime
+    provenance: tuple[str, ...]
+    lookback: int
+    raw: Decimal | None
+    normalized: Decimal | None
+    weight: Decimal
+    contribution: Decimal
+    missing_reason: str | None
+    transformation: str = "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+
+
+class ChallengerScore(StableModel):
+    version: str = "quant-score-v2.2"
+    bridge: AlphaScoreV2
+    signal_strength: Decimal = Field(ge=0, le=1)
+    risk_adjusted_score: Decimal = Field(ge=0, le=1)
+    factor_attribution: tuple[ChallengerContribution, ...]
+    score_change_attribution: dict[str, Decimal]
+    risk_score_change_attribution: dict[str, Decimal]
+    positive_observations: int = Field(ge=0)
+    persistence_definition: str = "CONSECUTIVE_OBSERVED_ELIGIBLE_SESSIONS_NOT_CONFIDENCE"
+    policy_hash: str
+
+    @model_validator(mode="after")
+    @deterministic_decimal
+    def coherent(self) -> "ChallengerScore":
+        if self.bridge.predictive_confidence is not None:
+            raise ValueError("CHALLENGER_PREDICTIVE_CONFIDENCE_UNCALIBRATED")
+        if self.signal_strength != sum((c.contribution for c in self.factor_attribution), D(0)):
+            raise ValueError("CHALLENGER_FACTOR_ATTRIBUTION_MISMATCH")
+        if self.risk_adjusted_score != self.bridge.quant_score * self.bridge.risk_multiplier:
+            raise ValueError("CHALLENGER_RISK_TRANSFORMATION_MISMATCH")
+        if self.bridge.quant_score != (D(0) if self.bridge.exclusion_reasons else self.signal_strength):
+            raise ValueError("CHALLENGER_ELIGIBILITY_MISMATCH")
+        return self
+
+
+@deterministic_decimal
+def score_challenger(snapshots: Sequence["ChallengerFeatureSnapshot"], policy: "ChallengerPolicy",
+                     regime: RegimeState, *, prior: Mapping[str, ChallengerScore] | None = None) -> tuple[ChallengerScore, ...]:
+    from datetime import timedelta
+
+    from meridian.trading_calendar import is_trading_session, latest_completed_session
+
+    if len({s.base.symbol for s in snapshots}) != len(snapshots):
+        raise ValueError("CHALLENGER_DUPLICATE_SYMBOL")
+    if len({s.base.as_of for s in snapshots}) > 1 or any(regime.as_of != s.base.as_of for s in snapshots):
+        raise ValueError("CHALLENGER_CUTOFF_MISMATCH")
+    if prior and any(symbol != row.bridge.symbol or (snapshots and row.bridge.as_of >= snapshots[0].base.as_of)
+                     or row.policy_hash != policy.digest for symbol, row in prior.items()):
+        raise ValueError("CHALLENGER_PRIOR_IDENTITY_MISMATCH")
+    specs = (("momentum_3m", "absolute", 63, policy.absolute_weight * D(".2"), D(".10")),
+             ("momentum_6m", "absolute", 126, policy.absolute_weight * D(".3"), D(".10")),
+             ("momentum_12_1", "absolute", 252, policy.absolute_weight * D(".5"), D(".10")),
+             ("relative_momentum_6m", "relative", 126, policy.relative_weight, D(".10")),
+             ("medium_distance", "trend", 60, policy.trend_weight / 2, D(".05")),
+             ("trend_persistence", "trend", 60, policy.trend_weight / 2, D(".20")))
+    def raw(snapshot: "ChallengerFeatureSnapshot", name: str) -> Decimal | None:
+        value = snapshot.medium_distance if name == "medium_distance" else snapshot.base.value(name)
+        return value - D(".5") if name == "trend_persistence" and value is not None else value
+    populations = {n: [v for s in snapshots if s.base.quality_status != "REJECTED" and (v := raw(s, n)) is not None]
+                   for n, _, _, _, _ in specs}
+    rows = []
+    for snapshot in sorted(snapshots, key=lambda s: s.base.symbol):
+        base = snapshot.base
+        excluded = list(base.reasons)
+        if base.quality_status == "REJECTED":
+            excluded.append("FEATURE_QUALITY_REJECTED")
+        mom = base.value("momentum_6m")
+        if mom is None or mom <= 0:
+            excluded.append("ABSOLUTE_MOMENTUM_NOT_POSITIVE")
+        volume = base.value("dollar_volume_20")
+        if volume is None or volume < policy.controls.minimum_dollar_volume:
+            excluded.append("LIQUIDITY_UNKNOWN_OR_BELOW_THRESHOLD")
+        if regime.trend == "INSUFFICIENT_DATA":
+            excluded.append("REGIME_UNKNOWN")
+        contributions = []
+        complete, strength = D(0), D(0)
+        for name, group, lookback, weight, scale in specs:
+            value = raw(snapshot, name)
+            normalized = None
+            method = "MISSING_ORIGINAL_WEIGHT_RETAINED"
+            if value is not None and populations[name]:
+                population = populations[name]
+                absolute = (1 + value / (abs(value) + scale)) / 2
+                n = len(population)
+                rank = (D(sum(v < value for v in population)) + D(sum(v == value for v in population)) / 2) / n
+                blend = policy.maximum_rank_blend * (n - 1) / (n + 4)
+                normalized = (1 - blend) * absolute + blend * rank
+                method = "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+                if group in policy.neutral_groups:
+                    normalized, method = D(".5"), "PREDECLARED_NEUTRAL_GROUP_ABLATION"
+                complete += weight
+            amount = weight * normalized if normalized is not None else D(0)
+            strength += amount
+            contributions.append(ChallengerContribution(name=name, group=group, symbol=base.symbol, as_of=base.as_of,
+                availability_cutoff=snapshot.availability_cutoff, provenance=snapshot.provenance, lookback=lookback,
+                raw=value, normalized=normalized, weight=weight, contribution=amount,
+                missing_reason="INPUT_UNAVAILABLE_NO_REWEIGHTING" if value is None else None, transformation=method))
+        vol = base.value("volatility_60")
+        if vol is None:
+            excluded.append("VOLATILITY_UNKNOWN")
+        multiplier = (min(D(1), policy.controls.target_volatility / max(vol, policy.controls.volatility_floor))
+                      if vol is not None else D(0)) * regime.risk_multiplier
+        eligible_strength = D(0) if excluded else strength
+        previous = (prior or {}).get(base.symbol)
+        changes = {}
+        if previous:
+            old = {c.name: c.contribution for c in previous.factor_attribution}
+            changes = {c.name: c.contribution - old[c.name] for c in contributions}
+            changes["eligibility"] = (eligible_strength - strength) - (
+                previous.bridge.quant_score - previous.signal_strength)
+        consecutive = False
+        if previous:
+            cursor = latest_completed_session(previous.bridge.as_of) + timedelta(days=1)
+            while not is_trading_session(cursor):
+                cursor += timedelta(days=1)
+            consecutive = cursor == base.last_session
+        bridge = AlphaScoreV2(symbol=base.symbol, as_of=base.as_of, strategy="V22", policy_version=policy.version,
+            quant_score=eligible_strength, relative_rank=1, contributions=(), data_quality_status=base.quality_status,
+            completeness=complete, risk_multiplier=multiplier,
+            risk_adjustments=("RISK_ADJUSTED_SCORE_IS_REPORTED_SEPARATELY", "VOLATILITY_AND_REGIME_ARE_NOT_ALPHA"),
+            inclusion_reasons=("POSITIVE_ABSOLUTE_MOMENTUM_AND_QUALIFIED_LIQUIDITY",) if not excluded else (),
+            exclusion_reasons=tuple(sorted(set(excluded))),
+            score_change=eligible_strength - previous.bridge.quant_score if previous else None, input_hash=snapshot.input_hash)
+        rows.append(ChallengerScore(bridge=bridge, signal_strength=strength,
+            risk_adjusted_score=eligible_strength * multiplier, factor_attribution=tuple(contributions),
+            score_change_attribution=changes, policy_hash=policy.digest,
+            risk_score_change_attribution={"signal_and_eligibility": (eligible_strength - previous.bridge.quant_score) * multiplier,
+                "risk_transform": previous.bridge.quant_score * (multiplier - previous.bridge.risk_multiplier)} if previous else {},
+            positive_observations=(previous.positive_observations if previous and latest_completed_session(previous.bridge.as_of) == base.last_session
+                                  else previous.positive_observations + 1 if previous and consecutive else 1) if eligible_strength > 0 else 0))
+    return tuple(row.model_copy(update={"bridge": row.bridge.model_copy(update={"relative_rank": i})})
+                 for i, row in enumerate(sorted(rows, key=lambda r: (-r.bridge.quant_score, r.bridge.symbol)), 1))

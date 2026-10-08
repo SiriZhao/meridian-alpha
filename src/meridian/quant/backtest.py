@@ -16,12 +16,25 @@ from pydantic import Field, model_validator
 from meridian.config import RiskPolicy
 from meridian.historical import HistoricalBarCertification, HistoricalBarSeries
 from meridian.lab_evaluation import rank_correlation
-from meridian.quant.features import compute_features, eligible_bars, mean
+from meridian.quant.features import (
+    ChallengerFeatureSnapshot,
+    compute_challenger_features,
+    compute_features,
+    eligible_bars,
+    mean,
+)
 from meridian.quant.numerics import deterministic_decimal
-from meridian.quant.policy import CostPolicy, QuantPolicy
-from meridian.quant.portfolio import allocate, cost_aware_target, target_from_weights, weights
+from meridian.quant.policy import ChallengerPolicy, CostPolicy, QuantPolicy
+from meridian.quant.portfolio import (
+    allocate,
+    allocate_challenger,
+    challenger_rebalance,
+    cost_aware_target,
+    target_from_weights,
+    weights,
+)
 from meridian.quant.regime import detect_regime
-from meridian.quant.signals import QuantFactorEngine
+from meridian.quant.signals import ChallengerScore, QuantFactorEngine, score_challenger
 from meridian.quant.version import ENGINE_SOURCE_HASH
 from meridian.schemas import StableModel
 from meridian.trading_calendar import is_trading_session, session_close, session_open
@@ -187,6 +200,8 @@ class WalkForwardRunner:
         self.histories = {s.canonical_symbol: s for s in dataset.series}
         self.rows = {s: {b.session: b for b in series.bars} for s, series in self.histories.items()}
         self._feature_cache: dict[date, dict[str, object]] = {}
+        self._challenger_cache: dict[date, dict[str, ChallengerFeatureSnapshot]] = {}
+        self._prior_challenger: dict[str, ChallengerScore] = {}
 
     def _preflight(self, start: date, end: date) -> tuple[date, ...]:
         if self.dataset.evidence_status == "UNVERIFIED":
@@ -222,12 +237,15 @@ class WalkForwardRunner:
     @deterministic_decimal
     def run(self, policy: QuantPolicy, costs: CostPolicy, risk: RiskPolicy, fold: WalkForwardFold,
             *, partition: Literal["validation", "test"] = "test", strategy: str | None = None,
-            initial_nav: Decimal = INITIAL_NAV) -> ReplayResult:
+            initial_nav: Decimal = INITIAL_NAV, challenger: ChallengerPolicy | None = None) -> ReplayResult:
         if not initial_nav.is_finite() or initial_nav <= 0:
             raise ValueError("BACKTEST_INITIAL_NAV_INVALID")
         label = strategy or policy.strategy
-        if label not in {"CASH", "SPY_BUY_HOLD", "EQUAL_WEIGHT", "A0", "A1", "A2", "A3", "A4"}:
+        if label not in {"CASH", "SPY_BUY_HOLD", "SPY_POLICY", "EQUAL_WEIGHT", "A0", "A1", "A2", "A3", "A4", "V22"}:
             raise ValueError("BACKTEST_STRATEGY_INVALID")
+        if (label == "V22") != (challenger is not None) or (challenger is not None and challenger.controls != policy):
+            raise ValueError("BACKTEST_CHALLENGER_POLICY_MISMATCH")
+        self._prior_challenger = {}
         if label.startswith("A") and label != policy.strategy:
             raise ValueError("BACKTEST_POLICY_STRATEGY_MISMATCH")
         start, end = (fold.test_start, fold.test_end) if partition == "test" else (fold.validation_start, fold.validation_end)
@@ -254,13 +272,13 @@ class WalkForwardRunner:
         prior_scores: dict[str, Decimal] = {}
         prior_closes: dict[str, Decimal] = {}
         # Build the first close signal before any OOS simulated open fill.
-        pending, decision, regime, prior_scores = self._signal(previous, holdings, cash, policy, costs, risk, label, elapsed)
+        pending, decision, regime, prior_scores = self._signal(previous, holdings, cash, policy, costs, risk, label, elapsed, challenger)
         prior_closes = {s: row[previous].close for s, row in self.rows.items() if previous in row}
         for index, session in enumerate(sessions):
             opening = session_open(session)
             close_time = session_close(session)
             active = {m.symbol for m in self.dataset.memberships if m.start <= session and (m.end is None or session <= m.end) and m.known_at <= signal_at}
-            if label == "SPY_BUY_HOLD":
+            if label in {"SPY_BUY_HOLD", "SPY_POLICY"}:
                 active.add("SPY")
             required = set(holdings) | set(pending) | {"SPY"}
             if any(session not in self.rows[s] for s in required):
@@ -368,17 +386,18 @@ class WalkForwardRunner:
             elapsed = 0 if day_trades else elapsed + 1
             prior_nav, previous, signal_at = nav, session, close_time
             if index + 1 < len(sessions):
-                pending, decision, regime, prior_scores = self._signal(session, holdings, cash, policy, costs, risk, label, elapsed)
+                pending, decision, regime, prior_scores = self._signal(session, holdings, cash, policy, costs, risk, label, elapsed, challenger)
                 prior_closes = {s: row[session].close for s, row in self.rows.items() if session in row}
         def digest(model: StableModel) -> str:
             return hashlib.sha256(model.stable_json().encode()).hexdigest()
         return ReplayResult(strategy=label, fold=fold.name, partition=partition, dataset_hash=self.dataset.digest,
-                            policy_hash=digest(policy), cost_hash=digest(costs), risk_hash=hashlib.sha256(risk.model_dump_json().encode()).hexdigest(), engine_hash=ENGINE_SOURCE_HASH,
+                            policy_hash=digest(challenger or policy), cost_hash=digest(costs), risk_hash=hashlib.sha256(risk.model_dump_json().encode()).hexdigest(), engine_hash=ENGINE_SOURCE_HASH,
                             evidence_status=self.dataset.evidence_status, days=tuple(days), trades=tuple(trades),
                             warnings=tuple(sorted(warnings)), initial_nav=initial_nav)
 
     def _signal(self, session: date, holdings: Mapping[str, Decimal], cash: Decimal, policy: QuantPolicy,
-                costs: CostPolicy, risk: RiskPolicy, label: str, elapsed: int) -> tuple[dict[str, Decimal], str, str, dict[str, Decimal]]:
+                costs: CostPolicy, risk: RiskPolicy, label: str, elapsed: int,
+                challenger: ChallengerPolicy | None = None) -> tuple[dict[str, Decimal], str, str, dict[str, Decimal]]:
         cutoff = session_close(session)
         eligible = {m.symbol for m in self.dataset.memberships if m.start <= session and (m.end is None or session <= m.end) and m.known_at <= cutoff}
         # Shared immutable feature observations make all experimental variants
@@ -400,8 +419,23 @@ class WalkForwardRunner:
             return {}, "CASH", regime, {}
         if label == "SPY_BUY_HOLD":
             return {"SPY": D(1)} if not holdings else dict(current), "BUY_HOLD", regime, {}
-        if label == "EQUAL_WEIGHT":
-            symbols = sorted(eligible)[:risk.max_number_positions]
+        challenger_allocation = None
+        if label == "V22" and challenger is not None:
+            extended = self._challenger_cache.get(session)
+            if extended is None:
+                extended = {s: compute_challenger_features(self.histories[s], cutoff, benchmark=self.histories["SPY"], diagnostic=self.diagnostic)
+                            for s in sorted(eligible)}
+                self._challenger_cache[session] = extended
+            challenger_scores = score_challenger([extended[s] for s in sorted(eligible)], challenger, state, prior=self._prior_challenger)
+            self._prior_challenger = {s.bridge.symbol: s for s in challenger_scores}
+            correlations = pit_correlations({s: self.histories[s] for s in eligible}, cutoff, policy.correlation_lookback)
+            challenger_allocation = allocate_challenger(challenger_scores, features, cutoff, risk, challenger, state,
+                correlations=correlations, sector_map={m.symbol: m.sector for m in self.dataset.security_metadata if m.known_at <= cutoff},
+                diagnostic=self.diagnostic)
+            target = challenger_allocation.feasible_target
+            score_map = {s.bridge.symbol: s.bridge.quant_score for s in challenger_scores}
+        elif label in {"EQUAL_WEIGHT", "SPY_POLICY"}:
+            symbols = ["SPY"] if label == "SPY_POLICY" else sorted(eligible)[:risk.max_number_positions]
             unit = min(risk.max_position_weight, (1 - risk.min_cash_weight) / len(symbols)) if symbols else D(0)
             target = target_from_weights(dict.fromkeys(symbols, unit), cutoff, "equal-weight-v1")
             score_map = {}
@@ -431,7 +465,12 @@ class WalkForwardRunner:
         if any("missing" in v for v in risk_result.violations):
             raise ValueError("BACKTEST_PIT_SECURITY_METADATA_REQUIRED")
         target = risk_result.approved
-        decision = cost_aware_target(target, current, nav=nav, risk=risk, policy=policy, costs=costs,
+        if challenger_allocation is not None and challenger is not None:
+            decision = challenger_rebalance(challenger_allocation.model_copy(update={"feasible_target": target}), current,
+                nav=nav, risk=risk, policy=challenger, costs=costs, sessions_since_rebalance=elapsed,
+                dollar_volumes={s: f.value("dollar_volume_20") for s, f in features.items()})
+        else:
+            decision = cost_aware_target(target, current, nav=nav, risk=risk, policy=policy, costs=costs,
                                      sessions_since_rebalance=elapsed,
                                      dollar_volumes={s: f.value("dollar_volume_20") for s, f in features.items()})
         return (dict(current) if decision.action == "BLOCKED" else weights(decision.target), decision.action, regime, score_map)

@@ -245,3 +245,71 @@ def _compute(series: HistoricalBarSeries, cutoff: datetime, *,
                            last_session=bars[-1].session if bars else None, factors=factors,
                            input_hash=digest, quality_status="REJECTED" if reasons else "SYNTHETIC_DIAGNOSTIC" if synthetic else "VERIFIED",
                            reasons=reasons, synthetic=synthetic)
+
+
+class ChallengerFeatureSnapshot(StableModel):
+    version: Literal["quant-features-v2.2"] = "quant-features-v2.2"
+    base: FeatureSnapshot
+    # None retains explicit unknown semantics; never zero-fill these observations.
+    medium_distance: Decimal | None
+    momentum_acceleration: Decimal | None
+    trend_instability: Decimal | None
+    residual_momentum_63: Decimal | None
+    missing_reasons: dict[str, str]
+    provenance: tuple[str, ...]
+    availability_cutoff: datetime
+    input_hash: str
+
+    @model_validator(mode="after")
+    def coherent(self) -> "ChallengerFeatureSnapshot":
+        if self.availability_cutoff > self.base.as_of:
+            raise ValueError("CHALLENGER_FUTURE_FEATURE")
+        for name in ("medium_distance", "momentum_acceleration", "trend_instability", "residual_momentum_63"):
+            if getattr(self, name) is None and name not in self.missing_reasons:
+                raise ValueError("CHALLENGER_MISSING_FEATURE_REASON")
+        return self
+
+
+@deterministic_decimal
+def compute_challenger_features(series: HistoricalBarSeries, cutoff: datetime, *,
+                                benchmark: HistoricalBarSeries | None = None,
+                                diagnostic: bool = False) -> ChallengerFeatureSnapshot:
+    base = compute_features(series, cutoff, benchmark=benchmark, diagnostic=diagnostic)
+    sessions = [b.session for b in series.bars if b.available_at <= cutoff and b.observed_at <= cutoff
+                and session_close(b.session, b.calendar) <= cutoff]
+    if sessions != sorted(sessions):
+        raise ValueError("CHALLENGER_OUT_OF_SEQUENCE_BARS")
+    if benchmark is not None:
+        bench_sessions = [b.session for b in benchmark.bars if b.available_at <= cutoff and b.observed_at <= cutoff
+                          and session_close(b.session, b.calendar) <= cutoff]
+        if bench_sessions != sorted(bench_sessions):
+            raise ValueError("CHALLENGER_OUT_OF_SEQUENCE_BENCHMARK")
+    bars = eligible_bars(series, cutoff)[-253:]
+    bench = eligible_bars(benchmark, cutoff)[-253:] if benchmark else ()
+    values: dict[str, Decimal | None] = dict.fromkeys(
+        ("medium_distance", "momentum_acceleration", "trend_instability", "residual_momentum_63"))
+    if base.quality_status != "REJECTED":
+        prices = [b.close for b in bars]
+        sma = base.value("sma60")
+        if sma is not None:
+            values["medium_distance"] = prices[-1] / sma - 1
+        if len(prices) > 126:
+            # Difference between consecutive 63-session simple returns.
+            values["momentum_acceleration"] = prices[-1] / prices[-64] - prices[-64] / prices[-127]
+        if len(prices) >= 80:
+            signs = [prices[i] > mean(prices[i - 59:i + 1]) for i in range(len(prices) - 21, len(prices))]
+            values["trend_instability"] = D(sum(a != b for a, b in zip(signs, signs[1:], strict=False))) / 20
+        beta = base.value("beta_60")
+        # Validated base beta requires fully aligned, certified benchmark rows.
+        if beta is not None and len(prices) > 63 and [b.session for b in bars] == [b.session for b in bench]:
+            stock = [b.close / a.close - 1 for a, b in zip(bars[-64:-1], bars[-63:], strict=True)]
+            market = [b.close / a.close - 1 for a, b in zip(bench[-64:-1], bench[-63:], strict=True)]
+            values["residual_momentum_63"] = sum((x - beta * y for x, y in zip(stock, market, strict=True)), D(0))
+    missing = {n: "INVALID_OR_INSUFFICIENT_PIT_HISTORY_OR_BENCHMARK" for n, v in values.items() if v is None}
+    payload = base.stable_json() + "|" + "|".join(f"{n}:{values[n]}" for n in sorted(values))
+    return ChallengerFeatureSnapshot(base=base, medium_distance=values["medium_distance"],
+        momentum_acceleration=values["momentum_acceleration"], trend_instability=values["trend_instability"],
+        residual_momentum_63=values["residual_momentum_63"], missing_reasons=missing,
+        provenance=tuple(sorted({p for f in base.factors for p in f.provenance})),
+        availability_cutoff=max((f.availability_cutoff for f in base.factors), default=cutoff),
+        input_hash=hashlib.sha256(payload.encode()).hexdigest())

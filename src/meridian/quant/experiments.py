@@ -12,7 +12,7 @@ from meridian.config import RiskPolicy
 from meridian.quant.backtest import QuantDataset, WalkForwardFold, WalkForwardRunner
 from meridian.quant.integration import immutable_record
 from meridian.quant.metrics import performance
-from meridian.quant.policy import CostPolicy, QuantPolicy
+from meridian.quant.policy import ChallengerPolicy, CostPolicy, QuantPolicy
 from meridian.quant.version import ENGINE_SOURCE_HASH
 from meridian.schemas import StableModel
 
@@ -65,7 +65,7 @@ def isolated_output(output: Path) -> Path:
     return resolved
 
 
-def run_experiments(dataset: QuantDataset, plan: ExperimentPlan, output: Path,
+def run_experiments(dataset: QuantDataset, plan: "ExperimentPlan | ChallengerExperimentPlan", output: Path,
                     *, diagnostic: bool = False) -> dict[str, object]:
     output = isolated_output(output)
     # Sealing precedes evaluating either validation or final OOS. Reusing the
@@ -92,7 +92,8 @@ def run_experiments(dataset: QuantDataset, plan: ExperimentPlan, output: Path,
                                           "strategy": variant.strategy, "purpose": variant.purpose}
                 try:
                     replay = runner.run(variant.policy, variant.costs, plan.risk, fold,
-                                        partition=partition, strategy=variant.strategy)
+                                        partition=partition, strategy=variant.strategy,
+                                        challenger=variant.challenger if isinstance(variant, ChallengerExperimentVariant) else None)
                     digest = hashlib.sha256(replay.stable_json().encode()).hexdigest()
                     immutable_record(output / "replays" / (digest + ".json"), replay.stable_json() + "\n")
                     row.update({"status": "REPLAY_COMPLETE", "replay_hash": digest,
@@ -120,3 +121,49 @@ def run_experiments(dataset: QuantDataset, plan: ExperimentPlan, output: Path,
     summary_hash = hashlib.sha256(summary_text.encode()).hexdigest()
     path = immutable_record(output / ("summary-" + summary_hash + ".json"), summary_text)
     return {**summary, "summary_path": str(path)}
+
+
+class ChallengerExperimentVariant(StableModel):
+    name: str
+    strategy: Literal["CASH", "SPY_BUY_HOLD", "SPY_POLICY", "EQUAL_WEIGHT", "A0", "A1", "A2", "A3", "A4", "V22"]
+    policy: QuantPolicy
+    challenger: ChallengerPolicy | None = None
+    costs: CostPolicy
+    purpose: str
+
+    @model_validator(mode="after")
+    def coherent(self) -> "ChallengerExperimentVariant":
+        if (self.strategy == "V22") != (self.challenger is not None):
+            raise ValueError("EXPERIMENT_CHALLENGER_REQUIRED_ONLY_FOR_V22")
+        if self.challenger is not None and self.policy != self.challenger.controls:
+            raise ValueError("EXPERIMENT_CHALLENGER_CONTROL_MISMATCH")
+        if self.strategy.startswith("A") and self.policy.strategy != self.strategy:
+            raise ValueError("EXPERIMENT_STRATEGY_MISMATCH")
+        if self.policy.mode != "QUANT_V1_BASELINE" or self.policy.paper_approved:
+            raise ValueError("EXPERIMENT_MUST_NOT_ENABLE_PAPER")
+        return self
+
+
+class ChallengerExperimentPlan(StableModel):
+    version: Literal["quant-experiment-plan-v2.2"] = "quant-experiment-plan-v2.2"
+    declared_at: datetime
+    folds: tuple[WalkForwardFold, ...]
+    variants: tuple[ChallengerExperimentVariant, ...]
+    risk: RiskPolicy
+    selection: Literal["NONE_FIXED_PREDECLARED_MODELS"] = "NONE_FIXED_PREDECLARED_MODELS"
+    final_oos_tuning: Literal[False] = False
+
+    @model_validator(mode="after")
+    def coherent(self) -> "ChallengerExperimentPlan":
+        if not self.folds or not self.variants or len({v.name for v in self.variants}) != len(self.variants):
+            raise ValueError("EXPERIMENT_EMPTY_OR_DUPLICATE_VARIANTS")
+        if len({f.name for f in self.folds}) != len(self.folds):
+            raise ValueError("EXPERIMENT_DUPLICATE_FOLD")
+        ordered = sorted(self.folds, key=lambda f: f.test_start)
+        if any(a.test_end >= b.test_start for a, b in zip(ordered, ordered[1:], strict=False)):
+            raise ValueError("EXPERIMENT_OVERLAPPING_OOS_FOLDS")
+        return self
+
+    @property
+    def digest(self) -> str:
+        return hashlib.sha256(self.stable_json().encode()).hexdigest()
