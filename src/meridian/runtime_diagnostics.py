@@ -47,7 +47,7 @@ def _database(path: Path) -> dict[str, object]:
     if not path.exists():
         return {"status": "DEGRADED", "detail": "database_not_initialized", "schema_version": None, "migration_status": "PENDING"}
     try:
-        with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=rw", uri=True)) as connection:
+        with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)) as connection:
             quick = connection.execute("PRAGMA quick_check").fetchone()
             table = connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'").fetchone()
             version = connection.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0] if table else None
@@ -184,8 +184,11 @@ def report(
     ]
     cache_health = None
     try:
-        paths.ensure_directories()
-        checks.append(Check("runtime_directories", "PASS", str(paths.home)))
+        if probe_writes:
+            paths.ensure_directories()
+        present = all(path.is_dir() for path in paths.directories().values())
+        checks.append(Check("runtime_directories", "PASS" if present else "INFO",
+                            str(paths.home) if present else "DIRECTORIES_NOT_PRESENT_NO_READ_ONLY_CREATION"))
         if probe_writes:
             checks.extend(_attempt(f"runtime_write:{name}", lambda path=path: _writable(path)) for name, path in paths.directories().items() if name != "cache")
             cache_health = check_cache_health(paths.cache)
@@ -217,12 +220,12 @@ def report(
             else "CODEX_NOT_INSTALLED",
         )
     )
-    codex_version_status, codex_version = _codex_version(codex_executable)
+    codex_version_status, codex_version = _codex_version(codex_executable) if probe_writes else ("INFO", "NOT_PROBED_READ_ONLY_HOST")
     checks.append(Check("codex_compatibility", codex_version_status if codex_executable else "INFO", f"{codex_version}; minimum 0.153.0"))
     checks.append(Check("codex_auth_mode", "PASS", AUTH_MODE))
     skill_check, skill = _skill_check()
     checks.append(skill_check)
-    mcp_check, mcp = _mcp_check()
+    mcp_check, mcp = _mcp_check() if probe_writes else (Check("mcp_tools", "INFO", "NOT_PROBED_READ_ONLY_HOST"), {"configured": None, "registered": [], "discovery_status": "NOT_PROBED"})
     checks.append(mcp_check)
     for package in ("pydantic", "PyYAML", "mcp"):
         checks.append(_attempt(f"dependency:{package}", lambda package=package: importlib.metadata.version(package)))

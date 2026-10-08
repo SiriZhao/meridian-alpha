@@ -58,9 +58,11 @@ class ResilientHistoricalProvider:
     schema_version = "market-history.v1"
 
     def __init__(
-        self, providers: tuple[HistoricalSeriesProvider, ...], cache_directory: Path
+        self, providers: tuple[HistoricalSeriesProvider, ...], cache_directory: Path,
+        *, read_only: bool = False,
     ) -> None:
         self.providers, self.cache_directory = providers, cache_directory
+        self.read_only = read_only
         self.last_diagnostics: dict[str, dict[str, object]] = {}
 
     def _path(self, symbol: str) -> Path:
@@ -122,6 +124,8 @@ class ResilientHistoricalProvider:
         attempts: list[dict[str, object]] = []
         provider_health: dict[str, object] = {}
         def health(provider: str, category: str | None, started: datetime, completed: datetime, fallback: bool) -> None:
+            if self.read_only:
+                return
             try:
                 provider_health[provider] = ProviderHealthStore(self.cache_directory / "provider-health.sqlite3").record(provider=provider, symbol=symbol, channel="LIVE_HISTORY" if live else "REPLAY_HISTORY", category=category, latency_ms=max(0, round((completed - started).total_seconds() * 1000)), completed_at=completed, fallback=fallback)
             except (OSError, sqlite3.Error):
@@ -142,9 +146,10 @@ class ResilientHistoricalProvider:
                     "content_hash": hashlib.sha256(series.stable_json().encode()).hexdigest(),
                     "request_start": start.isoformat(), "request_end": end.isoformat(),
                 }
-                cache_status = "WRITE_OK"
+                cache_status = "NOT_WRITTEN_READ_ONLY" if self.read_only else "WRITE_OK"
                 try:
-                    atomic_write(self._path(symbol), json.dumps(payload, sort_keys=True))
+                    if not self.read_only:
+                        atomic_write(self._path(symbol), json.dumps(payload, sort_keys=True))
                 except OSError:
                     cache_status = "WRITE_FAILED"
                     failures.append("HISTORICAL_CACHE_WRITE_FAILED")
@@ -310,6 +315,7 @@ class OperationalMarketSnapshotService:
         *,
         timeout_seconds: float = 4.0,
         policy: FreshnessPolicy | None = None,
+        read_only: bool = False,
     ) -> OperationalMarketSnapshotService:
         policy = policy or FreshnessPolicy()
         primary = YahooChartQuoteProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=timeout_seconds)
@@ -318,7 +324,7 @@ class OperationalMarketSnapshotService:
             primary,
             secondary,
             policy=policy,
-            cache=OperationalCache(paths.cache / "market" / "quotes"),
+            cache=None if read_only else OperationalCache(paths.cache / "market" / "quotes"),
         )
         historical = ResilientHistoricalProvider(
             (
@@ -328,6 +334,7 @@ class OperationalMarketSnapshotService:
                 NasdaqHistoricalProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=timeout_seconds),
             ),
             paths.cache / "market" / "daily",
+            read_only=read_only,
         )
         return cls(refresh, historical, policy=policy)
 

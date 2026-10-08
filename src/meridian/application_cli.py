@@ -18,6 +18,9 @@ from meridian.runtime_io import filesystem_detail
 
 
 def main() -> int:
+    if len(sys.argv) > 1 and sys.argv[1] == "terminal":
+        from meridian.terminal_cli import main as terminal_main
+        return terminal_main(sys.argv[2:])
     if len(sys.argv) > 1 and sys.argv[1] == "quant":
         from meridian.quant.cli import main as quant_main
         return quant_main(sys.argv[2:])

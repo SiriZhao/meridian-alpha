@@ -1,0 +1,5851 @@
+{
+  "QuantTerminalRequest": {
+    "$defs": {
+      "HistoricalAdjustmentStatus": {
+        "enum": [
+          "RAW",
+          "ADJUSTED_CLOSE",
+          "FULLY_ADJUSTED_OHLCV"
+        ],
+        "title": "HistoricalAdjustmentStatus",
+        "type": "string"
+      },
+      "HistoricalBar": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_asset_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Canonical Asset Id",
+            "type": "string"
+          },
+          "canonical_symbol": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,15}$",
+            "title": "Canonical Symbol",
+            "type": "string"
+          },
+          "provider_symbol": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider Symbol",
+            "type": "string"
+          },
+          "session": {
+            "format": "date",
+            "title": "Session",
+            "type": "string"
+          },
+          "calendar": {
+            "$ref": "#/$defs/TradingCalendarName"
+          },
+          "open": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Open"
+          },
+          "high": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "High"
+          },
+          "low": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Low"
+          },
+          "close": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Close"
+          },
+          "volume": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Volume"
+          },
+          "currency": {
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "adjustment_status": {
+            "$ref": "#/$defs/HistoricalAdjustmentStatus"
+          },
+          "provider": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "available_at": {
+            "format": "date-time",
+            "title": "Available At",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "source": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          },
+          "quality": {
+            "$ref": "#/$defs/HistoricalQuality",
+            "default": "UNVERIFIED"
+          },
+          "certification": {
+            "$ref": "#/$defs/HistoricalBarCertification",
+            "default": "UNVERIFIED"
+          }
+        },
+        "required": [
+          "canonical_asset_id",
+          "canonical_symbol",
+          "provider_symbol",
+          "session",
+          "calendar",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume",
+          "currency",
+          "adjustment_status",
+          "provider",
+          "observed_at",
+          "available_at",
+          "retrieved_at",
+          "source"
+        ],
+        "title": "HistoricalBar",
+        "type": "object"
+      },
+      "HistoricalBarCertification": {
+        "enum": [
+          "CERTIFIED_MARKET_SESSION",
+          "CERTIFIED_RESEARCH_PIT_ADJUSTED",
+          "UNVERIFIED",
+          "SYNTHETIC",
+          "REPLAY_UNSAFE"
+        ],
+        "title": "HistoricalBarCertification",
+        "type": "string"
+      },
+      "HistoricalBarSeries": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_asset_id": {
+            "title": "Canonical Asset Id",
+            "type": "string"
+          },
+          "canonical_symbol": {
+            "title": "Canonical Symbol",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "bars": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/HistoricalBar"
+            },
+            "maxItems": 5000,
+            "title": "Bars",
+            "type": "array"
+          },
+          "source_mode": {
+            "default": "REPLAY",
+            "title": "Source Mode",
+            "type": "string"
+          },
+          "content_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Content Hash"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "canonical_asset_id",
+          "canonical_symbol",
+          "provider",
+          "as_of"
+        ],
+        "title": "HistoricalBarSeries",
+        "type": "object"
+      },
+      "HistoricalQuality": {
+        "enum": [
+          "VERIFIED",
+          "UNVERIFIED",
+          "MISSING",
+          "INVALID",
+          "CONFLICT"
+        ],
+        "title": "HistoricalQuality",
+        "type": "string"
+      },
+      "QuantSecurityMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "asset_type": {
+            "enum": [
+              "EQUITY",
+              "DIVERSIFIED_ETF"
+            ],
+            "title": "Asset Type",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sector"
+          },
+          "known_at": {
+            "format": "date-time",
+            "title": "Known At",
+            "type": "string"
+          },
+          "source": {
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "asset_type",
+          "known_at",
+          "source"
+        ],
+        "title": "QuantSecurityMetadata",
+        "type": "object"
+      },
+      "TradingCalendarName": {
+        "enum": [
+          "US_EQUITY",
+          "CBOE_VIX"
+        ],
+        "title": "TradingCalendarName",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "analysis_cutoff": {
+        "format": "date-time",
+        "title": "Analysis Cutoff",
+        "type": "string"
+      },
+      "symbols": {
+        "items": {
+          "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+          "type": "string"
+        },
+        "maxItems": 8,
+        "minItems": 1,
+        "title": "Symbols",
+        "type": "array"
+      },
+      "histories": {
+        "items": {
+          "$ref": "#/$defs/HistoricalBarSeries"
+        },
+        "maxItems": 9,
+        "title": "Histories",
+        "type": "array"
+      },
+      "metadata": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/QuantSecurityMetadata"
+        },
+        "maxItems": 9,
+        "title": "Metadata",
+        "type": "array"
+      },
+      "diagnostic": {
+        "default": false,
+        "title": "Diagnostic",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "analysis_cutoff",
+      "symbols",
+      "histories"
+    ],
+    "title": "QuantTerminalRequest",
+    "type": "object"
+  },
+  "QuantTerminalSnapshot": {
+    "$defs": {
+      "AlphaScoreV2": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "strategy": {
+            "title": "Strategy",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "quant_score": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Quant Score"
+          },
+          "relative_rank": {
+            "minimum": 1,
+            "title": "Relative Rank",
+            "type": "integer"
+          },
+          "contributions": {
+            "items": {
+              "$ref": "#/$defs/FactorContribution"
+            },
+            "title": "Contributions",
+            "type": "array"
+          },
+          "data_quality_status": {
+            "title": "Data Quality Status",
+            "type": "string"
+          },
+          "completeness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Completeness"
+          },
+          "risk_multiplier": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Risk Multiplier"
+          },
+          "risk_adjustments": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Risk Adjustments",
+            "type": "array"
+          },
+          "inclusion_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Inclusion Reasons",
+            "type": "array"
+          },
+          "exclusion_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclusion Reasons",
+            "type": "array"
+          },
+          "score_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Score Change"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "predictive_confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Predictive Confidence"
+          }
+        },
+        "required": [
+          "symbol",
+          "as_of",
+          "strategy",
+          "policy_version",
+          "quant_score",
+          "relative_rank",
+          "contributions",
+          "data_quality_status",
+          "completeness",
+          "risk_multiplier",
+          "risk_adjustments",
+          "inclusion_reasons",
+          "exclusion_reasons",
+          "input_hash"
+        ],
+        "title": "AlphaScoreV2",
+        "type": "object"
+      },
+      "ChallengerAllocation": {
+        "additionalProperties": false,
+        "properties": {
+          "preferred_target": {
+            "$ref": "#/$defs/TargetPortfolio"
+          },
+          "feasible_target": {
+            "$ref": "#/$defs/TargetPortfolio"
+          },
+          "risk": {
+            "$ref": "#/$defs/PortfolioRiskEstimate"
+          },
+          "modifications": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Modifications",
+            "type": "array"
+          }
+        },
+        "required": [
+          "preferred_target",
+          "feasible_target",
+          "risk",
+          "modifications"
+        ],
+        "title": "ChallengerAllocation",
+        "type": "object"
+      },
+      "ChallengerContribution": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "default": "quant-factor-contribution.v2.2",
+            "title": "Version",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "availability_cutoff": {
+            "format": "date-time",
+            "title": "Availability Cutoff",
+            "type": "string"
+          },
+          "provenance": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Provenance",
+            "type": "array"
+          },
+          "lookback": {
+            "title": "Lookback",
+            "type": "integer"
+          },
+          "raw": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw"
+          },
+          "normalized": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalized"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Weight"
+          },
+          "contribution": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Contribution"
+          },
+          "missing_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missing Reason"
+          },
+          "transformation": {
+            "default": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND",
+            "title": "Transformation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "group",
+          "symbol",
+          "as_of",
+          "availability_cutoff",
+          "provenance",
+          "lookback",
+          "raw",
+          "normalized",
+          "weight",
+          "contribution",
+          "missing_reason"
+        ],
+        "title": "ChallengerContribution",
+        "type": "object"
+      },
+      "ChallengerFeatureSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "quant-features-v2.2",
+            "default": "quant-features-v2.2",
+            "title": "Version",
+            "type": "string"
+          },
+          "base": {
+            "$ref": "#/$defs/FeatureSnapshot"
+          },
+          "medium_distance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Medium Distance"
+          },
+          "momentum_acceleration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Momentum Acceleration"
+          },
+          "trend_instability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trend Instability"
+          },
+          "residual_momentum_63": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Residual Momentum 63"
+          },
+          "missing_reasons": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Missing Reasons",
+            "type": "object"
+          },
+          "provenance": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Provenance",
+            "type": "array"
+          },
+          "availability_cutoff": {
+            "format": "date-time",
+            "title": "Availability Cutoff",
+            "type": "string"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          }
+        },
+        "required": [
+          "base",
+          "medium_distance",
+          "momentum_acceleration",
+          "trend_instability",
+          "residual_momentum_63",
+          "missing_reasons",
+          "provenance",
+          "availability_cutoff",
+          "input_hash"
+        ],
+        "title": "ChallengerFeatureSnapshot",
+        "type": "object"
+      },
+      "ChallengerScore": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "default": "quant-score-v2.2",
+            "title": "Version",
+            "type": "string"
+          },
+          "bridge": {
+            "$ref": "#/$defs/AlphaScoreV2"
+          },
+          "signal_strength": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Signal Strength"
+          },
+          "risk_adjusted_score": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Risk Adjusted Score"
+          },
+          "factor_attribution": {
+            "items": {
+              "$ref": "#/$defs/ChallengerContribution"
+            },
+            "title": "Factor Attribution",
+            "type": "array"
+          },
+          "score_change_attribution": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Score Change Attribution",
+            "type": "object"
+          },
+          "risk_score_change_attribution": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Risk Score Change Attribution",
+            "type": "object"
+          },
+          "positive_observations": {
+            "minimum": 0,
+            "title": "Positive Observations",
+            "type": "integer"
+          },
+          "persistence_definition": {
+            "default": "CONSECUTIVE_OBSERVED_ELIGIBLE_SESSIONS_NOT_CONFIDENCE",
+            "title": "Persistence Definition",
+            "type": "string"
+          },
+          "policy_hash": {
+            "title": "Policy Hash",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bridge",
+          "signal_strength",
+          "risk_adjusted_score",
+          "factor_attribution",
+          "score_change_attribution",
+          "risk_score_change_attribution",
+          "positive_observations",
+          "policy_hash"
+        ],
+        "title": "ChallengerScore",
+        "type": "object"
+      },
+      "CostPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "quant-cost-v1",
+            "default": "quant-cost-v1",
+            "title": "Version",
+            "type": "string"
+          },
+          "commission_per_order": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "1",
+            "title": "Commission Per Order"
+          },
+          "slippage_bps": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "5",
+            "title": "Slippage Bps"
+          },
+          "spread_bps": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Spread Bps"
+          }
+        },
+        "title": "CostPolicy",
+        "type": "object"
+      },
+      "FactorContribution": {
+        "additionalProperties": false,
+        "properties": {
+          "factor": {
+            "$ref": "#/$defs/FactorValue"
+          },
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Weight"
+          },
+          "contribution": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Contribution"
+          },
+          "normalization": {
+            "title": "Normalization",
+            "type": "string"
+          }
+        },
+        "required": [
+          "factor",
+          "group",
+          "weight",
+          "contribution",
+          "normalization"
+        ],
+        "title": "FactorContribution",
+        "type": "object"
+      },
+      "FactorValue": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "const": "price-factor-v2.1",
+            "default": "price-factor-v2.1",
+            "title": "Version",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "lookback": {
+            "minimum": 1,
+            "title": "Lookback",
+            "type": "integer"
+          },
+          "raw_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Value"
+          },
+          "normalized_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Normalized Value"
+          },
+          "provenance": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Provenance",
+            "type": "array"
+          },
+          "availability_cutoff": {
+            "format": "date-time",
+            "title": "Availability Cutoff",
+            "type": "string"
+          },
+          "quality_status": {
+            "enum": [
+              "AVAILABLE",
+              "UNAVAILABLE"
+            ],
+            "title": "Quality Status",
+            "type": "string"
+          },
+          "missing_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Missing Reason"
+          }
+        },
+        "required": [
+          "name",
+          "symbol",
+          "as_of",
+          "lookback",
+          "raw_value",
+          "availability_cutoff",
+          "quality_status"
+        ],
+        "title": "FactorValue",
+        "type": "object"
+      },
+      "FeatureSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "quant-features-v2.1",
+            "default": "quant-features-v2.1",
+            "title": "Version",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "last_session": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Session"
+          },
+          "factors": {
+            "items": {
+              "$ref": "#/$defs/FactorValue"
+            },
+            "title": "Factors",
+            "type": "array"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "quality_status": {
+            "enum": [
+              "VERIFIED",
+              "REJECTED",
+              "SYNTHETIC_DIAGNOSTIC"
+            ],
+            "title": "Quality Status",
+            "type": "string"
+          },
+          "reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "synthetic": {
+            "default": false,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "symbol",
+          "as_of",
+          "last_session",
+          "factors",
+          "input_hash",
+          "quality_status"
+        ],
+        "title": "FeatureSnapshot",
+        "type": "object"
+      },
+      "OrderDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "side": {
+            "$ref": "#/$defs/Side"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,12}|(?=[\\d.]{1,19}0*$)\\d{0,12}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "preferred_limit": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Preferred Limit"
+          },
+          "max_acceptable_buy_price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Acceptable Buy Price"
+          },
+          "min_acceptable_sell_price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Min Acceptable Sell Price"
+          },
+          "target_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Target Weight"
+          },
+          "current_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Current Weight"
+          },
+          "estimated_notional": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Estimated Notional"
+          },
+          "time_in_force": {
+            "pattern": "^(DAY|GTC)$",
+            "title": "Time In Force",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/$defs/RunStatus"
+          },
+          "reason": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticker",
+          "side",
+          "quantity",
+          "target_weight",
+          "current_weight",
+          "estimated_notional",
+          "time_in_force",
+          "status",
+          "reason"
+        ],
+        "title": "OrderDraft",
+        "type": "object"
+      },
+      "PortfolioRiskEstimate": {
+        "additionalProperties": false,
+        "properties": {
+          "conservative_volatility_bound": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Conservative Volatility Bound"
+          },
+          "shrunk_volatility_estimate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shrunk Volatility Estimate"
+          },
+          "covariance_status": {
+            "title": "Covariance Status",
+            "type": "string"
+          },
+          "correlated_components": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Correlated Components",
+            "type": "array"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "conservative_volatility_bound",
+          "shrunk_volatility_estimate",
+          "covariance_status",
+          "correlated_components",
+          "assumptions"
+        ],
+        "title": "PortfolioRiskEstimate",
+        "type": "object"
+      },
+      "QuantResearchPacketV22": {
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {
+            "const": "quant-research-packet.v2.2",
+            "default": "quant-research-packet.v2.2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "symbols": {
+            "items": {
+              "$ref": "#/$defs/SymbolResearchV22"
+            },
+            "title": "Symbols",
+            "type": "array"
+          },
+          "regime": {
+            "$ref": "#/$defs/RegimeState"
+          },
+          "allocation": {
+            "$ref": "#/$defs/ChallengerAllocation"
+          },
+          "rebalance": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RebalanceDecision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "eligible_hypothetical_drafts": {
+            "items": {
+              "$ref": "#/$defs/OrderDraft"
+            },
+            "title": "Eligible Hypothetical Drafts",
+            "type": "array"
+          },
+          "constraint_modifications": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Constraint Modifications",
+            "type": "array"
+          },
+          "important_unknowns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Important Unknowns",
+            "type": "array"
+          },
+          "cost_assumptions": {
+            "$ref": "#/$defs/CostPolicy"
+          },
+          "data_certification_class": {
+            "title": "Data Certification Class",
+            "type": "string"
+          },
+          "strategy_hash": {
+            "title": "Strategy Hash",
+            "type": "string"
+          },
+          "model_hash": {
+            "const": "UNCALIBRATED_NO_PREDICTIVE_MODEL",
+            "default": "UNCALIBRATED_NO_PREDICTIVE_MODEL",
+            "title": "Model Hash",
+            "type": "string"
+          },
+          "engine_hash": {
+            "title": "Engine Hash",
+            "type": "string"
+          },
+          "authority": {
+            "const": "SHADOW_ONLY",
+            "default": "SHADOW_ONLY",
+            "title": "Authority",
+            "type": "string"
+          },
+          "trade_authorized": {
+            "const": false,
+            "default": false,
+            "title": "Trade Authorized",
+            "type": "boolean"
+          },
+          "automatic_promotion": {
+            "const": false,
+            "default": false,
+            "title": "Automatic Promotion",
+            "type": "boolean"
+          },
+          "broker_submission": {
+            "const": "DISABLED",
+            "default": "DISABLED",
+            "title": "Broker Submission",
+            "type": "string"
+          }
+        },
+        "required": [
+          "analysis_cutoff",
+          "symbols",
+          "regime",
+          "allocation",
+          "rebalance",
+          "eligible_hypothetical_drafts",
+          "constraint_modifications",
+          "important_unknowns",
+          "cost_assumptions",
+          "data_certification_class",
+          "strategy_hash",
+          "engine_hash"
+        ],
+        "title": "QuantResearchPacketV22",
+        "type": "object"
+      },
+      "QuantTerminalRow": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Symbol",
+            "type": "string"
+          },
+          "evidence_id": {
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "quality": {
+            "title": "Quality",
+            "type": "string"
+          },
+          "eligible": {
+            "title": "Eligible",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "chinese_explanation": {
+            "title": "Chinese Explanation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "evidence_id",
+          "score",
+          "rank",
+          "quality",
+          "eligible",
+          "reasons",
+          "chinese_explanation"
+        ],
+        "title": "QuantTerminalRow",
+        "type": "object"
+      },
+      "RebalanceDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "target": {
+            "$ref": "#/$defs/TargetPortfolio"
+          },
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "expected_turnover": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Expected Turnover"
+          },
+          "estimated_cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Estimated Cost"
+          },
+          "expected_benefit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Benefit"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "target",
+          "action",
+          "expected_turnover",
+          "estimated_cost",
+          "expected_benefit",
+          "reasons"
+        ],
+        "title": "RebalanceDecision",
+        "type": "object"
+      },
+      "RegimeState": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "default": "quant-regime-v2.1",
+            "title": "Version",
+            "type": "string"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "trend": {
+            "enum": [
+              "TRENDING_UP",
+              "TRENDING_DOWN",
+              "RANGE_BOUND",
+              "INSUFFICIENT_DATA"
+            ],
+            "title": "Trend",
+            "type": "string"
+          },
+          "volatility": {
+            "enum": [
+              "NORMAL",
+              "HIGH_VOLATILITY",
+              "INSUFFICIENT_DATA"
+            ],
+            "title": "Volatility",
+            "type": "string"
+          },
+          "drawdown_stress": {
+            "default": false,
+            "title": "Drawdown Stress",
+            "type": "boolean"
+          },
+          "risk_multiplier": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Risk Multiplier"
+          },
+          "exposure_ceiling": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Exposure Ceiling"
+          },
+          "rebalance_urgency": {
+            "title": "Rebalance Urgency",
+            "type": "string"
+          },
+          "input_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Hash"
+          },
+          "reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "as_of",
+          "trend",
+          "volatility",
+          "risk_multiplier",
+          "exposure_ceiling",
+          "rebalance_urgency",
+          "input_hash"
+        ],
+        "title": "RegimeState",
+        "type": "object"
+      },
+      "RunStatus": {
+        "enum": [
+          "NO_CAPITAL",
+          "ANALYSIS_ONLY",
+          "DRAFT",
+          "READY_FOR_MANUAL_ENTRY",
+          "NO_ACTION",
+          "BLOCKED_STALE_ACCOUNT",
+          "BLOCKED_STALE_MARKET",
+          "FAILED"
+        ],
+        "title": "RunStatus",
+        "type": "string"
+      },
+      "Side": {
+        "enum": [
+          "BUY",
+          "SELL"
+        ],
+        "title": "Side",
+        "type": "string"
+      },
+      "SymbolResearchV22": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "feature": {
+            "$ref": "#/$defs/ChallengerFeatureSnapshot"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ChallengerScore"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_exposure": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Exposure"
+          },
+          "preferred_exposure": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Preferred Exposure"
+          },
+          "feasible_exposure": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Feasible Exposure"
+          },
+          "cost_adjusted_exposure": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Adjusted Exposure"
+          },
+          "eligible_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eligible Change"
+          },
+          "candidate_action": {
+            "enum": [
+              "BUY_CANDIDATE",
+              "SELL_CANDIDATE",
+              "HOLD",
+              "WAIT"
+            ],
+            "title": "Candidate Action",
+            "type": "string"
+          },
+          "liquidity_status": {
+            "title": "Liquidity Status",
+            "type": "string"
+          },
+          "reasons_for_waiting": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons For Waiting",
+            "type": "array"
+          },
+          "chinese_explanation": {
+            "title": "Chinese Explanation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "analysis_cutoff",
+          "feature",
+          "score",
+          "current_exposure",
+          "preferred_exposure",
+          "feasible_exposure",
+          "cost_adjusted_exposure",
+          "eligible_change",
+          "candidate_action",
+          "liquidity_status",
+          "reasons_for_waiting",
+          "chinese_explanation"
+        ],
+        "title": "SymbolResearchV22",
+        "type": "object"
+      },
+      "TargetPortfolio": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "cash_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Cash Weight"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/$defs/TargetPosition"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "allocator_name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Allocator Name",
+            "type": "string"
+          },
+          "allocator_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Allocator Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "as_of",
+          "cash_weight",
+          "positions",
+          "allocator_name",
+          "allocator_version"
+        ],
+        "title": "TargetPortfolio",
+        "type": "object"
+      },
+      "TargetPosition": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "target_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Target Weight"
+          },
+          "conviction": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Conviction"
+          },
+          "rationale": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticker",
+          "target_weight",
+          "conviction",
+          "rationale"
+        ],
+        "title": "TargetPosition",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "schema_version": {
+        "const": "meridian-quant-terminal.v1",
+        "default": "meridian-quant-terminal.v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "AVAILABLE",
+          "SYNTHETIC_DIAGNOSTIC",
+          "BLOCKED"
+        ],
+        "title": "Status",
+        "type": "string"
+      },
+      "analysis_cutoff": {
+        "format": "date-time",
+        "title": "Analysis Cutoff",
+        "type": "string"
+      },
+      "request_hash": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Request Hash",
+        "type": "string"
+      },
+      "input_hashes": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "title": "Input Hashes",
+        "type": "object"
+      },
+      "policy_hash": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Policy Hash",
+        "type": "string"
+      },
+      "risk_policy_hash": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Risk Policy Hash",
+        "type": "string"
+      },
+      "engine_hash": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Engine Hash",
+        "type": "string"
+      },
+      "packet": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/QuantResearchPacketV22"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "rows": {
+        "items": {
+          "$ref": "#/$defs/QuantTerminalRow"
+        },
+        "title": "Rows",
+        "type": "array"
+      },
+      "reasons": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Reasons",
+        "type": "array"
+      },
+      "source": {
+        "const": "CALLER_SUPPLIED_HISTORY",
+        "default": "CALLER_SUPPLIED_HISTORY",
+        "title": "Source",
+        "type": "string"
+      },
+      "freshness": {
+        "const": "AS_OF_CUTOFF_SEE_FACTOR_AVAILABILITY",
+        "default": "AS_OF_CUTOFF_SEE_FACTOR_AVAILABILITY",
+        "title": "Freshness",
+        "type": "string"
+      },
+      "certification": {
+        "title": "Certification",
+        "type": "string"
+      },
+      "predictive_confidence": {
+        "default": null,
+        "title": "Predictive Confidence",
+        "type": "null"
+      },
+      "financial_oos_eligible": {
+        "const": false,
+        "default": false,
+        "title": "Financial Oos Eligible",
+        "type": "boolean"
+      },
+      "execution_authority": {
+        "const": "NONE",
+        "default": "NONE",
+        "title": "Execution Authority",
+        "type": "string"
+      },
+      "broker_submission": {
+        "const": "DISABLED",
+        "default": "DISABLED",
+        "title": "Broker Submission",
+        "type": "string"
+      }
+    },
+    "required": [
+      "status",
+      "analysis_cutoff",
+      "request_hash",
+      "input_hashes",
+      "policy_hash",
+      "risk_policy_hash",
+      "engine_hash",
+      "packet",
+      "rows",
+      "reasons",
+      "certification"
+    ],
+    "title": "QuantTerminalSnapshot",
+    "type": "object"
+  },
+  "PortfolioWhatIfRequest": {
+    "$defs": {
+      "AccountSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "snapshot_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "account_alias": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Account Alias",
+            "type": "string"
+          },
+          "provider": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "currency": {
+            "default": "USD",
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "total_equity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Total Equity"
+          },
+          "cash": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Cash"
+          },
+          "buying_power": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Buying Power"
+          },
+          "holdings": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Holding"
+            },
+            "title": "Holdings",
+            "type": "array"
+          },
+          "recent_investment_transactions": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/InvestmentTransaction"
+            },
+            "title": "Recent Investment Transactions",
+            "type": "array"
+          },
+          "sync_state": {
+            "$ref": "#/$defs/AccountSyncState"
+          },
+          "freshness_state": {
+            "$ref": "#/$defs/FreshnessState"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "account_alias",
+          "provider",
+          "as_of",
+          "total_equity",
+          "cash",
+          "sync_state",
+          "freshness_state"
+        ],
+        "title": "AccountSnapshot",
+        "type": "object"
+      },
+      "AccountSyncState": {
+        "enum": [
+          "SYNCED",
+          "PARTIAL",
+          "UNAVAILABLE"
+        ],
+        "title": "AccountSyncState",
+        "type": "string"
+      },
+      "DeclaredShock": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Symbol",
+            "type": "string"
+          },
+          "return_shock": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": -1.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Return Shock"
+          }
+        },
+        "required": [
+          "symbol",
+          "return_shock"
+        ],
+        "title": "DeclaredShock",
+        "type": "object"
+      },
+      "FreshnessState": {
+        "enum": [
+          "VERIFIED",
+          "RECENT",
+          "UNKNOWN",
+          "STALE"
+        ],
+        "title": "FreshnessState",
+        "type": "string"
+      },
+      "Holding": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,12}|(?=[\\d.]{1,19}0*$)\\d{0,12}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "market_value": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Market Value"
+          },
+          "cost_basis": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Basis"
+          },
+          "average_cost": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Average Cost"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Price"
+          }
+        },
+        "required": [
+          "ticker",
+          "quantity",
+          "market_value"
+        ],
+        "title": "Holding",
+        "type": "object"
+      },
+      "HypotheticalWeight": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Symbol",
+            "type": "string"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Weight"
+          }
+        },
+        "required": [
+          "symbol",
+          "weight"
+        ],
+        "title": "HypotheticalWeight",
+        "type": "object"
+      },
+      "InvestmentTransaction": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "side": {
+            "$ref": "#/$defs/Side"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,12}|(?=[\\d.]{1,19}0*$)\\d{0,12}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Price"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Amount"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticker",
+          "side",
+          "quantity",
+          "timestamp"
+        ],
+        "title": "InvestmentTransaction",
+        "type": "object"
+      },
+      "QuantSecurityMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "asset_type": {
+            "enum": [
+              "EQUITY",
+              "DIVERSIFIED_ETF"
+            ],
+            "title": "Asset Type",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sector"
+          },
+          "known_at": {
+            "format": "date-time",
+            "title": "Known At",
+            "type": "string"
+          },
+          "source": {
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "asset_type",
+          "known_at",
+          "source"
+        ],
+        "title": "QuantSecurityMetadata",
+        "type": "object"
+      },
+      "Side": {
+        "enum": [
+          "BUY",
+          "SELL"
+        ],
+        "title": "Side",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "analysis_cutoff": {
+        "format": "date-time",
+        "title": "Analysis Cutoff",
+        "type": "string"
+      },
+      "account": {
+        "$ref": "#/$defs/AccountSnapshot"
+      },
+      "desired": {
+        "items": {
+          "$ref": "#/$defs/HypotheticalWeight"
+        },
+        "maxItems": 20,
+        "title": "Desired",
+        "type": "array"
+      },
+      "metadata": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/QuantSecurityMetadata"
+        },
+        "maxItems": 40,
+        "title": "Metadata",
+        "type": "array"
+      },
+      "shocks": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/DeclaredShock"
+        },
+        "maxItems": 40,
+        "title": "Shocks",
+        "type": "array"
+      }
+    },
+    "required": [
+      "analysis_cutoff",
+      "account",
+      "desired"
+    ],
+    "title": "PortfolioWhatIfRequest",
+    "type": "object"
+  },
+  "PortfolioWhatIfResult": {
+    "additionalProperties": false,
+    "properties": {
+      "schema_version": {
+        "const": "meridian-portfolio-what-if.v1",
+        "default": "meridian-portfolio-what-if.v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "RESEARCH_ONLY",
+          "BLOCKED"
+        ],
+        "title": "Status",
+        "type": "string"
+      },
+      "analysis_cutoff": {
+        "format": "date-time",
+        "title": "Analysis Cutoff",
+        "type": "string"
+      },
+      "current": {
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ]
+        },
+        "title": "Current",
+        "type": "object"
+      },
+      "preferred": {
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ]
+        },
+        "title": "Preferred",
+        "type": "object"
+      },
+      "feasible": {
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ]
+        },
+        "title": "Feasible",
+        "type": "object"
+      },
+      "cash_weight_before": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Cash Weight Before"
+      },
+      "cash_weight_after": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Cash Weight After"
+      },
+      "feasible_turnover": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Feasible Turnover"
+      },
+      "estimated_cost_fraction": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Estimated Cost Fraction"
+      },
+      "current_declared_shock_return": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Current Declared Shock Return"
+      },
+      "feasible_declared_shock_return": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Feasible Declared Shock Return"
+      },
+      "violations": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Violations",
+        "type": "array"
+      },
+      "modifications": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Modifications",
+        "type": "array"
+      },
+      "unknowns": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Unknowns",
+        "type": "array"
+      },
+      "policy_hash": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Policy Hash",
+        "type": "string"
+      },
+      "source": {
+        "const": "AUTHORIZED_IN_MEMORY_PAPER_SNAPSHOT",
+        "default": "AUTHORIZED_IN_MEMORY_PAPER_SNAPSHOT",
+        "title": "Source",
+        "type": "string"
+      },
+      "freshness": {
+        "title": "Freshness",
+        "type": "string"
+      },
+      "execution_authority": {
+        "const": "NONE",
+        "default": "NONE",
+        "title": "Execution Authority",
+        "type": "string"
+      },
+      "broker_submission": {
+        "const": "DISABLED",
+        "default": "DISABLED",
+        "title": "Broker Submission",
+        "type": "string"
+      }
+    },
+    "required": [
+      "status",
+      "analysis_cutoff",
+      "current",
+      "preferred",
+      "feasible",
+      "cash_weight_before",
+      "cash_weight_after",
+      "feasible_turnover",
+      "estimated_cost_fraction",
+      "current_declared_shock_return",
+      "feasible_declared_shock_return",
+      "violations",
+      "modifications",
+      "unknowns",
+      "policy_hash",
+      "freshness"
+    ],
+    "title": "PortfolioWhatIfResult",
+    "type": "object"
+  },
+  "EvidenceTraceRequest": {
+    "$defs": {
+      "HistoricalAdjustmentStatus": {
+        "enum": [
+          "RAW",
+          "ADJUSTED_CLOSE",
+          "FULLY_ADJUSTED_OHLCV"
+        ],
+        "title": "HistoricalAdjustmentStatus",
+        "type": "string"
+      },
+      "HistoricalBar": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_asset_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Canonical Asset Id",
+            "type": "string"
+          },
+          "canonical_symbol": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,15}$",
+            "title": "Canonical Symbol",
+            "type": "string"
+          },
+          "provider_symbol": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider Symbol",
+            "type": "string"
+          },
+          "session": {
+            "format": "date",
+            "title": "Session",
+            "type": "string"
+          },
+          "calendar": {
+            "$ref": "#/$defs/TradingCalendarName"
+          },
+          "open": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Open"
+          },
+          "high": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "High"
+          },
+          "low": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Low"
+          },
+          "close": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Close"
+          },
+          "volume": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Volume"
+          },
+          "currency": {
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "adjustment_status": {
+            "$ref": "#/$defs/HistoricalAdjustmentStatus"
+          },
+          "provider": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "available_at": {
+            "format": "date-time",
+            "title": "Available At",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "source": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          },
+          "quality": {
+            "$ref": "#/$defs/HistoricalQuality",
+            "default": "UNVERIFIED"
+          },
+          "certification": {
+            "$ref": "#/$defs/HistoricalBarCertification",
+            "default": "UNVERIFIED"
+          }
+        },
+        "required": [
+          "canonical_asset_id",
+          "canonical_symbol",
+          "provider_symbol",
+          "session",
+          "calendar",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume",
+          "currency",
+          "adjustment_status",
+          "provider",
+          "observed_at",
+          "available_at",
+          "retrieved_at",
+          "source"
+        ],
+        "title": "HistoricalBar",
+        "type": "object"
+      },
+      "HistoricalBarCertification": {
+        "enum": [
+          "CERTIFIED_MARKET_SESSION",
+          "CERTIFIED_RESEARCH_PIT_ADJUSTED",
+          "UNVERIFIED",
+          "SYNTHETIC",
+          "REPLAY_UNSAFE"
+        ],
+        "title": "HistoricalBarCertification",
+        "type": "string"
+      },
+      "HistoricalBarSeries": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_asset_id": {
+            "title": "Canonical Asset Id",
+            "type": "string"
+          },
+          "canonical_symbol": {
+            "title": "Canonical Symbol",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "bars": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/HistoricalBar"
+            },
+            "maxItems": 5000,
+            "title": "Bars",
+            "type": "array"
+          },
+          "source_mode": {
+            "default": "REPLAY",
+            "title": "Source Mode",
+            "type": "string"
+          },
+          "content_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Content Hash"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "canonical_asset_id",
+          "canonical_symbol",
+          "provider",
+          "as_of"
+        ],
+        "title": "HistoricalBarSeries",
+        "type": "object"
+      },
+      "HistoricalQuality": {
+        "enum": [
+          "VERIFIED",
+          "UNVERIFIED",
+          "MISSING",
+          "INVALID",
+          "CONFLICT"
+        ],
+        "title": "HistoricalQuality",
+        "type": "string"
+      },
+      "QuantSecurityMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "asset_type": {
+            "enum": [
+              "EQUITY",
+              "DIVERSIFIED_ETF"
+            ],
+            "title": "Asset Type",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sector"
+          },
+          "known_at": {
+            "format": "date-time",
+            "title": "Known At",
+            "type": "string"
+          },
+          "source": {
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "asset_type",
+          "known_at",
+          "source"
+        ],
+        "title": "QuantSecurityMetadata",
+        "type": "object"
+      },
+      "QuantTerminalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "symbols": {
+            "items": {
+              "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Symbols",
+            "type": "array"
+          },
+          "histories": {
+            "items": {
+              "$ref": "#/$defs/HistoricalBarSeries"
+            },
+            "maxItems": 9,
+            "title": "Histories",
+            "type": "array"
+          },
+          "metadata": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/QuantSecurityMetadata"
+            },
+            "maxItems": 9,
+            "title": "Metadata",
+            "type": "array"
+          },
+          "diagnostic": {
+            "default": false,
+            "title": "Diagnostic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "analysis_cutoff",
+          "symbols",
+          "histories"
+        ],
+        "title": "QuantTerminalRequest",
+        "type": "object"
+      },
+      "TradingCalendarName": {
+        "enum": [
+          "US_EQUITY",
+          "CBOE_VIX"
+        ],
+        "title": "TradingCalendarName",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "$ref": "#/$defs/QuantTerminalRequest"
+      },
+      "evidence_id": {
+        "maxLength": 160,
+        "minLength": 1,
+        "title": "Evidence Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "request",
+      "evidence_id"
+    ],
+    "title": "EvidenceTraceRequest",
+    "type": "object"
+  },
+  "EvidenceTraceResult": {
+    "additionalProperties": false,
+    "properties": {
+      "version": {
+        "const": "terminal-evidence-trace.v1",
+        "default": "terminal-evidence-trace.v1",
+        "title": "Version",
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "FOUND",
+          "NOT_FOUND"
+        ],
+        "title": "Status",
+        "type": "string"
+      },
+      "analysis_cutoff": {
+        "format": "date-time",
+        "title": "Analysis Cutoff",
+        "type": "string"
+      },
+      "evidence_id": {
+        "title": "Evidence Id",
+        "type": "string"
+      },
+      "snapshot_hash": {
+        "pattern": "^[a-f0-9]{64}$",
+        "title": "Snapshot Hash",
+        "type": "string"
+      },
+      "source_hashes": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "title": "Source Hashes",
+        "type": "object"
+      },
+      "symbol_result": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Symbol Result"
+      },
+      "reason": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Reason"
+      },
+      "source": {
+        "const": "RECOMPUTED_DETERMINISTIC_QUANT",
+        "default": "RECOMPUTED_DETERMINISTIC_QUANT",
+        "title": "Source",
+        "type": "string"
+      },
+      "execution_authority": {
+        "const": "NONE",
+        "default": "NONE",
+        "title": "Execution Authority",
+        "type": "string"
+      }
+    },
+    "required": [
+      "status",
+      "analysis_cutoff",
+      "evidence_id",
+      "snapshot_hash",
+      "source_hashes",
+      "symbol_result",
+      "reason"
+    ],
+    "title": "EvidenceTraceResult",
+    "type": "object"
+  },
+  "TerminalBrief": {
+    "$defs": {
+      "AlphaScoreV2": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "strategy": {
+            "title": "Strategy",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "quant_score": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Quant Score"
+          },
+          "relative_rank": {
+            "minimum": 1,
+            "title": "Relative Rank",
+            "type": "integer"
+          },
+          "contributions": {
+            "items": {
+              "$ref": "#/$defs/FactorContribution"
+            },
+            "title": "Contributions",
+            "type": "array"
+          },
+          "data_quality_status": {
+            "title": "Data Quality Status",
+            "type": "string"
+          },
+          "completeness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Completeness"
+          },
+          "risk_multiplier": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Risk Multiplier"
+          },
+          "risk_adjustments": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Risk Adjustments",
+            "type": "array"
+          },
+          "inclusion_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Inclusion Reasons",
+            "type": "array"
+          },
+          "exclusion_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclusion Reasons",
+            "type": "array"
+          },
+          "score_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Score Change"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "predictive_confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Predictive Confidence"
+          }
+        },
+        "required": [
+          "symbol",
+          "as_of",
+          "strategy",
+          "policy_version",
+          "quant_score",
+          "relative_rank",
+          "contributions",
+          "data_quality_status",
+          "completeness",
+          "risk_multiplier",
+          "risk_adjustments",
+          "inclusion_reasons",
+          "exclusion_reasons",
+          "input_hash"
+        ],
+        "title": "AlphaScoreV2",
+        "type": "object"
+      },
+      "ChallengerAllocation": {
+        "additionalProperties": false,
+        "properties": {
+          "preferred_target": {
+            "$ref": "#/$defs/TargetPortfolio"
+          },
+          "feasible_target": {
+            "$ref": "#/$defs/TargetPortfolio"
+          },
+          "risk": {
+            "$ref": "#/$defs/PortfolioRiskEstimate"
+          },
+          "modifications": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Modifications",
+            "type": "array"
+          }
+        },
+        "required": [
+          "preferred_target",
+          "feasible_target",
+          "risk",
+          "modifications"
+        ],
+        "title": "ChallengerAllocation",
+        "type": "object"
+      },
+      "ChallengerContribution": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "default": "quant-factor-contribution.v2.2",
+            "title": "Version",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "availability_cutoff": {
+            "format": "date-time",
+            "title": "Availability Cutoff",
+            "type": "string"
+          },
+          "provenance": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Provenance",
+            "type": "array"
+          },
+          "lookback": {
+            "title": "Lookback",
+            "type": "integer"
+          },
+          "raw": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw"
+          },
+          "normalized": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalized"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Weight"
+          },
+          "contribution": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Contribution"
+          },
+          "missing_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missing Reason"
+          },
+          "transformation": {
+            "default": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND",
+            "title": "Transformation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "group",
+          "symbol",
+          "as_of",
+          "availability_cutoff",
+          "provenance",
+          "lookback",
+          "raw",
+          "normalized",
+          "weight",
+          "contribution",
+          "missing_reason"
+        ],
+        "title": "ChallengerContribution",
+        "type": "object"
+      },
+      "ChallengerFeatureSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "quant-features-v2.2",
+            "default": "quant-features-v2.2",
+            "title": "Version",
+            "type": "string"
+          },
+          "base": {
+            "$ref": "#/$defs/FeatureSnapshot"
+          },
+          "medium_distance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Medium Distance"
+          },
+          "momentum_acceleration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Momentum Acceleration"
+          },
+          "trend_instability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trend Instability"
+          },
+          "residual_momentum_63": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Residual Momentum 63"
+          },
+          "missing_reasons": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Missing Reasons",
+            "type": "object"
+          },
+          "provenance": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Provenance",
+            "type": "array"
+          },
+          "availability_cutoff": {
+            "format": "date-time",
+            "title": "Availability Cutoff",
+            "type": "string"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          }
+        },
+        "required": [
+          "base",
+          "medium_distance",
+          "momentum_acceleration",
+          "trend_instability",
+          "residual_momentum_63",
+          "missing_reasons",
+          "provenance",
+          "availability_cutoff",
+          "input_hash"
+        ],
+        "title": "ChallengerFeatureSnapshot",
+        "type": "object"
+      },
+      "ChallengerScore": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "default": "quant-score-v2.2",
+            "title": "Version",
+            "type": "string"
+          },
+          "bridge": {
+            "$ref": "#/$defs/AlphaScoreV2"
+          },
+          "signal_strength": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Signal Strength"
+          },
+          "risk_adjusted_score": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Risk Adjusted Score"
+          },
+          "factor_attribution": {
+            "items": {
+              "$ref": "#/$defs/ChallengerContribution"
+            },
+            "title": "Factor Attribution",
+            "type": "array"
+          },
+          "score_change_attribution": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Score Change Attribution",
+            "type": "object"
+          },
+          "risk_score_change_attribution": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Risk Score Change Attribution",
+            "type": "object"
+          },
+          "positive_observations": {
+            "minimum": 0,
+            "title": "Positive Observations",
+            "type": "integer"
+          },
+          "persistence_definition": {
+            "default": "CONSECUTIVE_OBSERVED_ELIGIBLE_SESSIONS_NOT_CONFIDENCE",
+            "title": "Persistence Definition",
+            "type": "string"
+          },
+          "policy_hash": {
+            "title": "Policy Hash",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bridge",
+          "signal_strength",
+          "risk_adjusted_score",
+          "factor_attribution",
+          "score_change_attribution",
+          "risk_score_change_attribution",
+          "positive_observations",
+          "policy_hash"
+        ],
+        "title": "ChallengerScore",
+        "type": "object"
+      },
+      "CostPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "quant-cost-v1",
+            "default": "quant-cost-v1",
+            "title": "Version",
+            "type": "string"
+          },
+          "commission_per_order": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "1",
+            "title": "Commission Per Order"
+          },
+          "slippage_bps": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "5",
+            "title": "Slippage Bps"
+          },
+          "spread_bps": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Spread Bps"
+          }
+        },
+        "title": "CostPolicy",
+        "type": "object"
+      },
+      "FactorContribution": {
+        "additionalProperties": false,
+        "properties": {
+          "factor": {
+            "$ref": "#/$defs/FactorValue"
+          },
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Weight"
+          },
+          "contribution": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Contribution"
+          },
+          "normalization": {
+            "title": "Normalization",
+            "type": "string"
+          }
+        },
+        "required": [
+          "factor",
+          "group",
+          "weight",
+          "contribution",
+          "normalization"
+        ],
+        "title": "FactorContribution",
+        "type": "object"
+      },
+      "FactorValue": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "const": "price-factor-v2.1",
+            "default": "price-factor-v2.1",
+            "title": "Version",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "lookback": {
+            "minimum": 1,
+            "title": "Lookback",
+            "type": "integer"
+          },
+          "raw_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Value"
+          },
+          "normalized_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Normalized Value"
+          },
+          "provenance": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Provenance",
+            "type": "array"
+          },
+          "availability_cutoff": {
+            "format": "date-time",
+            "title": "Availability Cutoff",
+            "type": "string"
+          },
+          "quality_status": {
+            "enum": [
+              "AVAILABLE",
+              "UNAVAILABLE"
+            ],
+            "title": "Quality Status",
+            "type": "string"
+          },
+          "missing_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Missing Reason"
+          }
+        },
+        "required": [
+          "name",
+          "symbol",
+          "as_of",
+          "lookback",
+          "raw_value",
+          "availability_cutoff",
+          "quality_status"
+        ],
+        "title": "FactorValue",
+        "type": "object"
+      },
+      "FeatureSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "quant-features-v2.1",
+            "default": "quant-features-v2.1",
+            "title": "Version",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "last_session": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Session"
+          },
+          "factors": {
+            "items": {
+              "$ref": "#/$defs/FactorValue"
+            },
+            "title": "Factors",
+            "type": "array"
+          },
+          "input_hash": {
+            "title": "Input Hash",
+            "type": "string"
+          },
+          "quality_status": {
+            "enum": [
+              "VERIFIED",
+              "REJECTED",
+              "SYNTHETIC_DIAGNOSTIC"
+            ],
+            "title": "Quality Status",
+            "type": "string"
+          },
+          "reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "synthetic": {
+            "default": false,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "symbol",
+          "as_of",
+          "last_session",
+          "factors",
+          "input_hash",
+          "quality_status"
+        ],
+        "title": "FeatureSnapshot",
+        "type": "object"
+      },
+      "OrderDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "side": {
+            "$ref": "#/$defs/Side"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,12}|(?=[\\d.]{1,19}0*$)\\d{0,12}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "preferred_limit": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Preferred Limit"
+          },
+          "max_acceptable_buy_price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Acceptable Buy Price"
+          },
+          "min_acceptable_sell_price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Min Acceptable Sell Price"
+          },
+          "target_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Target Weight"
+          },
+          "current_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Current Weight"
+          },
+          "estimated_notional": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Estimated Notional"
+          },
+          "time_in_force": {
+            "pattern": "^(DAY|GTC)$",
+            "title": "Time In Force",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/$defs/RunStatus"
+          },
+          "reason": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticker",
+          "side",
+          "quantity",
+          "target_weight",
+          "current_weight",
+          "estimated_notional",
+          "time_in_force",
+          "status",
+          "reason"
+        ],
+        "title": "OrderDraft",
+        "type": "object"
+      },
+      "PortfolioRiskEstimate": {
+        "additionalProperties": false,
+        "properties": {
+          "conservative_volatility_bound": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Conservative Volatility Bound"
+          },
+          "shrunk_volatility_estimate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shrunk Volatility Estimate"
+          },
+          "covariance_status": {
+            "title": "Covariance Status",
+            "type": "string"
+          },
+          "correlated_components": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Correlated Components",
+            "type": "array"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "conservative_volatility_bound",
+          "shrunk_volatility_estimate",
+          "covariance_status",
+          "correlated_components",
+          "assumptions"
+        ],
+        "title": "PortfolioRiskEstimate",
+        "type": "object"
+      },
+      "PortfolioWhatIfResult": {
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {
+            "const": "meridian-portfolio-what-if.v1",
+            "default": "meridian-portfolio-what-if.v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "RESEARCH_ONLY",
+              "BLOCKED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "current": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Current",
+            "type": "object"
+          },
+          "preferred": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Preferred",
+            "type": "object"
+          },
+          "feasible": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Feasible",
+            "type": "object"
+          },
+          "cash_weight_before": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash Weight Before"
+          },
+          "cash_weight_after": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash Weight After"
+          },
+          "feasible_turnover": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feasible Turnover"
+          },
+          "estimated_cost_fraction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Cost Fraction"
+          },
+          "current_declared_shock_return": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Declared Shock Return"
+          },
+          "feasible_declared_shock_return": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feasible Declared Shock Return"
+          },
+          "violations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Violations",
+            "type": "array"
+          },
+          "modifications": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Modifications",
+            "type": "array"
+          },
+          "unknowns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unknowns",
+            "type": "array"
+          },
+          "policy_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Policy Hash",
+            "type": "string"
+          },
+          "source": {
+            "const": "AUTHORIZED_IN_MEMORY_PAPER_SNAPSHOT",
+            "default": "AUTHORIZED_IN_MEMORY_PAPER_SNAPSHOT",
+            "title": "Source",
+            "type": "string"
+          },
+          "freshness": {
+            "title": "Freshness",
+            "type": "string"
+          },
+          "execution_authority": {
+            "const": "NONE",
+            "default": "NONE",
+            "title": "Execution Authority",
+            "type": "string"
+          },
+          "broker_submission": {
+            "const": "DISABLED",
+            "default": "DISABLED",
+            "title": "Broker Submission",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "analysis_cutoff",
+          "current",
+          "preferred",
+          "feasible",
+          "cash_weight_before",
+          "cash_weight_after",
+          "feasible_turnover",
+          "estimated_cost_fraction",
+          "current_declared_shock_return",
+          "feasible_declared_shock_return",
+          "violations",
+          "modifications",
+          "unknowns",
+          "policy_hash",
+          "freshness"
+        ],
+        "title": "PortfolioWhatIfResult",
+        "type": "object"
+      },
+      "QuantResearchPacketV22": {
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {
+            "const": "quant-research-packet.v2.2",
+            "default": "quant-research-packet.v2.2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "symbols": {
+            "items": {
+              "$ref": "#/$defs/SymbolResearchV22"
+            },
+            "title": "Symbols",
+            "type": "array"
+          },
+          "regime": {
+            "$ref": "#/$defs/RegimeState"
+          },
+          "allocation": {
+            "$ref": "#/$defs/ChallengerAllocation"
+          },
+          "rebalance": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RebalanceDecision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "eligible_hypothetical_drafts": {
+            "items": {
+              "$ref": "#/$defs/OrderDraft"
+            },
+            "title": "Eligible Hypothetical Drafts",
+            "type": "array"
+          },
+          "constraint_modifications": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Constraint Modifications",
+            "type": "array"
+          },
+          "important_unknowns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Important Unknowns",
+            "type": "array"
+          },
+          "cost_assumptions": {
+            "$ref": "#/$defs/CostPolicy"
+          },
+          "data_certification_class": {
+            "title": "Data Certification Class",
+            "type": "string"
+          },
+          "strategy_hash": {
+            "title": "Strategy Hash",
+            "type": "string"
+          },
+          "model_hash": {
+            "const": "UNCALIBRATED_NO_PREDICTIVE_MODEL",
+            "default": "UNCALIBRATED_NO_PREDICTIVE_MODEL",
+            "title": "Model Hash",
+            "type": "string"
+          },
+          "engine_hash": {
+            "title": "Engine Hash",
+            "type": "string"
+          },
+          "authority": {
+            "const": "SHADOW_ONLY",
+            "default": "SHADOW_ONLY",
+            "title": "Authority",
+            "type": "string"
+          },
+          "trade_authorized": {
+            "const": false,
+            "default": false,
+            "title": "Trade Authorized",
+            "type": "boolean"
+          },
+          "automatic_promotion": {
+            "const": false,
+            "default": false,
+            "title": "Automatic Promotion",
+            "type": "boolean"
+          },
+          "broker_submission": {
+            "const": "DISABLED",
+            "default": "DISABLED",
+            "title": "Broker Submission",
+            "type": "string"
+          }
+        },
+        "required": [
+          "analysis_cutoff",
+          "symbols",
+          "regime",
+          "allocation",
+          "rebalance",
+          "eligible_hypothetical_drafts",
+          "constraint_modifications",
+          "important_unknowns",
+          "cost_assumptions",
+          "data_certification_class",
+          "strategy_hash",
+          "engine_hash"
+        ],
+        "title": "QuantResearchPacketV22",
+        "type": "object"
+      },
+      "QuantTerminalRow": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Symbol",
+            "type": "string"
+          },
+          "evidence_id": {
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "quality": {
+            "title": "Quality",
+            "type": "string"
+          },
+          "eligible": {
+            "title": "Eligible",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "chinese_explanation": {
+            "title": "Chinese Explanation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "evidence_id",
+          "score",
+          "rank",
+          "quality",
+          "eligible",
+          "reasons",
+          "chinese_explanation"
+        ],
+        "title": "QuantTerminalRow",
+        "type": "object"
+      },
+      "QuantTerminalSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {
+            "const": "meridian-quant-terminal.v1",
+            "default": "meridian-quant-terminal.v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "AVAILABLE",
+              "SYNTHETIC_DIAGNOSTIC",
+              "BLOCKED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "request_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Request Hash",
+            "type": "string"
+          },
+          "input_hashes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Input Hashes",
+            "type": "object"
+          },
+          "policy_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Policy Hash",
+            "type": "string"
+          },
+          "risk_policy_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Risk Policy Hash",
+            "type": "string"
+          },
+          "engine_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Engine Hash",
+            "type": "string"
+          },
+          "packet": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/QuantResearchPacketV22"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/$defs/QuantTerminalRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "source": {
+            "const": "CALLER_SUPPLIED_HISTORY",
+            "default": "CALLER_SUPPLIED_HISTORY",
+            "title": "Source",
+            "type": "string"
+          },
+          "freshness": {
+            "const": "AS_OF_CUTOFF_SEE_FACTOR_AVAILABILITY",
+            "default": "AS_OF_CUTOFF_SEE_FACTOR_AVAILABILITY",
+            "title": "Freshness",
+            "type": "string"
+          },
+          "certification": {
+            "title": "Certification",
+            "type": "string"
+          },
+          "predictive_confidence": {
+            "default": null,
+            "title": "Predictive Confidence",
+            "type": "null"
+          },
+          "financial_oos_eligible": {
+            "const": false,
+            "default": false,
+            "title": "Financial Oos Eligible",
+            "type": "boolean"
+          },
+          "execution_authority": {
+            "const": "NONE",
+            "default": "NONE",
+            "title": "Execution Authority",
+            "type": "string"
+          },
+          "broker_submission": {
+            "const": "DISABLED",
+            "default": "DISABLED",
+            "title": "Broker Submission",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "analysis_cutoff",
+          "request_hash",
+          "input_hashes",
+          "policy_hash",
+          "risk_policy_hash",
+          "engine_hash",
+          "packet",
+          "rows",
+          "reasons",
+          "certification"
+        ],
+        "title": "QuantTerminalSnapshot",
+        "type": "object"
+      },
+      "RebalanceDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "target": {
+            "$ref": "#/$defs/TargetPortfolio"
+          },
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "expected_turnover": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Expected Turnover"
+          },
+          "estimated_cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Estimated Cost"
+          },
+          "expected_benefit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Benefit"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "target",
+          "action",
+          "expected_turnover",
+          "estimated_cost",
+          "expected_benefit",
+          "reasons"
+        ],
+        "title": "RebalanceDecision",
+        "type": "object"
+      },
+      "RegimeState": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "default": "quant-regime-v2.1",
+            "title": "Version",
+            "type": "string"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "trend": {
+            "enum": [
+              "TRENDING_UP",
+              "TRENDING_DOWN",
+              "RANGE_BOUND",
+              "INSUFFICIENT_DATA"
+            ],
+            "title": "Trend",
+            "type": "string"
+          },
+          "volatility": {
+            "enum": [
+              "NORMAL",
+              "HIGH_VOLATILITY",
+              "INSUFFICIENT_DATA"
+            ],
+            "title": "Volatility",
+            "type": "string"
+          },
+          "drawdown_stress": {
+            "default": false,
+            "title": "Drawdown Stress",
+            "type": "boolean"
+          },
+          "risk_multiplier": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Risk Multiplier"
+          },
+          "exposure_ceiling": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Exposure Ceiling"
+          },
+          "rebalance_urgency": {
+            "title": "Rebalance Urgency",
+            "type": "string"
+          },
+          "input_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Hash"
+          },
+          "reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "as_of",
+          "trend",
+          "volatility",
+          "risk_multiplier",
+          "exposure_ceiling",
+          "rebalance_urgency",
+          "input_hash"
+        ],
+        "title": "RegimeState",
+        "type": "object"
+      },
+      "RunStatus": {
+        "enum": [
+          "NO_CAPITAL",
+          "ANALYSIS_ONLY",
+          "DRAFT",
+          "READY_FOR_MANUAL_ENTRY",
+          "NO_ACTION",
+          "BLOCKED_STALE_ACCOUNT",
+          "BLOCKED_STALE_MARKET",
+          "FAILED"
+        ],
+        "title": "RunStatus",
+        "type": "string"
+      },
+      "Side": {
+        "enum": [
+          "BUY",
+          "SELL"
+        ],
+        "title": "Side",
+        "type": "string"
+      },
+      "SymbolResearchV22": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "feature": {
+            "$ref": "#/$defs/ChallengerFeatureSnapshot"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ChallengerScore"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_exposure": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Exposure"
+          },
+          "preferred_exposure": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Preferred Exposure"
+          },
+          "feasible_exposure": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Feasible Exposure"
+          },
+          "cost_adjusted_exposure": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Adjusted Exposure"
+          },
+          "eligible_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eligible Change"
+          },
+          "candidate_action": {
+            "enum": [
+              "BUY_CANDIDATE",
+              "SELL_CANDIDATE",
+              "HOLD",
+              "WAIT"
+            ],
+            "title": "Candidate Action",
+            "type": "string"
+          },
+          "liquidity_status": {
+            "title": "Liquidity Status",
+            "type": "string"
+          },
+          "reasons_for_waiting": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons For Waiting",
+            "type": "array"
+          },
+          "chinese_explanation": {
+            "title": "Chinese Explanation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "analysis_cutoff",
+          "feature",
+          "score",
+          "current_exposure",
+          "preferred_exposure",
+          "feasible_exposure",
+          "cost_adjusted_exposure",
+          "eligible_change",
+          "candidate_action",
+          "liquidity_status",
+          "reasons_for_waiting",
+          "chinese_explanation"
+        ],
+        "title": "SymbolResearchV22",
+        "type": "object"
+      },
+      "TargetPortfolio": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "cash_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Cash Weight"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/$defs/TargetPosition"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "allocator_name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Allocator Name",
+            "type": "string"
+          },
+          "allocator_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Allocator Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "as_of",
+          "cash_weight",
+          "positions",
+          "allocator_name",
+          "allocator_version"
+        ],
+        "title": "TargetPortfolio",
+        "type": "object"
+      },
+      "TargetPosition": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "target_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Target Weight"
+          },
+          "conviction": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Conviction"
+          },
+          "rationale": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticker",
+          "target_weight",
+          "conviction",
+          "rationale"
+        ],
+        "title": "TargetPosition",
+        "type": "object"
+      },
+      "TerminalTelemetry": {
+        "additionalProperties": false,
+        "properties": {
+          "quant_ms": {
+            "minimum": 0,
+            "title": "Quant Ms",
+            "type": "number"
+          },
+          "report_ms": {
+            "minimum": 0,
+            "title": "Report Ms",
+            "type": "number"
+          },
+          "risk_ms": {
+            "minimum": 0,
+            "title": "Risk Ms",
+            "type": "number"
+          },
+          "cache_hit": {
+            "title": "Cache Hit",
+            "type": "boolean"
+          },
+          "calculations": {
+            "maximum": 2,
+            "minimum": 0,
+            "title": "Calculations",
+            "type": "integer"
+          },
+          "provider_requests": {
+            "const": 0,
+            "default": 0,
+            "title": "Provider Requests",
+            "type": "integer"
+          },
+          "model_calls": {
+            "const": 0,
+            "default": 0,
+            "title": "Model Calls",
+            "type": "integer"
+          },
+          "token_usage": {
+            "default": null,
+            "title": "Token Usage",
+            "type": "null"
+          },
+          "cost": {
+            "default": null,
+            "title": "Cost",
+            "type": "null"
+          },
+          "latency_accounting": {
+            "const": "WALL_CLOCK_COMPONENTS_NOT_SHARED_MODEL_STAGE_SUM",
+            "default": "WALL_CLOCK_COMPONENTS_NOT_SHARED_MODEL_STAGE_SUM",
+            "title": "Latency Accounting",
+            "type": "string"
+          }
+        },
+        "required": [
+          "quant_ms",
+          "report_ms",
+          "risk_ms",
+          "cache_hit",
+          "calculations"
+        ],
+        "title": "TerminalTelemetry",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "schema_version": {
+        "const": "meridian-research-terminal.v1",
+        "default": "meridian-research-terminal.v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "RESEARCH_ONLY",
+          "DEGRADED",
+          "BLOCKED"
+        ],
+        "title": "Status",
+        "type": "string"
+      },
+      "quant": {
+        "$ref": "#/$defs/QuantTerminalSnapshot"
+      },
+      "portfolio": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/PortfolioWhatIfResult"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "views": {
+        "additionalProperties": true,
+        "title": "Views",
+        "type": "object"
+      },
+      "telemetry": {
+        "$ref": "#/$defs/TerminalTelemetry"
+      },
+      "evidence_hash": {
+        "title": "Evidence Hash",
+        "type": "string"
+      },
+      "reasons": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Reasons",
+        "type": "array"
+      },
+      "execution_authority": {
+        "const": "NONE",
+        "default": "NONE",
+        "title": "Execution Authority",
+        "type": "string"
+      },
+      "broker_submission": {
+        "const": "DISABLED",
+        "default": "DISABLED",
+        "title": "Broker Submission",
+        "type": "string"
+      }
+    },
+    "required": [
+      "status",
+      "quant",
+      "portfolio",
+      "views",
+      "telemetry",
+      "evidence_hash",
+      "reasons"
+    ],
+    "title": "TerminalBrief",
+    "type": "object"
+  },
+  "TerminalBudget": {
+    "additionalProperties": false,
+    "properties": {
+      "version": {
+        "const": "terminal-budget.v1",
+        "default": "terminal-budget.v1",
+        "title": "Version",
+        "type": "string"
+      },
+      "max_calculations": {
+        "default": 2,
+        "maximum": 2,
+        "minimum": 1,
+        "title": "Max Calculations",
+        "type": "integer"
+      },
+      "deadline_seconds": {
+        "default": 30,
+        "maximum": 60,
+        "minimum": 1,
+        "title": "Deadline Seconds",
+        "type": "integer"
+      },
+      "max_input_bytes": {
+        "default": 2000000,
+        "maximum": 2000000,
+        "minimum": 1000,
+        "title": "Max Input Bytes",
+        "type": "integer"
+      },
+      "cache_ttl_seconds": {
+        "default": 60,
+        "maximum": 300,
+        "minimum": 1,
+        "title": "Cache Ttl Seconds",
+        "type": "integer"
+      },
+      "max_model_input_tokens": {
+        "default": 32000,
+        "maximum": 32000,
+        "minimum": 1000,
+        "title": "Max Model Input Tokens",
+        "type": "integer"
+      }
+    },
+    "title": "TerminalBudget",
+    "type": "object"
+  },
+  "DecisionBrief": {
+    "$defs": {
+      "ObservedResearchPrice": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "evidence_id": {
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "freshness": {
+            "enum": [
+              "AS_OF_INPUT_CUTOFF",
+              "STALE_OR_UNKNOWN"
+            ],
+            "title": "Freshness",
+            "type": "string"
+          },
+          "certification": {
+            "const": "PUBLIC_RESEARCH_UNVERIFIED",
+            "default": "PUBLIC_RESEARCH_UNVERIFIED",
+            "title": "Certification",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "price",
+          "observed_at",
+          "source",
+          "evidence_id",
+          "freshness"
+        ],
+        "title": "ObservedResearchPrice",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "version": {
+        "const": "meridian-decision-brief.v1",
+        "default": "meridian-decision-brief.v1",
+        "title": "Version",
+        "type": "string"
+      },
+      "analysis_cutoff": {
+        "format": "date-time",
+        "title": "Analysis Cutoff",
+        "type": "string"
+      },
+      "data_mode": {
+        "enum": [
+          "LIVE",
+          "FIXTURE",
+          "REPLAY",
+          "UNKNOWN"
+        ],
+        "title": "Data Mode",
+        "type": "string"
+      },
+      "quant_snapshot_hash": {
+        "title": "Quant Snapshot Hash",
+        "type": "string"
+      },
+      "observed_facts": {
+        "items": {
+          "$ref": "#/$defs/ObservedResearchPrice"
+        },
+        "maxItems": 8,
+        "title": "Observed Facts",
+        "type": "array"
+      },
+      "deterministic_quant_analysis": {
+        "additionalProperties": true,
+        "title": "Deterministic Quant Analysis",
+        "type": "object"
+      },
+      "gpt_interpretation": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Gpt Interpretation"
+      },
+      "conditional_forecast": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Conditional Forecast"
+      },
+      "risk_constraints": {
+        "additionalProperties": true,
+        "title": "Risk Constraints",
+        "type": "object"
+      },
+      "unknown_information": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Unknown Information",
+        "type": "array"
+      },
+      "possible_manual_action": {
+        "default": null,
+        "title": "Possible Manual Action",
+        "type": "null"
+      },
+      "reason_for_waiting": {
+        "title": "Reason For Waiting",
+        "type": "string"
+      },
+      "quality_scorecard": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Quality Scorecard"
+      },
+      "execution_authority": {
+        "const": "NONE",
+        "default": "NONE",
+        "title": "Execution Authority",
+        "type": "string"
+      }
+    },
+    "required": [
+      "analysis_cutoff",
+      "data_mode",
+      "quant_snapshot_hash",
+      "observed_facts",
+      "deterministic_quant_analysis",
+      "gpt_interpretation",
+      "conditional_forecast",
+      "risk_constraints",
+      "unknown_information",
+      "reason_for_waiting",
+      "quality_scorecard"
+    ],
+    "title": "DecisionBrief",
+    "type": "object"
+  },
+  "NumericalCitation": {
+    "additionalProperties": false,
+    "properties": {
+      "evidence_id": {
+        "maxLength": 160,
+        "minLength": 1,
+        "title": "Evidence Id",
+        "type": "string"
+      },
+      "pointer": {
+        "pattern": "^/[^\\s]{1,300}$",
+        "title": "Pointer",
+        "type": "string"
+      },
+      "value": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          }
+        ],
+        "title": "Value"
+      },
+      "unit": {
+        "const": "SOURCE_NATIVE",
+        "default": "SOURCE_NATIVE",
+        "title": "Unit",
+        "type": "string"
+      }
+    },
+    "required": [
+      "evidence_id",
+      "pointer",
+      "value"
+    ],
+    "title": "NumericalCitation",
+    "type": "object"
+  },
+  "SkillWorkflowContract": {
+    "$defs": {
+      "WorkflowDefaults": {
+        "additionalProperties": false,
+        "properties": {
+          "max_tool_calls": {
+            "maximum": 8,
+            "minimum": 1,
+            "title": "Max Tool Calls",
+            "type": "integer"
+          },
+          "wall_seconds": {
+            "maximum": 180,
+            "minimum": 1,
+            "title": "Wall Seconds",
+            "type": "integer"
+          },
+          "nested_model_calls": {
+            "const": 0,
+            "title": "Nested Model Calls",
+            "type": "integer"
+          },
+          "missing_data": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Missing Data",
+            "type": "string"
+          },
+          "risk_checks": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Risk Checks",
+            "type": "array"
+          },
+          "output_schema": {
+            "const": "meridian-decision-brief.v1",
+            "title": "Output Schema",
+            "type": "string"
+          },
+          "prohibited_side_effects": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Prohibited Side Effects",
+            "type": "array"
+          }
+        },
+        "required": [
+          "max_tool_calls",
+          "wall_seconds",
+          "nested_model_calls",
+          "missing_data",
+          "risk_checks",
+          "output_schema",
+          "prohibited_side_effects"
+        ],
+        "title": "WorkflowDefaults",
+        "type": "object"
+      },
+      "WorkflowRule": {
+        "additionalProperties": false,
+        "properties": {
+          "intent": {
+            "pattern": "^[A-Z_]{1,64}$",
+            "title": "Intent",
+            "type": "string"
+          },
+          "required_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Required Evidence",
+            "type": "array"
+          },
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Tools",
+            "type": "array"
+          },
+          "gpt_reasoning": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Gpt Reasoning",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intent",
+          "required_evidence",
+          "tools",
+          "gpt_reasoning"
+        ],
+        "title": "WorkflowRule",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "version": {
+        "const": "meridian-skill-workflows.v2",
+        "title": "Version",
+        "type": "string"
+      },
+      "authority": {
+        "const": "ADVISORY_ONLY",
+        "title": "Authority",
+        "type": "string"
+      },
+      "defaults": {
+        "$ref": "#/$defs/WorkflowDefaults"
+      },
+      "workflows": {
+        "items": {
+          "$ref": "#/$defs/WorkflowRule"
+        },
+        "maxItems": 20,
+        "minItems": 1,
+        "title": "Workflows",
+        "type": "array"
+      }
+    },
+    "required": [
+      "version",
+      "authority",
+      "defaults",
+      "workflows"
+    ],
+    "title": "SkillWorkflowContract",
+    "type": "object"
+  }
+}
