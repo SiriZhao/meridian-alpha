@@ -138,7 +138,9 @@ def process_start_time(pid: int) -> str | None:
             kernel.CloseHandle(handle)
     try:
         return Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[19]
-    except FileNotFoundError:
+    except (FileNotFoundError, ProcessLookupError):
+        # Linux can remove the process after opening stat but before reading it.
+        # ESRCH confirms exit; permission and other I/O errors remain fail-closed.
         return None
 
 
