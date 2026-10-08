@@ -1,0 +1,20 @@
+{
+  "version": "mission2-checkpoint.v1",
+  "status": "IMPLEMENTED_TARGETED_VALIDATION_FULL_ACCEPTANCE_PENDING",
+  "branch": "codex/quant-live-bridge",
+  "starting_head": "69eb57aa0f8464b18c98c9464b1c1d52a267c960",
+  "head_at_checkpoint": "69eb57aa0f8464b18c98c9464b1c1d52a267c960",
+  "worktree": "E:/CSDIY/Vibe Coding Project/meridian-alpha/.worktrees/quant-engine-v2",
+  "engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
+  "completed": ["Exact source/remote recovery", "Approved-host initial Doctor/preflight/account/provider checks", "Real preopen observation saved at 09:19 New York", "Strict/public two-lane evidence bridge", "Quant to both GPT stages and immutable comparison", "Read-only ledger and explicit source/category/price boundaries", "51 live/bridge tests passed in 8.34 seconds"],
+  "remaining": ["Final static and full validation", "Fixture sample", "Final-source host workflow observation", "Independent clone", "Commit/push/stacked PR and Windows/Linux CI"],
+  "next_action": "Finish checks and sample, commit reviewed implementation, execute full validate_repo on approved host, then observe actual live research without paper execution.",
+  "preopen_report": "E:/MeridianAlphaRuntime/reports/live-readiness/2026-10-08/check-1322bb50cdcc4e60811bb5ee8dd67f1b/preopen-readiness.json",
+  "preopen_status": "PREOPEN_DEGRADED",
+  "regular_session_acceptance_complete": false,
+  "ledger_written": false,
+  "broker_submission": "DISABLED",
+  "uncommitted_files_command": "git status --short",
+  "blockers": ["INSUFFICIENT_VERIFIED_HISTORY", "UNCERTIFIED_EXECUTION_QUOTES", "MODEL_INFERENCE_NOT_YET_PROBED", "TWO_RUN_FRESH_ACCOUNT_ACCEPTANCE_PENDING"],
+  "asynchronous_work_claim": false
+}

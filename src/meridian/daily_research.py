@@ -63,7 +63,7 @@ class PublicResearchObservation(StableModel):
     ticker: str = Field(pattern=r"^[A-Z][A-Z0-9.\-]{0,14}$")
     observed_at: AwareDatetime
     price: Decimal = Field(gt=0)
-    daily_return: Decimal
+    daily_return: Decimal | None = None
     reference: str = Field(pattern=r"^[a-f0-9]{64}$")
 
 

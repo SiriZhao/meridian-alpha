@@ -278,11 +278,11 @@ class ResearchQualityEvaluator:
 def _deterministic_baseline(request: DailyResearchInput) -> tuple[str, float, tuple[str, ...]]:
     if not request.observations:
         return "NEUTRAL", 0.0, ()
-    positive = sum(item.daily_return > 0 for item in request.observations)
-    negative = sum(item.daily_return < 0 for item in request.observations)
+    positive = sum(item.daily_return is not None and item.daily_return > 0 for item in request.observations)
+    negative = sum(item.daily_return is not None and item.daily_return < 0 for item in request.observations)
     direction = "BULLISH" if positive > negative else "BEARISH" if negative > positive else "NEUTRAL"
     confidence = abs(positive - negative) / len(request.observations)
-    support = tuple(item.reference for item in request.observations if (item.daily_return > 0) == (direction == "BULLISH"))
+    support = tuple(item.reference for item in request.observations if item.daily_return is not None and (item.daily_return > 0) == (direction == "BULLISH"))
     return direction, confidence, support
 
 

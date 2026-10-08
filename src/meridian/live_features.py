@@ -5,13 +5,12 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from meridian.analytics.derived_market_features import derive_market_features
 from meridian.historical import (
     HistoricalBarSeries,
     HistoricalProviderError,
     YahooChartHistoricalProvider,
 )
-from meridian.market import Bar
+from meridian.live_quant_bridge import provisional_diagnostics
 from meridian.runtime_io import atomic_write
 from meridian.security_master import DEFAULT_SECURITY_MASTER
 from meridian.trading_calendar import latest_completed_session, session_close
@@ -21,29 +20,30 @@ def completed_session_features(series: dict[str, HistoricalBarSeries], benchmark
     if cutoff.tzinfo is None:
         raise ValueError('HISTORY_CUTOFF_TIMEZONE_REQUIRED')
     bars = {
-        symbol: tuple(Bar(session_close(bar.session), bar.open, bar.high, bar.low, bar.close, int(bar.volume))
-                      for bar in sorted(item.bars, key=lambda row: row.session)
-                      if bar.available_at <= cutoff and session_close(bar.session) <= cutoff)
+        symbol: tuple(bar for bar in item.bars
+                      if bar.available_at <= cutoff and bar.observed_at <= cutoff and session_close(bar.session) <= cutoff)
         for symbol, item in series.items()
     }
     output: dict[str, Any] = {}
     for symbol, history in bars.items():
-        complete = len(history) >= 61 and history[-1].timestamp.date() == latest_completed_session(cutoff)
+        diagnostic = provisional_diagnostics(series[symbol], cutoff)
+        complete = len(history) >= 61 and history[-1].session == latest_completed_session(cutoff)
         item = series[symbol]
         output[symbol] = {
             'status': 'PASS' if complete else 'INSUFFICIENT_OR_STALE_HISTORY',
             'source': item.provider, 'source_mode': item.source_mode,
             'input_hash': item.stable_hash, 'available_at': item.as_of.isoformat(),
-            'market_as_of': history[-1].timestamp.isoformat() if history else None,
+            'market_as_of': session_close(history[-1].session).isoformat() if history else None,
             'bar_count': len(history), 'history_pit_certified': False,
-            'values': derive_market_features(history, as_of=cutoff, benchmark_bars=bars.get(benchmark, ())),
+            'values': diagnostic,
             'limitations': ['PUBLIC_UNCERTIFIED_OHLCV', 'COMPLETED_SESSIONS_ONLY', 'NO_INTRADAY_VOLUME_NORMALIZATION'],
         }
     return output
 
 
-def collect_live_features(symbols: list[str], benchmark: str, *, evidence_directory: Path | None = None) -> dict[str, Any]:
-    provider = YahooChartHistoricalProvider(DEFAULT_SECURITY_MASTER)
+def collect_live_features(symbols: list[str], benchmark: str, *, evidence_directory: Path | None = None,
+                          include_series: bool = False) -> dict[str, Any]:
+    provider = YahooChartHistoricalProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=4)
     series: dict[str, HistoricalBarSeries] = {}
     errors: dict[str, str] = {}
     for symbol in symbols:
@@ -63,4 +63,5 @@ def collect_live_features(symbols: list[str], benchmark: str, *, evidence_direct
     passed = len(features) == len(symbols) and all(row['status'] == 'PASS' for row in features.values())
     return {'status': 'PASS' if passed else 'FAILED', 'calculated_at': cutoff.isoformat(),
             'features': features, 'errors': errors, 'benchmark': benchmark,
-            'method': 'MERIDIAN_DERIVED_MARKET_FEATURES', 'retrieval': 'NETWORK_NOT_LIVE_QUOTE'}
+            'method': 'PUBLIC_WITHIN_SESSION_DIAGNOSTICS_NO_UNRESOLVED_RETURN', 'retrieval': 'NETWORK_NOT_LIVE_QUOTE',
+            **({'_series': series} if include_series else {})}

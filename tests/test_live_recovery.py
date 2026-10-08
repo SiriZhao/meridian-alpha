@@ -427,7 +427,7 @@ def test_live_pipeline_integration_with_explicit_synthetic_adapters(tmp_path, mo
         as_of=NOW, total_equity=100000, cash=100000, sync_state='SYNCED', freshness_state='VERIFIED')
     monkeypatch.setenv('MERIDIAN_HOME', str(tmp_path))
     monkeypatch.setattr(live, 'datetime', FrozenDateTime)
-    monkeypatch.setattr(live, 'YahooChartQuoteProvider', lambda _: SyntheticProvider())
+    monkeypatch.setattr(live, 'YahooChartQuoteProvider', lambda _, **kw: SyntheticProvider())
     monkeypatch.setattr(live, 'collect_live_features', lambda *a, **kw: {
         'status': 'PASS', 'features': {}, 'source': 'EXPLICIT_SYNTHETIC_TEST_NOT_LIVE'})
     monkeypatch.setattr(live, 'CodexResearchModelRuntime', SyntheticRuntime)

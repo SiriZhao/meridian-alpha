@@ -22,7 +22,7 @@ def main() -> int:
         from meridian.quant.cli import main as quant_main
         return quant_main(sys.argv[2:])
     parser = argparse.ArgumentParser(prog="meridian")
-    parser.add_argument("command", choices=("version", "paths", "doctor", "init", "data-status", "snapshot", "daily", "dip-scout", "forward-status", "paper", "shadow-run", "live-advisory", "host-llm", "quant"))
+    parser.add_argument("command", choices=("version", "paths", "doctor", "init", "data-status", "snapshot", "daily", "dip-scout", "forward-status", "paper", "shadow-run", "live-advisory", "live-readiness", "host-llm", "quant"))
     parser.add_argument("subcommand", nargs="?")
     parser.add_argument("file", nargs="?")
     parser.add_argument("--snapshot")
@@ -58,6 +58,10 @@ def main() -> int:
             payload = service.forward_status()
         elif args.command == "snapshot" and args.subcommand == "validate" and args.file:
             payload = service.snapshot_validate(Path(args.file))
+        elif args.command == "live-readiness":
+            from meridian.live_readiness import run_readiness
+            payload = run_readiness(service.paths)
+            payload['status'] = 'DEGRADED' if payload['conclusion'] != 'NO_GO' else 'FAILED'
         elif args.command == "live-advisory":
             from meridian.live_advisory import LiveAdvisoryService
             payload = LiveAdvisoryService(service.paths).run(account_name=args.account,
