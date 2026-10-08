@@ -325,6 +325,24 @@ def test_baseline_score_semantics(value: str) -> None:
     assert operational_score(Decimal(value)) == max(Decimal("0"), Decimal(value))
 
 
+def test_verified_close_requires_reviewed_calendar_for_entire_horizon() -> None:
+    value = pair()
+    start = date(2025, 12, 31)
+    maturity_session = advance_sessions(start, 5)
+    maturity = session_close(maturity_session)
+    received = maturity + timedelta(hours=1)
+    pred = value.prediction.model_copy(update={"trading_session": start, "decision_timestamp": session_close(start),
+        "information_cutoff": session_close(start), "maturity_session": maturity_session})
+    pred = ForwardPrediction.model_validate(pred.model_dump())
+    fields = {"session_date": maturity_session, "source_timestamp": maturity, "available_at": received, "ingested_at": received}
+    reviewed = review(value.model_copy(update={"prediction": pred, "terminal": value.terminal.model_copy(update=fields),
+        "benchmark_terminal": value.benchmark_terminal.model_copy(update=fields)}))
+    result = evaluate_close(reviewed, as_of=maturity + timedelta(days=1))
+    assert result.validation_status is CloseStatus.MISSING
+    assert result.reasons == ("INCEPTION_SESSION_OUTSIDE_REVIEWED_CALENDAR_SCOPE",)
+    assert result.return_at_horizon is None and not result.financial_sample_eligible
+
+
 
 
 def test_signal_evaluation_requires_predeclared_experiment_and_rejects_fixture() -> None:
