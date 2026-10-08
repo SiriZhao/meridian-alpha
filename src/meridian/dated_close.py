@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import hashlib
 from datetime import date
-from decimal import Decimal
+from decimal import ROUND_HALF_EVEN, Context, Decimal, DecimalException, localcontext
 from enum import StrEnum
 from pathlib import Path
 from typing import Literal
@@ -119,6 +119,11 @@ class CloseEvaluation(StableModel):
     automatic_promotion: Literal["DISABLED"] = "DISABLED"
 
 
+class ReviewedCloseArchive(StableModel):
+    schema_version: Literal["meridian-dated-close.v1"]
+    pairs: tuple[ReviewedPricePair, ...]
+
+
 def holding_period_return(initial: Decimal, terminal: Decimal, actions: tuple[CorporateAction, ...]) -> Decimal:
     """One inception share; distributions use then-current share count.
 
@@ -128,15 +133,16 @@ Same-instant events are ambiguous and rejected rather than arbitrarily ordered.
         raise ValueError("CLOSE_PRICE_INVALID")
     if len({action.effective_at for action in actions}) != len(actions):
         raise ValueError("CLOSE_ACTION_ORDER_AMBIGUOUS")
-    shares, cash = Decimal("1"), Decimal("0")
-    for action in sorted(actions, key=lambda item: item.effective_at):
-        if action.kind in {"SPLIT", "REVERSE_SPLIT"} and action.ratio is not None:
-            shares *= action.ratio
-        elif action.kind in {"CASH_DIVIDEND", "SPECIAL_DIVIDEND"} and action.cash_per_share is not None:
-            cash += shares * action.cash_per_share
-        else:
-            raise ValueError("CLOSE_ACTION_UNRESOLVED")
-    return (shares * terminal + cash) / initial - Decimal("1")
+    with localcontext(Context(prec=28, rounding=ROUND_HALF_EVEN)):
+        shares, cash = Decimal("1"), Decimal("0")
+        for action in sorted(actions, key=lambda item: item.effective_at):
+            if action.kind in {"SPLIT", "REVERSE_SPLIT"} and action.ratio is not None:
+                shares *= action.ratio
+            elif action.kind in {"CASH_DIVIDEND", "SPECIAL_DIVIDEND"} and action.cash_per_share is not None:
+                cash += shares * action.cash_per_share
+            else:
+                raise ValueError("CLOSE_ACTION_UNRESOLVED")
+        return (shares * terminal + cash) / initial - Decimal("1")
 
 
 def evaluate_close(pair: ReviewedPricePair, *, as_of: AwareDatetime) -> CloseEvaluation:
@@ -177,6 +183,8 @@ def evaluate_close(pair: ReviewedPricePair, *, as_of: AwareDatetime) -> CloseEva
         benchmark_return = holding_period_return(prediction.benchmark_price, pair.benchmark_terminal.price, pair.benchmark_actions)
     except ValueError as error:
         return blocked(CloseStatus.UNSUPPORTED_ACTION, str(error))
+    except DecimalException:
+        return blocked(CloseStatus.ADJUSTMENT_UNKNOWN, "RETURN_ARITHMETIC_UNREPRESENTABLE")
     return CloseEvaluation(prediction_id=prediction.prediction_id, evidence_digest=pair.evidence_digest, validation_status=CloseStatus.VERIFIED, return_at_horizon=asset_return,
                            benchmark_return=benchmark_return, financial_sample_eligible=True)
 
@@ -195,7 +203,8 @@ def append_reviewed_pair(path: Path, pair: ReviewedPricePair) -> str:
                 raise ValueError("CLOSE_OUTCOME_IMMUTABLE")
             return "EXISTS"
         import json
-        content = json.dumps({"schema_version": "meridian-dated-close.v1", "pairs": [item.model_dump(mode="json") for item in (*existing, pair)]}, sort_keys=True, indent=2) + "\n"
+        archive = ReviewedCloseArchive(schema_version="meridian-dated-close.v1", pairs=(*existing, pair))
+        content = json.dumps(archive.model_dump(mode="json"), sort_keys=True, indent=2) + "\n"
         atomic_write(path, content)
     return "APPENDED"
 
@@ -225,15 +234,14 @@ against the frozen prediction whenever the forward ledger is reopened.
 
 
 def load_reviewed_pairs(path: Path) -> tuple[ReviewedPricePair, ...]:
-    import json
     if not path.exists():
         return ()
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(raw, dict) or raw.get("schema_version") != "meridian-dated-close.v1" or not isinstance(raw.get("pairs"), list):
-        raise ValueError("CLOSE_ARCHIVE_CORRUPT")
-    pairs = tuple(ReviewedPricePair.model_validate(item) for item in raw["pairs"])
+    archive = ReviewedCloseArchive.model_validate_json(path.read_text(encoding="utf-8"))
+    pairs = archive.pairs
     if len({pair.prediction.prediction_id for pair in pairs}) != len(pairs):
         raise ValueError("CLOSE_ARCHIVE_DUPLICATE_PREDICTION")
+    if any(pair.reviewed_at is None or not evaluate_close(pair, as_of=pair.reviewed_at).financial_sample_eligible for pair in pairs):
+        raise ValueError("CLOSE_ARCHIVE_REVIEW_PROVENANCE_INVALID")
     return pairs
 
 

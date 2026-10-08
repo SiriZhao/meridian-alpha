@@ -6,12 +6,24 @@ Research confidence is never interpreted as a probability of an up move.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import datetime
-from decimal import Decimal, localcontext
+from decimal import ROUND_HALF_EVEN, Context, Decimal, localcontext
 
 from meridian.alpha_lab import LabInput, challenger_scores
 from meridian.authorization import CertifiedAgentSignal
 from meridian.dated_close import ReviewedPricePair, evaluate_close
+
+
+@dataclass(frozen=True)
+class SignalEvaluationRow:
+    decision_at: datetime
+    maturity_at: datetime
+    symbol: str
+    quant_score: Decimal
+    llm_score: Decimal
+    realized_return: Decimal
+    benchmark_return: Decimal
 
 
 def _ranks(values: list[Decimal]) -> list[Decimal]:
@@ -25,8 +37,7 @@ def rank_correlation(scores: list[Decimal], returns: list[Decimal]) -> Decimal |
         raise ValueError("ALPHA_LAB_RANK_LENGTH_MISMATCH")
     if len(scores) < 3:
         return None
-    with localcontext() as context:
-        context.prec = 28
+    with localcontext(Context(prec=28, rounding=ROUND_HALF_EVEN)):
         x, y = _ranks(scores), _ranks(returns)
         mx, my = sum(x, Decimal("0")) / len(x), sum(y, Decimal("0")) / len(y)
         covariance = sum(((a - mx) * (b - my) for a, b in zip(x, y, strict=True)), Decimal("0"))
@@ -57,7 +68,7 @@ survivorship coverage. Returns include distributions as cash, not reinvestment.
         raise ValueError("ALPHA_LAB_EXPERIMENT_OR_UNIVERSE_NOT_PREDECLARED")
     if len({(pair.prediction.horizon_days, pair.prediction.benchmark, pair.corporate_action_basis) for pair in pairs}) > 1:
         raise ValueError("ALPHA_LAB_NONCOMPARABLE_HORIZONS_OR_BENCHMARKS")
-    rows: list[tuple[datetime, datetime, str, Decimal, Decimal, Decimal, Decimal]] = []
+    rows: list[SignalEvaluationRow] = []
     certified_keys: set[tuple[str, datetime]] = set()
     rejected: dict[str, int] = {}
     for pair in sorted(pairs, key=lambda item: (item.prediction.decision_timestamp, item.prediction.symbol, item.prediction.prediction_id)):
@@ -83,16 +94,16 @@ survivorship coverage. Returns include distributions as cash, not reinvestment.
             raise ValueError("ALPHA_LAB_FROZEN_BASELINE_SCORE_MISMATCH")
         if enhanced.certificate_id is not None:
             certified_keys.add((prediction.symbol, prediction.decision_timestamp))
-        rows.append((prediction.decision_timestamp, prediction.maturity_at, prediction.symbol,
+        rows.append(SignalEvaluationRow(prediction.decision_timestamp, prediction.maturity_at, prediction.symbol,
                      baseline.score, enhanced.score, outcome.return_at_horizon, outcome.benchmark_return))
-    groups: dict[tuple[datetime, datetime], list[tuple[datetime, datetime, str, Decimal, Decimal, Decimal, Decimal]]] = {}
+    groups: dict[tuple[datetime, datetime], list[SignalEvaluationRow]] = {}
     for row in rows:
-        groups.setdefault((row[0], row[1]), []).append(row)
-    retained = []
+        groups.setdefault((row.decision_at, row.maturity_at), []).append(row)
+    retained: list[list[SignalEvaluationRow]] = []
     last_maturity: datetime | None = None
     purged = incomplete = 0
     for (decision, maturity), group in sorted(groups.items()):
-        if set(row[2] for row in group) != set(universe) or len(group) != len(universe):
+        if set(row.symbol for row in group) != set(universe) or len(group) != len(universe):
             incomplete += len(group)
         elif last_maturity is not None and decision <= last_maturity:
             purged += len(group)
@@ -102,8 +113,8 @@ survivorship coverage. Returns include distributions as cash, not reinvestment.
     common = {"schema_version": "meridian-paired-signal-evaluation.v1", "title": "Quant vs Quant+LLM Shadow Evaluation",
               "as_of": as_of.isoformat(), "registered_at": registered_at.isoformat(), "universe": list(universe),
               "eligible_rows": len(rows), "temporal_blocks": len(retained), "required_temporal_blocks": minimum_temporal_blocks,
-              "certified_research_rows": sum((row[2], row[0]) in certified_keys for group in retained for row in group),
-              "llm_comparison_status": "DESCRIPTIVE_ONLY" if len(retained) >= minimum_temporal_blocks and all((row[2], row[0]) in certified_keys for group in retained for row in group) else "INSUFFICIENT_EVIDENCE",
+              "certified_research_rows": sum((row.symbol, row.decision_at) in certified_keys for group in retained for row in group),
+              "llm_comparison_status": "DESCRIPTIVE_ONLY" if len(retained) >= minimum_temporal_blocks and all((row.symbol, row.decision_at) in certified_keys for group in retained for row in group) else "INSUFFICIENT_EVIDENCE",
               "purged_overlapping_rows": purged, "incomplete_universe_rows": incomplete, "rejected": rejected,
               "scope": "PREDECLARED_FIXED_UNIVERSE_SIGNAL_EVALUATION_NOT_PORTFOLIO_PNL",
               "registration_basis": "CALLER_ATTESTED_TIME_NOT_AUTHENTICATED_REGISTRY",
@@ -114,16 +125,15 @@ survivorship coverage. Returns include distributions as cash, not reinvestment.
     if len(retained) < minimum_temporal_blocks:
         return {**common, "status": "INSUFFICIENT_EVIDENCE", "conclusion": "NO_DEMONSTRATED_ALPHA", "metrics": None}
     metrics: dict[str, object] = {}
-    with localcontext() as context:
-        context.prec = 28
+    with localcontext(Context(prec=28, rounding=ROUND_HALF_EVEN)):
         flat = [row for group in retained for row in group]
-        excess = [row[5] - row[6] for row in flat]
-        for name, score_index in (("PURE_QUANT", 3), ("QUANT_PLUS_LLM", 4)):
-            correlations = [rank_correlation([row[score_index] for row in group], [row[5] - row[6] for row in group]) for group in retained]
+        excess = [row.realized_return - row.benchmark_return for row in flat]
+        for name in ("PURE_QUANT", "QUANT_PLUS_LLM"):
+            correlations = [rank_correlation([row.quant_score if name == "PURE_QUANT" else row.llm_score for row in group], [row.realized_return - row.benchmark_return for row in group]) for group in retained]
             valid = [value for value in correlations if value is not None]
-            directional = [row for row in flat if row[score_index] != 0]
-            hits = sum((row[score_index] > 0) == (row[5] > 0) for row in directional if row[5] != 0)
-            nonzero = sum(row[5] != 0 for row in directional)
+            directional = [row for row in flat if (row.quant_score if name == "PURE_QUANT" else row.llm_score) != 0]
+            hits = sum(((row.quant_score if name == "PURE_QUANT" else row.llm_score) > 0) == (row.realized_return > 0) for row in directional if row.realized_return != 0)
+            nonzero = sum(row.realized_return != 0 for row in directional)
             metrics[name] = {"mean_cross_sectional_ic": str(sum(valid) / len(valid)) if valid else None,
                 "ic_block_count": len(valid), "directional_count": nonzero,
                 "direction_hit_rate": str(Decimal(hits) / nonzero) if nonzero else None}

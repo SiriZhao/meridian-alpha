@@ -9,7 +9,7 @@ import argparse
 import hashlib
 import json
 from datetime import datetime
-from decimal import Decimal, localcontext
+from decimal import ROUND_HALF_EVEN, Context, Decimal, DecimalException, localcontext
 from pathlib import Path
 from typing import Literal
 
@@ -17,7 +17,7 @@ from pydantic import AwareDatetime, Field, model_validator
 
 from meridian.alpha_fusion import research_modifier
 from meridian.authorization import CertifiedAgentSignal
-from meridian.schemas import StableModel
+from meridian.schemas import AgentSignal, StableModel
 from meridian.trading_calendar import NEW_YORK, is_trading_session, session_close
 
 
@@ -85,7 +85,7 @@ class ChallengerScore(StableModel):
     reason: str | None = None
 
 
-def challenger_scores(data: LabInput, certified: CertifiedAgentSignal | None = None) -> tuple[ChallengerScore, ...]:
+def challenger_scores(data: LabInput, certified: CertifiedAgentSignal | AgentSignal | None = None) -> tuple[ChallengerScore, ...]:
     """Fixed ex-ante recipe. No fitting, routing or calls to a model.
 
 Multi-factor V1: 21 close observations, .4 20-interval momentum, .3 trend
@@ -101,17 +101,21 @@ Multi-factor V1: 21 close observations, .4 20-interval momentum, .3 trend
         multifactor = ChallengerScore(challenger="MULTIFACTOR_V1", symbol=data.symbol, score=None,
                                       status="INSUFFICIENT_EVIDENCE", reason="21_REVIEWED_CONSISTENT_CLOSES_REQUIRED")
     else:
-        with localcontext() as context:
-            context.prec = 28
-            closes = [bar.close for bar in data.bars[-21:]]
-            returns = [b / a - 1 for a, b in zip(closes[:-1], closes[1:], strict=True)]
-            mean = sum(returns, Decimal("0")) / len(returns)
-            volatility = (sum(((item - mean) ** 2 for item in returns), Decimal("0")) / len(returns)).sqrt()
-            factors = {"momentum_20": closes[-1] / closes[0] - 1,
-                       "trend_21": closes[-1] / (sum(closes, Decimal("0")) / len(closes)) - 1,
-                       "drawdown_21": closes[-1] / max(closes) - 1, "volatility_20": volatility}
-            score = max(Decimal("-1"), min(Decimal("1"), Decimal(".4") * factors["momentum_20"] + Decimal(".3") * factors["trend_21"] + Decimal(".2") * factors["drawdown_21"] - Decimal(".1") * volatility))
-        multifactor = ChallengerScore(challenger="MULTIFACTOR_V1", symbol=data.symbol, score=score, status="AVAILABLE", factors=factors)
+        try:
+            with localcontext(Context(prec=28, rounding=ROUND_HALF_EVEN)):
+                closes = [bar.close for bar in data.bars[-21:]]
+                returns = [b / a - 1 for a, b in zip(closes[:-1], closes[1:], strict=True)]
+                mean = sum(returns, Decimal("0")) / len(returns)
+                volatility = (sum(((item - mean) ** 2 for item in returns), Decimal("0")) / len(returns)).sqrt()
+                factors = {"momentum_20": closes[-1] / closes[0] - 1,
+                           "trend_21": closes[-1] / (sum(closes, Decimal("0")) / len(closes)) - 1,
+                           "drawdown_21": closes[-1] / max(closes) - 1, "volatility_20": volatility}
+                score = max(Decimal("-1"), min(Decimal("1"), Decimal(".4") * factors["momentum_20"] + Decimal(".3") * factors["trend_21"] + Decimal(".2") * factors["drawdown_21"] - Decimal(".1") * volatility))
+        except DecimalException:
+            multifactor = ChallengerScore(challenger="MULTIFACTOR_V1", symbol=data.symbol, score=None,
+                                          status="INSUFFICIENT_EVIDENCE", reason="FACTORS_ARITHMETIC_UNREPRESENTABLE")
+        else:
+            multifactor = ChallengerScore(challenger="MULTIFACTOR_V1", symbol=data.symbol, score=score, status="AVAILABLE", factors=factors)
     contribution = Decimal("0")
     certificate_id = None
     reason = "NO_CERTIFIED_RESEARCH_ZERO_CONTRIBUTION"
@@ -120,11 +124,14 @@ Multi-factor V1: 21 close observations, .4 20-interval momentum, .3 trend
             raise TypeError("ALPHA_LAB_CERTIFIED_RESEARCH_REQUIRED")
         if certified.ticker != data.symbol or certified.as_of != data.as_of:
             raise ValueError("ALPHA_LAB_RESEARCH_IDENTITY_OR_CUTOFF_MISMATCH")
-        contribution = research_modifier(certified)
+        with localcontext(Context(prec=28, rounding=ROUND_HALF_EVEN)):
+            contribution = research_modifier(certified)
         certificate_id = certified.certificate_id
         reason = None
+    with localcontext(Context(prec=28, rounding=ROUND_HALF_EVEN)):
+        enhanced_score = Decimal("1") if baseline.score is not None and baseline.score > Decimal("2") else max(Decimal("-1"), min(Decimal("1"), baseline.score + contribution)) if baseline.score is not None else None
     enhanced = ChallengerScore(challenger="QUANT_PLUS_CERTIFIED_LLM", symbol=data.symbol,
-                               score=max(Decimal("-1"), min(Decimal("1"), baseline.score + contribution)) if baseline.score is not None else None,
+                               score=enhanced_score,
                                status="AVAILABLE", research_contribution=contribution, certificate_id=certificate_id, reason=reason)
     return cash, baseline, multifactor, enhanced
 
