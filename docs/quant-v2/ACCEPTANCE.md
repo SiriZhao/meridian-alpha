@@ -2,15 +2,23 @@
 
 Validation date: 2026-10-08. Engineering: ENGINEERING_COMPLETE.
 Financial result: ALPHA_NOT_YET_DEMONSTRATED. Paper readiness: INSUFFICIENT_EVIDENCE.
-Implementation is in the isolated `codex/quant-engine-v2` worktree; the original
-checkout and its additional uncommitted Phase 4 changes were preserved.
+Implementation is in the isolated `codex/quant-engine-v2` worktree. The original
+checkout's pending Phase 4 documents were preserved, subsequently committed by
+their owning task, and integrated with its published foundation through `fd7481d`.
 
 ## Completed local checks
 
 - Published canonical/provider/persistence foundation and Phase 4 through
-  `0e01944` integrated; merges `780320d`/`26abadd` retain histories. No rewrite.
+  `fd7481d` integrated; merges `780320d`/`26abadd`/`89a3554` retain histories.
+  No rewrite. The final integration includes Linux retained-zombie liveness
+  handling and the inception-calendar qualification guard.
 - Frozen code/archive delivery HEAD: `8072e6091036b1aed240722257d77fa3b43b111d`.
-  Evidence-only delivery commits follow; they do not alter the validated code.
+  Final combined source HEAD: `89a3554728d041fde65d2c470d43ccd774011355`.
+  The integrated foundation adds 12 regression cases; the quant engine hash and
+  frozen replay archive remain unchanged. Evidence-only delivery commits follow.
+- Final combined Windows approved-host validation: **925 passed in 175.54
+  seconds**; dependencies, Ruff, Pyright, contracts/archive, CLI and disposable
+  paper/fresh-process/report consistency PASS.
 - Full Windows approved-host validation: **913 passed in 345.69 seconds**;
   dependency integrity, Ruff, Pyright (zero errors/warnings), five-contract/full
   archive validation, CLI and optimized safe paper acceptance all PASS.
@@ -40,6 +48,12 @@ worktree. Full validation: **913 passed in 374.03 seconds**; dependencies,
 Ruff/Pyright, contracts/archive, CLI, isolated paper, fresh-process and report
 consistency PASS. Clone status was clean; Windows review packaging also PASS.
 
+The same independent GitHub clone was fast-forwarded from the remote branch to
+final combined source `89a3554` using its existing frozen-lock environment.
+Imports and interpreter still resolve inside that clone; Git status is clean.
+Final combined validation: **925 passed in 180.70 seconds**, dependencies,
+Ruff/Pyright, contracts/archive, CLI and isolated paper/report/fresh-process PASS.
+
 The clone's CLI independently replayed the saved dataset and frozen plan. All
 92 evaluation rows and all 88 distinct replay payloads matched the published
 archive exactly, including the summary identity. No newly fitted parameter or
@@ -63,10 +77,22 @@ checks and skill packaging; Windows review packaging PASS. Final evidence-tip
 remote SHA/CI are checked at handoff rather than embedded as self-referential
 commit hashes. The validated engine hash is unchanged by documentation commits.
 
+Final combined source `89a3554` is also verified on both platforms:
+[push CI 37747608628](https://github.com/SiriZhao/meridian-alpha/actions/runs/37747608628)
+and [PR CI 37747616070](https://github.com/SiriZhao/meridian-alpha/actions/runs/37747616070)
+both SUCCESS. Raw push logs record Windows **925 passed in 236.75 seconds** and
+Ubuntu **923 passed, two Windows-only skips in 205.44 seconds**. Both platforms
+pass manual-authority negatives, replay integrity, artifact and skill packaging;
+Windows source-review packaging PASS. No Quant case is skipped or xfailed.
+The final delivery commit contains only these evidence/checkpoint documents;
+its exact remote SHA and its own CI are checked before handoff.
+
 Important delivery commits: `27fb2f9` engine/integration, `32f6e97` published
 laboratory integration, `211cb37` Linux exit-race backport, `26abadd` latest
 published foundation merge, `f40282f` numeric/PIT/projection repairs, `8072e60`
 complete frozen registry and research limitations.
+`89a3554` integrates the final published foundation through `fd7481d` without
+reverting the owning task's documents or modifying the Quant engine.
 
 ## Safety and operational limits
 

@@ -91,6 +91,14 @@ seconds with static/dependency/CLI/isolated-paper/archive checks PASS. This
 includes 106 Quant cases and the current published foundation. Independent
 clone and current GitHub CI evidence belong in the final acceptance report.
 
+The final combined source `89a3554` also integrates the owning task's published
+foundation through `fd7481d`: retained Linux zombie/dead processes no longer
+own work, malformed process identities fail closed, and financial forward
+returns require inception within reviewed calendar coverage. All original
+pending documents were preserved and committed by their owning task. Final
+approved-host validation: 925 passed in 175.54 seconds, all other checks PASS.
+The Quant engine hash and the complete frozen diagnostic archive are unchanged.
+
 ## V2 replacement boundary
 
 Add versioned PIT features, deterministic factor composition and regimes,
