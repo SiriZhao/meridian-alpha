@@ -293,7 +293,8 @@ def score_challenger(snapshots: Sequence["ChallengerFeatureSnapshot"], policy: "
             score_change_attribution=changes, policy_hash=policy.digest,
             risk_score_change_attribution={"signal_and_eligibility": (eligible_strength - previous.bridge.quant_score) * multiplier,
                 "risk_transform": previous.bridge.quant_score * (multiplier - previous.bridge.risk_multiplier)} if previous else {},
-            positive_observations=(previous.positive_observations if previous and latest_completed_session(previous.bridge.as_of) == base.last_session
+            positive_observations=(previous.positive_observations if previous and previous.positive_observations > 0
+                                  and latest_completed_session(previous.bridge.as_of) == base.last_session
                                   else previous.positive_observations + 1 if previous and consecutive else 1) if eligible_strength > 0 else 0))
     return tuple(row.model_copy(update={"bridge": row.bridge.model_copy(update={"relative_rank": i})})
                  for i, row in enumerate(sorted(rows, key=lambda r: (-r.bridge.quant_score, r.bridge.symbol)), 1))

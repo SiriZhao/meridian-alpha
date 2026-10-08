@@ -168,17 +168,17 @@ def test_cluster_cap_and_unknown_correlation_budget():
     names = sorted(s.bridge.symbol for s in scores)
     correlations = {(a, b): D(1) for i, a in enumerate(names) for b in names[i + 1:]}
     result = allocate_challenger(scores, base, when, risk_policy(), p, state,
-        correlations=correlations, sector_map={s: None for s in h})
+        correlations=correlations, sector_map={s: "TEST_" + s for s in h})
     assert sum(weights(result.feasible_target).values(), D(0)) <= p.cluster_weight_cap
     unknown = allocate_challenger(scores, base, when, risk_policy(), p, state,
-        correlations={}, sector_map={s: None for s in h})
+        correlations={}, sector_map={s: "TEST_" + s for s in h})
     assert sum(weights(unknown.feasible_target).values(), D(0)) <= p.unknown_correlation_exposure
 
 
 def test_no_action_has_zero_friction_and_uncalibrated_reason():
     _, h, when, p, fs, state, scores = inputs()
     allocation = allocate_challenger(scores, {s: f.base for s, f in fs.items()}, when, risk_policy(), p, state,
-        correlations=pit_correlations(h, when, 60), sector_map={s: None for s in h})
+        correlations=pit_correlations(h, when, 60), sector_map={s: "TEST_" + s for s in h})
     result = challenger_rebalance(allocation, weights(allocation.feasible_target), nav=D(100000),
         risk=risk_policy(), policy=p, costs=CostPolicy(), dollar_volumes={s: f.base.value("dollar_volume_20") for s, f in fs.items()})
     assert result.action == "NO_ACTION" and result.estimated_cost == 0 and result.expected_turnover == 0
@@ -266,7 +266,7 @@ def test_calibrated_cost_estimate_binds_post_turnover_proposal():
     risk = risk_policy()
     costs = CostPolicy()
     allocation = allocate_challenger(scores, {s: f.base for s, f in fs.items()}, when, risk, p, state,
-        correlations=pit_correlations(h, when, 60), sector_map={s: None for s in h})
+        correlations=pit_correlations(h, when, 60), sector_map={s: "TEST_" + s for s in h})
     volumes = {s: f.base.value("dollar_volume_20") for s, f in fs.items()}
     first = challenger_rebalance(allocation, {}, nav=D(100000), risk=risk, policy=p, costs=costs, dollar_volumes=volumes)
     assert first.expected_turnover <= p.controls.max_turnover
@@ -354,3 +354,132 @@ def test_cli_packet_never_constructs_canonical_application(tmp_path: Path, monke
     monkeypatch.setattr("meridian.application_cli.MeridianApplicationService", lambda *a, **k: pytest.fail("canonical service initialized"))
     assert main() == 0
     assert '"trade_authorized": false' in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("budget", ["CORRELATED_COMPONENT", "UNKNOWN_COVARIANCE", "UNKNOWN_HELD_SECTOR", "FRICTION_NAV"])
+@pytest.mark.parametrize("missing_sell_bid", [False, True])
+def test_packet_partial_fills_preserve_challenger_budgets(monkeypatch, budget: str, missing_sell_bid: bool):
+    import meridian.quant.packet as packet_module
+    from meridian.quant.backtest import QuantSecurityMetadata
+    from meridian.quant.portfolio import target_from_weights
+    from meridian.schemas import (
+        AccountSnapshot,
+        AccountSyncState,
+        FreshnessState,
+        Holding,
+        MarketSnapshot,
+    )
+
+    _, h, when, p, _, _, _ = inputs()
+    # Domain-contract fixtures isolate execution constraints; they are not
+    # independently certified market observations or financial evidence.
+    h = {s: HistoricalBarSeries.model_validate({**v.model_dump(), "bars": tuple(b.model_copy(update={
+        "certification": HistoricalBarCertification.CERTIFIED_RESEARCH_PIT_ADJUSTED}) for b in v.bars)}) for s, v in h.items()}
+    a, b = {"CORRELATED_COMPONENT": (D(".25"), D(".15")), "UNKNOWN_COVARIANCE": (D(".20"), D(".05")),
+            "UNKNOWN_HELD_SECTOR": (D(".15"), D(".15")), "FRICTION_NAV": (D(".25"), D(".10"))}[budget]
+    preferred = {"AAPL": a - D(".05"), "MSFT": b + D(".05")} if budget != "UNKNOWN_HELD_SECTOR" else {"MSFT": D(".20")}
+    snapshot = AccountSnapshot(snapshot_id="PARTIAL_FILL_CONTRACT_FIXTURE", account_alias="Schwab-Paper", provider="TEST_STUB",
+        as_of=when, total_equity=D(100000), cash=(1 - a - b) * 100000,
+        holdings=(Holding(ticker="AAPL", quantity=a * 1000, market_value=a * 100000),
+                  Holding(ticker="MSFT", quantity=b * 1000, market_value=b * 100000)),
+        sync_state=AccountSyncState.SYNCED, freshness_state=FreshnessState.VERIFIED)
+    policies = replace(load_policies(ROOT / "policies"), risk=risk_policy())
+    quotes = {s: MarketSnapshot(ticker=s, timestamp=when, last=D(100), previous_close=D(99),
+        bid=None if missing_sell_bid and s == "AAPL" else D("99.9"), ask=D("100.1"), volume=1000000,
+        atr14=D(2), vwap=D(100), daily_return=D(".01"), freshness_state=FreshnessState.VERIFIED) for s in policies.universe.tickers}
+    meta = tuple(QuantSecurityMetadata(symbol=s, asset_type="EQUITY", sector=s, known_at=when,
+        source="ENGINEERING_METADATA_STUB") for s in policies.universe.tickers)
+    if budget == "UNKNOWN_HELD_SECTOR":
+        # Normal deserialization already rejects this missing sector. Also
+        # fail closed if an external caller bypasses validation with model_copy.
+        meta = tuple(m.model_copy(update={"sector": None}) if m.symbol == "AAPL" else m for m in meta)
+    original = packet_module.allocate_challenger
+    def rotation(*args, **kwargs):
+        value = original(*args, **kwargs)
+        return value.model_copy(update={"feasible_target": target_from_weights(preferred, when, p.version)})
+    monkeypatch.setattr(packet_module, "allocate_challenger", rotation)
+    monkeypatch.setattr(packet_module, "pit_correlations", lambda *args: {} if budget == "UNKNOWN_COVARIANCE" else {("AAPL", "MSFT"): D(1)})
+    result = build_research_packet(h, tuple(policies.universe.tickers), cutoff=when, policies=policies, policy=p,
+        metadata=meta, account=snapshot, quotes=quotes,
+        costs=CostPolicy(commission_per_order=D(1000)) if budget == "FRICTION_NAV" else CostPolicy())
+    assert not result.eligible_hypothetical_drafts
+    expected = "HELD_AND_TARGET_EQUITY_SECTOR_REQUIRED" if budget == "UNKNOWN_HELD_SECTOR" else "NO_SELL_FILL_SCENARIO:" + (
+        "CORRELATED_COMPONENT" if budget == "FRICTION_NAV" else budget)
+    assert any(expected in r for r in result.constraint_modifications)
+    assert all(row.eligible_change == 0 for row in result.symbols)
+
+
+def test_unknown_sector_has_no_implicit_etf_exemption():
+    _, h, when, p, fs, state, scores = inputs()
+    result = allocate_challenger(scores, {s: f.base for s, f in fs.items()}, when, risk_policy(), p, state,
+        correlations=pit_correlations(h, when, 60), sector_map={s: None for s in h})
+    assert not weights(result.feasible_target)
+    assert any(r.startswith("SECTOR_METADATA_UNKNOWN:") for r in result.modifications)
+
+
+def test_sector_exemption_requires_explicit_diversified_etf_metadata():
+    _, h, when, p, fs, state, scores = inputs()
+    result = allocate_challenger(scores, {s: f.base for s, f in fs.items()}, when, risk_policy(), p, state,
+        correlations=pit_correlations(h, when, 60), sector_map={s: None for s in h},
+        asset_types={s: "DIVERSIFIED_ETF" for s in h})
+    assert weights(result.feasible_target)
+    assert not any(r.startswith("SECTOR_METADATA_UNKNOWN:") for r in result.modifications)
+
+
+@pytest.mark.parametrize("kind", ["cluster", "unknown", "volatility", "missing_volatility"])
+def test_post_friction_budget_guard_cannot_assume_safe_allocation(kind: str):
+    from meridian.quant.portfolio import challenger_budget_violations
+
+    _, _, _, p, fs, state, _ = inputs()
+    base = {s: f.base for s, f in fs.items()}
+    values = {"AAPL": D(".25"), "MSFT": D(".20")}
+    correlation = {("AAPL", "MSFT"): D(1)} if kind != "unknown" else {}
+    if kind in {"volatility", "missing_volatility"}:
+        factors = tuple(f.model_copy(update={"raw_value": D(1) if kind == "volatility" else None})
+                        if f.name == "volatility_60" else f for f in base["AAPL"].factors)
+        base["AAPL"] = base["AAPL"].model_copy(update={"factors": factors})
+    reasons = challenger_budget_violations(values, base, correlation, risk_policy(), p, state)
+    expected = {"cluster": "CORRELATED_COMPONENT_BUDGET", "unknown": "UNKNOWN_COVARIANCE_EXPOSURE_BUDGET",
+                "volatility": "CHALLENGER_VOLATILITY_BUDGET", "missing_volatility": "CHALLENGER_RISK_INPUT_UNAVAILABLE"}[kind]
+    assert any(r.startswith(expected) for r in reasons)
+    assert values == {"AAPL": D(".25"), "MSFT": D(".20")}
+
+
+def test_replay_cannot_add_cluster_risk_when_pending_rotation_is_infeasible(monkeypatch):
+    import meridian.quant.backtest as backtest_module
+
+    d = synthetic_dataset()
+    p = ChallengerPolicy()
+    runner = WalkForwardRunner(d, diagnostic=True)
+    # Execution-only regression: an infeasible research target must not cause
+    # a buy beyond the cluster ceiling, even after partial/order-capped fills.
+    monkeypatch.setattr(runner, "_signal", lambda *args: (
+        {"AAPL": D(".25"), "MSFT": D(".25")}, "REBALANCE", "FIXTURE", {}))
+    monkeypatch.setattr(backtest_module, "pit_correlations", lambda *args: {("AAPL", "MSFT"): D(1)})
+    result = runner.run(p.controls, CostPolicy(), risk_policy(), folds(d)[0], strategy="V22", challenger=p)
+    assert result.trades
+    assert any("CHALLENGER_NEW_BUY_BLOCKED:CORRELATED_COMPONENT_BUDGET" in reason for reason in result.warnings)
+    cash, shares = result.initial_nav, {}
+    for trade in result.trades:
+        cash += trade.quantity * trade.fill_price * (-1 if trade.side == "BUY" else 1) - trade.commission
+        shares[trade.symbol] = shares.get(trade.symbol, D(0)) + trade.quantity * (1 if trade.side == "BUY" else -1)
+        if trade.side == "BUY" and all(shares.get(s, D(0)) > 0 for s in ("AAPL", "MSFT")):
+            value = sum((q * runner.rows[s][trade.execution_at.date()].open for s, q in shares.items()), D(0))
+            assert value / (cash + value) <= p.cluster_weight_cap
+    assert all(day.costs == 0 for day in result.days if day.turnover == 0)
+
+
+def test_first_eligible_same_session_observation_starts_persistence_at_one():
+    _, h, when, p, _, _, rows = inputs()
+    prior = {r.bridge.symbol: r for r in rows}
+    row = prior["AAPL"]
+    prior["AAPL"] = ChallengerScore.model_validate({**row.model_dump(),
+        "bridge": row.bridge.model_copy(update={"quant_score": D(0), "exclusion_reasons": ("PENDING_INPUT_FIXTURE",)}),
+        "risk_adjusted_score": D(0), "positive_observations": 0})
+    later = when + timedelta(minutes=10)
+    features = {s: compute_challenger_features(v, later, benchmark=h["SPY"], diagnostic=True) for s, v in h.items()}
+    state = detect_regime(features["SPY"].base, p.controls)
+    observed = score_challenger([f for s, f in features.items() if s != "SPY"], p, state, prior=prior)
+    recovered = next(r for r in observed if r.bridge.symbol == "AAPL")
+    assert recovered.bridge.quant_score > 0 and recovered.positive_observations == 1
+    assert recovered.bridge.predictive_confidence is None

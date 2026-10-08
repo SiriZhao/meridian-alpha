@@ -18,6 +18,7 @@ from meridian.quant.portfolio import (
     ChallengerAllocation,
     RebalanceDecision,
     allocate_challenger,
+    challenger_budget_violations,
     challenger_rebalance,
     weights,
 )
@@ -96,7 +97,8 @@ def build_research_packet(histories: Mapping[str, HistoricalBarSeries], symbols:
     correlations = pit_correlations(qualified, cutoff, policy.controls.correlation_lookback)
     sector_map = {m.symbol: m.sector for m in metadata}
     allocation = allocate_challenger(scores, base, cutoff, policies.risk, policy, state,
-                                    correlations=correlations, sector_map=sector_map, diagnostic=diagnostic)
+                                    correlations=correlations, sector_map=sector_map,
+                                    asset_types={m.symbol: m.asset_type for m in metadata}, diagnostic=diagnostic)
     current = {h.ticker: h.market_value / account.total_equity for h in account.holdings} if account is not None else {}
     nav = account.total_equity if account is not None else None
     rebalance = challenger_rebalance(allocation, current, nav=nav, risk=policies.risk, policy=policy, costs=costs,
@@ -115,8 +117,14 @@ def build_research_packet(histories: Mapping[str, HistoricalBarSeries], symbols:
         required = set(current) | set(weights(rebalance.target))
         if required - security.keys():
             blockers.append("HELD_AND_TARGET_SECURITY_METADATA_REQUIRED")
+        if policies.risk.max_sector_weight < 1 and any(
+                s in security and security[s].asset_type is AssetType.EQUITY and not security[s].sector for s in required):
+            blockers.append("HELD_AND_TARGET_EQUITY_SECTOR_REQUIRED")
         if rebalance.action == "BLOCKED":
             blockers.extend(rebalance.reasons)
+        if rebalance.action == "REBALANCE":
+            blockers.extend("POST_FRICTION_TARGET:" + reason for reason in challenger_budget_violations(
+                weights(rebalance.target), base, correlations, policies.risk, policy, state))
         if not blockers:
             approved = RiskEngine().approve(rebalance.target, account, "NORMAL", policies.risk, metadata=security)
             blockers.extend(approved.violations)
@@ -138,10 +146,15 @@ def build_research_packet(histories: Mapping[str, HistoricalBarSeries], symbols:
                     post_buy = dict(current)
                     for draft in buys:
                         post_buy[draft.ticker] = post_buy.get(draft.ticker, D(0)) + draft.estimated_notional / nav
-                    vol_bound = sum((v * max(base[s].value("volatility_60") or D(0), policy.controls.volatility_floor)
-                                     for s, v in sorted(post_buy.items())), D(0))
-                    if sum(post_buy.values(), D(0)) > min(1 - policies.risk.min_cash_weight, state.exposure_ceiling) or vol_bound > policy.controls.target_volatility:
-                        blockers.append("NO_SELL_FILL_SCENARIO:CHALLENGER_EXPOSURE_OR_VOLATILITY_BUDGET")
+                    # Worst-case draft notionals plus declared friction are a
+                    # conservative research stress, not an observed fill price.
+                    post_nav = nav - costs.estimate(sum((d.estimated_notional for d in buys), D(0)), len(buys))
+                    if post_nav <= 0:
+                        blockers.append("NO_SELL_FILL_SCENARIO:NONPOSITIVE_FRICTION_ADJUSTED_NAV")
+                    else:
+                        post_buy = {s: v * nav / post_nav for s, v in post_buy.items()}
+                        blockers.extend("NO_SELL_FILL_SCENARIO:" + reason for reason in challenger_budget_violations(
+                            post_buy, base, correlations, policies.risk, policy, state))
                 if blockers:
                     drafts = ()
     unknowns = ["EXPECTED_RETURN_UNCALIBRATED", "ETF_LOOKTHROUGH_OVERLAP_UNKNOWN", "BROAD_MARKET_PARTICIPATION_UNKNOWN",

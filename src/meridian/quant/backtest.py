@@ -18,6 +18,7 @@ from meridian.historical import HistoricalBarCertification, HistoricalBarSeries
 from meridian.lab_evaluation import rank_correlation
 from meridian.quant.features import (
     ChallengerFeatureSnapshot,
+    FeatureSnapshot,
     compute_challenger_features,
     compute_features,
     eligible_bars,
@@ -28,6 +29,7 @@ from meridian.quant.policy import ChallengerPolicy, CostPolicy, QuantPolicy
 from meridian.quant.portfolio import (
     allocate,
     allocate_challenger,
+    challenger_budget_violations,
     challenger_rebalance,
     cost_aware_target,
     target_from_weights,
@@ -310,6 +312,21 @@ class WalkForwardRunner:
             if decision in {"NO_ACTION", "BLOCKED"}:
                 deltas = dict.fromkeys(symbols, D(0))
             ordered = sorted(symbols, key=lambda s: (deltas[s] >= 0, s))
+            decision_features: dict[str, FeatureSnapshot] = {}
+            decision_correlations: dict[tuple[str, str], Decimal] = {}
+            decision_regime = None
+            if challenger is not None:
+                # Only the prior close information set may determine risk at
+                # this open. Opening prices mark holdings; today's close never
+                # supplies volatility/correlation or market-state features.
+                cached = self._feature_cache.get(previous, {})
+                for s in sorted(symbols | {"SPY"}):
+                    feature = cached.get(s)
+                    decision_features[s] = feature if isinstance(feature, FeatureSnapshot) else compute_features(
+                        self.histories[s], signal_at, benchmark=self.histories["SPY"], diagnostic=self.diagnostic)
+                decision_correlations = pit_correlations(
+                    {s: self.histories[s] for s in symbols}, signal_at, policy.correlation_lookback)
+                decision_regime = detect_regime(decision_features["SPY"], policy)
             for symbol in ordered:
                 delta = deltas[symbol]
                 if delta == 0:
@@ -348,6 +365,15 @@ class WalkForwardRunner:
                 fee = costs.commission_per_order
                 if delta < 0 and qty * price <= fee:
                     continue
+                if delta > 0 and challenger is not None and decision_regime is not None:
+                    post_nav = mark_nav - fee - qty * (price - reference)
+                    proposed = {s: q * session_bars[s].open / post_nav for s, q in holdings.items()}
+                    proposed[symbol] = proposed.get(symbol, D(0)) + qty * reference / post_nav
+                    violations = challenger_budget_violations(proposed, decision_features, decision_correlations,
+                                                              risk, challenger, decision_regime)
+                    if violations:
+                        warnings.update("CHALLENGER_NEW_BUY_BLOCKED:" + reason for reason in violations)
+                        continue  # No hypothetical fill, turnover or fee is charged.
                 if delta > 0:
                     cash -= qty * price + fee
                     holdings[symbol] = holdings.get(symbol, D(0)) + qty
@@ -377,6 +403,10 @@ class WalkForwardRunner:
                 sectors = {m.sector for m in known_meta.values() if m.sector}
                 if any(sum((q * session_bars[s].close for s, q in holdings.items() if s in known_meta and known_meta[s].sector == sector), D(0)) / nav > risk.max_sector_weight for sector in sectors):
                     drift.append("MARK_TO_MARKET_SECTOR_CAP_DRIFT")
+            if challenger is not None and decision_regime is not None:
+                marked = {s: q * session_bars[s].close / nav for s, q in holdings.items()}
+                drift.extend("MARK_TO_MARKET:" + reason for reason in challenger_budget_violations(
+                    marked, decision_features, decision_correlations, risk, challenger, decision_regime))
             days.append(ReplayDay(session=session, nav=nav, cash=cash, exposure=(nav - cash) / nav,
                                   daily_return=nav / prior_nav - 1, benchmark_return=benchmark_return,
                                   turnover=sum((t.quantity * t.reference_price for t in day_trades), D(0)) / nav_open,
@@ -431,6 +461,7 @@ class WalkForwardRunner:
             correlations = pit_correlations({s: self.histories[s] for s in eligible}, cutoff, policy.correlation_lookback)
             challenger_allocation = allocate_challenger(challenger_scores, features, cutoff, risk, challenger, state,
                 correlations=correlations, sector_map={m.symbol: m.sector for m in self.dataset.security_metadata if m.known_at <= cutoff},
+                asset_types={m.symbol: m.asset_type for m in self.dataset.security_metadata if m.known_at <= cutoff},
                 diagnostic=self.diagnostic)
             target = challenger_allocation.feasible_target
             score_map = {s.bridge.symbol: s.bridge.quant_score for s in challenger_scores}

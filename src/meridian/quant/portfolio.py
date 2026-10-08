@@ -235,7 +235,7 @@ def _positive_semidefinite(matrix: list[list[Decimal]]) -> bool:
 @deterministic_decimal
 def estimate_portfolio_risk(values: Mapping[str, Decimal], features: Mapping[str, FeatureSnapshot],
                             correlations: Mapping[tuple[str, str], Decimal], policy: "ChallengerPolicy") -> PortfolioRiskEstimate:
-    if any(not v.is_finite() or v < 0 for v in values.values()) or sum(values.values(), D(0)) > 1:
+    if any(not v.is_finite() or v < 0 for v in values.values()) or sum((values[s] for s in sorted(values)), D(0)) > 1:
         raise ValueError("CHALLENGER_INVALID_RISK_WEIGHTS")
     symbols = sorted(s for s, v in values.items() if v > 0)
     for (a, b), value in correlations.items():
@@ -278,12 +278,13 @@ def allocate_challenger(scores: Sequence["ChallengerScore"], features: Mapping[s
                         cutoff: datetime, risk: RiskPolicy, policy: "ChallengerPolicy", regime: RegimeState,
                         *, correlations: Mapping[tuple[str, str], Decimal],
                         sector_map: Mapping[str, str | None] | None = None,
+                        asset_types: Mapping[str, str] | None = None,
                         diagnostic: bool = False) -> ChallengerAllocation:
     if policy.diagnostic_exposure is not None and not diagnostic:
         raise ValueError("CHALLENGER_FIXED_EXPOSURE_IS_DIAGNOSTIC_ONLY")
     if any(s.policy_hash != policy.digest for s in scores):
         raise ValueError("CHALLENGER_SCORE_POLICY_MISMATCH")
-    eligible = [s.bridge for s in scores if s.bridge.quant_score > 0 and not s.bridge.exclusion_reasons]
+    eligible = sorted((s.bridge for s in scores if s.bridge.quant_score > 0 and not s.bridge.exclusion_reasons), key=lambda s: s.symbol)
     total = sum((s.quant_score for s in eligible), D(0))
     preferred = {s.symbol: (1 - risk.min_cash_weight) * s.quant_score / total for s in eligible} if total else {}
     # No security or regime multiplier is hidden in predictive strength.
@@ -312,7 +313,7 @@ def allocate_challenger(scores: Sequence["ChallengerScore"], features: Mapping[s
             changes.append("CORRELATED_COMPONENT_CAP:" + ",".join(component))
     if risk.max_sector_weight < 1:
         for symbol in sorted(values):
-            if sector_map is None or symbol not in sector_map:
+            if not (sector_map or {}).get(symbol) and (asset_types or {}).get(symbol) != "DIVERSIFIED_ETF":
                 values[symbol] = D(0)
                 changes.append("SECTOR_METADATA_UNKNOWN:" + symbol)
         sectors = sorted({v for v in (sector_map or {}).values() if v})
@@ -334,6 +335,33 @@ def allocate_challenger(scores: Sequence["ChallengerScore"], features: Mapping[s
     return ChallengerAllocation(preferred_target=target_from_weights(preferred, cutoff, policy.version),
         feasible_target=feasible, risk=estimate_portfolio_risk(weights(feasible), features, correlations, policy),
         modifications=tuple(changes))
+
+
+@deterministic_decimal
+def challenger_budget_violations(values: Mapping[str, Decimal], features: Mapping[str, FeatureSnapshot],
+                                 correlations: Mapping[tuple[str, str], Decimal], risk: RiskPolicy,
+                                 policy: "ChallengerPolicy", regime: RegimeState) -> tuple[str, ...]:
+    """Check post-friction/partial-fill exposures using the same allocation caps.
+
+    These nonnegative ceilings are conservative under subsets of buy fills.
+    Unknown covariance never silently receives the known-covariance budget.
+    """
+    try:
+        estimated = estimate_portfolio_risk(values, features, correlations, policy)
+    except (ValueError, KeyError, ArithmeticError):
+        return ("CHALLENGER_RISK_INPUT_UNAVAILABLE",)
+    reasons = []
+    exposure = sum((values[s] for s in sorted(values)), D(0))
+    if exposure > min(1 - risk.min_cash_weight, regime.exposure_ceiling):
+        reasons.append("CHALLENGER_EXPOSURE_BUDGET")
+    if estimated.conservative_volatility_bound > policy.controls.target_volatility:
+        reasons.append("CHALLENGER_VOLATILITY_BUDGET")
+    if estimated.covariance_status.startswith("UNKNOWN") and exposure > policy.unknown_correlation_exposure:
+        reasons.append("UNKNOWN_COVARIANCE_EXPOSURE_BUDGET")
+    for component in estimated.correlated_components:
+        if len(component) > 1 and sum((values[s] for s in component), D(0)) > policy.cluster_weight_cap:
+            reasons.append("CORRELATED_COMPONENT_BUDGET:" + ",".join(component))
+    return tuple(reasons)
 
 
 def rebalance_decision_hash(target: TargetPortfolio, current: Mapping[str, Decimal], *, nav: Decimal,
