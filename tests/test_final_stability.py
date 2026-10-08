@@ -258,10 +258,15 @@ def test_missing_or_unknown_legacy_health_is_never_green(components: dict[str, s
 
 @pytest.mark.parametrize("missing", ["run_health_json", "paper_report_json", "paper_report_markdown"])
 def test_ledger_owner_survives_missing_report_artifacts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, missing: str) -> None:
+    import meridian.application as application
+    import scripts.safe_acceptance as acceptance
+    monkeypatch.setattr(application, "datetime", acceptance.FixtureClock)
+    monkeypatch.setattr(acceptance, "datetime", acceptance.FixtureClock)
     service = MeridianApplicationService(RuntimePaths(tmp_path))
     service.paper_init()
     monkeypatch.setattr(service, "daily", lambda *args, **kwargs: acceptance_fixture("SYNTHETIC_FILL"))
     first = service.paper_run(run_purpose="ACCEPTANCE_VALIDATION")
+    assert first["status"] == "PAPER_READY"
     outputs = first["output_files"]
     assert isinstance(outputs, dict)
     Path(str(outputs[missing])).unlink()

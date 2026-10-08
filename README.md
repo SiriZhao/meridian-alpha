@@ -21,12 +21,21 @@ snapshot ID, and model/runtime provenance. Resume classifies market movement as
 `EXACT`, explicitly `REVALIDATED`, or `REFRESH_REQUIRED`; market drift is not
 reported as a generic LLM failure.
 
-Final maintainer acceptance on 2026-09-11: **BLOCKED_WITH_EVIDENCE**.
+Historical maintainer acceptance on 2026-09-11: **BLOCKED_WITH_EVIDENCE**.
 Source validation and a real clean wheel installation passed. The one fresh
 GPT-6 Astra acceptance session hit its usage limit before reading the Skill or
 calling tools; SEC retrieval also returned HTTP 403. This is not a production
 research acceptance. See [final review](reports/meridian-astra-final-review.md)
 and [clean installation](reports/meridian-clean-install-acceptance.md).
+
+Current development includes canonical report projections, provider-failure
+telemetry, crash-safe paper ownership and an isolated
+[alpha research laboratory](docs/alpha-lab.md). Operational scoring still uses
+positive daily return; successful GPT consultation is not evidence of LLM
+influence on target weights. Reviewed research closes and descriptive signal
+evaluation do not certify execution quotes or demonstrate positive alpha.
+See the [Phase 4 checkpoint and acceptance report](docs/audits/2026-10-08-phase4-alpha-lab-acceptance.md)
+for executed checks, remaining work and data limitations.
 
 ## Install (Windows PowerShell)
 

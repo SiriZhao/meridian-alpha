@@ -1,0 +1,324 @@
+{
+  "schema_version": "meridian-development-checkpoint.v1",
+  "status": "PARTIAL_COMPLETE",
+  "started_at": "2026-10-08T03:45:22+00:00",
+  "checkpoint_at": "2026-10-08T07:55:15.915345+00:00",
+  "elapsed_wall_seconds": 14993,
+  "current_head": "3959d1c59988acb67069b5ccbbafd855e44b8217",
+  "head_semantics": "Final tested code HEAD; evidence-only delivery commit follows.",
+  "branch": "feature/forward-evidence-alpha-lab-20261008",
+  "base_branch": "codex/canonical-truth-hardening",
+  "delivery_ref": "origin/feature/forward-evidence-alpha-lab-20261008",
+  "completed_tasks": [
+    "Fetched true remote baseline and reviewed ADR 0032-0034 plus raw Windows/Linux CI",
+    "Independent baseline clone reproduced three closed-market wall-clock failures; repaired isolated fixture clock without gate changes",
+    "Reviewed dated closes, action coverage, exact maturity/benchmark matching and atomic immutable isolated outcome ingestion",
+    "Archived receipt digest revalidation and fixed Decimal arithmetic context with extreme-input rejection",
+    "Four deterministic challengers, information cutoffs, fixed-universe paired metrics and overlap purge",
+    "Observed quant/risk/order attribution with canonical/Markdown/health consistency assertions",
+    "63 new regressions: 59 lab/attribution plus four process-identity fault injections",
+    "CI-evidenced Linux ESRCH identity race repaired; permission/I/O uncertainty still fail closed",
+    "New lab modules permanently covered by strict Pyright",
+    "Six financial-decision scenarios matched the original baseline exactly",
+    "16 synthetic fixture cycles with repeatability/report contracts and zero failures",
+    "Public-only bounded native schema smoke: one shared invocation, 27780 ms, usage/cost unknown; no canonical payload sent",
+    "Read-only canonical evidence and paper receipt aggregate inspection; forward file hash unchanged",
+    "Public origin-ref pattern audit: 1144 blobs, no high-risk token/key findings; historical privacy review remains",
+    "Frozen-lock independent Python 3.12 clone full validation and Windows packaging passed",
+    "Code HEAD pushed and verified; Windows/Ubuntu push and stacked PR CI passed; draft PR 2 created",
+    "Resumed from preserved checkpoint; fetched remote/PR and verified raw prior CI",
+    "Predeclared horizon portfolios with train/validation/test availability purge and fixed cost/slippage grid",
+    "Information cutoff (not later decision time) enforced in both signal and portfolio evaluation",
+    "Shared benchmark provenance, exact frozen operational score, common complete cohorts and traceable period weights/costs",
+    "14 portfolio regressions, fresh-process read-only CLI and lossless Markdown contract",
+    "Strict Pyright for portfolio_lab and fixed arithmetic contexts including precise benchmark cash policy",
+    "Code HEAD source validation: 807 passed, Ruff/Pyright/dependencies/CLI/safe paper PASS",
+    "Code HEAD raw CI: Windows 807 and Ubuntu 805 plus two Windows-only platform skips; push/PR PASS",
+    "Final resumed independent GitHub clone: Python 3.12.10 frozen lock, 48 packages, 807 passed in 122.60 seconds; Windows packaging PASS",
+    "Final PR CI exposed exited Linux state identity defect; corrected Z/X/x classification and malformed stat handling without assertion changes",
+    "Eleven cross-platform identity injections; 29 targeted cases PASS",
+    "Final code 8af8952: source 818 in 119.26s, clone 818 in 123.10s; static/dependency/CLI/safe paper/fresh-process/projections PASS",
+    "Final code push/PR CI PASS: Windows 818; Ubuntu 816 plus two platform skips",
+    "Full horizon calendar qualification rejects inception before reviewed 2026-2028 scope without fabricating return",
+    "Final source 819 in 105.82s; independent frozen clone 819 in 106.63s; 81 targeted cases; code push/PR dual-platform CI PASS"
+  ],
+  "active_task": "Resume the unfinished portfolio evaluation/research-evidence mission; do not treat this checkpoint as ten-hour completion",
+  "outstanding_defects": [
+    "No real reviewed financial comparison dataset: zero qualified outcomes and zero LLM scores",
+    "Sealed native-role/fundamental/Skeptic/Scenario ablation datasets unfinished",
+    "Local review and registration timestamps are attestations, not authenticated signatures",
+    "Qualified calendar coverage limited to 2026-2028; historical membership/survivorship evidence incomplete",
+    "Historical QUANT_PLUS_LLM advisory labels do not identify an LLM-scored strategy",
+    "Production SLO and full provider/ledger/publication long-run observability not measured",
+    "No new canonical host acceptance; canonical runtime writes prohibited",
+    "Seven historical personal-path blobs require human privacy assessment; no rewrite authorized",
+    "Continuous buy-and-hold/gap valuation, intra-horizon paths, integer execution and observed cost/impact model not implemented",
+    "Rolling fold inference, authenticated ex-ante registration and serial-dependence uncertainty remain unfinished"
+  ],
+  "commands_tests_executed": [
+    {
+      "command": "scripts/validate_repo.py (independent baseline clone)",
+      "status": "FAIL",
+      "passed": 727,
+      "failed": 3,
+      "duration_seconds": 99.19,
+      "root_cause": "closed-market wall clock in offline acceptance"
+    },
+    {
+      "command": "scripts/validate_repo.py (final host source)",
+      "status": "PASS",
+      "passed": 793,
+      "duration_seconds": 87.56
+    },
+    {
+      "command": "scripts/validate_repo.py (independent remote clone at code HEAD)",
+      "status": "PASS",
+      "passed": 793,
+      "duration_seconds": 90.19,
+      "python": "3.12.10",
+      "installation": "frozen uv.lock, 48 packages"
+    },
+    {
+      "command": "pytest lab + decision attribution",
+      "status": "PASS",
+      "passed": 59
+    },
+    {
+      "command": "pytest process identity failure injections",
+      "status": "PASS",
+      "passed": 4
+    },
+    {
+      "command": "ruff check .",
+      "status": "PASS"
+    },
+    {
+      "command": "pyright",
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 0,
+      "strict_modules": [
+        "alpha_lab",
+        "dated_close",
+        "lab_evaluation"
+      ]
+    },
+    {
+      "command": "dependency integrity, CLI, safe paper, fresh-process and report consistency",
+      "status": "PASS"
+    },
+    {
+      "command": "Windows review packaging and isolated lab CLI score/reconcile",
+      "status": "PASS"
+    },
+    {
+      "command": "phase4_fixture_acceptance.py",
+      "status": "PASS",
+      "cycles": 16,
+      "failures": 0,
+      "unexpected_exceptions": 0,
+      "measurement_class": "SYNTHETIC_OFFLINE_FIXTURE"
+    },
+    {
+      "command": "CI push 37732028445 at 98c1d6353ea3282175817bcf951aa22048cceaec",
+      "status": "PASS",
+      "windows_passed": 793,
+      "ubuntu_passed": 791,
+      "ubuntu_skipped": 2
+    },
+    {
+      "command": "CI stacked PR 37732032239 at 98c1d6353ea3282175817bcf951aa22048cceaec",
+      "status": "PASS",
+      "os": [
+        "Windows",
+        "Ubuntu"
+      ]
+    },
+    {
+      "command": "earlier PR CI 37729405520",
+      "status": "FAIL",
+      "root_cause": "Linux process disappeared during stat read; repaired with deterministic injections"
+    },
+    {
+      "command": "canonical-payload native diagnostic",
+      "status": "NOT_RUN",
+      "reason": "Automatic approval review rejected private-payload external transmission"
+    },
+    {
+      "command": "public-only native schema smoke",
+      "status": "PASS",
+      "model": "gpt-5.6-luna",
+      "attempts": 1,
+      "shared_wall_ms": 27780,
+      "tokens": "UNKNOWN",
+      "cost": "UNKNOWN",
+      "financial_research_certified": false
+    },
+    {
+      "command": "new canonical paper daily acceptance",
+      "status": "NOT_VERIFIED",
+      "reason": "No canonical writes allowed this phase"
+    },
+    {
+      "command": "restricted baseline validation",
+      "status": "FAIL",
+      "passed": 792,
+      "failed": 1,
+      "duration_seconds": 176.49,
+      "reason": "Windows child cleanup timeout in restricted context; exact host test and later full host validation passed"
+    },
+    {
+      "command": "host validation during development",
+      "status": "FAIL",
+      "passed": 805,
+      "failed": 1,
+      "reason": "Source changed during validation: parent/child report versions differed; discarded mixed-version result and validated frozen code"
+    },
+    {
+      "command": "scripts/validate_repo.py at final resumed code HEAD",
+      "status": "PASS",
+      "passed": 807,
+      "duration_seconds": 110.51
+    },
+    {
+      "command": "targeted portfolio tests",
+      "status": "PASS",
+      "passed": 14
+    },
+    {
+      "command": "five bounded portfolio replays",
+      "status": "PASS",
+      "cycles": 5,
+      "measurement_class": "SYNTHETIC_MOCK_REVIEW_OFFLINE",
+      "median_ms": 63.3053,
+      "real_financial_samples": 0,
+      "model_invocations": 0
+    },
+    {
+      "command": "CI push 37742987387 and PR 37742993808",
+      "status": "PASS",
+      "windows_passed": 807,
+      "ubuntu_passed": 805,
+      "ubuntu_skipped": 2,
+      "head": "0e019447e2b930c38a143a18f46b103ae8d1e7c7"
+    },
+    {
+      "command": "final resumed independent clone validation",
+      "status": "PASS",
+      "head": "0e019447e2b930c38a143a18f46b103ae8d1e7c7",
+      "passed": 807,
+      "duration_seconds": 122.6,
+      "windows_packaging": "PASS",
+      "runtime_isolation": "PASS"
+    },
+    {
+      "command": "PR CI 37744349982",
+      "status": "FAIL",
+      "os": "Ubuntu",
+      "passed": 804,
+      "failed": 1,
+      "skipped": 2,
+      "root_cause": "Exited Linux process stat identity was treated as alive; deterministic exit-state injections added"
+    },
+    {
+      "command": "Source and independent frozen-lock clone at final code HEAD",
+      "status": "PASS",
+      "head": "8af89527b0305dbfea1ace77d3f0439bbdd9856b",
+      "source_passed": 818,
+      "source_duration_seconds": 119.26,
+      "clone_passed": 818,
+      "clone_duration_seconds": 123.1
+    },
+    {
+      "command": "CI push 37744891605 and PR 37744897281",
+      "status": "PASS",
+      "head": "8af89527b0305dbfea1ace77d3f0439bbdd9856b",
+      "windows_passed": 818,
+      "ubuntu_passed": 816,
+      "ubuntu_skipped": 2
+    },
+    {
+      "command": "Identity and portfolio targeted regressions",
+      "status": "PASS",
+      "passed": 29
+    },
+    {
+      "command": "Final horizon calendar/source/clone validation",
+      "status": "PASS",
+      "head": "3959d1c59988acb67069b5ccbbafd855e44b8217",
+      "source_passed": 819,
+      "source_seconds": 105.82,
+      "clone_passed": 819,
+      "clone_seconds": 106.63,
+      "targeted_passed": 81
+    },
+    {
+      "command": "CI push 37745970170 and PR 37745975117",
+      "status": "PASS",
+      "head": "3959d1c59988acb67069b5ccbbafd855e44b8217",
+      "os": [
+        "Windows",
+        "Ubuntu"
+      ]
+    }
+  ],
+  "forward_evidence": {
+    "predictions": 40,
+    "matured": 16,
+    "unverified_outcomes": 16,
+    "pending": 24,
+    "reviewed_outcomes": 0,
+    "nonnull_llm_scores": 0,
+    "status": "INSUFFICIENT_EVIDENCE",
+    "canonical_sha256_unchanged": true,
+    "observed_at": "2026-10-08T04:38:00+00:00",
+    "new_canonical_inspection_this_resume": false
+  },
+  "next_safe_action": "Collect genuinely reviewed close/action and certified research cohorts; complete continuous/rolling portfolio and ablation evidence. Never interpret mock receipt arithmetic as real alpha.",
+  "safety": {
+    "account": "Schwab-Paper",
+    "account_environment": "PAPER",
+    "broker_submission": "DISABLED",
+    "llm_execution_authority": "NONE",
+    "automatic_promotion": "DISABLED",
+    "canonical_runtime_written": false,
+    "real_broker_side_effects": false,
+    "production_policy_changed": false
+  },
+  "duration_claim": "Prior segment recorded 6124 elapsed seconds. Resumed segment first observed 07:05 UTC. Quota-interruption gap excluded from work claims; effective work hours not measured and ten-hour mission not claimed complete.",
+  "resume": {
+    "first_observed_at": "2026-10-08T07:05:10+00:00",
+    "code_head": "3959d1c59988acb67069b5ccbbafd855e44b8217",
+    "checkpoint_at": "2026-10-08T07:55:15.915345+00:00",
+    "active_task": "Final evidence-only delivery verification; next research tasks remain in outstanding_defects",
+    "completed": [
+      "Predeclared horizon portfolios and fixed cost/slippage grid",
+      "Earlier information cutoff enforcement for signal and portfolio evaluation",
+      "Benchmark provenance conflict rejection",
+      "14 portfolio regression cases and strict typing"
+    ],
+    "pending": [
+      "Final evidence-only tip remote/clone verification and CI"
+    ],
+    "extra_bootstrap_download": {
+      "status": "CANCELLED",
+      "reason": "Redundant no-cache uv wheel download stalled; previously completed fresh frozen-lock project installation was retained and independently validated",
+      "project_packages_installed": 48,
+      "uv": "0.12.7"
+    },
+    "observed_segment_wall_seconds": 3005
+  },
+  "prior_segment_elapsed_wall_seconds": 6124,
+  "elapsed_wall_semantics": "WALL_SINCE_ORIGINAL_START_INCLUDES_QUOTA_INTERRUPTION_NOT_EFFECTIVE_WORK",
+  "fresh_clone": {
+    "status": "PASS",
+    "head": "3959d1c59988acb67069b5ccbbafd855e44b8217",
+    "python": "3.12.10",
+    "uv": "0.12.7",
+    "packages": 48,
+    "passed": 819,
+    "duration_seconds": 106.63,
+    "final_delivery_fast_forward": "PENDING_HANDOFF",
+    "code_tree_must_match_tested_head": true
+  }
+}

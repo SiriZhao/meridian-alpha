@@ -137,8 +137,18 @@ def process_start_time(pid: int) -> str | None:
         finally:
             kernel.CloseHandle(handle)
     try:
-        return Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[19]
-    except FileNotFoundError:
+        fields = Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()
+        # Linux retains a stat entry for an exited child until its parent reaps
+        # it. A zombie/dead task cannot own live work, like a terminated Windows
+        # process whose PID handle still exists. Other states remain live.
+        if len(fields) < 20 or not fields[19].isdigit():
+            raise OSError("PROCESS_IDENTITY_UNVERIFIABLE")
+        return None if fields[0] in {"Z", "X", "x"} else fields[19]
+    except IndexError as error:
+        raise OSError("PROCESS_IDENTITY_UNVERIFIABLE") from error
+    except (FileNotFoundError, ProcessLookupError):
+        # Linux can remove the process after opening stat but before reading it.
+        # ESRCH confirms exit; permission and other I/O errors remain fail-closed.
         return None
 
 

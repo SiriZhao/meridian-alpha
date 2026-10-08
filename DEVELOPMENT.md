@@ -24,6 +24,24 @@ and use `.venv/bin/python`. These commands install from project metadata;
 Do not inherit `PYTHONPATH`, runtime overrides, or credentials from another
 checkout. CI exercises independent Python 3.12 environments on both platforms.
 
+Nested development worktrees under `.worktrees/` are ignored; do not package or
+commit another task's worktree. The [alpha lab](docs/alpha-lab.md) uses isolated
+JSON ledgers and read-only CLI inputs, never the canonical runtime. Safe
+acceptance is an offline fixture harness with a fixed OPEN-session clock; it
+does not verify a fresh live market or native-model invocation.
+
+For Windows environments with restricted system temp/cache ACLs, select a
+writable workspace uv cache before installation:
+
+```powershell
+$env:UV_CACHE_DIR = Join-Path (Get-Location) '.tmp/uv-cache'
+```
+
+Windows subprocess-tree termination must also be validated in a host context
+that can terminate its own child processes. Do not skip that regression to
+hide sandbox permission failures. Test/lab host validation still uses isolated
+workspace runtime paths and never grants broker authority.
+
 For reproducible release/CI validation, install from the checked-in lock with
 the same uv version as the Windows bootstrap and CI:
 

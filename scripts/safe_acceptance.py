@@ -12,12 +12,21 @@ import sys
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from meridian.application import MeridianApplicationService
 from meridian.canonical_run import assert_report_projection_consistency, canonical_snapshot
 from meridian.report_bundle import verify_report_bundle
 from meridian.runtime import RuntimePaths
+
+
+class FixtureClock(datetime):
+    """A declared offline OPEN session, independent of CI's wall clock."""
+    @classmethod
+    def now(cls, tz=None):
+        value = datetime(2026, 10, 7, 15, 0, tzinfo=UTC)
+        return value.astimezone(tz) if tz is not None else value.replace(tzinfo=None)
 
 
 def require(condition: bool, message: str) -> None:
@@ -49,6 +58,11 @@ def fixture(mode: str) -> dict[str, object]:
 
 
 def accept(root: Path) -> dict[str, object]:
+    with patch("meridian.application.datetime", FixtureClock), patch(__name__ + ".datetime", FixtureClock):
+        return _accept(root)
+
+
+def _accept(root: Path) -> dict[str, object]:
     os.environ["MERIDIAN_HOME"] = str(root)
     os.environ["MERIDIAN_CACHE"] = str(root / "cache")
     results = []
@@ -83,7 +97,9 @@ def accept(root: Path) -> dict[str, object]:
 
 
 def main() -> int:
-    with tempfile.TemporaryDirectory(prefix="meridian-safe-acceptance-") as directory:
+    base = Path(__file__).resolve().parents[1] / ".tmp"
+    base.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="meridian-safe-acceptance-", dir=base) as directory:
         print(json.dumps(accept(Path(directory)), indent=2))
     return 0
 
