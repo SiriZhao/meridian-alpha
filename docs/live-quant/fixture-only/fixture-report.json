@@ -1,0 +1,4110 @@
+{
+  "run_id": "FIXTURE_ONLY_NOT_LIVE",
+  "generated_at": "2021-02-11T21:00:00+00:00",
+  "input_class": "SYNTHETIC_DIAGNOSTIC_FIXTURE_ONLY",
+  "market_session": "FIXTURE_NOT_CURRENT_SESSION",
+  "checks": {
+    "quant": "FIXTURE_COMPUTED",
+    "llm": "NOT_RUN",
+    "report": "PASS"
+  },
+  "blockers": [
+    "FIXTURE_ONLY_NOT_LIVE_ACCEPTANCE",
+    "INSUFFICIENT_VERIFIED_HISTORY"
+  ],
+  "quant_live": {
+    "schema_version": "quant-live-information.v1",
+    "analysis_cutoff": "2021-02-11T21:00:00Z",
+    "quote_hashes": {
+      "AAPL": "3e4204735c6608b7edaf0c6b42c7b60a411001ea400a4f0d48509b16f4a89402",
+      "GLD": "29473b3638bc417b832341d7e3b466fd0697e5e9292565ddd2b1ad30e63d7ac0",
+      "MSFT": "9afb09081f1dd0a96c41eaad8860a99afcc24402e50079c349f850299a4b4f9c",
+      "NVDA": "eddc26778755914c2cece4c89d6e11b91e018925e9897a5541d8d846e48c91e2",
+      "QQQ": "556741c177f719a2da758de9b7f755295ba88ba0c4322501f22a4341daab3eae",
+      "SPY": "93a0284c10bd0d4219000c18dc46d2cb36f32a97308244b466519bc96a26b1bf"
+    },
+    "historical_input_hashes": {
+      "AAPL": "1cb4fd763d90184cd98c9cd08edff1503050932ec7c86be4e06ea948c0376a5d",
+      "GLD": "483b5f5e58837d4845cc542899b7e56014d7fbdc19b2554459d4f4a02466084f",
+      "MSFT": "25afa6e37e34f6b8f24fea5c0325cfb7eefae37f24289a478e36dc111becd670",
+      "NVDA": "e14ee65a0c11040cb8b83ab58bd6bfb402ae0ccad86fe1453d13d1039ec20c02",
+      "QQQ": "36e1dc7ab8c7b765e1accb8e3c4cceeae8bf4c8d0659d8222325b4ba2c1f5239",
+      "SPY": "4b60a5d5b481f8cc50a263c176d3f6bdff1567478a40e9c74598199ba123ca57"
+    },
+    "strict_status": "INSUFFICIENT_VERIFIED_HISTORY",
+    "quant_packet": {
+      "schema_version": "quant-research-packet.v2.2",
+      "analysis_cutoff": "2021-02-11T21:00:00Z",
+      "symbols": [
+        {
+          "symbol": "AAPL",
+          "analysis_cutoff": "2021-02-11T21:00:00Z",
+          "feature": {
+            "version": "quant-features-v2.2",
+            "base": {
+              "version": "quant-features-v2.1",
+              "symbol": "AAPL",
+              "as_of": "2021-02-11T21:00:00Z",
+              "last_session": "2021-02-11",
+              "factors": [
+                {
+                  "name": "return_1d",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 1,
+                  "raw_value": "-0.0039741294942666630000000000",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_1m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 21,
+                  "raw_value": "-0.0091704422110023270571376553",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_3m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 63,
+                  "raw_value": "0.018397591173764765084444459",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_6m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "0.026024165688286693107362936",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_12m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.104947898222766555461499456",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_12_1",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.115174541914575159333662418",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "relative_momentum_6m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "-0.073438422068598996912654499",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "risk_adjusted_momentum",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "0.3843665053527651430055608476",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "78.8636251039910870880033684",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "78.2021297954666561490133691",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma200",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 200,
+                  "raw_value": "76.0901657775764004121702818",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "trend_distance",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 200,
+                  "raw_value": "0.028186704804405765505761396",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma60_slope",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 80,
+                  "raw_value": "0.008392677744931599699405046",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "trend_persistence",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.4833333333333333333333333333",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "breakout_distance",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.0211874673007492547546106733",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "0.06684262172986537446405499375",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.06770664281582535286734174824",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "downside_deviation",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.04591605382793883969905611371",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "atr14",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 14,
+                  "raw_value": "0.7405449880616444501620626236",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "drawdown_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.0227529102260893043627801429",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "drawdown_252",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "-0.0228223143783107260305463560",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "relative_volatility",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.9984045479974843448140367178",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "beta_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.2847897821595395117873351460",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "correlation_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.2852448766692287639104359811",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "dollar_volume_20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "78863625.1039910870880033684",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_percentile",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.3690987124463519313304721030",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "reversal_5d",
+                  "version": "price-factor-v2.1",
+                  "symbol": "AAPL",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 5,
+                  "raw_value": "-0.0211874673007492547546106733",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                }
+              ],
+              "input_hash": "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+              "quality_status": "SYNTHETIC_DIAGNOSTIC",
+              "reasons": [],
+              "synthetic": true
+            },
+            "medium_distance": "0.000419004232829572360244113",
+            "momentum_acceleration": "0.010908792515343116595614583",
+            "trend_instability": "0.1",
+            "residual_momentum_63": "0.000631477552470278854886807117",
+            "missing_reasons": {},
+            "provenance": [
+              "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+              "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+            ],
+            "availability_cutoff": "2021-02-11T21:00:00Z",
+            "input_hash": "a6594ff0437e015cfc76da3da9dc73e1d2bdc9bbace54521c82b90a1855084dd"
+          },
+          "score": {
+            "version": "quant-score-v2.2",
+            "bridge": {
+              "symbol": "AAPL",
+              "as_of": "2021-02-11T21:00:00Z",
+              "strategy": "V22",
+              "policy_version": "quant-v2.2",
+              "quant_score": "0.5053988125659361003378809451",
+              "relative_rank": 4,
+              "contributions": [],
+              "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
+              "completeness": "1.000",
+              "risk_multiplier": "0.5",
+              "risk_adjustments": [
+                "RISK_ADJUSTED_SCORE_IS_REPORTED_SEPARATELY",
+                "VOLATILITY_AND_REGIME_ARE_NOT_ALPHA"
+              ],
+              "inclusion_reasons": [
+                "POSITIVE_ABSOLUTE_MOMENTUM_AND_QUALIFIED_LIQUIDITY"
+              ],
+              "exclusion_reasons": [],
+              "score_change": null,
+              "input_hash": "a6594ff0437e015cfc76da3da9dc73e1d2bdc9bbace54521c82b90a1855084dd",
+              "predictive_confidence": null
+            },
+            "signal_strength": "0.5053988125659361003378809451",
+            "risk_adjusted_score": "0.2526994062829680501689404726",
+            "factor_attribution": [
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_3m",
+                "group": "absolute",
+                "symbol": "AAPL",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 63,
+                "raw": "0.018397591173764765084444459",
+                "normalized": "0.5624920526444937746366283638",
+                "weight": "0.100",
+                "contribution": "0.05624920526444937746366283638",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_6m",
+                "group": "absolute",
+                "symbol": "AAPL",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 126,
+                "raw": "0.026024165688286693107362936",
+                "normalized": "0.5673818939762185398197907357",
+                "weight": "0.150",
+                "contribution": "0.08510728409643278097296861036",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_12_1",
+                "group": "absolute",
+                "symbol": "AAPL",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 252,
+                "raw": "0.115174541914575159333662418",
+                "normalized": "0.7194332155840658525195352485",
+                "weight": "0.250",
+                "contribution": "0.1798583038960164631298838121",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "relative_momentum_6m",
+                "group": "relative",
+                "symbol": "AAPL",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 126,
+                "raw": "-0.073438422068598996912654499",
+                "normalized": "0.2760402489591206694093482806",
+                "weight": "0.25",
+                "contribution": "0.06901006223978016735233707015",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "medium_distance",
+                "group": "trend",
+                "symbol": "AAPL",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 60,
+                "raw": "0.000419004232829572360244113",
+                "normalized": "0.4757185796309815682753058517",
+                "weight": "0.125",
+                "contribution": "0.05946482245387269603441323146",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "trend_persistence",
+                "group": "trend",
+                "symbol": "AAPL",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 60,
+                "raw": "-0.0166666666666666666666666667",
+                "normalized": "0.4456730769230769230769230768",
+                "weight": "0.125",
+                "contribution": "0.05570913461538461538461538460",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              }
+            ],
+            "score_change_attribution": {},
+            "risk_score_change_attribution": {},
+            "positive_observations": 1,
+            "persistence_definition": "CONSECUTIVE_OBSERVED_ELIGIBLE_SESSIONS_NOT_CONFIDENCE",
+            "policy_hash": "e0e0c2a4972a1cce7e18a64480ca2b6798a0002a04772ff58235a74592077674"
+          },
+          "current_exposure": null,
+          "preferred_exposure": "0.195557",
+          "feasible_exposure": "0.083333",
+          "cost_adjusted_exposure": null,
+          "eligible_change": null,
+          "candidate_action": "WAIT",
+          "liquidity_status": "QUALIFIED",
+          "reasons_for_waiting": [
+            "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+          ],
+          "chinese_explanation": "仅供研究；候选变动未获交易授权。等待：FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+        },
+        {
+          "symbol": "MSFT",
+          "analysis_cutoff": "2021-02-11T21:00:00Z",
+          "feature": {
+            "version": "quant-features-v2.2",
+            "base": {
+              "version": "quant-features-v2.1",
+              "symbol": "MSFT",
+              "as_of": "2021-02-11T21:00:00Z",
+              "last_session": "2021-02-11",
+              "factors": [
+                {
+                  "name": "return_1d",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 1,
+                  "raw_value": "0.001562522180390073800000000",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_1m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 21,
+                  "raw_value": "-0.0148444164292921431641328849",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_3m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 63,
+                  "raw_value": "0.009502521702052085765972601",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_6m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "0.038918007167158275474943906",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_12m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.113037240999494301834262897",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_12_1",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.129808590197781645914637700",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "relative_momentum_6m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "-0.060544580589727414545073529",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "risk_adjusted_momentum",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "0.5749070342483026745052335135",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "102.729259110021390223488649",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "101.9039872792888393996214529",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma200",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 200,
+                  "raw_value": "98.76002802167862170459382935",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "trend_distance",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 200,
+                  "raw_value": "0.034260664627093693757250994",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma60_slope",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 80,
+                  "raw_value": "0.008059047371937787482467497",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "trend_persistence",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.4833333333333333333333333333",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "breakout_distance",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.0207351089289674331365787380",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "0.06648043745092750427399249198",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.06769443553259702521412871245",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "downside_deviation",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.04525525085547386854458232442",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "atr14",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 14,
+                  "raw_value": "0.9403371837866314008224306857",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "drawdown_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.0224075479400726304036940945",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "drawdown_252",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "-0.0224089216580147217680102347",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "relative_volatility",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.9982245389675430901330621409",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "beta_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.6527536986705684373101522800",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "correlation_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.6539146987367262945513664927",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "dollar_volume_20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "113002185.0210235292458375138",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_percentile",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.2703862660944206008583690987",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "reversal_5d",
+                  "version": "price-factor-v2.1",
+                  "symbol": "MSFT",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 5,
+                  "raw_value": "-0.0139157928235873989345389318",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                }
+              ],
+              "input_hash": "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+              "quality_status": "SYNTHETIC_DIAGNOSTIC",
+              "reasons": [],
+              "synthetic": true
+            },
+            "medium_distance": "0.002351477576104530667246256",
+            "momentum_acceleration": "-0.019636073628557671156889105",
+            "trend_instability": "0",
+            "residual_momentum_63": "0.05168263440618304490860791011",
+            "missing_reasons": {},
+            "provenance": [
+              "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+              "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+            ],
+            "availability_cutoff": "2021-02-11T21:00:00Z",
+            "input_hash": "7d70f0e674fdf32e376ff062ee2640698f875dbfe0cdf831e399a02574e255ee"
+          },
+          "score": {
+            "version": "quant-score-v2.2",
+            "bridge": {
+              "symbol": "MSFT",
+              "as_of": "2021-02-11T21:00:00Z",
+              "strategy": "V22",
+              "policy_version": "quant-v2.2",
+              "quant_score": "0.5355711632740921885783081179",
+              "relative_rank": 3,
+              "contributions": [],
+              "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
+              "completeness": "1.000",
+              "risk_multiplier": "0.5",
+              "risk_adjustments": [
+                "RISK_ADJUSTED_SCORE_IS_REPORTED_SEPARATELY",
+                "VOLATILITY_AND_REGIME_ARE_NOT_ALPHA"
+              ],
+              "inclusion_reasons": [
+                "POSITIVE_ABSOLUTE_MOMENTUM_AND_QUALIFIED_LIQUIDITY"
+              ],
+              "exclusion_reasons": [],
+              "score_change": null,
+              "input_hash": "7d70f0e674fdf32e376ff062ee2640698f875dbfe0cdf831e399a02574e255ee",
+              "predictive_confidence": null
+            },
+            "signal_strength": "0.5355711632740921885783081179",
+            "risk_adjusted_score": "0.2677855816370460942891540590",
+            "factor_attribution": [
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_3m",
+                "group": "absolute",
+                "symbol": "MSFT",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 63,
+                "raw": "0.009502521702052085765972601",
+                "normalized": "0.5120102975154062465213336478",
+                "weight": "0.100",
+                "contribution": "0.05120102975154062465213336478",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_6m",
+                "group": "absolute",
+                "symbol": "MSFT",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 126,
+                "raw": "0.038918007167158275474943906",
+                "normalized": "0.6201947993504329369921689104",
+                "weight": "0.150",
+                "contribution": "0.09302921990256494054882533656",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_12_1",
+                "group": "absolute",
+                "symbol": "MSFT",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 252,
+                "raw": "0.129808590197781645914637700",
+                "normalized": "0.7706205562031185829119013966",
+                "weight": "0.250",
+                "contribution": "0.1926551390507796457279753492",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "relative_momentum_6m",
+                "group": "relative",
+                "symbol": "MSFT",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 126,
+                "raw": "-0.060544580589727414545073529",
+                "normalized": "0.3162069759228879677031710204",
+                "weight": "0.25",
+                "contribution": "0.07905174398072199192579275510",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "medium_distance",
+                "group": "trend",
+                "symbol": "MSFT",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 60,
+                "raw": "0.002351477576104530667246256",
+                "normalized": "0.5113991677848029627117274217",
+                "weight": "0.125",
+                "contribution": "0.06392489597310037033896592771",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "trend_persistence",
+                "group": "trend",
+                "symbol": "MSFT",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 60,
+                "raw": "-0.0166666666666666666666666667",
+                "normalized": "0.4456730769230769230769230768",
+                "weight": "0.125",
+                "contribution": "0.05570913461538461538461538460",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              }
+            ],
+            "score_change_attribution": {},
+            "risk_score_change_attribution": {},
+            "positive_observations": 1,
+            "persistence_definition": "CONSECUTIVE_OBSERVED_ELIGIBLE_SESSIONS_NOT_CONFIDENCE",
+            "policy_hash": "e0e0c2a4972a1cce7e18a64480ca2b6798a0002a04772ff58235a74592077674"
+          },
+          "current_exposure": null,
+          "preferred_exposure": "0.207232",
+          "feasible_exposure": "0.083333",
+          "cost_adjusted_exposure": null,
+          "eligible_change": null,
+          "candidate_action": "WAIT",
+          "liquidity_status": "QUALIFIED",
+          "reasons_for_waiting": [
+            "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+          ],
+          "chinese_explanation": "仅供研究；候选变动未获交易授权。等待：FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+        },
+        {
+          "symbol": "NVDA",
+          "analysis_cutoff": "2021-02-11T21:00:00Z",
+          "feature": {
+            "version": "quant-features-v2.2",
+            "base": {
+              "version": "quant-features-v2.1",
+              "symbol": "NVDA",
+              "as_of": "2021-02-11T21:00:00Z",
+              "last_session": "2021-02-11",
+              "factors": [
+                {
+                  "name": "return_1d",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 1,
+                  "raw_value": "0.006094714000820352000000000",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_1m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 21,
+                  "raw_value": "0.001936268110456771300953731",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_3m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 63,
+                  "raw_value": "0.018828617595818829033457359",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_6m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "0.071393615242919871420420339",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_12m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.130549917528499506294740080",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_12_1",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.128365100168091669959885542",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "relative_momentum_6m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "-0.028068972513965818599597096",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "risk_adjusted_momentum",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "1.052643486781177274008826941",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "126.328767149505838898104265",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "125.2296478228147117046496550",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma200",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 200,
+                  "raw_value": "120.8209630368632938948758620",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "trend_distance",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 200,
+                  "raw_value": "0.051665853161217002096617631",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma60_slope",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 80,
+                  "raw_value": "0.008829952103599284702547763",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "trend_persistence",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.5166666666666666666666666667",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "breakout_distance",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.0093510652238719936985555695",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "0.06894619481625076279055002892",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.06782316723512024328913608954",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "downside_deviation",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.04254301905746121595414436734",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "atr14",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 14,
+                  "raw_value": "1.2124072623804842609456919",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "drawdown_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.0219725262730210537772282059",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "drawdown_252",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "-0.0219978545336030347378296466",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "relative_volatility",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "1.000122821202866079310902863",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "beta_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.9901584392708694255923598447",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "correlation_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.9900368417550833320422325633",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "dollar_volume_20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "151594520.5794070066777251180",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_percentile",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.9055793991416309012875536481",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "reversal_5d",
+                  "version": "price-factor-v2.1",
+                  "symbol": "NVDA",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 5,
+                  "raw_value": "0.008422493908067385791018005",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                }
+              ],
+              "input_hash": "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+              "quality_status": "SYNTHETIC_DIAGNOSTIC",
+              "reasons": [],
+              "synthetic": true
+            },
+            "medium_distance": "0.014642166459673867727791068",
+            "momentum_acceleration": "-0.032764944598322628395574360",
+            "trend_instability": "0",
+            "residual_momentum_63": "0.08244031298001995839087177262",
+            "missing_reasons": {},
+            "provenance": [
+              "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+              "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+            ],
+            "availability_cutoff": "2021-02-11T21:00:00Z",
+            "input_hash": "46657703c5695c8e154bb8631dbb8ef6194bc8e9066eadb1cf6ee3120591d2fa"
+          },
+          "score": {
+            "version": "quant-score-v2.2",
+            "bridge": {
+              "symbol": "NVDA",
+              "as_of": "2021-02-11T21:00:00Z",
+              "strategy": "V22",
+              "policy_version": "quant-v2.2",
+              "quant_score": "0.5981079226462758799754235436",
+              "relative_rank": 2,
+              "contributions": [],
+              "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
+              "completeness": "1.000",
+              "risk_multiplier": "0.5",
+              "risk_adjustments": [
+                "RISK_ADJUSTED_SCORE_IS_REPORTED_SEPARATELY",
+                "VOLATILITY_AND_REGIME_ARE_NOT_ALPHA"
+              ],
+              "inclusion_reasons": [
+                "POSITIVE_ABSOLUTE_MOMENTUM_AND_QUALIFIED_LIQUIDITY"
+              ],
+              "exclusion_reasons": [],
+              "score_change": null,
+              "input_hash": "46657703c5695c8e154bb8631dbb8ef6194bc8e9066eadb1cf6ee3120591d2fa",
+              "predictive_confidence": null
+            },
+            "signal_strength": "0.5981079226462758799754235436",
+            "risk_adjusted_score": "0.2990539613231379399877117718",
+            "factor_attribution": [
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_3m",
+                "group": "absolute",
+                "symbol": "NVDA",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 63,
+                "raw": "0.018828617595818829033457359",
+                "normalized": "0.5826589934878836908547682017",
+                "weight": "0.100",
+                "contribution": "0.05826589934878836908547682017",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_6m",
+                "group": "absolute",
+                "symbol": "NVDA",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 126,
+                "raw": "0.071393615242919871420420339",
+                "normalized": "0.7020283086022552449084290748",
+                "weight": "0.150",
+                "contribution": "0.1053042462903382867362643612",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_12_1",
+                "group": "absolute",
+                "symbol": "NVDA",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 252,
+                "raw": "0.128365100168091669959885542",
+                "normalized": "0.7505984319475393964978996659",
+                "weight": "0.250",
+                "contribution": "0.1876496079868848491244749165",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "relative_momentum_6m",
+                "group": "relative",
+                "symbol": "NVDA",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 126,
+                "raw": "-0.028068972513965818599597096",
+                "normalized": "0.4080085290048998764605941690",
+                "weight": "0.25",
+                "contribution": "0.1020021322512249691151485422",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "medium_distance",
+                "group": "trend",
+                "symbol": "NVDA",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 60,
+                "raw": "0.014642166459673867727791068",
+                "normalized": "0.6141363710753921703893943049",
+                "weight": "0.125",
+                "contribution": "0.07676704638442402129867428811",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "trend_persistence",
+                "group": "trend",
+                "symbol": "NVDA",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 60,
+                "raw": "0.0166666666666666666666666667",
+                "normalized": "0.5449519230769230769230769231",
+                "weight": "0.125",
+                "contribution": "0.06811899038461538461538461539",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              }
+            ],
+            "score_change_attribution": {},
+            "risk_score_change_attribution": {},
+            "positive_observations": 1,
+            "persistence_definition": "CONSECUTIVE_OBSERVED_ELIGIBLE_SESSIONS_NOT_CONFIDENCE",
+            "policy_hash": "e0e0c2a4972a1cce7e18a64480ca2b6798a0002a04772ff58235a74592077674"
+          },
+          "current_exposure": null,
+          "preferred_exposure": "0.231430",
+          "feasible_exposure": "0.083333",
+          "cost_adjusted_exposure": null,
+          "eligible_change": null,
+          "candidate_action": "WAIT",
+          "liquidity_status": "QUALIFIED",
+          "reasons_for_waiting": [
+            "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+          ],
+          "chinese_explanation": "仅供研究；候选变动未获交易授权。等待：FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+        },
+        {
+          "symbol": "SPY",
+          "analysis_cutoff": "2021-02-11T21:00:00Z",
+          "feature": {
+            "version": "quant-features-v2.2",
+            "base": {
+              "version": "quant-features-v2.1",
+              "symbol": "SPY",
+              "as_of": "2021-02-11T21:00:00Z",
+              "last_session": "2021-02-11",
+              "factors": [
+                {
+                  "name": "return_1d",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 1,
+                  "raw_value": "-0.0044290236789208699999999998",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_1m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 21,
+                  "raw_value": "0.028356455411238664529737533",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_3m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 63,
+                  "raw_value": "0.065303023698422805084393694",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_6m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "0.099462587756885690020017435",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_12m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.219165866629895560664552089",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "momentum_12_1",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.185547929625581446220739403",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "relative_momentum_6m",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "0E-27",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "risk_adjusted_momentum",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 126,
+                  "raw_value": "1.466678834485984402679635652",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "208.4403810301935288040379022",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "205.0131662536433109258613427",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma200",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 200,
+                  "raw_value": "194.6410457215913744930910178",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "trend_distance",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 200,
+                  "raw_value": "0.079463668923866846044860079",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "sma60_slope",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 80,
+                  "raw_value": "0.016796022914228847032679681",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "trend_persistence",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.55",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "breakout_distance",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.0069134172630610268501186419",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "0.06877229857201646471211007139",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.06781483813512831836236952353",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "downside_deviation",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "0.03934492561545741872700893566",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "atr14",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 14,
+                  "raw_value": "1.968837480936137527020291657",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "drawdown_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "-0.0207267243877688685602667682",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "drawdown_252",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "-0.0207604015253966918686532426",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "relative_volatility",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "1",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "beta_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "1",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "correlation_60",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 60,
+                  "raw_value": "1",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "dollar_volume_20",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 20,
+                  "raw_value": "312660571.5452902932060568533",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "volatility_percentile",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 252,
+                  "raw_value": "0.8240343347639484978540772532",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                },
+                {
+                  "name": "reversal_5d",
+                  "version": "price-factor-v2.1",
+                  "symbol": "SPY",
+                  "as_of": "2021-02-11T21:00:00Z",
+                  "lookback": 5,
+                  "raw_value": "0.001310601922756951768977796",
+                  "normalized_value": null,
+                  "provenance": [
+                    "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
+                    "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  ],
+                  "availability_cutoff": "2021-02-11T21:00:00Z",
+                  "quality_status": "AVAILABLE",
+                  "missing_reason": null
+                }
+              ],
+              "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+              "quality_status": "SYNTHETIC_DIAGNOSTIC",
+              "reasons": [],
+              "synthetic": true
+            },
+            "medium_distance": "0.024850945806380814729346597",
+            "momentum_acceleration": "0.033237439260418680969782580",
+            "trend_instability": "0",
+            "residual_momentum_63": "0E-28",
+            "missing_reasons": {},
+            "provenance": [
+              "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+              "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+            ],
+            "availability_cutoff": "2021-02-11T21:00:00Z",
+            "input_hash": "2d3e8512c6fecc529324762acd4e11a2fe3304bd81a10af37409f1d56c877a73"
+          },
+          "score": {
+            "version": "quant-score-v2.2",
+            "bridge": {
+              "symbol": "SPY",
+              "as_of": "2021-02-11T21:00:00Z",
+              "strategy": "V22",
+              "policy_version": "quant-v2.2",
+              "quant_score": "0.6868793788937508308551959827",
+              "relative_rank": 1,
+              "contributions": [],
+              "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
+              "completeness": "1.000",
+              "risk_multiplier": "0.5",
+              "risk_adjustments": [
+                "RISK_ADJUSTED_SCORE_IS_REPORTED_SEPARATELY",
+                "VOLATILITY_AND_REGIME_ARE_NOT_ALPHA"
+              ],
+              "inclusion_reasons": [
+                "POSITIVE_ABSOLUTE_MOMENTUM_AND_QUALIFIED_LIQUIDITY"
+              ],
+              "exclusion_reasons": [],
+              "score_change": null,
+              "input_hash": "2d3e8512c6fecc529324762acd4e11a2fe3304bd81a10af37409f1d56c877a73",
+              "predictive_confidence": null
+            },
+            "signal_strength": "0.6868793788937508308551959827",
+            "risk_adjusted_score": "0.3434396894468754154275979914",
+            "factor_attribution": [
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_3m",
+                "group": "absolute",
+                "symbol": "SPY",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 63,
+                "raw": "0.065303023698422805084393694",
+                "normalized": "0.7108358045865026599846295056",
+                "weight": "0.100",
+                "contribution": "0.07108358045865026599846295056",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_6m",
+                "group": "absolute",
+                "symbol": "SPY",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 126,
+                "raw": "0.099462587756885690020017435",
+                "normalized": "0.7587519429013341675909106229",
+                "weight": "0.150",
+                "contribution": "0.1138127914352001251386365934",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "momentum_12_1",
+                "group": "absolute",
+                "symbol": "SPY",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 252,
+                "raw": "0.185547929625581446220739403",
+                "normalized": "0.8286556939691549740153974635",
+                "weight": "0.250",
+                "contribution": "0.2071639234922887435038493659",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "relative_momentum_6m",
+                "group": "relative",
+                "symbol": "SPY",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 126,
+                "raw": "0E-27",
+                "normalized": "0.528125",
+                "weight": "0.25",
+                "contribution": "0.13203125",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "medium_distance",
+                "group": "trend",
+                "symbol": "SPY",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 60,
+                "raw": "0.024850945806380814729346597",
+                "normalized": "0.6816776680608935697139765821",
+                "weight": "0.125",
+                "contribution": "0.08520970850761169621424707276",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              },
+              {
+                "version": "quant-factor-contribution.v2.2",
+                "name": "trend_persistence",
+                "group": "trend",
+                "symbol": "SPY",
+                "as_of": "2021-02-11T21:00:00Z",
+                "availability_cutoff": "2021-02-11T21:00:00Z",
+                "provenance": [
+                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+                  "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+                ],
+                "lookback": 60,
+                "raw": "0.05",
+                "normalized": "0.620625",
+                "weight": "0.125",
+                "contribution": "0.077578125",
+                "missing_reason": null,
+                "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+              }
+            ],
+            "score_change_attribution": {},
+            "risk_score_change_attribution": {},
+            "positive_observations": 1,
+            "persistence_definition": "CONSECUTIVE_OBSERVED_ELIGIBLE_SESSIONS_NOT_CONFIDENCE",
+            "policy_hash": "e0e0c2a4972a1cce7e18a64480ca2b6798a0002a04772ff58235a74592077674"
+          },
+          "current_exposure": null,
+          "preferred_exposure": "0.265779",
+          "feasible_exposure": "0.100000",
+          "cost_adjusted_exposure": null,
+          "eligible_change": null,
+          "candidate_action": "WAIT",
+          "liquidity_status": "QUALIFIED",
+          "reasons_for_waiting": [
+            "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+          ],
+          "chinese_explanation": "仅供研究；候选变动未获交易授权。等待：FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+        }
+      ],
+      "regime": {
+        "version": "quant-regime-v2.1",
+        "as_of": "2021-02-11T21:00:00Z",
+        "trend": "TRENDING_UP",
+        "volatility": "HIGH_VOLATILITY",
+        "drawdown_stress": false,
+        "risk_multiplier": "0.5",
+        "exposure_ceiling": "0.5",
+        "rebalance_urgency": "RISK_REDUCTION",
+        "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+        "reasons": [
+          "SPY_TREND_AND_TRAILING_VOLATILITY"
+        ]
+      },
+      "allocation": {
+        "preferred_target": {
+          "as_of": "2021-02-11T21:00:00Z",
+          "cash_weight": "0.100002",
+          "positions": [
+            {
+              "ticker": "AAPL",
+              "target_weight": "0.195557",
+              "conviction": "0",
+              "rationale": "Deterministic Quant V2 research target; predictive confidence uncalibrated."
+            },
+            {
+              "ticker": "MSFT",
+              "target_weight": "0.207232",
+              "conviction": "0",
+              "rationale": "Deterministic Quant V2 research target; predictive confidence uncalibrated."
+            },
+            {
+              "ticker": "NVDA",
+              "target_weight": "0.231430",
+              "conviction": "0",
+              "rationale": "Deterministic Quant V2 research target; predictive confidence uncalibrated."
+            },
+            {
+              "ticker": "SPY",
+              "target_weight": "0.265779",
+              "conviction": "0",
+              "rationale": "Deterministic Quant V2 research target; predictive confidence uncalibrated."
+            }
+          ],
+          "allocator_name": "quant_v2_constrained",
+          "allocator_version": "quant-v2.2"
+        },
+        "feasible_target": {
+          "as_of": "2021-02-11T21:00:00Z",
+          "cash_weight": "0.650001",
+          "positions": [
+            {
+              "ticker": "AAPL",
+              "target_weight": "0.083333",
+              "conviction": "0",
+              "rationale": "Deterministic Quant V2 research target; predictive confidence uncalibrated."
+            },
+            {
+              "ticker": "MSFT",
+              "target_weight": "0.083333",
+              "conviction": "0",
+              "rationale": "Deterministic Quant V2 research target; predictive confidence uncalibrated."
+            },
+            {
+              "ticker": "NVDA",
+              "target_weight": "0.083333",
+              "conviction": "0",
+              "rationale": "Deterministic Quant V2 research target; predictive confidence uncalibrated."
+            },
+            {
+              "ticker": "SPY",
+              "target_weight": "0.100000",
+              "conviction": "0",
+              "rationale": "Deterministic Quant V2 research target; predictive confidence uncalibrated."
+            }
+          ],
+          "allocator_name": "quant_v2_constrained",
+          "allocator_version": "quant-v2.2"
+        },
+        "risk": {
+          "conservative_volatility_bound": "0.02371676987072618910291370800",
+          "shrunk_volatility_estimate": "0.01051762375620262902598517758",
+          "covariance_status": "PSD_FIXED_DIAGONAL_SHRINKAGE",
+          "correlated_components": [
+            [
+              "AAPL"
+            ],
+            [
+              "MSFT"
+            ],
+            [
+              "NVDA"
+            ],
+            [
+              "SPY"
+            ]
+          ],
+          "assumptions": [
+            "TRAILING_60_SESSION_VOLATILITY_NOT_A_FORECAST",
+            "PLUS_ONE_CORRELATION_BOUND_IS_HARD_CEILING",
+            "FIXED_SHRINKAGE_NOT_OOS_FITTED",
+            "CORRELATION_COMPONENTS_ARE_SINGLE_LINK_CONSERVATIVE"
+          ]
+        },
+        "modifications": [
+          "POSITION_COUNT_CAP_AND_SINGLE_INVERSE_VOLATILITY_SIZING",
+          "SECTOR_EXPOSURE_CAP:SYNTHETIC_SECTOR"
+        ]
+      },
+      "rebalance": null,
+      "eligible_hypothetical_drafts": [],
+      "constraint_modifications": [
+        "POSITION_COUNT_CAP_AND_SINGLE_INVERSE_VOLATILITY_SIZING",
+        "SECTOR_EXPOSURE_CAP:SYNTHETIC_SECTOR",
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+      ],
+      "important_unknowns": [
+        "EXPECTED_RETURN_UNCALIBRATED",
+        "ETF_LOOKTHROUGH_OVERLAP_UNKNOWN",
+        "BROAD_MARKET_PARTICIPATION_UNKNOWN",
+        "FUNDAMENTALS_DISABLED",
+        "REAL_FINANCIAL_VALIDATION_PENDING",
+        "CERTIFICATION_IS_CALLER_ATTESTATION_NOT_AUTHENTICATION",
+        "SPREAD_UNKNOWN"
+      ],
+      "cost_assumptions": {
+        "version": "quant-cost-v1",
+        "commission_per_order": "1",
+        "slippage_bps": "5",
+        "spread_bps": null
+      },
+      "data_certification_class": "SYNTHETIC_DIAGNOSTIC",
+      "strategy_hash": "e0e0c2a4972a1cce7e18a64480ca2b6798a0002a04772ff58235a74592077674",
+      "model_hash": "UNCALIBRATED_NO_PREDICTIVE_MODEL",
+      "engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
+      "authority": "SHADOW_ONLY",
+      "trade_authorized": false,
+      "automatic_promotion": false,
+      "broker_submission": "DISABLED"
+    },
+    "shadow_comparison": {
+      "schema_version": "quant-shadow-comparison.v1",
+      "run_id": "FIXTURE_ONLY_NOT_LIVE",
+      "as_of": "2021-02-11T21:00:00Z",
+      "market_snapshot_hash": "321a5badf45e781f4767a771d2411a32debe8a13218403bc7e66877f193c27f1",
+      "policy_hash": "e0e0c2a4972a1cce7e18a64480ca2b6798a0002a04772ff58235a74592077674",
+      "engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
+      "history_hashes": [
+        "1cb4fd763d90184cd98c9cd08edff1503050932ec7c86be4e06ea948c0376a5d",
+        "483b5f5e58837d4845cc542899b7e56014d7fbdc19b2554459d4f4a02466084f",
+        "25afa6e37e34f6b8f24fea5c0325cfb7eefae37f24289a478e36dc111becd670",
+        "e14ee65a0c11040cb8b83ab58bd6bfb402ae0ccad86fe1453d13d1039ec20c02",
+        "36e1dc7ab8c7b765e1accb8e3c4cceeae8bf4c8d0659d8222325b4ba2c1f5239",
+        "4b60a5d5b481f8cc50a263c176d3f6bdff1567478a40e9c74598199ba123ca57"
+      ],
+      "status": "INSUFFICIENT_DATA",
+      "symbols": [
+        {
+          "symbol": "AAPL",
+          "old_quant_score": "0",
+          "new_quant_score": null,
+          "old_target_weight": "0",
+          "new_target_weight": "0.083333",
+          "proposed_target_weight": "0.195557",
+          "weight_difference": "0.083333",
+          "reasons": [
+            "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+            "INSUFFICIENT_VERIFIED_HISTORY"
+          ]
+        },
+        {
+          "symbol": "MSFT",
+          "old_quant_score": "0.001562522180390073800000000",
+          "new_quant_score": null,
+          "old_target_weight": "0",
+          "new_target_weight": "0.083333",
+          "proposed_target_weight": "0.207232",
+          "weight_difference": "0.083333",
+          "reasons": [
+            "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+            "INSUFFICIENT_VERIFIED_HISTORY"
+          ]
+        },
+        {
+          "symbol": "NVDA",
+          "old_quant_score": "0.006094714000820352000000000",
+          "new_quant_score": null,
+          "old_target_weight": "0",
+          "new_target_weight": "0.083333",
+          "proposed_target_weight": "0.231430",
+          "weight_difference": "0.083333",
+          "reasons": [
+            "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+            "INSUFFICIENT_VERIFIED_HISTORY"
+          ]
+        },
+        {
+          "symbol": "SPY",
+          "old_quant_score": "0",
+          "new_quant_score": null,
+          "old_target_weight": "0",
+          "new_target_weight": "0.100000",
+          "proposed_target_weight": "0.265779",
+          "weight_difference": "0.100000",
+          "reasons": [
+            "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+            "INSUFFICIENT_VERIFIED_HISTORY"
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "symbol": "AAPL",
+          "as_of": "2021-02-11T21:00:00Z",
+          "strategy": "V22",
+          "policy_version": "quant-v2.2",
+          "quant_score": "0.5053988125659361003378809451",
+          "relative_rank": 4,
+          "contributions": [],
+          "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
+          "completeness": "1.000",
+          "risk_multiplier": "0.5",
+          "risk_adjustments": [
+            "RISK_ADJUSTED_SCORE_IS_REPORTED_SEPARATELY",
+            "VOLATILITY_AND_REGIME_ARE_NOT_ALPHA"
+          ],
+          "inclusion_reasons": [
+            "POSITIVE_ABSOLUTE_MOMENTUM_AND_QUALIFIED_LIQUIDITY"
+          ],
+          "exclusion_reasons": [],
+          "score_change": null,
+          "input_hash": "a6594ff0437e015cfc76da3da9dc73e1d2bdc9bbace54521c82b90a1855084dd",
+          "predictive_confidence": null
+        },
+        {
+          "symbol": "MSFT",
+          "as_of": "2021-02-11T21:00:00Z",
+          "strategy": "V22",
+          "policy_version": "quant-v2.2",
+          "quant_score": "0.5355711632740921885783081179",
+          "relative_rank": 3,
+          "contributions": [],
+          "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
+          "completeness": "1.000",
+          "risk_multiplier": "0.5",
+          "risk_adjustments": [
+            "RISK_ADJUSTED_SCORE_IS_REPORTED_SEPARATELY",
+            "VOLATILITY_AND_REGIME_ARE_NOT_ALPHA"
+          ],
+          "inclusion_reasons": [
+            "POSITIVE_ABSOLUTE_MOMENTUM_AND_QUALIFIED_LIQUIDITY"
+          ],
+          "exclusion_reasons": [],
+          "score_change": null,
+          "input_hash": "7d70f0e674fdf32e376ff062ee2640698f875dbfe0cdf831e399a02574e255ee",
+          "predictive_confidence": null
+        },
+        {
+          "symbol": "NVDA",
+          "as_of": "2021-02-11T21:00:00Z",
+          "strategy": "V22",
+          "policy_version": "quant-v2.2",
+          "quant_score": "0.5981079226462758799754235436",
+          "relative_rank": 2,
+          "contributions": [],
+          "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
+          "completeness": "1.000",
+          "risk_multiplier": "0.5",
+          "risk_adjustments": [
+            "RISK_ADJUSTED_SCORE_IS_REPORTED_SEPARATELY",
+            "VOLATILITY_AND_REGIME_ARE_NOT_ALPHA"
+          ],
+          "inclusion_reasons": [
+            "POSITIVE_ABSOLUTE_MOMENTUM_AND_QUALIFIED_LIQUIDITY"
+          ],
+          "exclusion_reasons": [],
+          "score_change": null,
+          "input_hash": "46657703c5695c8e154bb8631dbb8ef6194bc8e9066eadb1cf6ee3120591d2fa",
+          "predictive_confidence": null
+        },
+        {
+          "symbol": "SPY",
+          "as_of": "2021-02-11T21:00:00Z",
+          "strategy": "V22",
+          "policy_version": "quant-v2.2",
+          "quant_score": "0.6868793788937508308551959827",
+          "relative_rank": 1,
+          "contributions": [],
+          "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
+          "completeness": "1.000",
+          "risk_multiplier": "0.5",
+          "risk_adjustments": [
+            "RISK_ADJUSTED_SCORE_IS_REPORTED_SEPARATELY",
+            "VOLATILITY_AND_REGIME_ARE_NOT_ALPHA"
+          ],
+          "inclusion_reasons": [
+            "POSITIVE_ABSOLUTE_MOMENTUM_AND_QUALIFIED_LIQUIDITY"
+          ],
+          "exclusion_reasons": [],
+          "score_change": null,
+          "input_hash": "2d3e8512c6fecc529324762acd4e11a2fe3304bd81a10af37409f1d56c877a73",
+          "predictive_confidence": null
+        }
+      ],
+      "regime": {
+        "version": "quant-regime-v2.1",
+        "as_of": "2021-02-11T21:00:00Z",
+        "trend": "TRENDING_UP",
+        "volatility": "HIGH_VOLATILITY",
+        "drawdown_stress": false,
+        "risk_multiplier": "0.5",
+        "exposure_ceiling": "0.5",
+        "rebalance_urgency": "RISK_REDUCTION",
+        "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+        "reasons": [
+          "SPY_TREND_AND_TRAILING_VOLATILITY"
+        ]
+      },
+      "expected_turnover": "0",
+      "estimated_cost_fraction": "0",
+      "risk_violations": [],
+      "reasons": [
+        "NO_ACCOUNT_BOUND_TURNOVER_ESTIMATE",
+        "LEGACY_TARGET_IS_NOT_CANONICAL_RUN",
+        "V22_RESEARCH_ONLY_NOT_CALIBRATED_FORECAST"
+      ],
+      "authority": "SHADOW_ONLY",
+      "canonical_orders_changed": false,
+      "paper_ledger_changed": false,
+      "automatic_promotion": false,
+      "broker_submission": "DISABLED"
+    },
+    "provisional_diagnostics": {
+      "AAPL": {
+        "lane": "PROVISIONAL_LIVE_RESEARCH",
+        "provider": "synthetic-diagnostic",
+        "input_hash": "1cb4fd763d90184cd98c9cd08edff1503050932ec7c86be4e06ea948c0376a5d",
+        "availability_semantics": "CURRENT_RETRIEVAL_NOT_HISTORICAL_PIT",
+        "historical_known_at": null,
+        "execution_quote_certified": false,
+        "financial_oos_evidence_eligible": false,
+        "quant_score": null,
+        "quant_rank": null,
+        "momentum": null,
+        "relative_strength": null,
+        "volatility": null,
+        "drawdown": null,
+        "corporate_action_coverage": "UNKNOWN",
+        "reasons": [
+          "PUBLIC_RETRIEVAL_AFTER_CUTOFF"
+        ],
+        "status": "BLOCKED"
+      },
+      "GLD": {
+        "lane": "PROVISIONAL_LIVE_RESEARCH",
+        "provider": "synthetic-diagnostic",
+        "input_hash": "483b5f5e58837d4845cc542899b7e56014d7fbdc19b2554459d4f4a02466084f",
+        "availability_semantics": "CURRENT_RETRIEVAL_NOT_HISTORICAL_PIT",
+        "historical_known_at": null,
+        "execution_quote_certified": false,
+        "financial_oos_evidence_eligible": false,
+        "quant_score": null,
+        "quant_rank": null,
+        "momentum": null,
+        "relative_strength": null,
+        "volatility": null,
+        "drawdown": null,
+        "corporate_action_coverage": "UNKNOWN",
+        "reasons": [
+          "PUBLIC_RETRIEVAL_AFTER_CUTOFF"
+        ],
+        "status": "BLOCKED"
+      },
+      "MSFT": {
+        "lane": "PROVISIONAL_LIVE_RESEARCH",
+        "provider": "synthetic-diagnostic",
+        "input_hash": "25afa6e37e34f6b8f24fea5c0325cfb7eefae37f24289a478e36dc111becd670",
+        "availability_semantics": "CURRENT_RETRIEVAL_NOT_HISTORICAL_PIT",
+        "historical_known_at": null,
+        "execution_quote_certified": false,
+        "financial_oos_evidence_eligible": false,
+        "quant_score": null,
+        "quant_rank": null,
+        "momentum": null,
+        "relative_strength": null,
+        "volatility": null,
+        "drawdown": null,
+        "corporate_action_coverage": "UNKNOWN",
+        "reasons": [
+          "PUBLIC_RETRIEVAL_AFTER_CUTOFF"
+        ],
+        "status": "BLOCKED"
+      },
+      "NVDA": {
+        "lane": "PROVISIONAL_LIVE_RESEARCH",
+        "provider": "synthetic-diagnostic",
+        "input_hash": "e14ee65a0c11040cb8b83ab58bd6bfb402ae0ccad86fe1453d13d1039ec20c02",
+        "availability_semantics": "CURRENT_RETRIEVAL_NOT_HISTORICAL_PIT",
+        "historical_known_at": null,
+        "execution_quote_certified": false,
+        "financial_oos_evidence_eligible": false,
+        "quant_score": null,
+        "quant_rank": null,
+        "momentum": null,
+        "relative_strength": null,
+        "volatility": null,
+        "drawdown": null,
+        "corporate_action_coverage": "UNKNOWN",
+        "reasons": [
+          "PUBLIC_RETRIEVAL_AFTER_CUTOFF"
+        ],
+        "status": "BLOCKED"
+      },
+      "QQQ": {
+        "lane": "PROVISIONAL_LIVE_RESEARCH",
+        "provider": "synthetic-diagnostic",
+        "input_hash": "36e1dc7ab8c7b765e1accb8e3c4cceeae8bf4c8d0659d8222325b4ba2c1f5239",
+        "availability_semantics": "CURRENT_RETRIEVAL_NOT_HISTORICAL_PIT",
+        "historical_known_at": null,
+        "execution_quote_certified": false,
+        "financial_oos_evidence_eligible": false,
+        "quant_score": null,
+        "quant_rank": null,
+        "momentum": null,
+        "relative_strength": null,
+        "volatility": null,
+        "drawdown": null,
+        "corporate_action_coverage": "UNKNOWN",
+        "reasons": [
+          "PUBLIC_RETRIEVAL_AFTER_CUTOFF"
+        ],
+        "status": "BLOCKED"
+      },
+      "SPY": {
+        "lane": "PROVISIONAL_LIVE_RESEARCH",
+        "provider": "synthetic-diagnostic",
+        "input_hash": "4b60a5d5b481f8cc50a263c176d3f6bdff1567478a40e9c74598199ba123ca57",
+        "availability_semantics": "CURRENT_RETRIEVAL_NOT_HISTORICAL_PIT",
+        "historical_known_at": null,
+        "execution_quote_certified": false,
+        "financial_oos_evidence_eligible": false,
+        "quant_score": null,
+        "quant_rank": null,
+        "momentum": null,
+        "relative_strength": null,
+        "volatility": null,
+        "drawdown": null,
+        "corporate_action_coverage": "UNKNOWN",
+        "reasons": [
+          "PUBLIC_RETRIEVAL_AFTER_CUTOFF"
+        ],
+        "status": "BLOCKED"
+      }
+    },
+    "price_conditions": {
+      "AAPL": {
+        "observed_price": "78.23489681886724429774523624",
+        "quote_hash": "3e4204735c6608b7edaf0c6b42c7b60a411001ea400a4f0d48509b16f4a89402",
+        "observation_at": "2021-02-11T21:00:00+00:00",
+        "timezone": "America/New_York",
+        "quantitative_entry_zone": null,
+        "method": null,
+        "assumptions": [],
+        "fair_value": null,
+        "user_approved_executable_limit": null,
+        "assessment": "WAIT_FOR_EVIDENCE",
+        "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+        "reason": "Qualified ATR/price basis/current observation unavailable; no invented entry price."
+      },
+      "MSFT": {
+        "observed_price": "102.1436122202917284464820861",
+        "quote_hash": "9afb09081f1dd0a96c41eaad8860a99afcc24402e50079c349f850299a4b4f9c",
+        "observation_at": "2021-02-11T21:00:00+00:00",
+        "timezone": "America/New_York",
+        "quantitative_entry_zone": null,
+        "method": null,
+        "assumptions": [],
+        "fair_value": null,
+        "user_approved_executable_limit": null,
+        "assessment": "WAIT_FOR_EVIDENCE",
+        "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+        "reason": "Qualified ATR/price basis/current observation unavailable; no invented entry price."
+      },
+      "NVDA": {
+        "observed_price": "127.0632811719226998695736667",
+        "quote_hash": "eddc26778755914c2cece4c89d6e11b91e018925e9897a5541d8d846e48c91e2",
+        "observation_at": "2021-02-11T21:00:00+00:00",
+        "timezone": "America/New_York",
+        "quantitative_entry_zone": null,
+        "method": null,
+        "assumptions": [],
+        "fair_value": null,
+        "user_approved_executable_limit": null,
+        "assessment": "WAIT_FOR_EVIDENCE",
+        "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+        "reason": "Qualified ATR/price basis/current observation unavailable; no invented entry price."
+      },
+      "SPY": {
+        "observed_price": "210.1079373378071409291537006",
+        "quote_hash": "93a0284c10bd0d4219000c18dc46d2cb36f32a97308244b466519bc96a26b1bf",
+        "observation_at": "2021-02-11T21:00:00+00:00",
+        "timezone": "America/New_York",
+        "quantitative_entry_zone": null,
+        "method": null,
+        "assumptions": [],
+        "fair_value": null,
+        "user_approved_executable_limit": null,
+        "assessment": "WAIT_FOR_EVIDENCE",
+        "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+        "reason": "Qualified ATR/price basis/current observation unavailable; no invented entry price."
+      }
+    },
+    "missing_reasons": [
+      "INSUFFICIENT_VERIFIED_HISTORY"
+    ],
+    "expected_turnover": null,
+    "estimated_cost": null,
+    "authority": "SHADOW_ONLY",
+    "financial_oos_evidence_eligible": false,
+    "trade_authorized": false,
+    "broker_submission": "DISABLED"
+  },
+  "quant_live_hash": "79c96150593c3f746194d43911d8d7f474f73ea8bf28cfb0f7a54159356b45c5",
+  "market_snapshot": {
+    "AAPL": {
+      "symbol": "AAPL",
+      "timestamp": "2021-02-11T16:00:00-05:00",
+      "available_at": "2021-02-11T21:00:00+00:00",
+      "provider": "FIXTURE_ONLY",
+      "observation_hash": "3e4204735c6608b7edaf0c6b42c7b60a411001ea400a4f0d48509b16f4a89402",
+      "current_price": "78.23489681886724429774523624",
+      "reference_price": "78.23489681886724429774523624",
+      "timezone": "America/New_York",
+      "session": "AFTER_HOURS",
+      "last": "78.23489681886724429774523624",
+      "bid": null,
+      "ask": null,
+      "previous_close": "78.54705297879801162520199156",
+      "open": null,
+      "day_high": null,
+      "day_low": null,
+      "volume": null,
+      "daily_change": "-0.0039741294942666630000000000",
+      "source": "SYNTHETIC_NOT_TODAYS_MARKET",
+      "received_at": "2021-02-11T21:00:00+00:00",
+      "age_seconds": 0.0,
+      "freshness": "LIVE",
+      "freshness_reason": "OBSERVED_WITHIN_90_SECONDS; FEED_ENTITLEMENT_UNCERTIFIED",
+      "declared_delay_seconds": null,
+      "missing_reasons": {
+        "bid": "PROVIDER_FIELD_UNAVAILABLE",
+        "ask": "PROVIDER_FIELD_UNAVAILABLE",
+        "open": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_high": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_low": "PROVIDER_FIELD_UNAVAILABLE",
+        "volume": "PROVIDER_FIELD_UNAVAILABLE"
+      },
+      "delay_disclosure": "UNKNOWN",
+      "retrieval": "NETWORK",
+      "execution_quote_grade": false
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "timestamp": "2021-02-11T16:00:00-05:00",
+      "available_at": "2021-02-11T21:00:00+00:00",
+      "provider": "FIXTURE_ONLY",
+      "observation_hash": "9afb09081f1dd0a96c41eaad8860a99afcc24402e50079c349f850299a4b4f9c",
+      "current_price": "102.1436122202917284464820861",
+      "reference_price": "102.1436122202917284464820861",
+      "timezone": "America/New_York",
+      "session": "AFTER_HOURS",
+      "last": "102.1436122202917284464820861",
+      "bid": null,
+      "ask": null,
+      "previous_close": "101.9842595526899920675486132",
+      "open": null,
+      "day_high": null,
+      "day_low": null,
+      "volume": null,
+      "daily_change": "0.001562522180390073800000000",
+      "source": "SYNTHETIC_NOT_TODAYS_MARKET",
+      "received_at": "2021-02-11T21:00:00+00:00",
+      "age_seconds": 0.0,
+      "freshness": "LIVE",
+      "freshness_reason": "OBSERVED_WITHIN_90_SECONDS; FEED_ENTITLEMENT_UNCERTIFIED",
+      "declared_delay_seconds": null,
+      "missing_reasons": {
+        "bid": "PROVIDER_FIELD_UNAVAILABLE",
+        "ask": "PROVIDER_FIELD_UNAVAILABLE",
+        "open": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_high": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_low": "PROVIDER_FIELD_UNAVAILABLE",
+        "volume": "PROVIDER_FIELD_UNAVAILABLE"
+      },
+      "delay_disclosure": "UNKNOWN",
+      "retrieval": "NETWORK",
+      "execution_quote_grade": false
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "timestamp": "2021-02-11T16:00:00-05:00",
+      "available_at": "2021-02-11T21:00:00+00:00",
+      "provider": "FIXTURE_ONLY",
+      "observation_hash": "eddc26778755914c2cece4c89d6e11b91e018925e9897a5541d8d846e48c91e2",
+      "current_price": "127.0632811719226998695736667",
+      "reference_price": "127.0632811719226998695736667",
+      "timezone": "America/New_York",
+      "session": "AFTER_HOURS",
+      "last": "127.0632811719226998695736667",
+      "bid": null,
+      "ask": null,
+      "previous_close": "126.2935580554288596497245681",
+      "open": null,
+      "day_high": null,
+      "day_low": null,
+      "volume": null,
+      "daily_change": "0.006094714000820352000000000",
+      "source": "SYNTHETIC_NOT_TODAYS_MARKET",
+      "received_at": "2021-02-11T21:00:00+00:00",
+      "age_seconds": 0.0,
+      "freshness": "LIVE",
+      "freshness_reason": "OBSERVED_WITHIN_90_SECONDS; FEED_ENTITLEMENT_UNCERTIFIED",
+      "declared_delay_seconds": null,
+      "missing_reasons": {
+        "bid": "PROVIDER_FIELD_UNAVAILABLE",
+        "ask": "PROVIDER_FIELD_UNAVAILABLE",
+        "open": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_high": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_low": "PROVIDER_FIELD_UNAVAILABLE",
+        "volume": "PROVIDER_FIELD_UNAVAILABLE"
+      },
+      "delay_disclosure": "UNKNOWN",
+      "retrieval": "NETWORK",
+      "execution_quote_grade": false
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "timestamp": "2021-02-11T16:00:00-05:00",
+      "available_at": "2021-02-11T21:00:00+00:00",
+      "provider": "FIXTURE_ONLY",
+      "observation_hash": "556741c177f719a2da758de9b7f755295ba88ba0c4322501f22a4341daab3eae",
+      "current_price": "153.4598858883905526204928033",
+      "reference_price": "153.4598858883905526204928033",
+      "timezone": "America/New_York",
+      "session": "AFTER_HOURS",
+      "last": "153.4598858883905526204928033",
+      "bid": null,
+      "ask": null,
+      "previous_close": "152.6174486540185106789801781",
+      "open": null,
+      "day_high": null,
+      "day_low": null,
+      "volume": null,
+      "daily_change": "0.005519927385772479000000000",
+      "source": "SYNTHETIC_NOT_TODAYS_MARKET",
+      "received_at": "2021-02-11T21:00:00+00:00",
+      "age_seconds": 0.0,
+      "freshness": "LIVE",
+      "freshness_reason": "OBSERVED_WITHIN_90_SECONDS; FEED_ENTITLEMENT_UNCERTIFIED",
+      "declared_delay_seconds": null,
+      "missing_reasons": {
+        "bid": "PROVIDER_FIELD_UNAVAILABLE",
+        "ask": "PROVIDER_FIELD_UNAVAILABLE",
+        "open": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_high": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_low": "PROVIDER_FIELD_UNAVAILABLE",
+        "volume": "PROVIDER_FIELD_UNAVAILABLE"
+      },
+      "delay_disclosure": "UNKNOWN",
+      "retrieval": "NETWORK",
+      "execution_quote_grade": false
+    },
+    "GLD": {
+      "symbol": "GLD",
+      "timestamp": "2021-02-11T16:00:00-05:00",
+      "available_at": "2021-02-11T21:00:00+00:00",
+      "provider": "FIXTURE_ONLY",
+      "observation_hash": "29473b3638bc417b832341d7e3b466fd0697e5e9292565ddd2b1ad30e63d7ac0",
+      "current_price": "181.3416157097173785003846874",
+      "reference_price": "181.3416157097173785003846874",
+      "timezone": "America/New_York",
+      "session": "AFTER_HOURS",
+      "last": "181.3416157097173785003846874",
+      "bid": null,
+      "ask": null,
+      "previous_close": "181.2634954616790817660303588",
+      "open": null,
+      "day_high": null,
+      "day_low": null,
+      "volume": null,
+      "daily_change": "0.000430976175535642460000000",
+      "source": "SYNTHETIC_NOT_TODAYS_MARKET",
+      "received_at": "2021-02-11T21:00:00+00:00",
+      "age_seconds": 0.0,
+      "freshness": "LIVE",
+      "freshness_reason": "OBSERVED_WITHIN_90_SECONDS; FEED_ENTITLEMENT_UNCERTIFIED",
+      "declared_delay_seconds": null,
+      "missing_reasons": {
+        "bid": "PROVIDER_FIELD_UNAVAILABLE",
+        "ask": "PROVIDER_FIELD_UNAVAILABLE",
+        "open": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_high": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_low": "PROVIDER_FIELD_UNAVAILABLE",
+        "volume": "PROVIDER_FIELD_UNAVAILABLE"
+      },
+      "delay_disclosure": "UNKNOWN",
+      "retrieval": "NETWORK",
+      "execution_quote_grade": false
+    },
+    "SPY": {
+      "symbol": "SPY",
+      "timestamp": "2021-02-11T16:00:00-05:00",
+      "available_at": "2021-02-11T21:00:00+00:00",
+      "provider": "FIXTURE_ONLY",
+      "observation_hash": "93a0284c10bd0d4219000c18dc46d2cb36f32a97308244b466519bc96a26b1bf",
+      "current_price": "210.1079373378071409291537006",
+      "reference_price": "210.1079373378071409291537006",
+      "timezone": "America/New_York",
+      "session": "AFTER_HOURS",
+      "last": "210.1079373378071409291537006",
+      "bid": null,
+      "ask": null,
+      "previous_close": "211.0426502329510963962286755",
+      "open": null,
+      "day_high": null,
+      "day_low": null,
+      "volume": null,
+      "daily_change": "-0.0044290236789208699999999998",
+      "source": "SYNTHETIC_NOT_TODAYS_MARKET",
+      "received_at": "2021-02-11T21:00:00+00:00",
+      "age_seconds": 0.0,
+      "freshness": "LIVE",
+      "freshness_reason": "OBSERVED_WITHIN_90_SECONDS; FEED_ENTITLEMENT_UNCERTIFIED",
+      "declared_delay_seconds": null,
+      "missing_reasons": {
+        "bid": "PROVIDER_FIELD_UNAVAILABLE",
+        "ask": "PROVIDER_FIELD_UNAVAILABLE",
+        "open": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_high": "PROVIDER_FIELD_UNAVAILABLE",
+        "day_low": "PROVIDER_FIELD_UNAVAILABLE",
+        "volume": "PROVIDER_FIELD_UNAVAILABLE"
+      },
+      "delay_disclosure": "UNKNOWN",
+      "retrieval": "NETWORK",
+      "execution_quote_grade": false
+    }
+  },
+  "LIVE_RUN_READY": false,
+  "MERIDIAN_LIVE_ADVISORY_READY": false,
+  "ORDER_AUTHORITY": "NONE",
+  "regular_session_acceptance_complete": false,
+  "broker_submission": "DISABLED",
+  "decisions": [],
+  "network_accessed": false,
+  "ledger_written": false,
+  "model_invoked": false,
+  "quant_research_rows": [
+    {
+      "symbol": "AAPL",
+      "company": "UNKNOWN（名称未获核验）",
+      "observed_price": "78.23489681886724429774523624",
+      "dated_reference_price": "78.23489681886724429774523624",
+      "observation_at": "2021-02-11T16:00:00-05:00",
+      "timezone": "America/New_York",
+      "provider": "FIXTURE_ONLY",
+      "feed_delay_seconds": null,
+      "history_quality": "INSUFFICIENT_VERIFIED_HISTORY",
+      "momentum_3m": "0.018397591173764765084444459",
+      "momentum_6m": "0.026024165688286693107362936",
+      "relative_strength_6m": "-0.073438422068598996912654499",
+      "trend_sma60": "78.2021297954666561490133691",
+      "volatility_60": "0.06770664281582535286734174824",
+      "drawdown_252": "-0.0228223143783107260305463560",
+      "quant_score": null,
+      "quant_rank": null,
+      "factor_attribution": [
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_3m",
+          "group": "absolute",
+          "symbol": "AAPL",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 63,
+          "raw": "0.018397591173764765084444459",
+          "normalized": "0.5624920526444937746366283638",
+          "weight": "0.100",
+          "contribution": "0.05624920526444937746366283638",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_6m",
+          "group": "absolute",
+          "symbol": "AAPL",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 126,
+          "raw": "0.026024165688286693107362936",
+          "normalized": "0.5673818939762185398197907357",
+          "weight": "0.150",
+          "contribution": "0.08510728409643278097296861036",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_12_1",
+          "group": "absolute",
+          "symbol": "AAPL",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 252,
+          "raw": "0.115174541914575159333662418",
+          "normalized": "0.7194332155840658525195352485",
+          "weight": "0.250",
+          "contribution": "0.1798583038960164631298838121",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "relative_momentum_6m",
+          "group": "relative",
+          "symbol": "AAPL",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 126,
+          "raw": "-0.073438422068598996912654499",
+          "normalized": "0.2760402489591206694093482806",
+          "weight": "0.25",
+          "contribution": "0.06901006223978016735233707015",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "medium_distance",
+          "group": "trend",
+          "symbol": "AAPL",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 60,
+          "raw": "0.000419004232829572360244113",
+          "normalized": "0.4757185796309815682753058517",
+          "weight": "0.125",
+          "contribution": "0.05946482245387269603441323146",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "trend_persistence",
+          "group": "trend",
+          "symbol": "AAPL",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 60,
+          "raw": "-0.0166666666666666666666666667",
+          "normalized": "0.4456730769230769230769230768",
+          "weight": "0.125",
+          "contribution": "0.05570913461538461538461538460",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        }
+      ],
+      "signal_persistence": null,
+      "regime": {
+        "version": "quant-regime-v2.1",
+        "as_of": "2021-02-11T21:00:00Z",
+        "trend": "TRENDING_UP",
+        "volatility": "HIGH_VOLATILITY",
+        "drawdown_stress": false,
+        "risk_multiplier": "0.5",
+        "exposure_ceiling": "0.5",
+        "rebalance_urgency": "RISK_REDUCTION",
+        "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+        "reasons": [
+          "SPY_TREND_AND_TRAILING_VOLATILITY"
+        ]
+      },
+      "regime_is_prediction": false,
+      "preferred_exposure": "0.195557",
+      "feasible_exposure": "0.083333",
+      "current_exposure": null,
+      "cost_adjusted_exposure": null,
+      "concentration_effect": [
+        "POSITION_COUNT_CAP_AND_SINGLE_INVERSE_VOLATILITY_SIZING",
+        "SECTOR_EXPOSURE_CAP:SYNTHETIC_SECTOR",
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+      ],
+      "decision_category": "WAIT_FOR_EVIDENCE",
+      "price_condition": {
+        "observed_price": "78.23489681886724429774523624",
+        "quote_hash": "3e4204735c6608b7edaf0c6b42c7b60a411001ea400a4f0d48509b16f4a89402",
+        "observation_at": "2021-02-11T21:00:00+00:00",
+        "timezone": "America/New_York",
+        "quantitative_entry_zone": null,
+        "method": null,
+        "assumptions": [],
+        "fair_value": null,
+        "user_approved_executable_limit": null,
+        "assessment": "WAIT_FOR_EVIDENCE",
+        "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+        "reason": "Qualified ATR/price basis/current observation unavailable; no invented entry price."
+      },
+      "catalysts": "UNKNOWN：未提供带来源与时间的新闻或财务证据。",
+      "gpt_interpretation": "UNKNOWN：模型未完成，保留定量证据。",
+      "scenarios": "UNKNOWN：没有已验证的模型情景输出。",
+      "opposing_evidence": [
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+        "PUBLIC_RETRIEVAL_AFTER_CUTOFF",
+        "INSUFFICIENT_VERIFIED_HISTORY"
+      ],
+      "monitoring_trigger": "等待新鲜报价、可信复权历史与企业行动证据；按同一截止时点重新计算。",
+      "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+      "no_action_reasons": [
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+        "INSUFFICIENT_VERIFIED_HISTORY",
+        "PUBLIC_RETRIEVAL_AFTER_CUTOFF"
+      ],
+      "important_unknowns": [
+        "内在价值",
+        "新闻催化剂",
+        "校准预期收益",
+        "ETF 穿透重叠",
+        "当前账户风险上下文"
+      ],
+      "manual_requirements": [
+        "这是研究分类，不是券商订单。",
+        "独立核对账户、报价和风险；真实订单逐笔人工批准。"
+      ],
+      "quant_engine": "V2.2_SHADOW",
+      "gpt_engine": "GPT_ADVISORY",
+      "predictive_confidence": null,
+      "trade_authorized": false,
+      "explanation": "AAPL：定量通道为 INSUFFICIENT_VERIFIED_HISTORY；当前报价状态 LIVE；研究分类 WAIT_FOR_EVIDENCE。缺失因子与价格条件保持 UNKNOWN，分数不代表获利概率。"
+    },
+    {
+      "symbol": "MSFT",
+      "company": "UNKNOWN（名称未获核验）",
+      "observed_price": "102.1436122202917284464820861",
+      "dated_reference_price": "102.1436122202917284464820861",
+      "observation_at": "2021-02-11T16:00:00-05:00",
+      "timezone": "America/New_York",
+      "provider": "FIXTURE_ONLY",
+      "feed_delay_seconds": null,
+      "history_quality": "INSUFFICIENT_VERIFIED_HISTORY",
+      "momentum_3m": "0.009502521702052085765972601",
+      "momentum_6m": "0.038918007167158275474943906",
+      "relative_strength_6m": "-0.060544580589727414545073529",
+      "trend_sma60": "101.9039872792888393996214529",
+      "volatility_60": "0.06769443553259702521412871245",
+      "drawdown_252": "-0.0224089216580147217680102347",
+      "quant_score": null,
+      "quant_rank": null,
+      "factor_attribution": [
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_3m",
+          "group": "absolute",
+          "symbol": "MSFT",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 63,
+          "raw": "0.009502521702052085765972601",
+          "normalized": "0.5120102975154062465213336478",
+          "weight": "0.100",
+          "contribution": "0.05120102975154062465213336478",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_6m",
+          "group": "absolute",
+          "symbol": "MSFT",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 126,
+          "raw": "0.038918007167158275474943906",
+          "normalized": "0.6201947993504329369921689104",
+          "weight": "0.150",
+          "contribution": "0.09302921990256494054882533656",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_12_1",
+          "group": "absolute",
+          "symbol": "MSFT",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 252,
+          "raw": "0.129808590197781645914637700",
+          "normalized": "0.7706205562031185829119013966",
+          "weight": "0.250",
+          "contribution": "0.1926551390507796457279753492",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "relative_momentum_6m",
+          "group": "relative",
+          "symbol": "MSFT",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 126,
+          "raw": "-0.060544580589727414545073529",
+          "normalized": "0.3162069759228879677031710204",
+          "weight": "0.25",
+          "contribution": "0.07905174398072199192579275510",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "medium_distance",
+          "group": "trend",
+          "symbol": "MSFT",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 60,
+          "raw": "0.002351477576104530667246256",
+          "normalized": "0.5113991677848029627117274217",
+          "weight": "0.125",
+          "contribution": "0.06392489597310037033896592771",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "trend_persistence",
+          "group": "trend",
+          "symbol": "MSFT",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 60,
+          "raw": "-0.0166666666666666666666666667",
+          "normalized": "0.4456730769230769230769230768",
+          "weight": "0.125",
+          "contribution": "0.05570913461538461538461538460",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        }
+      ],
+      "signal_persistence": null,
+      "regime": {
+        "version": "quant-regime-v2.1",
+        "as_of": "2021-02-11T21:00:00Z",
+        "trend": "TRENDING_UP",
+        "volatility": "HIGH_VOLATILITY",
+        "drawdown_stress": false,
+        "risk_multiplier": "0.5",
+        "exposure_ceiling": "0.5",
+        "rebalance_urgency": "RISK_REDUCTION",
+        "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+        "reasons": [
+          "SPY_TREND_AND_TRAILING_VOLATILITY"
+        ]
+      },
+      "regime_is_prediction": false,
+      "preferred_exposure": "0.207232",
+      "feasible_exposure": "0.083333",
+      "current_exposure": null,
+      "cost_adjusted_exposure": null,
+      "concentration_effect": [
+        "POSITION_COUNT_CAP_AND_SINGLE_INVERSE_VOLATILITY_SIZING",
+        "SECTOR_EXPOSURE_CAP:SYNTHETIC_SECTOR",
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+      ],
+      "decision_category": "WAIT_FOR_EVIDENCE",
+      "price_condition": {
+        "observed_price": "102.1436122202917284464820861",
+        "quote_hash": "9afb09081f1dd0a96c41eaad8860a99afcc24402e50079c349f850299a4b4f9c",
+        "observation_at": "2021-02-11T21:00:00+00:00",
+        "timezone": "America/New_York",
+        "quantitative_entry_zone": null,
+        "method": null,
+        "assumptions": [],
+        "fair_value": null,
+        "user_approved_executable_limit": null,
+        "assessment": "WAIT_FOR_EVIDENCE",
+        "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+        "reason": "Qualified ATR/price basis/current observation unavailable; no invented entry price."
+      },
+      "catalysts": "UNKNOWN：未提供带来源与时间的新闻或财务证据。",
+      "gpt_interpretation": "UNKNOWN：模型未完成，保留定量证据。",
+      "scenarios": "UNKNOWN：没有已验证的模型情景输出。",
+      "opposing_evidence": [
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+        "PUBLIC_RETRIEVAL_AFTER_CUTOFF",
+        "INSUFFICIENT_VERIFIED_HISTORY"
+      ],
+      "monitoring_trigger": "等待新鲜报价、可信复权历史与企业行动证据；按同一截止时点重新计算。",
+      "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+      "no_action_reasons": [
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+        "INSUFFICIENT_VERIFIED_HISTORY",
+        "PUBLIC_RETRIEVAL_AFTER_CUTOFF"
+      ],
+      "important_unknowns": [
+        "内在价值",
+        "新闻催化剂",
+        "校准预期收益",
+        "ETF 穿透重叠",
+        "当前账户风险上下文"
+      ],
+      "manual_requirements": [
+        "这是研究分类，不是券商订单。",
+        "独立核对账户、报价和风险；真实订单逐笔人工批准。"
+      ],
+      "quant_engine": "V2.2_SHADOW",
+      "gpt_engine": "GPT_ADVISORY",
+      "predictive_confidence": null,
+      "trade_authorized": false,
+      "explanation": "MSFT：定量通道为 INSUFFICIENT_VERIFIED_HISTORY；当前报价状态 LIVE；研究分类 WAIT_FOR_EVIDENCE。缺失因子与价格条件保持 UNKNOWN，分数不代表获利概率。"
+    },
+    {
+      "symbol": "NVDA",
+      "company": "UNKNOWN（名称未获核验）",
+      "observed_price": "127.0632811719226998695736667",
+      "dated_reference_price": "127.0632811719226998695736667",
+      "observation_at": "2021-02-11T16:00:00-05:00",
+      "timezone": "America/New_York",
+      "provider": "FIXTURE_ONLY",
+      "feed_delay_seconds": null,
+      "history_quality": "INSUFFICIENT_VERIFIED_HISTORY",
+      "momentum_3m": "0.018828617595818829033457359",
+      "momentum_6m": "0.071393615242919871420420339",
+      "relative_strength_6m": "-0.028068972513965818599597096",
+      "trend_sma60": "125.2296478228147117046496550",
+      "volatility_60": "0.06782316723512024328913608954",
+      "drawdown_252": "-0.0219978545336030347378296466",
+      "quant_score": null,
+      "quant_rank": null,
+      "factor_attribution": [
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_3m",
+          "group": "absolute",
+          "symbol": "NVDA",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 63,
+          "raw": "0.018828617595818829033457359",
+          "normalized": "0.5826589934878836908547682017",
+          "weight": "0.100",
+          "contribution": "0.05826589934878836908547682017",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_6m",
+          "group": "absolute",
+          "symbol": "NVDA",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 126,
+          "raw": "0.071393615242919871420420339",
+          "normalized": "0.7020283086022552449084290748",
+          "weight": "0.150",
+          "contribution": "0.1053042462903382867362643612",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_12_1",
+          "group": "absolute",
+          "symbol": "NVDA",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 252,
+          "raw": "0.128365100168091669959885542",
+          "normalized": "0.7505984319475393964978996659",
+          "weight": "0.250",
+          "contribution": "0.1876496079868848491244749165",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "relative_momentum_6m",
+          "group": "relative",
+          "symbol": "NVDA",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 126,
+          "raw": "-0.028068972513965818599597096",
+          "normalized": "0.4080085290048998764605941690",
+          "weight": "0.25",
+          "contribution": "0.1020021322512249691151485422",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "medium_distance",
+          "group": "trend",
+          "symbol": "NVDA",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 60,
+          "raw": "0.014642166459673867727791068",
+          "normalized": "0.6141363710753921703893943049",
+          "weight": "0.125",
+          "contribution": "0.07676704638442402129867428811",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "trend_persistence",
+          "group": "trend",
+          "symbol": "NVDA",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 60,
+          "raw": "0.0166666666666666666666666667",
+          "normalized": "0.5449519230769230769230769231",
+          "weight": "0.125",
+          "contribution": "0.06811899038461538461538461539",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        }
+      ],
+      "signal_persistence": null,
+      "regime": {
+        "version": "quant-regime-v2.1",
+        "as_of": "2021-02-11T21:00:00Z",
+        "trend": "TRENDING_UP",
+        "volatility": "HIGH_VOLATILITY",
+        "drawdown_stress": false,
+        "risk_multiplier": "0.5",
+        "exposure_ceiling": "0.5",
+        "rebalance_urgency": "RISK_REDUCTION",
+        "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+        "reasons": [
+          "SPY_TREND_AND_TRAILING_VOLATILITY"
+        ]
+      },
+      "regime_is_prediction": false,
+      "preferred_exposure": "0.231430",
+      "feasible_exposure": "0.083333",
+      "current_exposure": null,
+      "cost_adjusted_exposure": null,
+      "concentration_effect": [
+        "POSITION_COUNT_CAP_AND_SINGLE_INVERSE_VOLATILITY_SIZING",
+        "SECTOR_EXPOSURE_CAP:SYNTHETIC_SECTOR",
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+      ],
+      "decision_category": "WAIT_FOR_EVIDENCE",
+      "price_condition": {
+        "observed_price": "127.0632811719226998695736667",
+        "quote_hash": "eddc26778755914c2cece4c89d6e11b91e018925e9897a5541d8d846e48c91e2",
+        "observation_at": "2021-02-11T21:00:00+00:00",
+        "timezone": "America/New_York",
+        "quantitative_entry_zone": null,
+        "method": null,
+        "assumptions": [],
+        "fair_value": null,
+        "user_approved_executable_limit": null,
+        "assessment": "WAIT_FOR_EVIDENCE",
+        "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+        "reason": "Qualified ATR/price basis/current observation unavailable; no invented entry price."
+      },
+      "catalysts": "UNKNOWN：未提供带来源与时间的新闻或财务证据。",
+      "gpt_interpretation": "UNKNOWN：模型未完成，保留定量证据。",
+      "scenarios": "UNKNOWN：没有已验证的模型情景输出。",
+      "opposing_evidence": [
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+        "PUBLIC_RETRIEVAL_AFTER_CUTOFF",
+        "INSUFFICIENT_VERIFIED_HISTORY"
+      ],
+      "monitoring_trigger": "等待新鲜报价、可信复权历史与企业行动证据；按同一截止时点重新计算。",
+      "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+      "no_action_reasons": [
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+        "INSUFFICIENT_VERIFIED_HISTORY",
+        "PUBLIC_RETRIEVAL_AFTER_CUTOFF"
+      ],
+      "important_unknowns": [
+        "内在价值",
+        "新闻催化剂",
+        "校准预期收益",
+        "ETF 穿透重叠",
+        "当前账户风险上下文"
+      ],
+      "manual_requirements": [
+        "这是研究分类，不是券商订单。",
+        "独立核对账户、报价和风险；真实订单逐笔人工批准。"
+      ],
+      "quant_engine": "V2.2_SHADOW",
+      "gpt_engine": "GPT_ADVISORY",
+      "predictive_confidence": null,
+      "trade_authorized": false,
+      "explanation": "NVDA：定量通道为 INSUFFICIENT_VERIFIED_HISTORY；当前报价状态 LIVE；研究分类 WAIT_FOR_EVIDENCE。缺失因子与价格条件保持 UNKNOWN，分数不代表获利概率。"
+    },
+    {
+      "symbol": "SPY",
+      "company": "UNKNOWN（名称未获核验）",
+      "observed_price": "210.1079373378071409291537006",
+      "dated_reference_price": "210.1079373378071409291537006",
+      "observation_at": "2021-02-11T16:00:00-05:00",
+      "timezone": "America/New_York",
+      "provider": "FIXTURE_ONLY",
+      "feed_delay_seconds": null,
+      "history_quality": "INSUFFICIENT_VERIFIED_HISTORY",
+      "momentum_3m": "0.065303023698422805084393694",
+      "momentum_6m": "0.099462587756885690020017435",
+      "relative_strength_6m": "0E-27",
+      "trend_sma60": "205.0131662536433109258613427",
+      "volatility_60": "0.06781483813512831836236952353",
+      "drawdown_252": "-0.0207604015253966918686532426",
+      "quant_score": null,
+      "quant_rank": null,
+      "factor_attribution": [
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_3m",
+          "group": "absolute",
+          "symbol": "SPY",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 63,
+          "raw": "0.065303023698422805084393694",
+          "normalized": "0.7108358045865026599846295056",
+          "weight": "0.100",
+          "contribution": "0.07108358045865026599846295056",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_6m",
+          "group": "absolute",
+          "symbol": "SPY",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 126,
+          "raw": "0.099462587756885690020017435",
+          "normalized": "0.7587519429013341675909106229",
+          "weight": "0.150",
+          "contribution": "0.1138127914352001251386365934",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "momentum_12_1",
+          "group": "absolute",
+          "symbol": "SPY",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 252,
+          "raw": "0.185547929625581446220739403",
+          "normalized": "0.8286556939691549740153974635",
+          "weight": "0.250",
+          "contribution": "0.2071639234922887435038493659",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "relative_momentum_6m",
+          "group": "relative",
+          "symbol": "SPY",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 126,
+          "raw": "0E-27",
+          "normalized": "0.528125",
+          "weight": "0.25",
+          "contribution": "0.13203125",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "medium_distance",
+          "group": "trend",
+          "symbol": "SPY",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 60,
+          "raw": "0.024850945806380814729346597",
+          "normalized": "0.6816776680608935697139765821",
+          "weight": "0.125",
+          "contribution": "0.08520970850761169621424707276",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        },
+        {
+          "version": "quant-factor-contribution.v2.2",
+          "name": "trend_persistence",
+          "group": "trend",
+          "symbol": "SPY",
+          "as_of": "2021-02-11T21:00:00Z",
+          "availability_cutoff": "2021-02-11T21:00:00Z",
+          "provenance": [
+            "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+            "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
+          ],
+          "lookback": 60,
+          "raw": "0.05",
+          "normalized": "0.620625",
+          "weight": "0.125",
+          "contribution": "0.077578125",
+          "missing_reason": null,
+          "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
+        }
+      ],
+      "signal_persistence": null,
+      "regime": {
+        "version": "quant-regime-v2.1",
+        "as_of": "2021-02-11T21:00:00Z",
+        "trend": "TRENDING_UP",
+        "volatility": "HIGH_VOLATILITY",
+        "drawdown_stress": false,
+        "risk_multiplier": "0.5",
+        "exposure_ceiling": "0.5",
+        "rebalance_urgency": "RISK_REDUCTION",
+        "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+        "reasons": [
+          "SPY_TREND_AND_TRAILING_VOLATILITY"
+        ]
+      },
+      "regime_is_prediction": false,
+      "preferred_exposure": "0.265779",
+      "feasible_exposure": "0.100000",
+      "current_exposure": null,
+      "cost_adjusted_exposure": null,
+      "concentration_effect": [
+        "POSITION_COUNT_CAP_AND_SINGLE_INVERSE_VOLATILITY_SIZING",
+        "SECTOR_EXPOSURE_CAP:SYNTHETIC_SECTOR",
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE"
+      ],
+      "decision_category": "WAIT_FOR_EVIDENCE",
+      "price_condition": {
+        "observed_price": "210.1079373378071409291537006",
+        "quote_hash": "93a0284c10bd0d4219000c18dc46d2cb36f32a97308244b466519bc96a26b1bf",
+        "observation_at": "2021-02-11T21:00:00+00:00",
+        "timezone": "America/New_York",
+        "quantitative_entry_zone": null,
+        "method": null,
+        "assumptions": [],
+        "fair_value": null,
+        "user_approved_executable_limit": null,
+        "assessment": "WAIT_FOR_EVIDENCE",
+        "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+        "reason": "Qualified ATR/price basis/current observation unavailable; no invented entry price."
+      },
+      "catalysts": "UNKNOWN：未提供带来源与时间的新闻或财务证据。",
+      "gpt_interpretation": "UNKNOWN：模型未完成，保留定量证据。",
+      "scenarios": "UNKNOWN：没有已验证的模型情景输出。",
+      "opposing_evidence": [
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+        "PUBLIC_RETRIEVAL_AFTER_CUTOFF",
+        "INSUFFICIENT_VERIFIED_HISTORY"
+      ],
+      "monitoring_trigger": "等待新鲜报价、可信复权历史与企业行动证据；按同一截止时点重新计算。",
+      "invalidation_condition": "Recompute after a new completed session, corporate action or stale observation.",
+      "no_action_reasons": [
+        "FRESH_ACCOUNT_REQUIRED_NO_CURRENCY_COST_ESTIMATE",
+        "INSUFFICIENT_VERIFIED_HISTORY",
+        "PUBLIC_RETRIEVAL_AFTER_CUTOFF"
+      ],
+      "important_unknowns": [
+        "内在价值",
+        "新闻催化剂",
+        "校准预期收益",
+        "ETF 穿透重叠",
+        "当前账户风险上下文"
+      ],
+      "manual_requirements": [
+        "这是研究分类，不是券商订单。",
+        "独立核对账户、报价和风险；真实订单逐笔人工批准。"
+      ],
+      "quant_engine": "V2.2_SHADOW",
+      "gpt_engine": "GPT_ADVISORY",
+      "predictive_confidence": null,
+      "trade_authorized": false,
+      "explanation": "SPY：定量通道为 INSUFFICIENT_VERIFIED_HISTORY；当前报价状态 LIVE；研究分类 WAIT_FOR_EVIDENCE。缺失因子与价格条件保持 UNKNOWN，分数不代表获利概率。"
+    }
+  ]
+}

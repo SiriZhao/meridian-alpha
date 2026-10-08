@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import sqlite3
 import time
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -15,10 +16,10 @@ from pathlib import Path
 from typing import Any, Literal, cast
 from uuid import uuid4
 
+import yaml
 from pydantic import AwareDatetime, Field, model_validator
 
 from meridian.allocation import DeterministicFallbackAllocator
-from meridian.audit import AuditStore
 from meridian.config import ResearchBudget, load_policies
 from meridian.daily_research import DailyResearchInput, PublicResearchObservation
 from meridian.gpt_native_research import (
@@ -29,11 +30,16 @@ from meridian.gpt_native_research import (
 )
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.host_readiness import ReadinessStatus, inspect_snapshot
+from meridian.live_account import read_only_ledger
 from meridian.live_features import collect_live_features
+from meridian.live_quant_bridge import build_live_quant_snapshot, persist_live_quant
+from meridian.live_report import quant_research_rows, render_quant_research
 from meridian.market_identity import canonical_market_reference
-from meridian.paper import DEFAULT_ACCOUNT, PaperLedger, PaperSettings
+from meridian.paper import DEFAULT_ACCOUNT, PaperSettings
+from meridian.quant.policy import ChallengerPolicy
 from meridian.quotes import (
     MarketQuoteProvider,
+    NasdaqApiQuoteProvider,
     QuoteObservation,
     QuoteProviderError,
     YahooChartQuoteProvider,
@@ -57,7 +63,9 @@ class MarketDataFreshnessGate:
             raise ValueError("FRESHNESS_TIMEZONE_REQUIRED")
         if quote is None:
             return "UNAVAILABLE", "NO_OBSERVATION"
-        if quote.observed_at > now or quote.retrieved_at > now or quote.observed_at > quote.retrieved_at:
+        if quote.last is None or not quote.last.is_finite() or quote.last <= 0:
+            return 'UNAVAILABLE', 'NO_VALID_OBSERVED_PRICE'
+        if quote.observed_at > now or quote.retrieved_at > now or quote.available_at > now or quote.observed_at > quote.available_at or quote.observed_at > quote.retrieved_at:
             return "UNAVAILABLE", "FUTURE_TIMESTAMP_REJECTED"
         age = (now - quote.observed_at).total_seconds()
         if cached or age > max(900, (quote.delay_seconds or 0) + 90):
@@ -123,6 +131,10 @@ def market_row(quote: QuoteObservation, now: datetime) -> dict[str, Any]:
     change = quote.last / quote.previous_close - 1 if quote.last and quote.previous_close else None
     return {
         "symbol": quote.canonical_symbol, "timestamp": quote.observed_at.astimezone(NEW_YORK).isoformat(),
+        'available_at': quote.available_at.isoformat(), 'provider': quote.provider,
+        'observation_hash': hashlib.sha256(quote.stable_json().encode()).hexdigest(),
+        'current_price': quote.last if freshness in {'LIVE', 'DELAYED'} else None,
+        'reference_price': quote.last,
         "timezone": "America/New_York", "session": session_context(now),
         **fields, "daily_change": change, "source": quote.source,
         "received_at": quote.retrieved_at.isoformat(),
@@ -138,24 +150,32 @@ def digest(value: Any) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
 
 
-def fetch_current_quotes(provider: MarketQuoteProvider, symbols: list[str]) -> tuple[dict[str, QuoteObservation], dict[str, str], list[dict[str, Any]]]:
+def fetch_current_quotes(provider: MarketQuoteProvider, symbols: list[str], *, fallback: MarketQuoteProvider | None = None) -> tuple[dict[str, QuoteObservation], dict[str, str], list[dict[str, Any]]]:
     observations: dict[str, QuoteObservation] = {}
     errors: dict[str, str] = {}
     attempts: list[dict[str, Any]] = []
     for symbol in symbols:
-        for attempt in range(1, 3):
+        routes = (provider, fallback) if fallback is not None else (provider, provider)
+        for attempt, route in enumerate(routes, 1):
             try:
-                observations[symbol] = provider.get_quote(symbol)
+                quote = route.get_quote(symbol)
+                if quote.canonical_symbol != symbol:
+                    raise ValueError('QUOTE_SYMBOL_MISMATCH')
+                observations[symbol] = quote
             except (QuoteProviderError, ValueError, OSError) as error:
                 # Only public quote validation is involved; never include credentials.
                 message = error.code if isinstance(error, QuoteProviderError) else str(error)
                 errors[symbol] = type(error).__name__ + ':' + message
                 attempts.append({'symbol': symbol, 'attempt': attempt, 'status': 'FAILED', 'error': errors[symbol]})
-                if attempt == 1:
+                if attempt == 1 and fallback is None:
                     time.sleep(0.75)
             else:
                 errors.pop(symbol, None)
-                attempts.append({'symbol': symbol, 'attempt': attempt, 'status': 'PASS'})
+                quote_freshness = MarketDataFreshnessGate().evaluate(quote, datetime.now(UTC))[0]
+                attempts.append({'symbol': symbol, 'attempt': attempt, 'provider': quote.provider,
+                                 'status': 'PASS', 'freshness': quote_freshness})
+                if fallback is not None and attempt == 1 and quote_freshness not in {'LIVE', 'DELAYED'}:
+                    continue
                 break
     return observations, errors, attempts
 
@@ -177,6 +197,10 @@ def finalize_acceptance(report: dict[str, Any], now: datetime) -> None:
         row = report.get('market_snapshot', {}).get(decision['symbol'])
         if row:
             decision['data_freshness'] = row['freshness']
+            if row['freshness'] not in {'LIVE','DELAYED'}:
+                row['current_price'] = None
+                decision.update(current_price=None, suggested_entry=None, suggested_limit_zone=None,
+                                invalidation_level=None, decision_category='WAIT_FOR_EVIDENCE')
     if report['market_session'] != 'REGULAR':
         report['blockers'].append('REGULAR_SESSION_ACCEPTANCE_REQUIRED')
     portfolio = report.get('portfolio_summary', {})
@@ -220,7 +244,7 @@ def render_report(report: dict[str, Any]) -> str:
              "", "## LLM research", "", json.dumps(report.get('research_summary', {}), default=str),
              "", "## Risk review", "", json.dumps(report.get('risk', {}), default=str),
              "", "## Action table", "",
-             "| Symbol | Price | Action | Confidence | Entry | Invalidation | Position guidance | Main reason |",
+             "| Symbol | Observed price | GPT opinion | Uncalibrated narrative confidence | Research zone anchor | Invalidation | V1 reference guidance | Main reason |",
              "|---|---:|---|---:|---:|---:|---|---|"]
     for row in report.get('decisions', []):
         values = [row['symbol'], row['current_price'], row['action'], row['confidence'],
@@ -236,7 +260,7 @@ def render_report(report: dict[str, Any]) -> str:
                   'Acceptance pending: ' + ', '.join(report.get('acceptance_pending', [])),
                   'AUTO_EXECUTION = DISABLED; MANUAL_CONFIRMATION_REQUIRED = TRUE; ORDER_AUTHORITY = NONE',
                   'Research price zones are deterministic observations, not executable limit-order tickets.', ''])
-    return '\n'.join(lines)
+    return '\n'.join(line.rstrip() for line in lines) + '\n' + render_quant_research(report)
 
 
 class LiveAdvisoryService:
@@ -262,7 +286,34 @@ class LiveAdvisoryService:
                 report['log'] = str(self.paths.logs / (run_id + '.log'))
                 # A report becomes accepted only when both outputs exist durably.
                 report['checks']['report'] = 'PASS'
+                gpt = report.get('decision_provenance', {}).get('gpt')
+                if gpt is not None and gpt['status'] != 'COMPLETE':
+                    stages = report.get('research_summary', {}).get('stages', {})
+                    blocked_data = report.get('research_summary', {}).get('state') == 'RESEARCH_BLOCKED_DATA'
+                    gpt['status'] = 'BLOCKED_DATA' if blocked_data else 'INCOMPLETE' if any(s['status'] == 'SUCCESS' for s in stages.values()) else 'FAILED' if report['checks'].get('llm') == 'FAILED' or report['checks'].get('advisory') == 'FAILED' else 'NOT_RUN'
+                report['model_inference_attempted'] = any(
+                    s['status'] != 'NOT_RUN' for s in report.get('research_summary', {}).get('stages', {}).values()
+                ) or bool(report.get('advisory_invocation'))
+                if report.get('portfolio_summary', {}).get('source') == 'PAPER_LEDGER':
+                    try:
+                        current = read_only_ledger(self.paths.db, PaperSettings.from_policy_directory(policy_directory())).state(DEFAULT_ACCOUNT)
+                        if current is None or current.ledger_version != report['portfolio_summary']['ledger_version']:
+                            report['checks']['portfolio_load'] = 'FAILED'
+                            report['blockers'].append('PAPER_LEDGER_CHANGED_DURING_RESEARCH_RERUN_REQUIRED')
+                    except (ValueError, OSError, sqlite3.Error):
+                        report['checks']['portfolio_load'] = 'FAILED'
+                        report['blockers'].append('PAPER_LEDGER_RECHECK_UNAVAILABLE')
                 finalize_acceptance(report, datetime.now(UTC))
+                report['quant_research_rows'] = quant_research_rows(report)
+                report['status_dimensions'] = {
+                    'OPERATIONAL_CANONICAL': 'NOT_RUN_BY_LIVE_ADVISORY',
+                    'GPT_FINAL_ADVISORY': report['checks'].get('advisory', 'NOT_RUN'),
+                    'QUANT': report.get('quant_live', {}).get('strict_status', 'UNKNOWN'),
+                    'GPT': report.get('decision_provenance', {}).get('gpt', {}).get('status', 'NOT_RUN'),
+                    'ACCOUNT': report['checks'].get('portfolio_load', 'NOT_RUN'),
+                    'CURRENT_DATA': report.get('freshness', 'UNAVAILABLE'),
+                    'EXECUTION': 'BLOCKED_PUBLIC_QUOTE_MANUAL_REVIEW_REQUIRED', 'REPORT': 'PASS'}
+                report['research_workflow_available'] = bool(report['quant_research_rows'])
                 atomic_write(directory / 'live-report.md', render_report(report))
                 atomic_write(directory / 'live-report.json', json.dumps(report, indent=2, default=str))
                 logger.info('[REPORT] %s', report['report_json'])
@@ -328,12 +379,20 @@ class LiveAdvisoryService:
             else:
                 report['blockers'].append(diagnostic.code)
         else:
-            ledger = PaperLedger(AuditStore(self.paths.db), PaperSettings.from_policy_directory(policy_directory()))
-            paper = ledger.state(account_name)
+            try:
+                if account_name != DEFAULT_ACCOUNT:
+                    raise ValueError('SCHWAB_PAPER_ACCOUNT_REQUIRED')
+                ledger = read_only_ledger(self.paths.db, PaperSettings.from_policy_directory(policy_directory()))
+                paper = ledger.state(account_name)
+            except (ValueError, OSError, sqlite3.Error):
+                paper = None
             if paper is not None:
                 envelope = ledger.export_snapshot(account_name)
-                account = normalize_host_snapshot(envelope)
-                checks['portfolio_load'] = 'PASS'
+                changed = f'PAPER_LEDGER_VERSION={paper.ledger_version}' not in envelope.warnings
+                account = None if changed else normalize_host_snapshot(envelope)
+                checks['portfolio_load'] = 'FAILED' if changed else 'PASS'
+                if changed:
+                    report['blockers'].append('PAPER_LEDGER_CHANGED_DURING_READ_RERUN_REQUIRED')
                 report['portfolio_summary'] = {'source': 'PAPER_LEDGER', 'account': account_name,
                     'as_of': envelope.as_of.isoformat(), 'ledger_version': paper.ledger_version,
                     'as_of_semantics': 'LEDGER_READ_TIME_NOT_BROKER_CONFIRMATION',
@@ -346,13 +405,15 @@ class LiveAdvisoryService:
         benchmark = PaperSettings.from_policy_directory(policy_directory()).benchmark_symbol
         symbols = sorted(set(policies.universe.tickers) | {benchmark} | ({h.ticker for h in account.holdings} if account else set()))
         report['historical_features'] = collect_live_features(symbols, benchmark,
-            evidence_directory=self.paths.home / 'snapshots' / run_id / 'history')
+            evidence_directory=self.paths.home / 'snapshots' / run_id / 'history', include_series=True)
+        histories = report['historical_features'].pop('_series', {})
         checks['features'] = report['historical_features']['status']
         if checks['features'] != 'PASS':
             report['blockers'].append('HISTORICAL_FEATURES_INCOMPLETE')
         logger.info('[RESEARCH] completed-session features=%s', checks['features'])
-        provider = YahooChartQuoteProvider(DEFAULT_SECURITY_MASTER)
-        observations, errors, attempts = fetch_current_quotes(provider, symbols)
+        provider = YahooChartQuoteProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=4)
+        fallback = NasdaqApiQuoteProvider(DEFAULT_SECURITY_MASTER, timeout_seconds=4)
+        observations, errors, attempts = fetch_current_quotes(provider, symbols, fallback=fallback)
         report['market_fetch_attempts'] = attempts
         cutoff = datetime.now(UTC)
         rows = {symbol: market_row(quote, cutoff) for symbol, quote in observations.items()}
@@ -371,13 +432,15 @@ class LiveAdvisoryService:
         benchmark_return = valid_rows.get(benchmark, {}).get('daily_change')
         regime = 'UP_SESSION' if benchmark_return is not None and benchmark_return > 0 else 'DOWN_SESSION' if benchmark_return is not None and benchmark_return < 0 else 'NEUTRAL_OR_UNAVAILABLE'
         report['signals'] = {'regime': regime, 'method': 'OBSERVED_DAILY_RETURN_WITH_COMPLETED_SESSION_FEATURES', 'factors': signals,
+                             'engine': 'QUANT_V1_BASELINE', 'scope': 'LEGACY_LIVE_REFERENCE_NOT_CANONICAL_DAILY_DECISION',
                              'finrlx': 'NOT_INVOKED_NO_MODEL_OUTPUT', 'probabilities': 'LLM_SCENARIOS_NOT_CALIBRATED'}
         if len(valid_rows) != len(symbols):
             report['blockers'].append('DAILY_RETURN_INPUTS_INCOMPLETE')
         # Complete independent evidence gathering even when account input is missing.
         context: dict[str, Any] | None = None
+        marked: AccountSnapshot | None = None
         target_weights: dict[str, Decimal] = {}
-        if account is not None and all(h.ticker in observations and observations[h.ticker].last for h in account.holdings):
+        if account is not None and all(h.ticker in rows and rows[h.ticker]['freshness'] in {'LIVE','DELAYED'} and observations[h.ticker].last for h in account.holdings):
             holdings = tuple(h.model_copy(update={'market_value': (h.quantity * cast(Decimal, observations[h.ticker].last)).quantize(Decimal('.0001'))}) for h in account.holdings)
             nav = account.cash + sum((h.market_value for h in holdings), Decimal(0))
             marked = account.model_copy(update={'holdings': holdings, 'total_equity': nav})
@@ -395,15 +458,32 @@ class LiveAdvisoryService:
             target_weights = {p.ticker:p.target_weight for p in risk.approved.positions}
             checks['risk'] = 'PASS'
             report['risk'] = {'violations': list(risk.violations), 'modifications': list(risk.modifications),
+                              'engine': 'QUANT_V1_BASELINE', 'allocator': 'DeterministicFallbackAllocator',
+                              'scope': 'LEGACY_LIVE_REFERENCE_NOT_CANONICAL_DAILY_DECISION',
                               'target_weights': target_weights, 'min_cash_weight': str(policies.risk.min_cash_weight),
                               'warnings': ['PUBLIC_QUOTES_UNCERTIFIED', 'SECTORS_NOT_CERTIFIED', 'LONG_ONLY'],
                               'execution_eligibility':'BLOCKED_PUBLIC_QUOTE_MANUAL_REVIEW_REQUIRED'}
         else:
             report['blockers'].append('PORTFOLIO_RISK_CONTEXT_UNAVAILABLE')
+        challenger_policy = ChallengerPolicy.model_validate(yaml.safe_load(
+            (policy_directory() / 'quant-v22.yaml').read_text(encoding='utf-8')))
+        quant_snapshot = build_live_quant_snapshot(histories=histories, quotes=observations, cutoff=cutoff,
+            policies=policies, policy=challenger_policy, run_id=run_id, baseline_weights=target_weights,
+            account=marked if marked is not None and marked.account_alias == DEFAULT_ACCOUNT else None)
+        report['quant_live'] = quant_snapshot.model_dump(mode='json')
+        report['quant_live_hash'] = quant_snapshot.digest
+        report['quant_evidence_path'] = str(persist_live_quant(quant_snapshot, self.paths.home / 'research' / 'live-quant'))
+        report['decision_provenance'] = {
+            'operational': {'engine': 'QUANT_V1_BASELINE', 'status': 'NOT_RUN_BY_LIVE_ADVISORY', 'canonical_orders_changed': False},
+            'challenger': {'engine': 'V2.2_SHADOW', 'status': quant_snapshot.strict_status,
+                           'engine_hash': quant_snapshot.quant_packet.engine_hash if quant_snapshot.quant_packet else None,
+                           'snapshot_hash': quant_snapshot.digest, 'authority': 'SHADOW_ONLY'},
+            'gpt': {'engine': 'GPT_ADVISORY', 'status': 'NOT_RUN', 'authority': 'ADVISORY_ONLY'}}
+        fresh_rows = {s:r for s,r in rows.items() if r['freshness'] in {'LIVE','DELAYED'} and observations[s].last}
         logger.info('[RISK] %s', checks['risk'])
-        if not valid_rows:
+        if not fresh_rows:
             return report
-        references = {symbol:digest(row) for symbol,row in valid_rows.items()}
+        references = {symbol:digest(row) for symbol,row in fresh_rows.items()}
         request = DailyResearchInput(parent_run_id=run_id, analysis_cutoff=cutoff, mode='LIVE',
                     snapshot_reference='IN_MEMORY_ONLY', market_reference=canonical_market_reference(rows), policy_reference=digest(policies.risk.model_dump()),
                     provider='codex_cli', model=settings.model,
@@ -411,11 +491,12 @@ class LiveAdvisoryService:
                         as_of=cutoff, information_cutoff=cutoff, market_session=session_context(cutoff),
                         timezone='America/New_York'),
                     observations=tuple(PublicResearchObservation(ticker=symbol, observed_at=observations[symbol].observed_at,
-                        price=cast(Decimal, observations[symbol].last), daily_return=row['daily_change'], reference=references[symbol]) for symbol,row in valid_rows.items()),
+                        price=cast(Decimal, observations[symbol].last), daily_return=row['daily_change'], reference=references[symbol]) for symbol,row in fresh_rows.items()),
                     freshness_status='PASS' if fresh else 'BLOCKED', portfolio_context=context,
                     market_context={'current_time':cutoff.isoformat(),'market_session':session_context(cutoff),
                                     'snapshot':rows,'signals':report['signals'],'risk':report.get('risk'),
-                                    'historical_features':report['historical_features']})
+                                    'historical_features':report['historical_features'],
+                                    'quant_live':quant_snapshot.model_dump(mode='json'), 'quant_live_hash':quant_snapshot.digest})
         runtime = CodexResearchModelRuntime()
         preflight = runtime.preflight({key: value.model_dump() for key,value in settings.models.items()})
         report['llm_preflight'] = preflight.model_dump(mode='json')
@@ -447,7 +528,7 @@ class LiveAdvisoryService:
         # The model chain can take minutes. Refresh independently and let the final
         # advisory model see the new snapshot, with the earlier thesis dated explicitly.
         report['research_market_snapshot'] = rows
-        refreshed, refresh_errors, refresh_attempts = fetch_current_quotes(provider, symbols)
+        refreshed, refresh_errors, refresh_attempts = fetch_current_quotes(provider, symbols, fallback=fallback)
         report['market_refresh_attempts'] = refresh_attempts
         report['blockers'].extend('FINAL_MARKET_REFRESH_FAILED:' + symbol for symbol in refresh_errors)
         refresh_cutoff = datetime.now(UTC)
@@ -456,7 +537,7 @@ class LiveAdvisoryService:
             return report
         observations = refreshed
         rows = {symbol: market_row(quote, refresh_cutoff) for symbol,quote in observations.items()}
-        if any(row['freshness'] not in {'LIVE','DELAYED'} or row['daily_change'] is None for row in rows.values()):
+        if any(row['freshness'] not in {'LIVE','DELAYED'} for row in rows.values()):
             checks['freshness'] = 'STALE'
             report['blockers'].append('FINAL_MARKET_REFRESH_INVALID')
             return report
@@ -466,7 +547,7 @@ class LiveAdvisoryService:
         checks['freshness'] = 'DELAYED' if report['freshness'] == 'DELAYED' else 'PASS'
         report['research_signals'] = report['signals']
         benchmark_return = rows[benchmark]['daily_change']
-        regime = 'UP_SESSION' if benchmark_return > 0 else 'DOWN_SESSION' if benchmark_return < 0 else 'NEUTRAL_OR_UNAVAILABLE'
+        regime = 'UP_SESSION' if benchmark_return is not None and benchmark_return > 0 else 'DOWN_SESSION' if benchmark_return is not None and benchmark_return < 0 else 'NEUTRAL_OR_UNAVAILABLE'
         report['signals'] = {**report['signals'], 'regime': regime,
             'factors': {symbol: {'daily_return': row['daily_change'], 'source': row['source'],
                        'as_of': row['timestamp']} for symbol, row in rows.items()}}
@@ -479,7 +560,7 @@ class LiveAdvisoryService:
             marked = account.model_copy(update={'holdings':holdings,'total_equity':nav})
             scores = [AlphaScore(ticker=symbol,score=max(Decimal(0),row['daily_change']),confidence=Decimal(1),
                       expected_direction='BULLISH' if row['daily_change']>0 else 'NEUTRAL',risk_penalty=Decimal(0),
-                      evidence_quality=Decimal(1),model_source='OBSERVED_DAILY_RETURN') for symbol,row in rows.items()]
+                      evidence_quality=Decimal(1),model_source='OBSERVED_DAILY_RETURN') for symbol,row in rows.items() if row['daily_change'] is not None]
             target = DeterministicFallbackAllocator().allocate(scores,{},marked,policies.risk)
             risk = RiskEngine().approve(target,marked,'NORMAL',policies.risk,sectors={symbol:'OPERATIONAL_UNCLASSIFIED' for symbol in rows})
             target_weights = {p.ticker:p.target_weight for p in risk.approved.positions}
@@ -490,12 +571,24 @@ class LiveAdvisoryService:
                     'average_cost':str(h.average_cost) if h.average_cost is not None else str(h.cost_basis/h.quantity) if h.cost_basis and h.quantity else None,
                     'weight':str(h.market_value/nav if nav else 0)} for h in holdings]
         logger.info('[MARKET_DATA] Refreshed after research; final advisory receives current snapshot')
+        report['research_quant_live'] = report['quant_live']
+        quant_snapshot = build_live_quant_snapshot(histories=histories, quotes=observations, cutoff=refresh_cutoff,
+            policies=policies, policy=challenger_policy, run_id=run_id, baseline_weights=target_weights,
+            account=marked if marked is not None and marked.account_alias == DEFAULT_ACCOUNT else None)
+        report['quant_live'] = quant_snapshot.model_dump(mode='json')
+        report['quant_live_hash'] = quant_snapshot.digest
+        report['quant_evidence_path'] = str(persist_live_quant(quant_snapshot, self.paths.home / 'research' / 'live-quant'))
+        report['decision_provenance']['challenger']['snapshot_hash'] = quant_snapshot.digest
         result = runtime.invoke('SYMBOL_ADVISORY', {
-            'instruction':'Return one explicit decision for every supplied symbol. BUY/ADD/HOLD/WAIT/TRIM/SELL/AVOID are research opinions only. WAIT needs a concrete observable condition. Use only supplied market facts; no invented prices/news. Do not include private account amounts in prose. Cite each symbol evidence ID. No numeric sizing or price advice; deterministic code owns those.',
+            'instruction':'用中文解释。Return one explicit research opinion for every symbol. WAIT needs an observable condition. Use only supplied evidence; catalysts and intrinsic value remain UNKNOWN without source-bound news/valuation. Scenarios are FORECAST and opinions INFERENCE. Never alter quant scores, ranks or targets. Cite each symbol quote and quant evidence ID. No numeric sizing or price advice; deterministic code owns those. Do not include private account amounts in prose.',
             'market':rows,'evidence_ids':references,'portfolio':context,
+            'prior_research_cutoff': request.analysis_cutoff.isoformat(),
+            'prior_research_is_current_snapshot': False,
+            'quant_evidence_ids':{s:'quant-' + quant_snapshot.digest + '-' + s for s in quant_snapshot.price_conditions},
             'research':native.synthesis.model_dump(mode='json') if native.synthesis else None,
             'risk':report.get('risk'), 'signals':report['signals'],
             'historical_features':report['historical_features'],
+            'quant_live':quant_snapshot.model_dump(mode='json'), 'quant_live_hash':quant_snapshot.digest,
             'current_time':refresh_cutoff.isoformat(), 'market_session':session_context(refresh_cutoff),
             'execution_authority':'NONE',
         }, AdvisoryTheses.model_json_schema(), role_timeout, model=settings.synthesis_model or settings.model, reasoning_effort=settings.reasoning_effort)
@@ -510,8 +603,11 @@ class LiveAdvisoryService:
             if len(theses.decisions) != len(symbols) or {t.symbol for t in theses.decisions} != set(symbols):
                 raise ValueError('ADVISORY_COVERAGE_INVALID')
             for thesis in theses.decisions:
-                if references[thesis.symbol] not in thesis.evidence_ids or not set(thesis.evidence_ids) <= set(references.values()):
+                quant_ids = {'quant-' + quant_snapshot.digest + '-' + s for s in quant_snapshot.price_conditions}
+                if references[thesis.symbol] not in thesis.evidence_ids or not set(thesis.evidence_ids) <= set(references.values()) | quant_ids:
                     raise ValueError('ADVISORY_EVIDENCE_INVALID')
+                if quant_snapshot.strict_status == 'VERIFIED_RESEARCH_AVAILABLE' and 'quant-' + quant_snapshot.digest + '-' + thesis.symbol not in thesis.evidence_ids:
+                    raise ValueError('ADVISORY_QUANT_EVIDENCE_REQUIRED')
         except ValueError:
             checks['advisory'] = 'FAILED'
             report['blockers'].append('ADVISORY_SCHEMA_OR_EVIDENCE_INVALID')
@@ -521,19 +617,28 @@ class LiveAdvisoryService:
             quote = observations[thesis.symbol]
             row = rows[thesis.symbol]
             # These are observational research levels, never an executable order price.
-            entry = min(quote.last, quote.open) if thesis.action in {'BUY','ADD','WAIT'} and quote.last and quote.open else None
-            zone = (min(entry,quote.last), max(entry,quote.last)) if entry and quote.last else None
+            condition = quant_snapshot.price_conditions[thesis.symbol]
+            zone = (Decimal(condition['quantitative_entry_zone'][0]), Decimal(condition['quantitative_entry_zone'][1])) if condition['quantitative_entry_zone'] else None
+            entry = (zone[0] + zone[1]) / 2 if zone else None
             weight = target_weights.get(thesis.symbol, Decimal(0))
             decision = AdvisoryDecision(**thesis.model_dump(), market_context=regime, current_price=quote.last,
                 suggested_entry=entry, suggested_limit_zone=zone,
-                invalidation_level=quote.day_low if thesis.action in {'BUY','ADD','HOLD'} else None,
-                position_guidance=f'Deterministic risk-capped reference target {weight:.2%}; manual review required.',
+                invalidation_level=None,
+                position_guidance=f'V1 legacy live reference target {weight:.2%}; not a V2 target or authorized trade.',
                 portfolio_impact='Research opinion and deterministic allocation may disagree; no order generated.',
                 data_as_of=quote.observed_at, data_freshness=row['freshness'], reasoning_summary=thesis.thesis)
-            decisions.append(decision.model_dump(mode='json'))
+            values = decision.model_dump(mode='json')
+            categories = {'BUY':'BUY_RESEARCH','ADD':'ADD_RESEARCH','HOLD':'HOLD','WAIT':'WAIT_FOR_PRICE' if zone else 'WAIT_FOR_EVIDENCE',
+                          'TRIM':'REDUCE_RESEARCH','SELL':'REDUCE_RESEARCH','AVOID':'AVOID'}
+            values.update(decision_category=categories[thesis.action] if quant_snapshot.strict_status == 'VERIFIED_RESEARCH_AVAILABLE' else 'WAIT_FOR_EVIDENCE',
+                          gpt_suggested_category=categories[thesis.action], engine='GPT_ADVISORY',
+                          price_condition=condition, gpt_catalysts_status='UNKNOWN_NO_SOURCE_BOUND_NEWS',
+                          gpt_claim_class='INFERENCE_OR_FORECAST_NOT_FACT', predictive_confidence=None)
+            decisions.append(values)
         report.update(decisions=decisions,top_action_now=theses.top_action_now,avoid_now=theses.avoid_now,
                       doing_nothing_assessment=theses.doing_nothing_assessment)
         checks['advisory'] = 'PASS'
+        report['decision_provenance']['gpt']['status'] = 'COMPLETE'
         # Recheck at publication: a long model call must not turn old data into live data.
         finished = datetime.now(UTC)
         if any(MarketDataFreshnessGate().evaluate(q,finished)[0] not in {'LIVE','DELAYED'} for q in observations.values()):

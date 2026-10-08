@@ -1,0 +1,95 @@
+{
+  "version": "mission2-checkpoint.v1",
+  "status": "ENGINEERING_COMPLETE_PREOPEN_DEGRADED",
+  "branch": "codex/quant-live-bridge",
+  "starting_head": "69eb57aa0f8464b18c98c9464b1c1d52a267c960",
+  "head_at_checkpoint": "3c7aa247a024608b12765ec62470048f30b31882",
+  "worktree": "E:/CSDIY/Vibe Coding Project/meridian-alpha/.worktrees/quant-engine-v2",
+  "engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
+  "completed": [
+    "Exact source/remote recovery",
+    "Real preopen observation saved at 09:19 New York",
+    "Strict/public two-lane evidence bridge and Chinese fixture sample",
+    "Read-only ledger and explicit source/category/price boundaries",
+    "Repaired 18 dependency version drifts using unchanged frozen lock",
+    "Full frozen validation at 6bb42c7: 990 passed in 207.33s",
+    "Independent clone full validation at 6bb42c7 passed",
+    "Stacked draft PR 4 created",
+    "Real 10:15 New York readiness PASS for Doctor/account/login/locking",
+    "Actual 10:16 research run blocked by stale SPY; immutable Quant/report retained, no model inference",
+    "Paper DB/schema/table-count fingerprints identical before/after host observations",
+    "54 targeted tests passed for corrected BLOCKED_DATA versus FAILED versus INCOMPLETE semantics",
+    "Final implementation 219918a: local 991 in 200.35s, independent clone 991 in 212.80s",
+    "Both final-source Windows/Linux CI runs PASS",
+    "All 76 frozen archived replay payloads and summary exactly reproduced",
+    "Chinese fixture JSON/Markdown exactly reproduced",
+    "Sanitized acceptance proof and verified launcher/runbook/risk register complete",
+    "Final actual adapter citation contract corrected: 64 targeted, 992 full local and 992 independent tests; both CI platforms PASS at 3c7aa247a024608b12765ec62470048f30b31882"
+  ],
+  "remaining": [
+    "New qualifying real-data observation and model inference",
+    "Two-cycle fresh-account regular-session acceptance",
+    "Genuine verified financial/OOS evidence"
+  ],
+  "next_action": "Final delivery receipt is .tmp/mission2-final-delivery.json: verify current Git HEAD/remote/CI there. For regular-session acceptance, obtain qualifying fresh benchmark/watchlist and account evidence, then use the documented bounded approved-host launcher; never force a cycle or relax gates.",
+  "preopen_report": "E:/MeridianAlphaRuntime/reports/live-readiness/2026-10-08/check-1322bb50cdcc4e60811bb5ee8dd67f1b/preopen-readiness.json",
+  "preopen_status": "PREOPEN_DEGRADED",
+  "postopen_readiness_report": "E:/MeridianAlphaRuntime/reports/live-readiness/2026-10-08/check-0b472e7a93914ffbabff032705100fd2/preopen-readiness.json",
+  "real_research_report": "E:/MeridianAlphaRuntime/reports/2026-10-08/live-036a670023724cbda985d495ac33e508/live-report.json",
+  "real_research_status": "RESEARCH_BLOCKED_DATA; SPY observed age 91.16 seconds; no model inference",
+  "ledger_sha256_before_and_after": "88d2872f0f263370e11b7fe5712d7b1c644de7e685c9d594429015f5fb619a55",
+  "pull_request": "https://github.com/SiriZhao/meridian-alpha/pull/4",
+  "regular_session_acceptance_complete": false,
+  "ledger_written": false,
+  "broker_submission": "DISABLED",
+  "uncommitted_files_command": "git status --short",
+  "blockers": [
+    "INSUFFICIENT_VERIFIED_HISTORY",
+    "UNCERTIFIED_EXECUTION_QUOTES",
+    "MODEL_INFERENCE_NOT_YET_PROBED",
+    "TWO_RUN_FRESH_ACCOUNT_ACCEPTANCE_PENDING"
+  ],
+  "asynchronous_work_claim": false,
+  "accepted_implementation_head": "3c7aa247a024608b12765ec62470048f30b31882",
+  "validation": {
+    "local_full": {
+      "passed": 992,
+      "seconds": 224.35,
+      "full_validator_pass": true
+    },
+    "independent_full": {
+      "passed": 992,
+      "seconds": 214.04,
+      "full_validator_pass": true
+    },
+    "targeted": 64,
+    "ci": {
+      "push_run": 37794420438,
+      "pull_request_run": 37794428552,
+      "conclusion": "success",
+      "head": "3c7aa247a024608b12765ec62470048f30b31882",
+      "windows": {
+        "passed": 992,
+        "seconds": 272.81
+      },
+      "linux": {
+        "passed": 990,
+        "skipped": 2,
+        "seconds": 200.98
+      },
+      "manual_authority_each": 21,
+      "replay_integrity_each": 8
+    }
+  },
+  "remaining_engineering": [],
+  "uncommitted_at_checkpoint": [
+    "docs/live-quant/ACCEPTANCE.md",
+    "docs/live-quant/ACCEPTANCE_PROOF.json",
+    "docs/live-quant/CHECKPOINT.json",
+    "docs/live-quant/LAUNCH_GUIDE.md",
+    "docs/live-quant/RISK_REGISTER.md"
+  ],
+  "documentation_commit_note": "This checkpoint records the accepted source before its evidence-only documentation commit; final publication SHA and CI are verified after commit, without embedding a self-referential hash.",
+  "financial_validation": "REAL_FINANCIAL_VALIDATION_PENDING",
+  "alpha": "ALPHA_NOT_YET_DEMONSTRATED"
+}

@@ -766,9 +766,10 @@ class CodexResearchModelRuntime:
                 output_path = directory / "output.json"
                 catalog = {str(item['evidence_id']) for item in input_data.get('evidence', [])
                            if isinstance(item, dict) and item.get('evidence_id')}
-                explicit_ids = input_data.get('evidence_ids', {})
-                if isinstance(explicit_ids, dict):
-                    catalog.update(str(item) for item in explicit_ids.values())
+                for field in ('evidence_ids', 'quant_evidence_ids'):
+                    explicit_ids = input_data.get(field, {})
+                    if isinstance(explicit_ids, dict):
+                        catalog.update(str(item) for item in explicit_ids.values())
                 bounded = evidence_bound_schema(schema, catalog)
                 schema_path.write_text(json.dumps(strict_output_schema(bounded)), encoding="utf-8")
                 schema_bytes = schema_path.stat().st_size
@@ -956,11 +957,39 @@ class GPTNativeResearchOrchestrator:
 
     def _evidence(self, request: DailyResearchInput) -> tuple[ResearchEvidence, ...]:
         items: list[ResearchEvidence] = []
+        live_quant = (request.market_context or {}).get('quant_live')
+        verification = VerificationStatus.UNVERIFIED if live_quant else VerificationStatus.VERIFIED
         for observation in request.observations:
-            items.extend((
-                ResearchEvidence(evidence_id=observation.reference, symbol=observation.ticker, category=EvidenceCategory.PRICE, source_type=EvidenceSourceType.STRUCTURED_MARKET, source="CANONICAL_MARKET_SNAPSHOT", observed_at=observation.observed_at, market_timestamp=observation.observed_at, structured_value={"last": str(observation.price)}, confidence=1.0, freshness="RESEARCH_FRESH", verification_status=VerificationStatus.VERIFIED),
-                ResearchEvidence(evidence_id="det-" + observation.reference[:48], symbol=observation.ticker, category=EvidenceCategory.MOMENTUM, source_type=EvidenceSourceType.DETERMINISTIC_MODEL, source="DAILY_RETURN_ANALYTICS", observed_at=request.analysis_cutoff, market_timestamp=observation.observed_at, structured_value={"daily_return": str(observation.daily_return)}, confidence=1.0, freshness="RESEARCH_FRESH", verification_status=VerificationStatus.VERIFIED),
-            ))
+            items.append(ResearchEvidence(evidence_id=observation.reference, symbol=observation.ticker,
+                category=EvidenceCategory.PRICE, source_type=EvidenceSourceType.STRUCTURED_MARKET,
+                source="PUBLIC_LIVE_RESEARCH" if live_quant else "CANONICAL_MARKET_SNAPSHOT",
+                observed_at=observation.observed_at, market_timestamp=observation.observed_at,
+                structured_value={"last": str(observation.price)}, confidence=1.0,
+                freshness="RESEARCH_FRESH", verification_status=verification))
+            if observation.daily_return is not None:
+                items.append(ResearchEvidence(evidence_id="det-" + observation.reference[:48],
+                    symbol=observation.ticker, category=EvidenceCategory.MOMENTUM,
+                    source_type=EvidenceSourceType.DETERMINISTIC_MODEL, source="DAILY_RETURN_ANALYTICS",
+                    observed_at=request.analysis_cutoff, market_timestamp=observation.observed_at,
+                    structured_value={"daily_return": str(observation.daily_return)}, confidence=1.0,
+                    freshness="RESEARCH_FRESH", verification_status=verification))
+        if live_quant:
+            from meridian.live_quant_bridge import LiveQuantSnapshot
+            snapshot = LiveQuantSnapshot.model_validate(live_quant)
+            if snapshot.analysis_cutoff != request.analysis_cutoff or snapshot.digest != (request.market_context or {}).get('quant_live_hash'):
+                raise ValueError('LIVE_QUANT_CUTOFF_OR_HASH_MISMATCH')
+            for symbol in sorted(snapshot.price_conditions):
+                quant_row = next((row for row in snapshot.quant_packet.symbols if row.symbol == symbol), None) if snapshot.quant_packet else None
+                items.append(ResearchEvidence(evidence_id='quant-' + snapshot.digest + '-' + symbol,
+                    symbol=symbol, category=EvidenceCategory.TECHNICAL,
+                    source_type=EvidenceSourceType.DETERMINISTIC_MODEL, source='V2.2_SHADOW',
+                    observed_at=request.analysis_cutoff, market_timestamp=request.analysis_cutoff,
+                    structured_value={'strict_status': snapshot.strict_status,
+                        'quant': quant_row.model_dump(mode='json') if quant_row else None,
+                        'provisional': snapshot.provisional_diagnostics.get(symbol),
+                        'price_condition': snapshot.price_conditions[symbol], 'trade_authorized': False},
+                    confidence=1.0, freshness='BOUND_TO_ANALYSIS_CUTOFF',
+                    verification_status=VerificationStatus.UNVERIFIED))
         package = request.evidence_package or {}
         feature_context = (request.market_context or {}).get('historical_features', {})
         for symbol, row in feature_context.get('features', {}).items():

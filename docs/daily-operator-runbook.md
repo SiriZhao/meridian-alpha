@@ -2,6 +2,12 @@
 
 Follow the canonical Windows command in [README](../README.md).
 
+For the separate Quant-to-live research workflow, use the verified
+[Mission 2 active-checkout guide](live-quant/LAUNCH_GUIDE.md). Its readiness mode
+and research mode share `run_live_advisory.ps1`; neither runs paper trades.
+V1 stays canonical. V2.2_SHADOW and GPT_ADVISORY retain separate provenance,
+public inputs remain unverified, and missing factors/prices remain UNKNOWN.
+
 ## Forward evidence and alpha lab
 
 The [isolated alpha lab](alpha-lab.md) is a separate read-only research workflow.
@@ -57,8 +63,11 @@ For normal paper operation, run exactly one command:
 ```
 
 Do not create or edit an account envelope, cash balance, position file or
-market fixture. The command safely initializes the default USD 100,000.00
-account only once, exports a fresh paper-ledger observation, invokes canonical
+market fixture. The command requires an existing paper account and never
+automatically initializes, resets or replaces its history. A missing account
+returns `PAPER_ACCOUNT_NOT_FOUND`; inspect storage and obtain a separately
+approved explicit initialization only if no account/history exists. It exports
+a fresh paper-ledger observation (not a fresh broker confirmation), invokes canonical
 daily and attempts paper-only fills after the same market/research/decision
 checks. Inspect `output_files.paper_report_markdown` and the structured
 `paper_execution` result. `PAPER_BLOCKED` is a valid, non-destructive outcome
