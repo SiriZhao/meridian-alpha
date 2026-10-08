@@ -173,7 +173,8 @@ are purged, as are labels published after the next partition begins.
             raise ValueError("PORTFOLIO_ALLOCATION_ARITHMETIC_UNREPRESENTABLE") from error
         weights["CASH"] = {}
         # Cash buffer makes benchmark costs self-financing under the same policy.
-        weights["HORIZON_BENCHMARK"] = {"__BENCHMARK__": 1 - experiment.risk_policy.min_cash_weight}
+        with localcontext(Context(prec=28, rounding=ROUND_HALF_EVEN)):
+            weights["HORIZON_BENCHMARK"] = {"__BENCHMARK__": 1 - experiment.risk_policy.min_cash_weight}
         blocks[partition].append((at, returns, weights))
         last_maturity = maturity
         certified_test_blocks += int(partition == "TEST" and all_certified)

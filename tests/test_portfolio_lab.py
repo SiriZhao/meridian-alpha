@@ -58,8 +58,11 @@ def test_roundtrip_rejects_insolvent_missing_or_nonfinite_inputs(weights, return
         round_trip_return(weights, returns, cost_bps=cost)
 
 
-def test_common_oos_cost_grid_reproducible_under_caller_decimal_context() -> None:
+@pytest.mark.parametrize("precise_cash", [False, True])
+def test_common_oos_cost_grid_reproducible_under_caller_decimal_context(precise_cash: bool) -> None:
     inputs, pairs, experiment = dataset()
+    if precise_cash:
+        experiment = experiment.model_copy(update={"risk_policy": experiment.risk_policy.model_copy(update={"min_cash_weight": Decimal(".1234567890123456789012345678")})})
     first = evaluate_portfolios(inputs, pairs, experiment=experiment)
     with localcontext() as context:
         context.prec = 8
