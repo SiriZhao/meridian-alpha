@@ -375,3 +375,19 @@ compatibility notes. The current Astra Skill does not use them as its
 intelligence layer. Deterministic code continues to own weights, quantity,
 risk, limit policy, and reconciliation. FinRL-X remains optional/deferred and
 may remain `MODEL_UNAVAILABLE`.
+
+## Quant V2 challenger boundary
+
+Project-owned historical bars feed PIT quality checks, versioned factors,
+deterministic scores and SPY regime dimensions. Constrained targets and
+friction decisions reuse RiskEngine, ReconciliationEngine, OrderPlanner and
+projected validation. V1 stays the shipped default; V2 shadow is opt-in and
+paper review is a separate, evidence-gated non-executing call. No ledger
+migration or broker adapter is involved.
+
+The next-open walk-forward replay owns only disposable in-memory simulation
+state. Archived adjusted research certification is disjoint from raw session
+facts and execution quotes. The predeclared horizon laboratory remains a
+separate reviewed-outcome analysis; its samples are not promoted into V2
+portfolio OOS evidence. See [Quant V2 architecture](quant-v2/ARCHITECTURE.md),
+[ADR 0037](adr/0037-quant-engine-v2.md) and the documented financial limits.

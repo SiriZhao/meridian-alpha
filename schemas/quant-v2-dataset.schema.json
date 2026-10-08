@@ -171,6 +171,7 @@
     "HistoricalBarCertification": {
       "enum": [
         "CERTIFIED_MARKET_SESSION",
+        "CERTIFIED_RESEARCH_PIT_ADJUSTED",
         "UNVERIFIED",
         "SYNTHETIC",
         "REPLAY_UNSAFE"

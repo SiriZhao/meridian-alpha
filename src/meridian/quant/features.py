@@ -7,7 +7,7 @@ All returns require an explicitly verified fully adjusted price basis.
 import hashlib
 from collections.abc import Sequence
 from datetime import date, datetime, timedelta
-from decimal import Decimal, localcontext
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import Field, model_validator
@@ -19,6 +19,7 @@ from meridian.historical import (
     HistoricalBarSeries,
     HistoricalQuality,
 )
+from meridian.quant.numerics import deterministic_decimal
 from meridian.schemas import StableModel
 from meridian.trading_calendar import is_trading_session, latest_completed_session, session_close
 
@@ -126,7 +127,7 @@ def _quality(series: HistoricalBarSeries, bars: tuple[HistoricalBar, ...], cutof
         reasons.append("PREMATURE_BAR_AVAILABILITY")
     if any(b.adjustment_status != HistoricalAdjustmentStatus.FULLY_ADJUSTED_OHLCV for b in bars):
         reasons.append("UNVERIFIED_ADJUSTMENT_BASIS")
-    permitted = {HistoricalBarCertification.CERTIFIED_MARKET_SESSION}
+    permitted = {HistoricalBarCertification.CERTIFIED_RESEARCH_PIT_ADJUSTED}
     if diagnostic:
         permitted.add(HistoricalBarCertification.SYNTHETIC)
     if any(b.certification not in permitted or b.quality != HistoricalQuality.VERIFIED for b in bars):
@@ -143,13 +144,12 @@ def _quality(series: HistoricalBarSeries, bars: tuple[HistoricalBar, ...], cutof
     return tuple(reasons)
 
 
+@deterministic_decimal
 def compute_features(series: HistoricalBarSeries, cutoff: datetime, *,
                      benchmark: HistoricalBarSeries | None = None,
                      diagnostic: bool = False) -> FeatureSnapshot:
     """Compute from only the latest 253 eligible, contiguous completed sessions."""
-    with localcontext() as context:
-        context.prec = 28
-        return _compute(series, cutoff, benchmark=benchmark, diagnostic=diagnostic)
+    return _compute(series, cutoff, benchmark=benchmark, diagnostic=diagnostic)
 
 
 def _compute(series: HistoricalBarSeries, cutoff: datetime, *,

@@ -7,23 +7,24 @@ No daily close-to-same-close execution, data filling or canonical ledger access.
 
 import hashlib
 from collections.abc import Mapping, Sequence
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 from typing import Literal
 
 from pydantic import Field, model_validator
 
 from meridian.config import RiskPolicy
-from meridian.historical import HistoricalBarSeries
+from meridian.historical import HistoricalBarCertification, HistoricalBarSeries
 from meridian.lab_evaluation import rank_correlation
 from meridian.quant.features import compute_features, eligible_bars, mean
+from meridian.quant.numerics import deterministic_decimal
 from meridian.quant.policy import CostPolicy, QuantPolicy
 from meridian.quant.portfolio import allocate, cost_aware_target, target_from_weights, weights
 from meridian.quant.regime import detect_regime
 from meridian.quant.signals import QuantFactorEngine
 from meridian.quant.version import ENGINE_SOURCE_HASH
 from meridian.schemas import StableModel
-from meridian.trading_calendar import session_close, session_open
+from meridian.trading_calendar import is_trading_session, session_close, session_open
 
 D = Decimal
 INITIAL_NAV = D("100000")
@@ -159,6 +160,7 @@ def rank_ic(left: Sequence[Decimal], right: Sequence[Decimal]) -> Decimal | None
     return rank_correlation(list(left), list(right))
 
 
+@deterministic_decimal
 def pit_correlations(histories: Mapping[str, HistoricalBarSeries], cutoff: datetime,
                      lookback: int) -> dict[tuple[str, str], Decimal]:
     result = {}
@@ -205,8 +207,19 @@ class WalkForwardRunner:
         selected = tuple(s for s in calendar if start <= s <= end)
         if not selected:
             raise ValueError("BACKTEST_EMPTY_PERIOD")
+        # Missing SPY rows must never compress the calendar and turn a multi-
+        # session return into an apparently single-session observation.
+        expected = []
+        cursor = start
+        while cursor <= end:
+            if is_trading_session(cursor):
+                expected.append(cursor)
+            cursor += timedelta(days=1)
+        if selected != tuple(expected):
+            raise ValueError("BACKTEST_MISSING_BENCHMARK_SESSION")
         return selected
 
+    @deterministic_decimal
     def run(self, policy: QuantPolicy, costs: CostPolicy, risk: RiskPolicy, fold: WalkForwardFold,
             *, partition: Literal["validation", "test"] = "test", strategy: str | None = None,
             initial_nav: Decimal = INITIAL_NAV) -> ReplayResult:
@@ -253,6 +266,14 @@ class WalkForwardRunner:
             if any(session not in self.rows[s] for s in required):
                 raise ValueError("BACKTEST_MISSING_EXECUTION_OR_MARK_BAR")
             session_bars = {s: rows[session] for s, rows in self.rows.items() if session in rows}
+            permitted = {HistoricalBarCertification.CERTIFIED_RESEARCH_PIT_ADJUSTED}
+            if self.diagnostic:
+                permitted.add(HistoricalBarCertification.SYNTHETIC)
+            if any(session_bars[s].certification not in permitted or session_bars[s].canonical_symbol != s
+                   or session_bars[s].currency != "USD"
+                   or min(session_bars[s].open, session_bars[s].high, session_bars[s].low, session_bars[s].close) <= 0
+                   for s in required):
+                raise ValueError("BACKTEST_EXECUTION_OR_MARK_PRICE_UNVERIFIED")
             if any(b.observed_at < close_time or b.available_at < b.observed_at or b.available_at > close_time
                    or b.quality.value != "VERIFIED" or b.adjustment_status.value != "FULLY_ADJUSTED_OHLCV"
                    for b in session_bars.values()):
@@ -304,7 +325,7 @@ class WalkForwardRunner:
                 notional = qty * reference
                 if qty <= 0 or notional < policy.minimum_trade_notional:
                     continue
-                if not self.diagnostic and bar.certification.value != "CERTIFIED_MARKET_SESSION":
+                if not self.diagnostic and bar.certification != HistoricalBarCertification.CERTIFIED_RESEARCH_PIT_ADJUSTED:
                     raise ValueError("BACKTEST_EXECUTION_PRICE_UNVERIFIED")
                 fee = costs.commission_per_order
                 if delta < 0 and qty * price <= fee:

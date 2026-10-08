@@ -7,6 +7,7 @@ from decimal import Decimal
 from pydantic import Field
 
 from meridian.quant.features import FactorValue, FeatureSnapshot
+from meridian.quant.numerics import deterministic_decimal
 from meridian.quant.policy import QuantPolicy
 from meridian.quant.regime import RegimeState
 from meridian.schemas import AlphaScore, StableModel
@@ -40,6 +41,7 @@ class AlphaScoreV2(StableModel):
     input_hash: str
     predictive_confidence: Decimal | None = None
 
+    @deterministic_decimal
     def domain_score(self) -> AlphaScore:
         return AlphaScore(ticker=self.symbol, score=self.quant_score,
                           confidence=D(0), expected_direction="BULLISH" if self.quant_score > 0 else "NEUTRAL",
@@ -59,6 +61,7 @@ def _normalize(value: Decimal, population: Sequence[Decimal], scale: Decimal, mi
 
 
 class QuantFactorEngine:
+    @deterministic_decimal
     def score(self, snapshots: Sequence[FeatureSnapshot], policy: QuantPolicy, regime: RegimeState,
               *, prior: Mapping[str, AlphaScoreV2] | None = None) -> tuple[AlphaScoreV2, ...]:
         if len({s.symbol for s in snapshots}) != len(snapshots):

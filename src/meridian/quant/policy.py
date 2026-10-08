@@ -7,6 +7,7 @@ from typing import Literal
 import yaml
 from pydantic import Field, model_validator
 
+from meridian.quant.numerics import deterministic_decimal
 from meridian.schemas import StableModel
 
 
@@ -50,6 +51,7 @@ class QuantPolicy(StableModel):
     use_cost_gate: bool = True
 
     @model_validator(mode="after")
+    @deterministic_decimal
     def coherent(self) -> "QuantPolicy":
         if self.momentum_weight + self.trend_weight != 1:
             raise ValueError("QUANT_GROUP_WEIGHTS_MUST_SUM_TO_ONE")
@@ -68,9 +70,11 @@ class CostPolicy(StableModel):
     spread_bps: Decimal | None = Field(default=None, ge=0, le=1000)
 
     @property
+    @deterministic_decimal
     def adverse_fraction(self) -> Decimal:
         return (self.slippage_bps + (self.spread_bps or Decimal(0)) / 2) / 10000
 
+    @deterministic_decimal
     def estimate(self, notional: Decimal, order_count: int) -> Decimal:
         if not notional.is_finite() or notional < 0 or order_count < 0:
             raise ValueError("NEGATIVE_COST_INPUT")

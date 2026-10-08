@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import Field
 
 from meridian.quant.features import FeatureSnapshot
+from meridian.quant.numerics import deterministic_decimal
 from meridian.quant.policy import QuantPolicy
 from meridian.schemas import StableModel
 
@@ -24,6 +25,7 @@ class RegimeState(StableModel):
     reasons: tuple[str, ...] = ()
 
 
+@deterministic_decimal
 def detect_regime(benchmark: FeatureSnapshot | None, policy: QuantPolicy) -> RegimeState:
     if benchmark is not None and benchmark.symbol != "SPY":
         raise ValueError("QUANT_REGIME_REQUIRES_SPY")

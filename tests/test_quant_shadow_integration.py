@@ -118,7 +118,8 @@ def test_unknown_sector_is_rejected_in_shadow():
     assert all(s.new_target_weight == 0 for s in record.symbols)
 
 
-def test_paper_candidate_passes_existing_planner_without_executing(tmp_path: Path, monkeypatch):
+@pytest.mark.parametrize("metadata_case", ["trusted", "duplicate", "future", "held_unknown", "partial_sector"])
+def test_paper_candidate_passes_existing_planner_without_executing(tmp_path: Path, monkeypatch, metadata_case):
     # Certified inputs and prior review are mocked contracts, not real market
     # evidence. The test exercises the planner boundary with a disposable ledger.
     from datetime import UTC, datetime, timedelta
@@ -146,7 +147,7 @@ def test_paper_candidate_passes_existing_planner_without_executing(tmp_path: Pat
     for series in dataset.series:
         bars = tuple(bar.model_copy(update={"session": day, "observed_at": session_close(day),
                                             "available_at": session_close(day), "retrieved_at": when,
-                                            "certification": HistoricalBarCertification.CERTIFIED_MARKET_SESSION})
+                                            "certification": HistoricalBarCertification.CERTIFIED_RESEARCH_PIT_ADJUSTED})
                      for bar, day in zip(series.bars[:253], dates, strict=True))
         history[series.canonical_symbol] = series.model_copy(update={"bars": bars, "as_of": when, "source_mode": "TEST_CONTRACT_STUB"})
     ledger = PaperLedger(AuditStore(tmp_path / "isolated-paper.sqlite3"))
@@ -160,9 +161,47 @@ def test_paper_candidate_passes_existing_planner_without_executing(tmp_path: Pat
                                 bid=D("99.9"), ask=D("100.1"), volume=1000000, atr14=D(2), vwap=D(100),
                                 daily_return=D(".01"), freshness_state=FreshnessState.VERIFIED) for s in policies.universe.tickers}
     before = ledger.status()
+    metadata = tuple(QuantSecurityMetadata(symbol=s, asset_type="DIVERSIFIED_ETF", known_at=when,
+                                           source="MOCK_METADATA_CONTRACT") for s in policies.universe.tickers)
+    expected_reason = None
+    if metadata_case == "duplicate":
+        metadata += (metadata[0],)
+        expected_reason = "DUPLICATE_SECURITY_METADATA"
+    elif metadata_case == "future":
+        metadata = tuple(m.model_copy(update={"known_at": when + timedelta(seconds=1)}) for m in metadata)
+        expected_reason = "FUTURE_SECURITY_METADATA"
+    elif metadata_case in {"held_unknown", "partial_sector"}:
+        from meridian.host_account import HostAccountSnapshotEnvelope, HostPosition
+        equity = envelope.total_equity
+        held_symbol = "GLD" if metadata_case == "held_unknown" else "SPY"
+        held_weight = D(".25") if metadata_case == "held_unknown" else D(".15")
+        envelope = HostAccountSnapshotEnvelope.model_validate({**envelope.model_dump(exclude={"provenance_digest"}),
+            "cash": equity * (1 - held_weight),
+            "positions": (HostPosition(ticker=held_symbol, quantity=equity * held_weight / 100, market_value=equity * held_weight),)})
+        quotes[held_symbol] = quotes["SPY"].model_copy(update={"ticker": held_symbol})
+        if metadata_case == "held_unknown":
+            expected_reason = "HELD_AND_TARGET_SECURITY_METADATA_REQUIRED"
+        else:
+            metadata = tuple(m.model_copy(update={"asset_type": "EQUITY", "sector": "MOCK_SHARED" if m.symbol in {"SPY", "AAPL"} else "MOCK_" + m.symbol}) for m in metadata)
+            policies = replace(policies, risk=policies.risk.model_copy(update={"max_position_weight": D(".2"), "max_sector_weight": D(".15")}))
+            # This safe target cannot be reached when the existing planner
+            # refuses the incomplete SELL quote; residual sector risk blocks
+            # the new BUYs even though the target sector is within its cap.
+            quotes["SPY"] = quotes["SPY"].model_copy(update={"bid": None})
+            original_build = integration.build_quant_targets
+            def small_target(*args, **kwargs):
+                features, state, scores, _ = original_build(*args, **kwargs)
+                target = target_from_weights({"AAPL": D(".05"), "SPY": D(".05"), "MSFT": D(".1"), "NVDA": D(".1")}, when, policy.version)
+                return features, state, scores, target
+            monkeypatch.setattr(integration, "build_quant_targets", small_target)
+            expected_reason = "sector constraint violation"
     result = plan_paper_candidate(envelope, quotes, history, when, policies, policy,
-                                  pit_metadata=tuple(QuantSecurityMetadata(symbol=s, asset_type="DIVERSIFIED_ETF", known_at=when, source="MOCK_METADATA_CONTRACT") for s in policies.universe.tickers))
-    assert result.status == "READY_FOR_PAPER_REVIEW" and result.orders
+                                  pit_metadata=metadata)
+    if expected_reason:
+        assert result.status == "PAPER_CANDIDATE_BLOCKED" and expected_reason in result.reasons
+        assert not result.orders
+    else:
+        assert result.status == "READY_FOR_PAPER_REVIEW" and result.orders
     assert result.authority == "PAPER_REVIEW_ONLY_NOT_FOR_REAL_ENTRY"
     assert ledger.status() == before
 

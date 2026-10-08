@@ -1,4 +1,4 @@
-# ADR 0036 — PIT Quant Engine V2, delayed evaluation and shadow isolation
+# ADR 0037 — PIT Quant Engine V2, delayed evaluation and shadow isolation
 
 Date: 2026-10-08. Status: implemented challenger architecture; promotion disabled.
 
@@ -65,6 +65,24 @@ Engine identity hashes quant modules and reused risk/order/calendar/domain code,
 normalized for Windows/Linux line endings.
 
 ## Alternatives and consequences
+
+Archived, fully adjusted research bars use the distinct
+`CERTIFIED_RESEARCH_PIT_ADJUSTED` contract. It requires VERIFIED quality,
+completed observations and ordered availability/retrieval timestamps. It does
+not certify raw market facts or grant execution-price authority. The existing
+`CERTIFIED_MARKET_SESSION` prohibition on adjusted raw-market facts remains
+unchanged, and public provider adapters continue to emit UNVERIFIED history.
+Certification must be supplied by an independently reviewed archive; the enum
+and caller attestations do not constitute authenticated provenance or proof
+that an adjustment vintage excludes future corporate actions.
+
+Replay preflight rejects missing expected SPY sessions. Every execution/mark
+bar, including a final benchmark mark without trades, needs valid identity,
+currency, positive prices and research quality. Decimal entrypoints pin all
+context parameters, traps and arithmetic order; embedding caller state cannot
+change scores, costs, targets or replay content. Paper review rejects duplicate,
+future or absent held-position metadata, and checks projected sector exposure
+after the existing planner has applied its limits and quote gates.
 
 * No parallel broker/execution framework, LLM scoring, FinRL-X inference or
   high-dimensional sample-covariance optimizer is introduced.

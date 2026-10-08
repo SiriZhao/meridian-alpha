@@ -13,6 +13,7 @@ from meridian.historical import HistoricalBarSeries
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.quant.backtest import QuantSecurityMetadata, ReplayResult, pit_correlations
 from meridian.quant.features import compute_features
+from meridian.quant.numerics import deterministic_decimal
 from meridian.quant.policy import CostPolicy, QuantPolicy
 from meridian.quant.portfolio import allocate, cost_aware_target, weights
 from meridian.quant.regime import RegimeState, detect_regime
@@ -70,6 +71,7 @@ class QuantShadowRecord(StableModel):
         return hashlib.sha256(self.stable_json().encode()).hexdigest()
 
 
+@deterministic_decimal
 def build_quant_targets(histories: Mapping[str, HistoricalBarSeries], cutoff: datetime,
                         policies: Policies, policy: QuantPolicy, *, diagnostic: bool = False):
     if any(symbol != series.canonical_symbol for symbol, series in histories.items()):
@@ -84,6 +86,7 @@ def build_quant_targets(histories: Mapping[str, HistoricalBarSeries], cutoff: da
     return features, state, scores, target
 
 
+@deterministic_decimal
 def observe_shadow(*, run_id: str, cutoff: datetime, market_hash: str,
                    account: AccountSnapshot, quotes: Mapping[str, MarketSnapshot],
                    baseline_target: TargetPortfolio | None,
@@ -179,6 +182,7 @@ def sufficient_engineering_evidence(records: tuple[ReplayResult, ...], policy: Q
                and r.engine_hash == ENGINE_SOURCE_HASH for r in records)
 
 
+@deterministic_decimal
 def plan_paper_candidate(envelope: HostAccountSnapshotEnvelope, quotes: dict[str, MarketSnapshot],
                          histories: Mapping[str, HistoricalBarSeries], cutoff: datetime,
                          policies: Policies, policy: QuantPolicy, *,
@@ -205,7 +209,12 @@ def plan_paper_candidate(envelope: HostAccountSnapshotEnvelope, quotes: dict[str
     from meridian.security import AssetType
     if any(m.known_at > cutoff for m in pit_metadata):
         return PaperCandidateReview(status="PAPER_CANDIDATE_BLOCKED", reasons=("FUTURE_SECURITY_METADATA",))
+    if len({m.symbol for m in pit_metadata}) != len(pit_metadata):
+        return PaperCandidateReview(status="PAPER_CANDIDATE_BLOCKED", reasons=("DUPLICATE_SECURITY_METADATA",))
     metadata = {m.symbol: SecurityMetadata(m.symbol, AssetType(m.asset_type), m.sector, None) for m in pit_metadata}
+    required = {h.ticker for h in account.holdings} | {p.ticker for p in target.positions}
+    if policies.risk.max_sector_weight < 1 and required - metadata.keys():
+        return PaperCandidateReview(status="PAPER_CANDIDATE_BLOCKED", reasons=("HELD_AND_TARGET_SECURITY_METADATA_REQUIRED",))
     risk_report = RiskEngine().approve(target, account, "NORMAL", policies.risk, metadata=metadata)
     if risk_report.violations:
         return PaperCandidateReview(status="PAPER_CANDIDATE_BLOCKED", reasons=risk_report.violations)
@@ -219,7 +228,9 @@ def plan_paper_candidate(envelope: HostAccountSnapshotEnvelope, quotes: dict[str
     orders = OrderPlanner().plan(account, reconciliation, quotes, policies.execution, policies.risk, account.total_equity)
     projection = ProjectedPortfolioValidator().validate(account, orders, account.total_equity,
                                                         policies.risk.min_cash_weight, policies.risk.max_position_weight,
-                                                        policies.risk.max_number_positions)
+                                                        policies.risk.max_number_positions,
+                                                        sector_map={s: m.sector for s, m in metadata.items() if m.sector},
+                                                        max_sector_weight=policies.risk.max_sector_weight)
     if projection.violations:
         return PaperCandidateReview(status="PAPER_CANDIDATE_BLOCKED", reasons=projection.violations)
     return PaperCandidateReview(status="READY_FOR_PAPER_REVIEW", target=decision.target,

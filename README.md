@@ -220,6 +220,6 @@ separate, evidence-gated call. No automatic strategy promotion or broker orders.
 See [architecture](docs/quant-v2/ARCHITECTURE.md),
 [research and complete diagnostic records](docs/quant-v2/RESEARCH_REPORT.md),
 [baseline audit](QUANT_V2_BASELINE_AUDIT.md) and
-[ADR 0036](docs/adr/0036-quant-engine-v2.md).
+[ADR 0037](docs/adr/0037-quant-engine-v2.md).
 Verified financial OOS alpha is **not demonstrated**; synthetic diagnostics are
 engineering evidence only.

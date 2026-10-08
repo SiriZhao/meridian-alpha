@@ -6,6 +6,7 @@ from decimal import ROUND_DOWN, Decimal
 
 from meridian.config import RiskPolicy
 from meridian.quant.features import FeatureSnapshot
+from meridian.quant.numerics import deterministic_decimal
 from meridian.quant.policy import CostPolicy, QuantPolicy
 from meridian.quant.regime import RegimeState
 from meridian.quant.signals import AlphaScoreV2
@@ -22,20 +23,23 @@ def weights(target: TargetPortfolio) -> dict[str, Decimal]:
     return {p.ticker: p.target_weight for p in target.positions}
 
 
+@deterministic_decimal
 def gross_turnover(current: Mapping[str, Decimal], proposed: Mapping[str, Decimal]) -> Decimal:
-    return sum((abs(proposed.get(s, D(0)) - current.get(s, D(0))) for s in current.keys() | proposed.keys()), D(0))
+    return sum((abs(proposed.get(s, D(0)) - current.get(s, D(0))) for s in sorted(current.keys() | proposed.keys())), D(0))
 
 
+@deterministic_decimal
 def validate_weights(values: Mapping[str, Decimal], risk: RiskPolicy) -> bool:
     return (len([v for v in values.values() if v > 0]) <= risk.max_number_positions
             and all(v.is_finite() and 0 <= v <= risk.max_position_weight for v in values.values())
-            and sum(values.values(), D(0)) <= 1 - risk.min_cash_weight)
+            and sum((values[s] for s in sorted(values)), D(0)) <= 1 - risk.min_cash_weight)
 
 
+@deterministic_decimal
 def target_from_weights(values: Mapping[str, Decimal], cutoff: datetime, version: str) -> TargetPortfolio:
     if any(not v.is_finite() or v < 0 for v in values.values()):
         raise ValueError("QUANT_INVALID_TARGET_WEIGHT")
-    values = {s: v.quantize(D("0.000001"), rounding=ROUND_DOWN) for s, v in values.items()}
+    values = {s: values[s].quantize(D("0.000001"), rounding=ROUND_DOWN) for s in sorted(values)}
     invested = sum(values.values(), D(0))
     return TargetPortfolio(as_of=cutoff, cash_weight=1 - invested,
                            positions=tuple(TargetPosition(ticker=s, target_weight=v, conviction=D(0),
@@ -44,6 +48,7 @@ def target_from_weights(values: Mapping[str, Decimal], cutoff: datetime, version
                            allocator_name="quant_v2_constrained", allocator_version=version)
 
 
+@deterministic_decimal
 def allocate(scores: Sequence[AlphaScoreV2], features: Mapping[str, FeatureSnapshot],
              cutoff: datetime, risk: RiskPolicy, policy: QuantPolicy, regime: RegimeState,
              *, correlations: Mapping[tuple[str, str], Decimal] | None = None) -> TargetPortfolio:
@@ -110,6 +115,7 @@ class RebalanceDecision(StableModel):
     reasons: tuple[str, ...]
 
 
+@deterministic_decimal
 def cost_aware_target(target: TargetPortfolio, current: Mapping[str, Decimal], *, nav: Decimal,
                       risk: RiskPolicy, policy: QuantPolicy, costs: CostPolicy,
                       sessions_since_rebalance: int = 5,
@@ -124,14 +130,14 @@ def cost_aware_target(target: TargetPortfolio, current: Mapping[str, Decimal], *
     reasons = []
     # Eligibility exits and regime exposure reductions take priority over a
     # calendar/band. They still pass the existing RiskEngine and OrderPlanner.
-    risk_reduction = not safe or any(current.get(s, D(0)) > v and (v == 0 or sum(desired.values(), D(0)) < sum(current.values(), D(0)))
+    risk_reduction = not safe or any(current.get(s, D(0)) > v and (v == 0 or sum(desired.values(), D(0)) < sum((current[s] for s in sorted(current)), D(0)))
                                      for s, v in {s: desired.get(s, D(0)) for s in current}.items())
     if policy.use_cost_gate and safe and not risk_reduction:
         if policy.rebalance == "weekly" and sessions_since_rebalance < 5:
             reasons.append("WEEKLY_NOT_DUE")
         if policy.rebalance == "threshold" and gross_turnover(current, desired) < policy.rebalance_threshold:
             reasons.append("BELOW_REBALANCE_THRESHOLD")
-        for symbol in current.keys() | desired.keys():
+        for symbol in sorted(current.keys() | desired.keys()):
             delta = desired.get(symbol, D(0)) - current.get(symbol, D(0))
             if abs(delta) < policy.no_trade_band or abs(delta) * nav < policy.minimum_trade_notional:
                 desired[symbol] = current.get(symbol, D(0))
@@ -142,7 +148,7 @@ def cost_aware_target(target: TargetPortfolio, current: Mapping[str, Decimal], *
     if turnover > limit and safe:
         scale = limit / turnover
         scaled = {s: (current.get(s, D(0)) + scale * (desired.get(s, D(0)) - current.get(s, D(0)))).quantize(D("0.000001"), rounding=ROUND_DOWN)
-                  for s in current.keys() | desired.keys()}
+                  for s in sorted(current.keys() | desired.keys())}
         if validate_weights(scaled, risk):
             desired = scaled
         else:
@@ -154,7 +160,7 @@ def cost_aware_target(target: TargetPortfolio, current: Mapping[str, Decimal], *
                                  estimated_cost=costs.estimate(nav * turnover, len(desired)),
                                  expected_benefit=None, reasons=("RISK_REDUCTION_EXCEEDS_TURNOVER_REVIEW_REQUIRED",))
     if dollar_volumes is not None:
-        for symbol in current.keys() | desired.keys():
+        for symbol in sorted(current.keys() | desired.keys()):
             amount = abs(desired.get(symbol, D(0)) - current.get(symbol, D(0))) * nav
             volume = dollar_volumes.get(symbol)
             if amount > 0 and (volume is None or amount > volume * policy.max_volume_participation):
