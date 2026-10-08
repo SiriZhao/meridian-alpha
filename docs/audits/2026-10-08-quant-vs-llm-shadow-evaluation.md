@@ -28,7 +28,16 @@ cost-adjusted alpha or statistical significance. Turnover, slippage, drawdown,
 annualized performance and uncertainty intervals are **NOT_EVALUABLE** for this
 dataset. Existing 20-row thresholds cannot prove independence or alpha.
 
+The resumed stage adds a predeclared horizon portfolio/cost model (ADR 0036).
+It shares reviewed cohorts, purges boundary-crossing labels and requires complete
+train/validation/test partitions. Fractional horizon round trips, buffered
+benchmark exposure, explicit commission/slippage sensitivity and zero cash
+interest are hypothetical assumptions. Endpoint drawdown is not intra-horizon
+drawdown; matched horizon exposure is not continuous buy-and-hold. Mock receipts
+test these calculations but supply no real comparison evidence. Consequently the
+financial conclusions above remain unchanged.
+
 Next: acquire reviewed inception/horizon/action evidence; predeclare comparable
-universe and temporal folds; complete the portfolio/cost model and sealed
-research ablations. Keep automatic promotion disabled. No production weights,
+universe and temporal folds; collect sealed research ablations and continuous
+valuation paths. Keep automatic promotion disabled. No production weights,
 thresholds, risk limits or execution permissions changed.
