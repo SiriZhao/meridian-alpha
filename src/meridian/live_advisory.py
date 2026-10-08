@@ -289,7 +289,11 @@ class LiveAdvisoryService:
                 gpt = report.get('decision_provenance', {}).get('gpt')
                 if gpt is not None and gpt['status'] != 'COMPLETE':
                     stages = report.get('research_summary', {}).get('stages', {})
-                    gpt['status'] = 'INCOMPLETE' if any(s['status'] == 'SUCCESS' for s in stages.values()) else 'FAILED' if report['checks'].get('llm') == 'FAILED' or report['checks'].get('advisory') == 'FAILED' else 'NOT_RUN'
+                    blocked_data = report.get('research_summary', {}).get('state') == 'RESEARCH_BLOCKED_DATA'
+                    gpt['status'] = 'BLOCKED_DATA' if blocked_data else 'INCOMPLETE' if any(s['status'] == 'SUCCESS' for s in stages.values()) else 'FAILED' if report['checks'].get('llm') == 'FAILED' or report['checks'].get('advisory') == 'FAILED' else 'NOT_RUN'
+                report['model_inference_attempted'] = any(
+                    s['status'] != 'NOT_RUN' for s in report.get('research_summary', {}).get('stages', {}).values()
+                ) or bool(report.get('advisory_invocation'))
                 if report.get('portfolio_summary', {}).get('source') == 'PAPER_LEDGER':
                     try:
                         current = read_only_ledger(self.paths.db, PaperSettings.from_policy_directory(policy_directory())).state(DEFAULT_ACCOUNT)

@@ -228,7 +228,7 @@ def test_future_history_changes_do_not_change_earlier_quant_signal():
     assert [r.score for r in before.quant_packet.symbols] == [r.score for r in after.quant_packet.symbols]
 
 
-@pytest.mark.parametrize('fault', [None, 'timeout', 'score_overwrite'])
+@pytest.mark.parametrize('fault', [None, 'timeout', 'score_overwrite', 'stale_benchmark'])
 def test_full_fixture_pipeline_passes_quant_to_both_gpt_stages_and_preserves_scores(tmp_path, monkeypatch, fault):
     from datetime import datetime
     from types import SimpleNamespace
@@ -259,8 +259,9 @@ def test_full_fixture_pipeline_passes_quant_to_both_gpt_stages_and_preserves_sco
 
     class Provider:
         def get_quote(self, symbol):
-            return quotes[symbol].model_copy(update={'observed_at':when-timedelta(seconds=5),
-                'available_at':when-timedelta(seconds=5), 'retrieved_at':when-timedelta(seconds=1)})
+            age = 600 if fault == 'stale_benchmark' and symbol == 'SPY' else 5
+            return quotes[symbol].model_copy(update={'observed_at':when-timedelta(seconds=age),
+                'available_at':when-timedelta(seconds=age), 'retrieved_at':when-timedelta(seconds=1)})
 
     calls = []
 
@@ -324,6 +325,11 @@ def test_full_fixture_pipeline_passes_quant_to_both_gpt_stages_and_preserves_sco
     assert report['ORDER_AUTHORITY'] == 'NONE'
     assert report['research_workflow_available']
     assert report['status_dimensions']['OPERATIONAL_CANONICAL'] == 'NOT_RUN_BY_LIVE_ADVISORY'
-    assert report['status_dimensions']['GPT'] == ('COMPLETE' if fault is None else 'INCOMPLETE')
-    expected_advisory = 'PASS' if fault is None else 'NOT_RUN' if fault == 'timeout' else 'FAILED'
+    expected_gpt = 'COMPLETE' if fault is None else 'BLOCKED_DATA' if fault == 'stale_benchmark' else 'INCOMPLETE'
+    assert report['status_dimensions']['GPT'] == expected_gpt
+    assert report['model_inference_attempted'] is (fault != 'stale_benchmark')
+    if fault == 'stale_benchmark':
+        assert not calls
+        assert report['market_snapshot']['SPY']['current_price'] is None
+    expected_advisory = 'PASS' if fault is None else 'NOT_RUN' if fault in {'timeout', 'stale_benchmark'} else 'FAILED'
     assert report['status_dimensions']['GPT_FINAL_ADVISORY'] == expected_advisory
