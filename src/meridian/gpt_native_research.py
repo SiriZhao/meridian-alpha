@@ -958,11 +958,14 @@ class GPTNativeResearchOrchestrator:
     def _evidence(self, request: DailyResearchInput) -> tuple[ResearchEvidence, ...]:
         items: list[ResearchEvidence] = []
         live_quant = (request.market_context or {}).get('quant_live')
-        verification = VerificationStatus.UNVERIFIED if live_quant else VerificationStatus.VERIFIED
+        # PublicResearchObservation carries no qualification contract. Canonical
+        # run ownership, freshness and the presence of a Quant packet cannot
+        # certify these prices or transforms derived from them.
+        verification = VerificationStatus.UNVERIFIED
         for observation in request.observations:
             items.append(ResearchEvidence(evidence_id=observation.reference, symbol=observation.ticker,
                 category=EvidenceCategory.PRICE, source_type=EvidenceSourceType.STRUCTURED_MARKET,
-                source="PUBLIC_LIVE_RESEARCH" if live_quant else "CANONICAL_MARKET_SNAPSHOT",
+                source="PUBLIC_LIVE_RESEARCH" if request.mode == "LIVE" else "PUBLIC_RESEARCH_OBSERVATION",
                 observed_at=observation.observed_at, market_timestamp=observation.observed_at,
                 structured_value={"last": str(observation.price)}, confidence=1.0,
                 freshness="RESEARCH_FRESH", verification_status=verification))
