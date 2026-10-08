@@ -7,6 +7,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from uuid import uuid4
 
+import pytest
+
 from meridian.application import MeridianApplicationService
 from meridian.config import ResearchBudget, ResearchSettings
 from meridian.daily_research import DailyResearchInput, PublicResearchObservation
@@ -146,6 +148,23 @@ def test_closed_market_research_ready_and_no_execution_authority() -> None:
     assert result.execution_state is ExecutionState.BLOCKED_MARKET_CLOSED
     assert result.authority == "ADVISORY_ONLY_NO_EXECUTION_AUTHORITY"
     assert result.confidence.system_confidence != result.confidence.llm_self_confidence
+
+
+@pytest.mark.parametrize('mode', ['LIVE', 'FIXTURE', 'REPLAY'])
+def test_public_evidence_without_quant_bridge_cannot_be_verified(mode) -> None:
+    public_request = request().model_copy(update={'mode': mode})
+    result = GPTNativeResearchOrchestrator(FakeResearchModelRuntime(outputs())).run(
+        public_request, research_data_status='PASS', execution_data_status='BLOCKED',
+        execution_state=ExecutionState.BLOCKED_POLICY, settings=settings(),
+    )
+    # Freshness, canonical ownership and a valid arithmetic transform are not
+    # certification of the underlying PublicResearchObservation.
+    assert {item.verification_status.value for item in result.evidence} == {'UNVERIFIED'}
+    assert all(item.source != 'CANONICAL_MARKET_SNAPSHOT' for item in result.evidence)
+    assert result.confidence.components['evidence_coverage'] == 0
+    assert result.confidence.components['source_diversity'] == 0
+    assert result.execution_state is ExecutionState.BLOCKED_POLICY
+    assert result.authority == 'ADVISORY_ONLY_NO_EXECUTION_AUTHORITY'
 
 
 def test_primary_timeout_degrades_without_losing_structured_evidence() -> None:

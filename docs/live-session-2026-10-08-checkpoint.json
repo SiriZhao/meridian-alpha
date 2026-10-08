@@ -1,0 +1,45 @@
+{
+  "schema_version": "meridian-live-acceptance-checkpoint.v1",
+  "phase": "REPAIR_VALIDATED_READY_TO_PUBLISH",
+  "branch": "codex/live-session-integrity",
+  "parent_head": "c7b330c3c954592d3d19fa205baacfc84d070f6c",
+  "closed_candidate": "c7b330c3c954592d3d19fa205baacfc84d070f6c",
+  "closed_candidate_outcome": "LIVE_RESEARCH_DEGRADED",
+  "paper_canonical_run_id": "daily-ff9a368c3590e82545aad681",
+  "paper_status": "PAPER_NO_TRADE",
+  "paper_run_attempts": 1,
+  "orders": 0,
+  "fills": 0,
+  "quant_engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
+  "algorithm_coefficients_changed": false,
+  "completed": [
+    "Frozen source/environment and policy identity",
+    "Doctor PASS and current-schema existing paper account",
+    "Two real REGULAR-session read-only observations",
+    "Quant qualification gates; full score blocked by history quality",
+    "Canonical V1 native chain SUCCESS; not external GPT acceptance",
+    "Exactly one safe paper day with unchanged cash/positions/version",
+    "Closed original candidate before code repair",
+    "Three reproducible classification failures followed by passing repair",
+    "33 targeted tests; Ruff; Pyright"
+  ],
+  "full_validation": "PASS: 995 tests in 213.84s; dependency integrity, Ruff, Pyright, V2/V22 frozen archives, CLI and isolated safe paper acceptance",
+  "remaining": [
+    "Review diff, commit and push repair without rewriting history",
+    "Freeze new code identity and restart read-only checks",
+    "Operator-launched external live-advisory evidence"
+  ],
+  "exact_next_action": "Commit and push only reviewed source/test/document paths, verify remote SHA and platform CI, then freeze the new candidate. Never rerun the completed canonical paper day.",
+  "known_blockers": [
+    "INSUFFICIENT_VERIFIED_HISTORY",
+    "UNRESOLVED_CORPORATE_ACTIONS",
+    "EXTERNAL_OPERATOR_ACTION_REQUIRED",
+    "QUOTE_READY_BLOCKED",
+    "MODEL_SCENARIO_PROBABILITIES_UNCALIBRATED"
+  ],
+  "sanitized_evidence_root": "E:/MeridianAlphaRuntime/reports/live-acceptance/2026-10-08/acceptance-8d89c3b42b9841caaa7b44bbc17b92af",
+  "sensitive_account_data_committed": false,
+  "broker_submission": "DISABLED",
+  "automatic_promotion": "DISABLED",
+  "monitoring_active": false
+}
