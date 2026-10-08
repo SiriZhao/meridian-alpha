@@ -23,17 +23,7 @@ def require(condition: bool, reason: str) -> None:
         raise ValueError(reason)
 
 
-def main() -> int:
-    root = Path(__file__).resolve().parents[1]
-    subprocess.run([sys.executable, str(root / "scripts/generate_quant_v22_contracts.py"), "--check"], check=True, cwd=root)
-    packaging = tomllib.loads((root / "pyproject.toml").read_text())["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
-    for contract in ("quant-v22-policy", "quant-v22-features", "quant-v22-score", "quant-v22-plan",
-                     "quant-research-packet.v22", "quant-expected-return.v1", "quant-fundamental-observation.v1"):
-        name = contract + ".schema.json"
-        require(packaging.get("schemas/" + name) == "meridian/schemas/" + name, "CHALLENGER_WHEEL_CONTRACT_MISSING:" + name)
-    policy = ChallengerPolicy.model_validate(yaml.safe_load((root / "policies/quant-v22.yaml").read_text()))
-    require(policy == ChallengerPolicy(), "CHALLENGER_SHIPPED_POLICY_DRIFT")
-    directory = root / "docs/quant-v2/experiments-v22"
+def validate_archive(directory: Path, expected_engine: str) -> dict[str, object]:
     manifest = json.loads((directory / "archive-manifest.json").read_text())
     archive = directory / "synthetic-full-registry.zip"
     require(hashlib.sha256(archive.read_bytes()).hexdigest() == manifest["archive_sha256"], "CHALLENGER_ZIP_HASH")
@@ -53,7 +43,7 @@ def main() -> int:
     require(plan == ChallengerExperimentPlan.model_validate_json((directory / "predeclared-plan.json").read_text()), "CHALLENGER_PLAN_DRIFT")
     require(dataset.digest == manifest["dataset_hash"] == summary["dataset_hash"], "CHALLENGER_DATA_HASH")
     require(plan.digest == manifest["plan_hash"] == summary["plan_hash"], "CHALLENGER_PLAN_HASH")
-    require(ENGINE_SOURCE_HASH == manifest["engine_hash"] == summary["engine_source_hash"], "CHALLENGER_CURRENT_ENGINE_DRIFT")
+    require(expected_engine == manifest["engine_hash"] == summary["engine_source_hash"], "CHALLENGER_CURRENT_ENGINE_DRIFT")
     require(dataset.evidence_status == summary["evidence_status"] == "SYNTHETIC_DIAGNOSTIC"
             and not summary["automatic_promotion"] and not summary["financial_alpha_demonstrated"], "CHALLENGER_AUTHORITY")
     expected = {(f.name, partition, v.name) for f in plan.folds for partition in ("validation", "test") for v in plan.variants}
@@ -74,7 +64,7 @@ def main() -> int:
         require(replay.policy_hash == hashlib.sha256(strategy.stable_json().encode()).hexdigest(), "CHALLENGER_POLICY_HASH")
         require(replay.cost_hash == hashlib.sha256(variant.costs.stable_json().encode()).hexdigest()
                 and replay.risk_hash == hashlib.sha256(plan.risk.model_dump_json().encode()).hexdigest(), "CHALLENGER_COST_RISK_HASH")
-        require(replay.engine_hash == ENGINE_SOURCE_HASH and replay.dataset_hash == dataset.digest
+        require(replay.engine_hash == expected_engine and replay.dataset_hash == dataset.digest
                 and replay.fold == row["fold"] and replay.partition == row["partition"] and replay.strategy == variant.strategy,
                 "CHALLENGER_REPLAY_ATTRIBUTION")
         require(all(d.cash >= 0 and d.costs >= 0 and (d.turnover > 0 or d.costs == 0) for d in replay.days), "CHALLENGER_CASH_COST_INVARIANTS")
@@ -90,11 +80,30 @@ def main() -> int:
         require(Decimal(row["max_realized_exposure_difference"]) == maximum and row["status"] == status,
                 "CHALLENGER_EXPOSURE_AUDIT_MISMATCH")
     packet = QuantResearchPacketV22.model_validate_json((directory / "research-packet-example.json").read_text())
-    require(packet.engine_hash == ENGINE_SOURCE_HASH and packet.data_certification_class == "SYNTHETIC_DIAGNOSTIC"
+    require(packet.engine_hash == expected_engine and packet.data_certification_class == "SYNTHETIC_DIAGNOSTIC"
             and not packet.trade_authorized and not packet.eligible_hypothetical_drafts
             and all(r.current_exposure is None for r in packet.symbols), "CHALLENGER_EXAMPLE_AUTHORITY")
-    print(json.dumps({"status": "PASS", "contracts": 7, "archived_files": len(names), "evaluations": len(expected),
-        "replays": len(used), "engine_hash": ENGINE_SOURCE_HASH, "financial_alpha_demonstrated": False,
+    return {"status": "PASS", "directory": directory.name, "archived_files": len(names),
+            "evaluations": len(expected), "replays": len(used), "engine_hash": expected_engine}
+
+
+def main() -> int:
+    root = Path(__file__).resolve().parents[1]
+    subprocess.run([sys.executable, str(root / "scripts/generate_quant_v22_contracts.py"), "--check"], check=True, cwd=root)
+    packaging = tomllib.loads((root / "pyproject.toml").read_text())["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
+    for contract in ("quant-v22-policy", "quant-v22-features", "quant-v22-score", "quant-v22-plan",
+                     "quant-research-packet.v22", "quant-expected-return.v1", "quant-fundamental-observation.v1"):
+        name = contract + ".schema.json"
+        require(packaging.get("schemas/" + name) == "meridian/schemas/" + name, "CHALLENGER_WHEEL_CONTRACT_MISSING:" + name)
+    policy = ChallengerPolicy.model_validate(yaml.safe_load((root / "policies/quant-v22.yaml").read_text()))
+    require(policy == ChallengerPolicy(), "CHALLENGER_SHIPPED_POLICY_DRIFT")
+    registries = [
+        validate_archive(root / "docs/quant-v2/experiments-v22",
+                         "043499eda8dbbebb833968d97e72c376bba553e93e820013fc013124ca9837bb"),
+        validate_archive(root / "docs/quant-v2/experiments-v22-resumed", ENGINE_SOURCE_HASH),
+    ]
+    print(json.dumps({"status": "PASS", "contracts": 7, "registries": registries,
+        "engine_hash": ENGINE_SOURCE_HASH, "financial_alpha_demonstrated": False,
         "canonical_runtime_written": False}, indent=2))
     return 0
 

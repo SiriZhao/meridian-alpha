@@ -1,0 +1,74 @@
+{
+  "version": "quant-resumed-registry-comparison.v1",
+  "old_engine": "043499eda8dbbebb833968d97e72c376bba553e93e820013fc013124ca9837bb",
+  "new_engine": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
+  "dataset_hash": "06605fe1644d2affb631040f290b690295627ea6451370483b2679e83a4f8f3c",
+  "plan_hash": "642288f0e8ffb8e1b542d17750e8ec79042f31c562432359e9672a35f3790474",
+  "evaluations": 76,
+  "changed_trade_records": [],
+  "changed_nav_cost_exposure_records": [],
+  "changed_diagnostic_records": [
+    [
+      "fold-1",
+      "validation",
+      "V22"
+    ],
+    [
+      "fold-1",
+      "validation",
+      "V22_RANK_BLEND_.15"
+    ],
+    [
+      "fold-1",
+      "validation",
+      "V22_RANK_BLEND_.25"
+    ],
+    [
+      "fold-1",
+      "validation",
+      "V22_COST_10"
+    ],
+    [
+      "fold-1",
+      "validation",
+      "V22_COST_25"
+    ],
+    [
+      "fold-1",
+      "validation",
+      "V22_COST_50"
+    ],
+    [
+      "fold-1",
+      "test",
+      "V22"
+    ],
+    [
+      "fold-1",
+      "test",
+      "V22_RANK_BLEND_.15"
+    ],
+    [
+      "fold-1",
+      "test",
+      "V22_RANK_BLEND_.25"
+    ],
+    [
+      "fold-1",
+      "test",
+      "V22_COST_10"
+    ],
+    [
+      "fold-1",
+      "test",
+      "V22_COST_25"
+    ],
+    [
+      "fold-1",
+      "test",
+      "V22_COST_50"
+    ]
+  ],
+  "additional_independent_financial_samples": 0,
+  "financial_evidence": false
+}

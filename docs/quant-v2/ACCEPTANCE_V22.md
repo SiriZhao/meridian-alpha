@@ -1,8 +1,7 @@
 # Quant V2.2 acceptance — 2026-10-08
 
-Historical acceptance at 5bdb7a4 follows. Resumed review identified missing
-correlation/unknown-covariance guards for partial fills and unknown-sector
-classification; final mission acceptance is pending those corrections.
+Historical acceptance at 5bdb7a4 follows. Resumed corrections and their current
+delivery evidence are recorded in the final section below.
 
 ENGINEERING_COMPLETE
 SYNTHETIC_VALIDATION_COMPLETE
@@ -81,3 +80,27 @@ NO_ACTION and one synthetic fill, duplicate prevention and report consistency.
 Subsequent delivery commit contains only evidence/checkpoint files; the exact
 remote tip and its own CI are verified at handoff. See the algorithm audit,
 research report, frozen plan and checkpoint for formulas, parameters and commands.
+
+## Resumed final source acceptance
+
+Implementation correction commit: `a791e35`. Current engine fingerprint:
+`e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c`.
+Five concentration/classification failures and two friction-NAV failures were
+reproduced before their corresponding fixes. Final challenger tests:
+**46 passed in 20.57 seconds**. Final approved-host complete repository run:
+**971 passed in 195.86 seconds**, dependencies, Ruff/Pyright, original V2.1,
+original V2.2 and resumed registry checks, CLI, isolated paper, fresh-process
+and report consistency all PASS. Existing safety tests were retained.
+
+The new `experiments-v22-resumed` registry uses the identical frozen plan,
+policy weights and dataset: 76 complete evaluations, 76 replays, 82 archived
+JSON members. The two historical archives are unchanged. Comparison verifies
+unchanged simulated trades, daily NAV/cash/cost/exposure/turnover in all 76 rows;
+12 rows add risk diagnostics. These are repeated synthetic engineering inputs,
+not additional independent financial observations. An intermediate local
+registry is preserved in `.tmp/quant-v22/intermediate-registry-e817a1b`.
+
+Independent remote clone/replay, current wheel packaging and final Windows/Linux
+CI are pending delivery verification. Real financial validation remains PENDING;
+Alpha NOT_DEMONSTRATED; expected return uncalibrated; confidence null; V1 default;
+paper candidate INSUFFICIENT_EVIDENCE. No canonical writes or broker side effects.

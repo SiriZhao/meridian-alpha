@@ -122,7 +122,7 @@ Use the saved new plan to reproduce its declared timestamp/identity. Original
 V2.1 exact hashes require pinned 4664cb4 and its saved plan, not the new engine.
 Financial input must omit --diagnostic and independently satisfy all data gates.
 
-## Executed results and acceptance
+## Executed results and acceptance at original V2.2 source
 
 All 76 evaluations completed under the predeclared 19-variant plan: two folds,
 validation and test, 76 distinct deterministic replays. The following table
@@ -225,3 +225,41 @@ Rollback is to continue the existing V1 default and omit the optional challenger
 or packet route. Original V2.1 paper-review and shadow controls remain unchanged.
 Financial validation and calibrated expected return are pending; paper-candidate
 readiness is INSUFFICIENT_EVIDENCE. Alpha remains ALPHA_NOT_YET_DEMONSTRATED.
+
+## Resumed algorithm hardening
+
+The current engine is `e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c`.
+The source above at 5bdb7a4 and its immutable archive remain historical evidence.
+The resumed registry is [experiments-v22-resumed](experiments-v22-resumed/archive-manifest.json);
+the original V2.1 and V2.2 archives, all schemas, policy weights and declared
+experiment parameters are preserved. This is the same frozen plan/data replay,
+not additional independent OOS observations or a newly fitted model.
+
+Post-friction and all-buy/no-sell proposals now recheck correlation concentration,
+unknown-covariance exposure, overall exposure and conservative volatility.
+Modeled commission/slippage lowers the stressed NAV. An absent sector requires
+explicit diversified-ETF classification; unknown equity classification blocks
+target additions. The simulator checks buys using prior-close risk features,
+opening valuations and modeled fee-adjusted NAV. Risk-reducing sells remain
+subject to existing execution constraints; exogenous price drift is reported.
+Same-session recovery to a first eligible signal now counts one observation,
+never a calibrated success probability.
+
+All 76 resumed evaluations completed. Independent old/new payload comparison
+shows identical simulated trades, daily NAV, cash, costs, exposure and turnover
+in every evaluation; 12 records add risk diagnostics. In the V22 test, fold-1
+has two observed risk-drift sessions under these newly reported budgets. All
+synthetic returns/costs in the table above therefore remain unchanged. See
+[comparison proof](experiments-v22-resumed/previous-registry-comparison.json).
+Engineering gap fixtures demonstrate the new rejection behavior; they do not
+establish predictive improvement. No active matched-exposure alpha, genuine
+market robustness or net-cost alpha follows. Expected returns, fundamentals,
+spread, ETF lookthrough and authenticated historical coverage remain unknown.
+
+To replay the current version, unzip the resumed archive to an isolated directory
+and use its saved dataset and plan with the existing `quant backtest` command
+and explicit `--diagnostic`. Exact historical V2.2 replay uses pinned 5bdb7a4;
+exact V2.1 replay uses pinned 4664cb4. Current artifact validation verifies the
+original V2.1 archive, pinned original V2.2 archive and current resumed registry.
+Current local/clone/CI acceptance is tracked in ACCEPTANCE_V22.md and the updated
+CHECKPOINT_V22.json. No canonical write or strategy promotion was performed.

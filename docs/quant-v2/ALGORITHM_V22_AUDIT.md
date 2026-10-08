@@ -2,7 +2,7 @@
 
 ## Recovered state and baseline
 
-Verified origin SiriZhao/meridian-alpha, Quant worktree at 4664cb4, clean local
+Initial mission verified origin SiriZhao/meridian-alpha, Quant worktree at 4664cb4, clean local
 and remote codex/quant-engine-v2; parent fd7481d is already integrated into the Quant branch. PR 3 is open,
 draft, mergeable, with no comments/reviews. Original checkout is the separate
 Forward Evidence branch and clean. No reset, overwrite or main development.
@@ -58,10 +58,35 @@ Two further gaps require deterministic guards before final handoff:
   depend on a sell filling to satisfy its challenger concentration policy.
 - `portfolio.allocate_challenger`: a sector-map key with value None is accepted
   without identifying whether it is an ETF exemption or unknown equity sector.
-  Held equity metadata is checked for presence, but a missing held sector can
-  also be omitted from projected sector totals. Unknown classifications must
+  Normal typed metadata rejects an equity with no sector; the packet now also
+  rejects invalid caller objects that bypass that validation. Unknown classifications must
   block additions; an ETF exemption requires explicit PIT asset-type metadata.
 
 The resumed changes preserve the original V2.1 and V2.2 archives and parameters.
 New engine diagnostics will use a separate immutable directory; observed
 synthetic returns will not determine a threshold or weight change.
+
+## Resumed corrections and measured boundary
+
+`portfolio.challenger_budget_violations` reuses the existing risk estimate to
+check overall, volatility, correlated-component and unknown-covariance budgets.
+`packet.build_research_packet` applies it after bands/turnover and under the
+all-buy/no-sell scenario. That scenario lowers NAV by declared modeled friction;
+worst-case draft notionals and the friction model are conservative research
+assumptions, not observed fills. Missing volume/volatility stays unknown.
+`allocate_challenger` requires explicit DIVERSIFIED_ETF metadata for a missing
+sector exemption. No sector or ETF overlap is inferred.
+
+`WalkForwardRunner.run` uses prior-close risk inputs and opening marks, deducts
+modeled friction from proposed NAV, and blocks new buys outside these budgets.
+Blocked buys create no fill/fee/turnover. Price-driven risk drift is recorded
+separately; the controls cannot guarantee future market exposure or volatility.
+`score_challenger` starts persistence at one when previously blocked inputs
+become eligible within the same completed session; it remains uncalibrated.
+
+Five pre-fix concentration/classification cases and two friction-NAV stress
+cases reproduced failures. Final challenger tests: 46 passed in 20.57 seconds.
+The earlier first-hardening full run passed 968 tests; final source validation,
+independent replay and CI are recorded in ACCEPTANCE_V22.md when completed.
+Final engine: e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c.
+Factor weights, thresholds, policies, frozen plan and old archives are unchanged.

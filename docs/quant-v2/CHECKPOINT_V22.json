@@ -1,6 +1,6 @@
 {
   "version": "quant-v22-development-checkpoint.v1",
-  "status": "RESUMED_AUDIT_COMPLETE_GUARD_CORRECTIONS_PENDING",
+  "status": "LOCAL_ENGINEERING_AND_SYNTHETIC_VALIDATION_COMPLETE_REMOTE_DELIVERY_PENDING",
   "branch": "codex/quant-engine-v2",
   "starting_head": "4664cb4fd4c32a4330155436a296f4bf65f95934",
   "parent_head": "fd7481d4de1b69b7bf174f921fd7726efaed8616",
@@ -16,15 +16,18 @@
     "Old pinned independent clone: 92 evaluations / 88 replays exactly reproduced",
     "All 19 test variants and actual exposure mismatch reported",
     "Published three V2.2 commits recovered; exact-code push/PR Windows/Linux CI verified SUCCESS",
-    "Independent final-code clone/logs and two pending reproduction proofs recovered"
+    "Independent final-code clone/logs and two pending reproduction proofs recovered",
+    "Reproduced five pre-fix concentration/classification failures and two friction NAV failures",
+    "Added post-friction, all-buy/no-sell and replay execution guards plus explicit ETF classification",
+    "Corrected first eligible same-session persistence count",
+    "Frozen final source and reran same 76 synthetic evaluations without changing parameters; original two archives unchanged"
   ],
   "remaining": [
-    "Add post-friction/all-buy correlation and unknown-covariance guards",
-    "Require explicit ETF exemption for absent sectors and block unknown held equity sectors",
-    "Preserve both archived versions and freeze/replay separate resumed diagnostic",
-    "Full validation, independent clone/replay, commit/push and final Windows/Linux CI"
+    "Commit and push independent resumed registry and evidence paths",
+    "Independent final remote clone/full validation/replay and wheel content check",
+    "Final Windows/Linux CI and clean matched-SHA handoff"
   ],
-  "next_action": "Implement and regression-test resumed algorithm gaps without changing weights or existing archives",
+  "next_action": "Commit reviewed resumed registry/tooling/doc paths, push development branch, then verify independent clone and CI",
   "blockers": [
     "Certified real PIT/action/membership/calendar data unavailable",
     "Expected return calibration unavailable"
@@ -32,27 +35,39 @@
   "canonical_runtime_written": false,
   "broker_submission": "DISABLED",
   "asynchronous_work_claim": false,
-  "engine_hash": "043499eda8dbbebb833968d97e72c376bba553e93e820013fc013124ca9837bb",
+  "engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
   "challenger_policy_hash": "e0e0c2a4972a1cce7e18a64480ca2b6798a0002a04772ff58235a74592077674",
-  "targeted_tests": "165 passed in 109.57 seconds on resume",
+  "targeted_tests": "Resumed baseline 165 passed in 109.57s; final challenger 46 passed in 20.57s",
   "static_status": "Ruff PASS; Pyright 0 errors/0 warnings",
-  "full_validation": "Approved-host validate_repo.py PASS: 955 passed in 192.81s; both registries, CLI and safe paper PASS. Restricted environment native cleanup failure retained in research record.",
+  "full_validation": "Final approved-host validate_repo.py PASS: 971 passed in 195.86s; all static/dependency/archive/CLI/safe-paper/report checks PASS",
   "uncommitted_file_list_command": "git status --short in .worktrees/quant-engine-v2",
   "committed_head_semantics": "HEAD at checkpoint creation; later evidence-only commits are identified by Git log.",
   "synthetic_diagnostic": "76/76 evaluations complete across 19 frozen variants; financial evidence none",
   "plan_hash": "642288f0e8ffb8e1b542d17750e8ec79042f31c562432359e9672a35f3790474",
   "uncommitted_files": [
-    "docs/quant-v2/ALGORITHM_V22_AUDIT.md",
-    "docs/quant-v2/ALGORITHM_V22_RESEARCH.md",
-    "docs/quant-v2/ACCEPTANCE_V22.md",
-    "docs/quant-v2/CHECKPOINT_V22.json",
-    "docs/quant-v2/experiments-v22/v22-reproduction-proof.json",
-    "docs/quant-v2/experiments-v22/wheel-content-proof.json"
+    " M docs/quant-v2/ACCEPTANCE_V22.md",
+    " M docs/quant-v2/ALGORITHM_V22_AUDIT.md",
+    " M docs/quant-v2/ALGORITHM_V22_RESEARCH.md",
+    " M docs/quant-v2/CHECKPOINT_V22.json",
+    " M scripts/validate_quant_v22_artifacts.py",
+    "?? docs/quant-v2/experiments-v22-resumed/archive-manifest.json",
+    "?? docs/quant-v2/experiments-v22-resumed/matched-exposure-audit.json",
+    "?? docs/quant-v2/experiments-v22-resumed/predeclared-plan.json",
+    "?? docs/quant-v2/experiments-v22-resumed/previous-registry-comparison.json",
+    "?? docs/quant-v2/experiments-v22-resumed/research-packet-example.json",
+    "?? docs/quant-v2/experiments-v22-resumed/synthetic-full-registry.zip",
+    "?? docs/quant-v2/experiments-v22-resumed/synthetic-summary.json"
   ],
-  "head_at_checkpoint": "5bdb7a4408ab01ae5d712fb8af9196ab38701a7d",
+  "head_at_checkpoint": "a791e359ef0cbd46c0a35927d049596eaf6fe337",
   "phase_commits": [
     "c5dc594: bounded challenger",
     "904f8d6: frozen V2.2 registry",
-    "5bdb7a4: installable contracts"
-  ]
+    "5bdb7a4: installable contracts",
+    "ba6888e: recovered pending evidence and resumed audit checkpoint",
+    "a791e35: post-friction/partial-fill/classification/persistence guards"
+  ],
+  "recovered_head": "5bdb7a4408ab01ae5d712fb8af9196ab38701a7d",
+  "intermediate_archive_preserved": ".tmp/quant-v22/intermediate-registry-e817a1b",
+  "financial_status": "ALPHA_NOT_YET_DEMONSTRATED",
+  "real_financial_validation": "PENDING"
 }
