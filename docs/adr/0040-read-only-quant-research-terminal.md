@@ -43,3 +43,15 @@ No canonical algorithm coefficient, ledger schema, original experiment archive,
 portfolio hard constraint, account or broker authority changes. Historical
 certification is caller attestation, not financial evidence authentication.
 Real adjusted-history coverage and external live model acceptance remain blockers.
+
+## SQLite journal boundary amendment
+
+An isolated WAL regression showed that `mode=ro` can create `-wal` and `-shm`.
+This matches [SQLite's read-only WAL contract](https://www.sqlite.org/wal.html#read_only_databases).
+Read-only storage now refuses WAL-mode headers and existing WAL/shared-memory/
+rollback-journal files before SQL execution, with
+`READ_ONLY_JOURNAL_REVIEW_REQUIRED`. It neither checkpoints nor changes journal
+mode. Using `immutable=1` for an active account would risk ignoring committed WAL
+state, so that shortcut is prohibited. Missing/schema/corruption and journal
+refusal remain distinct. OS read-only permissions are still required against
+concurrent journal-mode reconfiguration; the application guard is not a sandbox.

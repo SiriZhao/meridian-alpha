@@ -40,6 +40,7 @@ from meridian.market import Bar
 from meridian.operational_data import FreshnessPolicy
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
 from meridian.provider_registry import provider_certification_map
+from meridian.readonly_storage import ReadOnlyStorageRefusal
 from meridian.research_terminal import (
     EvidenceTraceRequest,
     EvidenceTraceResult,
@@ -234,6 +235,8 @@ def get_run(run_id: str) -> dict[str, Any]:
         return {"found": False, "status": "REJECTED", "reason": "RUN_ID_REQUIRED_MAX_160"}
     try:
         result = _store().get_decision_summary(run_id)
+    except ReadOnlyStorageRefusal as error:
+        return {"found": False, "status": "UNAVAILABLE", "reason": str(error), "execution_authority": "NONE"}
     except (OSError, sqlite3.Error):
         return {"found": False, "status": "UNAVAILABLE", "reason": "READ_ONLY_AUDIT_UNAVAILABLE_OR_SCHEMA_REVIEW_REQUIRED"}
     if result is None:

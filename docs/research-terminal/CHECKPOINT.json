@@ -2,18 +2,42 @@
   "schema_version": "meridian-terminal-checkpoint.v1",
   "branch": "codex/research-terminal",
   "recovery_head": "f2d06396268af9ba560f839a82012aa693fe60c0",
-  "phase": "BOUNDARY_HARDENED_READY_TO_FREEZE",
-  "completed": ["Clean worktree and remote PR identity verified", "Function-level capability and side-effect audit", "Actual MCP no-write enforcement", "Three typed bounded Quant/what-if/trace tools", "Existing native shared-chain bridge and numerical correspondence guards", "Seven-view Chinese terminal and decision brief", "Versioned 13-workflow Skill and allowlist receipt contracts", "82 targeted tests; Ruff; schema and Skill validation"],
-  "remaining": ["Final full validation", "Reviewed atomic commits", "Independent clone", "Push draft stacked PR and CI verification"],
-  "targeted_validation": "PASS: 82 targeted tests in 8.32s; recovered baseline 84 passed in 30.16s",
-  "full_validation": "PRE_BOUNDARY_REPAIR_PASS: 1026 tests in 214.83s plus all validation stages; final frozen source regression pending",
-  "late_audit": "Nested model score/factor/regime cutoff regression reproduced then repaired; hard-risk-policy cache binding added. 35 terminal tests passed in 4.79s.",
-  "known_blockers": ["REAL_FINANCIAL_VALIDATION_PENDING", "EXPECTED_RETURN_UNCALIBRATED", "EXTERNAL_OPERATOR_ACTION_REQUIRED"],
-  "exact_next_action": "Freeze implementation, run scripts/validate_repo.py with isolated runtime roots, review source and schema diff, commit only reviewed paths, independently clone and validate, push and inspect platform CI.",
+  "phase": "READ_ONLY_JOURNAL_REPAIR_VALIDATED",
+  "completed": [
+    "Clean worktree and remote PR identity verified",
+    "Function-level capability and side-effect audit",
+    "Actual MCP no-write enforcement",
+    "Three typed bounded Quant/what-if/trace tools",
+    "Existing native shared-chain bridge and numerical correspondence guards",
+    "Seven-view Chinese terminal and decision brief",
+    "Versioned 13-workflow Skill and allowlist receipt contracts",
+    "82 targeted tests; Ruff; schema and Skill validation"
+  ],
+  "remaining": [
+    "Final repaired-source full validation",
+    "Independent repaired-source clone validation",
+    "Windows/Linux CI verification",
+    "Final documentation/checkpoint delivery"
+  ],
+  "targeted_validation": "PASS: 66 journal/terminal/live bridge/runtime tests in 13.03s; Ruff and Pyright clean",
+  "full_validation": "PRE_JOURNAL_REPAIR_PASS: source 1030 tests in 224.46s; independent frozen clone 1030 tests in 243.59s; all validate_repo stages passed",
+  "late_audit": "SQLite mode=ro on an isolated WAL database created -wal and -shm. Shared guarded read-only connection now refuses WAL headers and journal sidecars without checkpointing or immutable reads. Regression covers WAL, -wal, -shm, -journal, ordinary read/write rejection and MCP refusal.",
+  "known_blockers": [
+    "REAL_FINANCIAL_VALIDATION_PENDING",
+    "EXPECTED_RETURN_UNCALIBRATED",
+    "EXTERNAL_OPERATOR_ACTION_REQUIRED"
+  ],
+  "exact_next_action": "Commit reviewed journal boundary repair, push, validate frozen repaired source and independent clone at the same SHA; inspect Windows/Linux CI; finish operator/security/acceptance docs.",
   "quant_engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
   "algorithm_coefficients_changed": false,
-  "uncommitted_groups": ["src/meridian terminal and native/MCP boundary changes", "tests/test_research_terminal.py", "schema and validation/example scripts", "Skill contract and packaging", "ADR 0040 and docs/research-terminal"],
+  "uncommitted_groups": [
+    "src/meridian readonly storage and callers",
+    "tests/test_readonly_storage.py",
+    "ADR/checkpoint repair evidence",
+    "Operator/security guide and synthetic sample"
+  ],
   "broker_submission": "DISABLED",
   "canonical_runtime_mutated": false,
-  "financial_alpha": "ALPHA_NOT_YET_DEMONSTRATED"
+  "financial_alpha": "ALPHA_NOT_YET_DEMONSTRATED",
+  "source_head": "0cc400ad905dd3ff33b886223d0ab555b6e8971d"
 }
