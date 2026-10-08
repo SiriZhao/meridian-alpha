@@ -1,0 +1,170 @@
+{
+  "schema_version": "mission2-sanitized-acceptance.v1",
+  "implementation_head": "219918a22414e141afec0b81aff886d8e4964c0a",
+  "branch": "codex/quant-live-bridge",
+  "parent_head": "69eb57aa0f8464b18c98c9464b1c1d52a267c960",
+  "local_final_validation": {
+    "passed": 991,
+    "seconds": 200.35,
+    "full_validator_pass": true
+  },
+  "independent_final_validation": {
+    "passed": 991,
+    "seconds": 212.8,
+    "full_validator_pass": true
+  },
+  "frozen_environment": {
+    "python": "3.12.10",
+    "installed_distributions": 49,
+    "locked_distributions_match": 48,
+    "drift_repaired": 18,
+    "lock_changed": false
+  },
+  "postopen_readiness": {
+    "generated_at": "2026-10-08T14:15:25.878067+00:00",
+    "assessment_phase": "POSTOPEN_READINESS",
+    "environment": {
+      "bridge_source_hash": "9ba03b7de8f946cb4fb6b166058db2280f08a513427b9e69382fa248a1509520",
+      "code_sha": "6bb42c7870cc87802965b542d51279a2308d0bc2",
+      "package_origin": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.worktrees\\quant-engine-v2\\src\\meridian\\__init__.py",
+      "policy_directory": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.worktrees\\quant-engine-v2\\policies",
+      "python": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.worktrees\\quant-engine-v2\\.venv\\Scripts\\python.exe",
+      "python_version": "3.12.10",
+      "quant_engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
+      "source_root": "E:\\CSDIY\\Vibe Coding Project\\meridian-alpha\\.worktrees\\quant-engine-v2",
+      "working_tree_dirty": false
+    },
+    "checks": {
+      "account": "PASS",
+      "current_price_freshness": "PASS",
+      "doctor": "PASS",
+      "model_login": "READY",
+      "providers": "PASS",
+      "regular_session_acceptance": "NOT_EXECUTED",
+      "report_directory": "PASS"
+    },
+    "conclusion": "PREOPEN_DEGRADED",
+    "output_files": {
+      "json": "E:\\MeridianAlphaRuntime\\reports\\live-readiness\\2026-10-08\\check-0b472e7a93914ffbabff032705100fd2\\preopen-readiness.json",
+      "markdown": "E:\\MeridianAlphaRuntime\\reports\\live-readiness\\2026-10-08\\check-0b472e7a93914ffbabff032705100fd2\\preopen-readiness.md"
+    },
+    "quant_availability": "INSUFFICIENT_VERIFIED_HISTORY",
+    "paper_eligibility": "BLOCKED_UNCERTIFIED_EXECUTION_QUOTES"
+  },
+  "real_research": {
+    "run_id": "live-036a670023724cbda985d495ac33e508",
+    "generated_at": "2026-10-08T14:16:31.382073+00:00",
+    "report_json": "E:\\MeridianAlphaRuntime\\reports\\2026-10-08\\live-036a670023724cbda985d495ac33e508\\live-report.json",
+    "report_markdown": "E:\\MeridianAlphaRuntime\\reports\\2026-10-08\\live-036a670023724cbda985d495ac33e508\\live-report.md",
+    "freshness": "STALE",
+    "checks": {
+      "advisory": "NOT_RUN",
+      "data_received": "PASS",
+      "features": "PASS",
+      "filesystem": "PASS",
+      "freshness": "STALE",
+      "llm": "FAILED",
+      "market_clock": "PASS",
+      "market_provider": "PASS",
+      "portfolio_load": "PASS",
+      "report": "PASS",
+      "research": "FAILED",
+      "risk": "PASS"
+    },
+    "quant_live_hash": "abb213761f0c09d48f04efacc272a726a940302d998e1f60bc0d21cfef15381c"
+  },
+  "real_research_data_state": "RESEARCH_BLOCKED_DATA",
+  "original_gpt_status_label": "FAILED",
+  "status_label_correction": "BLOCKED_DATA; preserved original report is not rewritten. Corrected implementation is regression-tested.",
+  "model_preflight_status": "READY",
+  "model_inference_attempted": false,
+  "quote_freshness": {
+    "AAPL": {
+      "provider": "nasdaq",
+      "timestamp": "2026-10-08T10:16:00-04:00",
+      "freshness": "LIVE",
+      "age_seconds": 31.162937,
+      "current_price": "336.795"
+    },
+    "MSFT": {
+      "provider": "nasdaq",
+      "timestamp": "2026-10-08T10:16:00-04:00",
+      "freshness": "LIVE",
+      "age_seconds": 31.162937,
+      "current_price": "531.11"
+    },
+    "NVDA": {
+      "provider": "nasdaq",
+      "timestamp": "2026-10-08T10:16:00-04:00",
+      "freshness": "LIVE",
+      "age_seconds": 31.162937,
+      "current_price": "235.8701"
+    },
+    "SPY": {
+      "provider": "nasdaq",
+      "timestamp": "2026-10-08T10:15:00-04:00",
+      "freshness": "STALE",
+      "age_seconds": 91.162937,
+      "current_price": null
+    }
+  },
+  "quant_packet_persisted": true,
+  "quant_rows": 4,
+  "strict_status": "INSUFFICIENT_VERIFIED_HISTORY",
+  "paper_ledger_proof": {
+    "before_after_identical": true,
+    "database_present": true,
+    "database_sha256": "88d2872f0f263370e11b7fe5712d7b1c644de7e685c9d594429015f5fb619a55",
+    "table_counts": {
+      "model_metadata": 0,
+      "order_drafts": 0,
+      "paper_accounts": 1,
+      "paper_daily_runs": 2,
+      "paper_fills": 0,
+      "paper_ledger": 1,
+      "paper_nav_history": 9,
+      "paper_positions": 0,
+      "recommendations": 16,
+      "run_readiness": 17,
+      "runs": 17,
+      "schema_migrations": 3,
+      "snapshot_receipts": 20,
+      "sqlite_sequence": 1,
+      "system_events": 17,
+      "target_portfolios": 9
+    },
+    "schema_sha256": "189274da314a73d16d98565a6ce307645e6a17d32fe2c692a5da17d06e94f39a"
+  },
+  "regular_session_acceptance_complete": false,
+  "trade_authorized": false,
+  "broker_submission": "DISABLED",
+  "ledger_written": false,
+  "financial_validation": "REAL_FINANCIAL_VALIDATION_PENDING",
+  "alpha": "ALPHA_NOT_YET_DEMONSTRATED",
+  "source_ci": {
+    "push_run": 37792163404,
+    "pull_request_run": 37792171856,
+    "conclusion": "success",
+    "head": "219918a22414e141afec0b81aff886d8e4964c0a",
+    "windows": {
+      "passed": 991,
+      "seconds": 244.8
+    },
+    "linux": {
+      "passed": 989,
+      "skipped": 2,
+      "seconds": 254.27
+    },
+    "manual_authority_each": 21,
+    "replay_integrity_each": 8
+  },
+  "frozen_archive_replay": {
+    "status": "EXACT_RESUMED_V22_INDEPENDENT_REPLAY_MATCH",
+    "head": "6bb42c7870cc87802965b542d51279a2308d0bc2",
+    "evaluations": 76,
+    "distinct_replays": 76,
+    "summary_and_all_payloads_identical": true,
+    "financial_evidence": false
+  },
+  "fixture_reproduction": "JSON_FIELDS_AND_MARKDOWN_IDENTICAL; SYNTHETIC_DIAGNOSTIC_FIXTURE_ONLY"
+}

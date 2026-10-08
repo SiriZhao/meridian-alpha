@@ -17,6 +17,15 @@
 | Regular acceptance pending | Two independent qualified cycles; no forced time/session or fixtures |
 | Real-alpha evidence pending | Genuine financial OOS and comparable exposure remain Mission 1 blockers |
 
+Actual 2026-10-08 observations: Doctor/account/login/locking passed, but SPY was
+91.16 seconds old during the full-universe research snapshot. Its stale state
+blocked all model inference. Preserve the 90-second gate; retry only after a new
+qualifying observation. Login READY remains distinct from proven model inference.
+The original report's GPT FAILED label was a status defect: its stages were all
+NOT_RUN and research state RESEARCH_BLOCKED_DATA. The corrected bridge emits
+BLOCKED_DATA and model_inference_attempted=false; original immutable evidence is
+preserved. Independent repeated regular-session acceptance remains pending.
+
 GO means a defined research workflow can run, never trade authorization.
 WAIT_FOR_EVIDENCE may be the correct entire report. No news, value, entry price,
 account envelope or ranking is invented to show activity. Existing canonical V1

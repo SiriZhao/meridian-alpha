@@ -4,7 +4,9 @@ Use `E:\CSDIY\Vibe Coding Project\meridian-alpha\.worktrees\quant-engine-v2`,
 branch `codex/quant-live-bridge`, child of Mission 1's exact `69eb57a`.
 The root checkout remains the Forward Evidence foundation. Updating GitHub does
 not change that launcher or an already running MCP process. Do not merge PRs
-to change the runtime. Use this checkout's Python 3.12.10 and frozen 48 packages.
+to change the runtime. Use this checkout's Python 3.12.10 and 48 installed locked
+distributions (49 including bootstrap pip). The active environment's original
+18 version differences were repaired with the unchanged frozen lock.
 
 The launcher asserts imports originate under this checkout's `src`, and prints
 the loaded policy directory. Inspect/clear an unintended MERIDIAN_POLICY_DIR
@@ -24,13 +26,25 @@ Set-Location 'E:\CSDIY\Vibe Coding Project\meridian-alpha\.worktrees\quant-engin
 Readiness performs Doctor, read-only account/schema/ownership inspection, the
 canonical lock probe, one SPY observation per public provider and login preflight.
 No model inference, account initialization, daily run, paper trade, reset or
-migration occurs. DEGRADED exit 2 is intentional. Inspect the unique output_files.
+schema upgrade occurs. Doctor uses its existing idempotent schema check only
+after the read-only account check confirms the current schema. DEGRADED exit 2
+is intentional. Inspect the unique output_files.
 The first dated preopen report is immutable; later checks use new subdirectories.
 
 The real 2026-10-08 observation at 09:19 New York showed Doctor/account/login PASS,
 Yahoo stale, Nasdaq fresh public reference, paper cash/book NAV 100000, no
 positions and ledger version 0. That report discloses dirty development source;
 it is not final-code or regular-session acceptance.
+
+The clean-source 10:15 New York observation passed Doctor, account, login,
+directory and canonical lock checks. The actual 10:16 research observation had
+fresh AAPL/MSFT/NVDA prices but a 91.16-second SPY observation; its 90-second gate
+blocked the complete model chain. Four Chinese research rows and immutable Quant
+evidence were retained. Model inference was NOT_RUN, not a successful GPT call.
+The original report's GPT status label was corrected in the implementation and
+regression-tested without rewriting the historical report. See ACCEPTANCE.md
+for the exact source/run/report identities. Do not widen the freshness threshold
+or repeat calls to manufacture an acceptance result.
 
 After regular open and fresh inputs qualify, use the single research workflow:
 
