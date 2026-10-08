@@ -69,8 +69,8 @@ Until the configured mature sample count is reached, the status includes
 ## Operator commands
 
 ```powershell
-.\scriptsun_meridian.ps1 forward-status --json
-.\scriptsun_meridian.ps1 paper run --account Schwab-Paper --json
+.\scripts\run_meridian.ps1 forward-status --json
+.\scripts\run_meridian.ps1 paper run --account Schwab-Paper --json
 ```
 
 The paper command carries the canonical daily `forward_evidence` object into

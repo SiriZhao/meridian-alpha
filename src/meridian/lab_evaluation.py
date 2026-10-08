@@ -78,7 +78,7 @@ survivorship coverage. Returns include distributions as cash, not reinvestment.
         reason = None
         if prediction.symbol not in universe:
             reason = "OUTSIDE_PREDECLARED_UNIVERSE"
-        elif data is None or data.evidence_origin != "REVIEWED_RESEARCH":
+        elif data is None or data.evidence_origin != "REVIEWED_RESEARCH" or data.as_of != prediction.information_cutoff:
             reason = "INPUT_NOT_REVIEWED_OR_NOT_ALIGNED"
         elif not outcome.financial_sample_eligible:
             reason = outcome.validation_status.value

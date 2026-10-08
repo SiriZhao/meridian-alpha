@@ -180,7 +180,7 @@ def render_lab_report(report: dict[str, object]) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Read-only isolated alpha research laboratory")
-    parser.add_argument("command", choices=("score", "reconcile"))
+    parser.add_argument("command", choices=("score", "reconcile", "portfolio"))
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--closes", type=Path)
     parser.add_argument("--as-of", type=datetime.fromisoformat)
@@ -188,6 +188,10 @@ def main() -> int:
     try:
         if args.command == "score":
             report = lab_report(LabInput.model_validate_json(args.input.read_text(encoding="utf-8")))
+        elif args.command == "portfolio":
+            from meridian.portfolio_lab import PortfolioReplayInput, evaluate_portfolios
+            replay = PortfolioReplayInput.model_validate_json(args.input.read_text(encoding="utf-8"))
+            report = evaluate_portfolios(replay.inputs, replay.pairs, experiment=replay.experiment)
         else:
             from meridian.dated_close import load_reviewed_pairs, reconcile_closes
             from meridian.forward_evidence import ForwardLedger

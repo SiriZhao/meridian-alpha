@@ -19,8 +19,10 @@ Native GPT research can run successfully while operational quant scoring remains
 
 ## P1 — laboratory completion
 
-- Finish the portfolio walk-forward/cost/slippage simulator and predeclared
-  training/validation/test protocol before making strategy performance claims.
+- Predeclared train/validation/test horizon portfolios and a fixed cost/slippage
+  grid are implemented (ADR 0036). Collect qualified evidence before financial
+  claims; continuous buy-and-hold, integer fills and intra-horizon paths remain
+  outside this hypothetical model.
 - Build a comparable sealed native-research ablation dataset; certified research
   absence must contribute zero and remain visible.
 - Extend reviewed calendar coverage beyond 2026–2028 with official exceptional
