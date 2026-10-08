@@ -4,6 +4,7 @@ import hashlib
 import json
 import subprocess
 import sys
+import tomllib
 import zipfile
 from decimal import Decimal
 from pathlib import Path
@@ -25,6 +26,11 @@ def require(condition: bool, reason: str) -> None:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     subprocess.run([sys.executable, str(root / "scripts/generate_quant_v22_contracts.py"), "--check"], check=True, cwd=root)
+    packaging = tomllib.loads((root / "pyproject.toml").read_text())["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
+    for contract in ("quant-v22-policy", "quant-v22-features", "quant-v22-score", "quant-v22-plan",
+                     "quant-research-packet.v22", "quant-expected-return.v1", "quant-fundamental-observation.v1"):
+        name = contract + ".schema.json"
+        require(packaging.get("schemas/" + name) == "meridian/schemas/" + name, "CHALLENGER_WHEEL_CONTRACT_MISSING:" + name)
     policy = ChallengerPolicy.model_validate(yaml.safe_load((root / "policies/quant-v22.yaml").read_text()))
     require(policy == ChallengerPolicy(), "CHALLENGER_SHIPPED_POLICY_DRIFT")
     directory = root / "docs/quant-v2/experiments-v22"
