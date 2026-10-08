@@ -124,13 +124,49 @@ class DailyClosureService:
         target = allocate_with_fallback(scores, {}, account, self.policies.risk, self.policies.allocation)
         # This bounded operational path classifies all fixture symbols explicitly;
         # it never claims PIT sector certification.
-        approved = RiskEngine().approve(target, account, "NORMAL", self.policies.risk, sectors={ticker: "OPERATIONAL_UNCLASSIFIED" for ticker in selected}).approved
+        risk_report = RiskEngine().approve(target, account, "NORMAL", self.policies.risk, sectors={ticker: "OPERATIONAL_UNCLASSIFIED" for ticker in selected})
+        approved = risk_report.approved
         reconciliation = ReconciliationEngine().reconcile(account, approved)
-        orders = OrderPlanner().plan(account, reconciliation, selected, self.policies.execution, self.policies.risk, account.total_equity)
+        order_trace: dict[str, dict[str, object]] = {}
+        orders = OrderPlanner().plan(account, reconciliation, selected, self.policies.execution, self.policies.risk, account.total_equity, trace=order_trace)
         projection = ProjectedPortfolioValidator().validate(account, orders, account.total_equity, self.policies.risk.min_cash_weight, self.policies.risk.max_position_weight, self.policies.risk.max_number_positions)
         failures = projection.violations
         status = RunStatus.DRAFT if orders and not failures else RunStatus.NO_ACTION if not failures else RunStatus.FAILED
-        return self._result(run_id, account, cutoff, approved, orders if not failures else (), status, failures, selected, market_hash, policy_hash, reconciliation)
+        result = self._result(run_id, account, cutoff, approved, orders if not failures else (), status, failures, selected, market_hash, policy_hash, reconciliation)
+        before = {position.ticker: position.target_weight for position in target.positions}
+        after = {position.ticker: position.target_weight for position in approved.positions}
+        score_by_symbol = {score.ticker: score for score in scores}
+        symbols: dict[str, object] = {}
+        for ticker in sorted(set(self.policies.universe.tickers) | set(order_trace) | set(quotes)):
+            score = score_by_symbol.get(ticker)
+            row = dict(order_trace.get(ticker, {}))
+            reason = row.get("reason")
+            if score is None:
+                reason = reason or ("INSUFFICIENT_EVIDENCE" if ticker in self.policies.universe.tickers else "UNIVERSE_EXCLUDED")
+            elif before.get(ticker, Decimal("0")) == 0 and score.score <= 0:
+                reason = reason or "NO_POSITIVE_SIGNAL"
+            elif before.get(ticker, Decimal("0")) == 0:
+                reason = reason or "ALLOCATION_ZERO"
+            elif after.get(ticker, Decimal("0")) == 0:
+                reason = reason or "RISK_REDUCED_TO_ZERO"
+            if failures and row.get("final_order_eligible"):
+                reason = "PROJECTED_PORTFOLIO_REJECTED"
+                row["final_order_eligible"] = False
+                row["final_quantity"] = "0"
+            symbols[ticker] = {"final_order_eligible": False, "final_quantity": "0", **row, "in_universe": ticker in self.policies.universe.tickers,
+                               "data_available": score is not None, "raw_score": str(score.score) if score else None,
+                               "selected_strategy_score": str(score.score) if score else None,
+                               "confidence_provenance": "DETERMINISTIC_CONSTANT_NOT_LLM" if score else None,
+                               "target_before_risk": str(before.get(ticker, Decimal("0"))),
+                               "target_after_risk": str(after.get(ticker, Decimal("0"))),
+                               "risk_constraints_applied": [item for item in risk_report.violations if item.startswith(ticker + ":") or ":" not in item],
+                               "reason": reason or "NOT_REACHED"}
+        result.report["decision_attribution"] = {"schema_version": "meridian-decision-attribution.v1",
+            "run_id": run_id, "strategy": "POSITIVE_DAILY_RETURN_OPERATIONAL_V1", "execution_state": "EXECUTED",
+            "research_in_score": False, "research_authority": "ADVISORY_ONLY", "symbols": symbols,
+            "cash_before_risk": str(target.cash_weight), "cash_after_risk": str(approved.cash_weight),
+            "risk_modifications": list(risk_report.modifications), "final_decision": status.value}
+        return result
 
     def _gates(self, account: AccountSnapshot, quotes: dict[str, MarketSnapshot], cutoff: datetime, *, evaluated_at: datetime | None = None) -> tuple[str, ...]:
         evaluated = evaluated_at or cutoff
@@ -150,6 +186,9 @@ class DailyClosureService:
     def _result(self, run_id: str, account: AccountSnapshot, cutoff: datetime, target: TargetPortfolio | None, orders: tuple[OrderDraft, ...], status: RunStatus, blockers: tuple[str, ...], quotes: dict[str, MarketSnapshot], market_hash: str, policy_hash: str, reconciliation: ReconciliationResult | None = None) -> DailyClosureResult:
         decision = DailyDecision(run_id=run_id, as_of=cutoff, account_snapshot_status=account.freshness_state, account_sync_state=account.sync_state, market_data_status=FreshnessState.VERIFIED if not blockers else FreshnessState.STALE, regime="OPERATIONAL_DATA_PLANE", target_portfolio=target, orders=orders, warnings=(f"market_data_snapshot_hash={market_hash}", "EXECUTION = MANUAL", "BROKER SUBMISSION = DISABLED"), blocked_reasons=blockers, overall_status=status)
         report = {"schema_version": "meridian-daily-closure.v1", "run_id": run_id, "analysis_time": cutoff.isoformat(), "information_cutoff": cutoff.isoformat(), "account_snapshot_time": account.as_of.isoformat(), "account_snapshot_hash": _hash(account.model_dump(mode="json")), "market_data_snapshot_hash": market_hash, "policy_hash": policy_hash, "output_hash": _hash(decision.model_dump(mode="json")), "status": status.value, "execution": "MANUAL", "broker_submission": "DISABLED", "provider_status": {ticker: quote.freshness_state.value for ticker, quote in quotes.items()}, "portfolio": target.model_dump(mode="json") if target else None, "current_holdings": [{"ticker": h.ticker, "quantity": str(h.quantity), "market_value": str(h.market_value)} for h in account.holdings], "orders": [order.model_dump(mode="json") for order in orders], "reconciliation": {"status": reconciliation.status.value, "warnings": list(reconciliation.warnings)} if reconciliation else None, "blocked_reasons": list(blockers), "audit": {"raw_account_persisted": False, "credentials_persisted": False, "later_snapshots_mutate_run": False}, "research_note": "Operational observations are not PIT-certified research or execution quotes."}
+        report["decision_attribution"] = {"schema_version": "meridian-decision-attribution.v1", "run_id": run_id,
+            "execution_state": "BLOCKED", "final_decision": status.value, "blocked_reasons": list(blockers),
+            "research_in_score": False, "research_authority": "ADVISORY_ONLY", "symbols": {}}
         return DailyClosureResult(decision, report)
 
 

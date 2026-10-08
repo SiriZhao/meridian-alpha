@@ -19,6 +19,7 @@ htmlcov/
 .pytest-*/
 .test-tmp-*/
 .tmp/
+.worktrees/
 .runtime/
 dist/
 

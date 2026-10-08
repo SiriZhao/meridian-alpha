@@ -1,4 +1,4 @@
-# ADR 0035 — PIT Quant Engine V2, delayed evaluation and shadow isolation
+# ADR 0036 — PIT Quant Engine V2, delayed evaluation and shadow isolation
 
 Date: 2026-10-08. Status: implemented challenger architecture; promotion disabled.
 

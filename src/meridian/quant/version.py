@@ -9,7 +9,7 @@ def _source_hash() -> str:
     parts = []
     for name in ("backtest.py", "experiments.py", "features.py", "integration.py", "metrics.py", "policy.py", "portfolio.py", "regime.py", "signals.py", "version.py"):
         parts.append(name + "\n" + (directory / name).read_text(encoding="utf-8").replace("\r\n", "\n"))
-    for name in ("allocation.py", "config.py", "orders.py", "reconciliation.py", "risk.py", "schemas.py", "security.py", "trading_calendar.py"):
+    for name in ("allocation.py", "config.py", "lab_evaluation.py", "orders.py", "reconciliation.py", "risk.py", "schemas.py", "security.py", "trading_calendar.py"):
         parts.append("core/" + name + "\n" + (directory.parent / name).read_text(encoding="utf-8").replace("\r\n", "\n"))
     return hashlib.sha256("\n".join(parts).encode()).hexdigest()
 

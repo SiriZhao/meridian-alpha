@@ -10,7 +10,7 @@ promotion.
 canonical daily result
 → freeze per-symbol prediction
 → wait for configured NYSE-session maturity
-→ ingest outcome only from the canonical market observation
+→ obtain reviewed, exactly dated horizon close evidence
 → append immutable outcome
 → shadow-only evaluation
 ```
@@ -19,6 +19,13 @@ Only canonical daily may freeze a prediction. The factory consumes the final
 decision, selected market snapshots, cutoff, policy/model hashes and a
 sanitized account reference. It does not fetch a second quote, recompute target
 weights, or accept fixture runs as forward evidence.
+
+Canonical intraday observations do not establish a mature session close. The
+[reviewed-close adapter and isolated laboratory](alpha-lab.md) add source,
+availability/receipt timestamps, action coverage, inception review and immutable
+review receipts. Public/synthetic/unknown-adjustment evidence remains unverified;
+no execution-feed certification is granted. The adapter's write API deliberately
+accepts only isolated lab ledgers; operational integration is not yet enabled.
 
 `policies/forward_evidence.yaml` defines benchmark, required sample count and
 trading-session horizons. Current horizons are `SHORT` (5 sessions) and
@@ -41,6 +48,17 @@ The contract can record `PURE_QUANT`, `QUANT_PLUS_PROBABILITY`,
 `PURE_QUANT` or `QUANT_PLUS_LLM` when its existing advisory research actually
 validated. Unsupported/missing probability or adaptive components are not
 fabricated and do not increase influence.
+
+Historical `QUANT_PLUS_LLM` with `llm_score = null` records advisory research
+availability, not a scored LLM contribution. It must not be treated as a
+Quant+LLM experimental cohort. Current operational decision attribution
+explicitly records `research_in_score = false`.
+
+`sample_count` retains legacy date-aligned symbol/horizon row semantics.
+`reviewed_financial_sample_count` separately counts receipt-qualified outcomes.
+Neither proves independent observations. Paired signal evaluation requires
+common predeclared universe/horizon and purges overlapping temporal windows;
+missing cost/execution assumptions cannot yield a portfolio-return ranking.
 
 Public operational market data remains operational, not PIT-certified research
 or a certified execution quote. `EVALUABLE_SHADOW_ONLY` and

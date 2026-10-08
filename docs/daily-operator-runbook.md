@@ -2,6 +2,22 @@
 
 Follow the canonical Windows command in [README](../README.md).
 
+## Forward evidence and alpha lab
+
+The [isolated alpha lab](alpha-lab.md) is a separate read-only research workflow.
+Its scoring/reconciliation commands do not initialize accounts or run a paper
+day. Reviewed close imports write only isolated `alpha-lab` JSON ledgers. Do not
+use canonical paper runs to create extra forward samples, reconstruct fills or
+test strategies. Public quotes never become certified execution quotes through
+reviewed research returns.
+
+Read `decision_attribution` in the sealed canonical report for actual no-trade
+branches. GPT completion does not establish influence on operational weights.
+Legacy forward row count is separate from receipt-qualified financial samples;
+missing actions/closes remain unresolved. See the
+[Phase 4 checkpoint](audits/2026-10-08-phase4-checkpoint.json) for outstanding
+portfolio evaluation, ablations and fresh host acceptance.
+
 ## Astra Skill research and acceptance
 
 Use the installed `meridian-alpha` Skill for evidence-grounded research.

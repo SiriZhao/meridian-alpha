@@ -10,7 +10,6 @@ import os
 import subprocess
 import sys
 import tempfile
-from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import patch
@@ -18,9 +17,16 @@ from zoneinfo import ZoneInfo
 
 from meridian.application import MeridianApplicationService
 from meridian.canonical_run import assert_report_projection_consistency, canonical_snapshot
-from meridian.market_status import MarketStatus, market_status
 from meridian.report_bundle import verify_report_bundle
 from meridian.runtime import RuntimePaths
+
+
+class FixtureClock(datetime):
+    """A declared offline OPEN session, independent of CI's wall clock."""
+    @classmethod
+    def now(cls, tz=None):
+        value = datetime(2026, 10, 7, 15, 0, tzinfo=UTC)
+        return value.astimezone(tz) if tz is not None else value.replace(tzinfo=None)
 
 
 def require(condition: bool, message: str) -> None:
@@ -52,12 +58,11 @@ def fixture(mode: str) -> dict[str, object]:
 
 
 def accept(root: Path) -> dict[str, object]:
-    # The acceptance fixture supplies explicitly synthetic intraday quotes.
-    # Freeze only this disposable test's market classification, not production.
+    # Freeze the disposable fixture clock; production session gates stay intact.
     canonical = Path("E:/MeridianAlphaRuntime").resolve()
     if root.resolve() == canonical or canonical in root.resolve().parents:
         raise RuntimeError("synthetic acceptance must not use canonical runtime")
-    with patch("meridian.application.market_status", side_effect=lambda cutoff: replace(market_status(cutoff), status=MarketStatus.OPEN)):
+    with patch("meridian.application.datetime", FixtureClock), patch(__name__ + ".datetime", FixtureClock):
         return _accept(root)
 
 

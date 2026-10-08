@@ -1530,6 +1530,7 @@ class MeridianApplicationService:
                 "research": result.report["research"],
                 "research_input": result.report["research_input"],
                 "decision_context": result.report["decision_context"],
+                "decision_attribution": result.report.get("decision_attribution", {}),
                 "gates": result.report["gates"],
                 "stages": result.report["stages"],
                 "manual_authority": result.report["manual_authority"],
@@ -2400,6 +2401,7 @@ class MeridianApplicationService:
             "decision": {
                 "status": report_status,
                 "context": daily.get("decision_context"),
+                "attribution": daily.get("decision_attribution", {}),
                 "gates": daily.get("gates", []),
             },
             "paper_execution": paper_execution,

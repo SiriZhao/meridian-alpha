@@ -1,0 +1,44 @@
+{
+  "schema_version": "meridian-development-checkpoint.v1",
+  "status": "IN_PROGRESS",
+  "started_at": "2026-10-08T03:45:22Z",
+  "checkpoint_at": "2026-10-08T04:43:00Z",
+  "current_head": "414d8698a905b14eaea558490a5f30d995d07b9d",
+  "branch": "feature/forward-evidence-alpha-lab-20261008",
+  "base_branch": "codex/canonical-truth-hardening",
+  "completed_tasks": [
+    "Fetch and remote baseline verification; public repository confirmed",
+    "Raw baseline CI logs reviewed: Windows 730, Ubuntu 728 plus two platform skips",
+    "Independent remote baseline installation and validation: 727 PASS, three clock-dependent FAIL",
+    "Reviewed close adapter, corporate action return basis and isolated immutable ingestion",
+    "Deterministic challenger scores and purged paired signal evaluation",
+    "Recorded operational decision attribution and cross-artifact projection contract",
+    "49 initial and 55 expanded laboratory regression cases",
+    "Fixed offline acceptance clock and Windows workspace temporary directory",
+    "Public origin-ref history pattern audit: 1110 blobs, no high-risk token/key pattern; historical personal paths require review",
+    "Read-only canonical forward evidence: 40 predictions, 16 unverified outcomes, zero verified, 24 pending",
+    "16 fixture soak cycles: zero failures and invariant violations"
+  ],
+  "active_task": "Final code review, validation, reviewable commits, independent fresh clone, CI and draft stacked PR",
+  "outstanding_defects": [
+    "No real qualified financial comparison dataset",
+    "No full portfolio walk-forward execution/cost/slippage simulator",
+    "No sealed native-role ablation dataset",
+    "Manual review receipts are local attestations, not authenticated signatures",
+    "Calendar qualification limited to 2026-2028",
+    "Historical advisory-only QUANT_PLUS_LLM labels must not be treated as an LLM-scored cohort",
+    "No new canonical host/live-data acceptance; canonical runtime writes prohibited"
+  ],
+  "commands_tests_executed": [
+    {"command": "scripts/validate_repo.py (baseline independent clone)", "status": "FAIL", "passed": 727, "failed": 3, "cause": "offline acceptance used closed-market wall clock"},
+    {"command": "scripts/validate_repo.py (updated host source)", "status": "PASS", "passed": 779, "note": "before final six attribution regression cases"},
+    {"command": "pytest tests/test_alpha_lab.py -q", "status": "PASS", "passed": 55},
+    {"command": "ruff check .", "status": "PASS"},
+    {"command": "pyright", "status": "PASS", "errors": 0, "warnings": 0},
+    {"command": "python -O scripts/safe_acceptance.py", "status": "PASS", "note": "isolated fixture report bundle and fresh process"},
+    {"command": "python -O scripts/phase4_fixture_acceptance.py", "status": "PASS", "cycles": 16}
+  ],
+  "next_safe_action": "Finish reviewed commits, push experiment branch, clone from GitHub with frozen lock, verify latest Windows/Linux CI; then complete the listed laboratory work without production promotion",
+  "safety": {"account": "Schwab-Paper", "broker_submission": "DISABLED", "llm_execution_authority": "NONE", "automatic_promotion": "DISABLED", "canonical_runtime_written": false, "real_broker_side_effects": false},
+  "duration_claim": "No claim of ten-hour execution; continuation checkpoint required"
+}

@@ -15,6 +15,7 @@ from pydantic import Field, model_validator
 
 from meridian.config import RiskPolicy
 from meridian.historical import HistoricalBarSeries
+from meridian.lab_evaluation import rank_correlation
 from meridian.quant.features import compute_features, eligible_bars, mean
 from meridian.quant.policy import CostPolicy, QuantPolicy
 from meridian.quant.portfolio import allocate, cost_aware_target, target_from_weights, weights
@@ -152,20 +153,10 @@ class ReplayResult(StableModel):
     automatic_promotion: Literal[False] = False
 
 
-def _rank(values: Sequence[Decimal]) -> list[Decimal]:
-    return [D(sum(v < x for v in values)) + D(sum(v == x for v in values) - 1) / 2 for x in values]
-
-
 def rank_ic(left: Sequence[Decimal], right: Sequence[Decimal]) -> Decimal | None:
     if len(left) != len(right) or len(left) < 3:
         return None
-    x, y = _rank(left), _rank(right)
-    mx, my = mean(x), mean(y)
-    vx = sum(((v - mx) ** 2 for v in x), D(0))
-    vy = sum(((v - my) ** 2 for v in y), D(0))
-    if vx == 0 or vy == 0:
-        return None
-    return sum(((a - mx) * (b - my) for a, b in zip(x, y, strict=True)), D(0)) / (vx * vy).sqrt()
+    return rank_correlation(list(left), list(right))
 
 
 def pit_correlations(histories: Mapping[str, HistoricalBarSeries], cutoff: datetime,

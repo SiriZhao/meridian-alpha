@@ -7,8 +7,11 @@ Origin: `https://github.com/SiriZhao/meridian-alpha.git`. Development starts fro
 hardening branch to `414d869`. The original checkout remains on
 `feature/forward-evidence-alpha-lab-20261008`. Its five modified tracked files
 and two untracked modules are preserved and excluded from this delivery.
-These pending changes add attribution and reviewed dated-close evaluation;
-they do not form an approved dependency for V2.
+These pending changes add attribution and reviewed dated-close evaluation.
+During this task they were published as `09e95dd` on the prior feature branch;
+the published commits were subsequently merged into the isolated V2 branch.
+Further uncommitted changes in the original checkout remain excluded. The final
+validation therefore includes the published Phase 4 attribution/forward tests.
 
 ## Existing algorithms
 

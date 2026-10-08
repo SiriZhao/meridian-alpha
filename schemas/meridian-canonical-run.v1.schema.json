@@ -32,6 +32,11 @@
           "additionalProperties": true,
           "title": "Context",
           "type": "object"
+        },
+        "attribution": {
+          "additionalProperties": true,
+          "title": "Attribution",
+          "type": "object"
         }
       },
       "required": [
