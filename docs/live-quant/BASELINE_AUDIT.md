@@ -36,4 +36,13 @@ acceptance are recorded in CHECKPOINT.json/ACCEPTANCE.md after execution.
 Real host preopen 09:19: Doctor PASS, account ready, model login READY, providers
 responded; Yahoo stale and Nasdaq fresh public reference. Ledger version 0,
 cash/book NAV100000, no holdings, previous canonical 2026-10-07 PAPER_NO_TRADE.
-No migration, reset, daily run, broker action or forced time/date occurred.
+No ledger schema change, reset, daily run, broker action or forced time/date occurred.
+
+Frozen dependency verification found 18 installed versions that differed from
+the checked-in lock in the active worktree. The isolated environment was repaired
+with uv 0.12.7 and `sync --frozen --group dev`; neither the lock nor the root
+worktree environment changed. All 48 locked installed distributions now match
+the lock; the bootstrap pip distribution brings the total to 49. Initial static
+and targeted results preceding this repair are historical diagnostics, not the
+final acceptance evidence. The first full frozen validation passed 990 tests in
+221.17 seconds; the final status-report changes require a fresh full run.

@@ -301,6 +301,15 @@ class LiveAdvisoryService:
                         report['blockers'].append('PAPER_LEDGER_RECHECK_UNAVAILABLE')
                 finalize_acceptance(report, datetime.now(UTC))
                 report['quant_research_rows'] = quant_research_rows(report)
+                report['status_dimensions'] = {
+                    'OPERATIONAL_CANONICAL': 'NOT_RUN_BY_LIVE_ADVISORY',
+                    'GPT_FINAL_ADVISORY': report['checks'].get('advisory', 'NOT_RUN'),
+                    'QUANT': report.get('quant_live', {}).get('strict_status', 'UNKNOWN'),
+                    'GPT': report.get('decision_provenance', {}).get('gpt', {}).get('status', 'NOT_RUN'),
+                    'ACCOUNT': report['checks'].get('portfolio_load', 'NOT_RUN'),
+                    'CURRENT_DATA': report.get('freshness', 'UNAVAILABLE'),
+                    'EXECUTION': 'BLOCKED_PUBLIC_QUOTE_MANUAL_REVIEW_REQUIRED', 'REPORT': 'PASS'}
+                report['research_workflow_available'] = bool(report['quant_research_rows'])
                 atomic_write(directory / 'live-report.md', render_report(report))
                 atomic_write(directory / 'live-report.json', json.dumps(report, indent=2, default=str))
                 logger.info('[REPORT] %s', report['report_json'])
@@ -569,6 +578,8 @@ class LiveAdvisoryService:
         result = runtime.invoke('SYMBOL_ADVISORY', {
             'instruction':'用中文解释。Return one explicit research opinion for every symbol. WAIT needs an observable condition. Use only supplied evidence; catalysts and intrinsic value remain UNKNOWN without source-bound news/valuation. Scenarios are FORECAST and opinions INFERENCE. Never alter quant scores, ranks or targets. Cite each symbol quote and quant evidence ID. No numeric sizing or price advice; deterministic code owns those. Do not include private account amounts in prose.',
             'market':rows,'evidence_ids':references,'portfolio':context,
+            'prior_research_cutoff': request.analysis_cutoff.isoformat(),
+            'prior_research_is_current_snapshot': False,
             'quant_evidence_ids':{s:'quant-' + quant_snapshot.digest + '-' + s for s in quant_snapshot.price_conditions},
             'research':native.synthesis.model_dump(mode='json') if native.synthesis else None,
             'risk':report.get('risk'), 'signals':report['signals'],

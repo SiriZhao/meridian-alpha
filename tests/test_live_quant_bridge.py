@@ -322,3 +322,8 @@ def test_full_fixture_pipeline_passes_quant_to_both_gpt_stages_and_preserves_sco
     else:
         assert not report['LIVE_RUN_READY'] and report['blockers']
     assert report['ORDER_AUTHORITY'] == 'NONE'
+    assert report['research_workflow_available']
+    assert report['status_dimensions']['OPERATIONAL_CANONICAL'] == 'NOT_RUN_BY_LIVE_ADVISORY'
+    assert report['status_dimensions']['GPT'] == ('COMPLETE' if fault is None else 'INCOMPLETE')
+    expected_advisory = 'PASS' if fault is None else 'NOT_RUN' if fault == 'timeout' else 'FAILED'
+    assert report['status_dimensions']['GPT_FINAL_ADVISORY'] == expected_advisory

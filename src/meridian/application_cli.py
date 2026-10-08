@@ -67,7 +67,7 @@ def main() -> int:
             payload = LiveAdvisoryService(service.paths).run(account_name=args.account,
                 snapshot_path=Path(args.snapshot) if args.snapshot else None, role_timeout=args.role_timeout,
                 reasoning_effort=args.reasoning_effort)
-            payload["status"] = "PASS" if payload["LIVE_RUN_READY"] else "FAILED"
+            payload["status"] = "PASS" if payload["LIVE_RUN_READY"] else "DEGRADED" if payload.get('research_workflow_available') else "FAILED"
         elif args.command == "host-llm" and args.subcommand == "prepare":
             from meridian.host_llm import HostJobStage, create_job, machine_handoff
             run_id = args.run_id or f"host-{uuid4().hex}"
