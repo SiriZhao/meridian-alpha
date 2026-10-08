@@ -416,10 +416,3 @@ def test_rank_correlation_degenerate_and_directional_cases(scores: list[str], re
     from meridian.lab_evaluation import rank_correlation
     result = rank_correlation([Decimal(value) for value in scores], [Decimal(value) for value in returns])
     assert result == (Decimal(expected) if expected is not None else None)
-
-
-
-
-
-
-

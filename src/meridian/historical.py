@@ -35,6 +35,9 @@ class HistoricalAdjustmentStatus(StrEnum):
 
 class HistoricalBarCertification(StrEnum):
     CERTIFIED_MARKET_SESSION = "CERTIFIED_MARKET_SESSION"
+    # Research-only archived adjusted prices. This is never a raw session
+    # fact or an execution quote; public providers must leave it UNVERIFIED.
+    CERTIFIED_RESEARCH_PIT_ADJUSTED = "CERTIFIED_RESEARCH_PIT_ADJUSTED"
     UNVERIFIED = "UNVERIFIED"
     SYNTHETIC = "SYNTHETIC"
     REPLAY_UNSAFE = "REPLAY_UNSAFE"
@@ -96,6 +99,13 @@ class HistoricalBar(StableModel):
             and self.quality is not HistoricalQuality.VERIFIED
         ):
             raise ValueError("certified market session bars require VERIFIED quality")
+        if self.certification is HistoricalBarCertification.CERTIFIED_RESEARCH_PIT_ADJUSTED:
+            if self.adjustment_status is not HistoricalAdjustmentStatus.FULLY_ADJUSTED_OHLCV:
+                raise ValueError("PIT adjusted research certification requires fully adjusted OHLCV")
+            if self.quality is not HistoricalQuality.VERIFIED:
+                raise ValueError("PIT adjusted research certification requires VERIFIED quality")
+            if self.observed_at < session_close(self.session, self.calendar) or self.available_at < self.observed_at:
+                raise ValueError("PIT adjusted research certification requires completed, observed bars")
         return self
 
     @property

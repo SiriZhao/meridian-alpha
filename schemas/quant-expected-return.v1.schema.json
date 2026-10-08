@@ -1,0 +1,163 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": "quant-expected-return.v1",
+      "default": "quant-expected-return.v1",
+      "title": "Version",
+      "type": "string"
+    },
+    "horizon_sessions": {
+      "minimum": 1,
+      "title": "Horizon Sessions",
+      "type": "integer"
+    },
+    "prediction_target": {
+      "const": "PORTFOLIO_RETURN_IMPROVEMENT_OVER_HOLD",
+      "title": "Prediction Target",
+      "type": "string"
+    },
+    "feature_cutoff": {
+      "format": "date-time",
+      "title": "Feature Cutoff",
+      "type": "string"
+    },
+    "training_start": {
+      "format": "date-time",
+      "title": "Training Start",
+      "type": "string"
+    },
+    "training_end": {
+      "format": "date-time",
+      "title": "Training End",
+      "type": "string"
+    },
+    "training_labels_available_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Training Labels Available At"
+    },
+    "prediction_at": {
+      "format": "date-time",
+      "title": "Prediction At",
+      "type": "string"
+    },
+    "expected_improvement": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Improvement"
+    },
+    "lower_bound": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Lower Bound"
+    },
+    "upper_bound": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Upper Bound"
+    },
+    "calibration_status": {
+      "default": "UNCALIBRATED",
+      "enum": [
+        "UNCALIBRATED",
+        "INDEPENDENTLY_REVIEWED"
+      ],
+      "title": "Calibration Status",
+      "type": "string"
+    },
+    "review_reference": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Review Reference"
+    },
+    "model_hash": {
+      "maxLength": 64,
+      "minLength": 64,
+      "title": "Model Hash",
+      "type": "string"
+    },
+    "data_hash": {
+      "maxLength": 64,
+      "minLength": 64,
+      "title": "Data Hash",
+      "type": "string"
+    },
+    "feature_hash": {
+      "maxLength": 64,
+      "minLength": 64,
+      "title": "Feature Hash",
+      "type": "string"
+    },
+    "decision_hash": {
+      "maxLength": 64,
+      "minLength": 64,
+      "title": "Decision Hash",
+      "type": "string"
+    }
+  },
+  "required": [
+    "horizon_sessions",
+    "prediction_target",
+    "feature_cutoff",
+    "training_start",
+    "training_end",
+    "prediction_at",
+    "model_hash",
+    "data_hash",
+    "feature_hash",
+    "decision_hash"
+  ],
+  "title": "ExpectedReturnEstimate",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meridian-alpha.local/schemas/quant-expected-return.v1.schema.json"
+}

@@ -17,9 +17,11 @@ from meridian.allocation import allocate_with_fallback
 from meridian.canonical_run import display, render_canonical_audit, seal_canonical_report
 from meridian.config import Policies
 from meridian.daily_research import ResearchDecisionContext
+from meridian.historical import HistoricalBarSeries
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.market_identity import canonical_market_reference
 from meridian.orders import OrderPlanner, ProjectedPortfolioValidator
+from meridian.quant.policy import QuantPolicy
 from meridian.reconciliation import ReconciliationEngine, ReconciliationResult
 from meridian.risk import RiskEngine
 from meridian.runtime import RuntimePaths
@@ -72,11 +74,13 @@ def daily_run_id(account: AccountSnapshot, quotes: dict[str, MarketSnapshot], cu
 class DailyClosureService:
     """The only Stage-C closure service; it never enables broker submission."""
 
-    def __init__(self, policies: Policies) -> None:
+    def __init__(self, policies: Policies, quant_policy: QuantPolicy | None = None) -> None:
         self.policies = policies
+        self.quant_policy = quant_policy
 
     def run(self, account: AccountSnapshot, quotes: dict[str, MarketSnapshot], *, cutoff: datetime,
-            research: ResearchDecisionContext | None = None, evaluated_at: datetime | None = None) -> DailyClosureResult:
+            research: ResearchDecisionContext | None = None, evaluated_at: datetime | None = None,
+            quant_history: dict[str, HistoricalBarSeries] | None = None) -> DailyClosureResult:
         expected = daily_run_id(account, quotes, cutoff, self.policies)
         if research is not None and (research.parent_run_id != expected or research.analysis_cutoff != cutoff):
             raise ValueError("RESEARCH_DECISION_CONTEXT_MISMATCH")
@@ -88,6 +92,19 @@ class DailyClosureService:
             "authority": "ADVISORY_ONLY", "financial_parameters_source": "DETERMINISTIC_POLICY_AND_MARKET",
             "research": research.output.model_dump(mode="json") if research and research.output else None,
         }
+        if self.quant_policy is not None and self.quant_policy.mode != "QUANT_V1_BASELINE":
+            from meridian.quant.integration import observe_shadow, rejection_payload, shadow_payload
+            if self.quant_policy.mode == "QUANT_V2_PAPER_CANDIDATE":
+                result.report["quant_shadow"] = {"status": "PAPER_REVIEW_REQUIRES_SEPARATE_CALL", "authority": "SHADOW_ONLY"}
+            else:
+                try:
+                    record = observe_shadow(run_id=result.decision.run_id, cutoff=cutoff,
+                                            market_hash=str(result.report["market_data_snapshot_hash"]),
+                                            account=account, quotes=quotes, baseline_target=result.decision.target_portfolio,
+                                            histories=quant_history or {}, policies=self.policies, policy=self.quant_policy)
+                    result.report["quant_shadow"] = shadow_payload(record)
+                except (ValueError, ArithmeticError, KeyError) as error:
+                    result.report["quant_shadow"] = rejection_payload(error)
         return result
 
     def _run(self, account: AccountSnapshot, quotes: dict[str, MarketSnapshot], *, cutoff: datetime, evaluated_at: datetime | None = None) -> DailyClosureResult:

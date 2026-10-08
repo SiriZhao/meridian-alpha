@@ -1,0 +1,98 @@
+[
+  {
+    "fold": "fold-1",
+    "max_realized_exposure_difference": "0.0064405180620860466748348645",
+    "nominal_budget": "0.25",
+    "partition": "validation",
+    "removed_signal_group": "ABSOLUTE",
+    "status": "NOT_MATCHED_NO_ISOLATED_ALPHA_CLAIM"
+  },
+  {
+    "fold": "fold-1",
+    "max_realized_exposure_difference": "0.0095798060475719714405930682",
+    "nominal_budget": "0.25",
+    "partition": "validation",
+    "removed_signal_group": "RELATIVE",
+    "status": "NOT_MATCHED_NO_ISOLATED_ALPHA_CLAIM"
+  },
+  {
+    "fold": "fold-1",
+    "max_realized_exposure_difference": "0.0097213070889787042724495643",
+    "nominal_budget": "0.25",
+    "partition": "validation",
+    "removed_signal_group": "TREND",
+    "status": "NOT_MATCHED_NO_ISOLATED_ALPHA_CLAIM"
+  },
+  {
+    "fold": "fold-1",
+    "max_realized_exposure_difference": "0.0102363284273876513345762604",
+    "nominal_budget": "0.25",
+    "partition": "test",
+    "removed_signal_group": "ABSOLUTE",
+    "status": "NOT_MATCHED_NO_ISOLATED_ALPHA_CLAIM"
+  },
+  {
+    "fold": "fold-1",
+    "max_realized_exposure_difference": "0.0191383771705450712295127944",
+    "nominal_budget": "0.25",
+    "partition": "test",
+    "removed_signal_group": "RELATIVE",
+    "status": "NOT_MATCHED_NO_ISOLATED_ALPHA_CLAIM"
+  },
+  {
+    "fold": "fold-1",
+    "max_realized_exposure_difference": "0.0108852632542151670505236559",
+    "nominal_budget": "0.25",
+    "partition": "test",
+    "removed_signal_group": "TREND",
+    "status": "NOT_MATCHED_NO_ISOLATED_ALPHA_CLAIM"
+  },
+  {
+    "fold": "fold-2",
+    "max_realized_exposure_difference": "0",
+    "nominal_budget": "0.25",
+    "partition": "validation",
+    "removed_signal_group": "ABSOLUTE",
+    "status": "MATCHED_WITHIN_DECLARED_0.001_TOLERANCE"
+  },
+  {
+    "fold": "fold-2",
+    "max_realized_exposure_difference": "0",
+    "nominal_budget": "0.25",
+    "partition": "validation",
+    "removed_signal_group": "RELATIVE",
+    "status": "MATCHED_WITHIN_DECLARED_0.001_TOLERANCE"
+  },
+  {
+    "fold": "fold-2",
+    "max_realized_exposure_difference": "0",
+    "nominal_budget": "0.25",
+    "partition": "validation",
+    "removed_signal_group": "TREND",
+    "status": "MATCHED_WITHIN_DECLARED_0.001_TOLERANCE"
+  },
+  {
+    "fold": "fold-2",
+    "max_realized_exposure_difference": "0",
+    "nominal_budget": "0.25",
+    "partition": "test",
+    "removed_signal_group": "ABSOLUTE",
+    "status": "MATCHED_WITHIN_DECLARED_0.001_TOLERANCE"
+  },
+  {
+    "fold": "fold-2",
+    "max_realized_exposure_difference": "0",
+    "nominal_budget": "0.25",
+    "partition": "test",
+    "removed_signal_group": "RELATIVE",
+    "status": "MATCHED_WITHIN_DECLARED_0.001_TOLERANCE"
+  },
+  {
+    "fold": "fold-2",
+    "max_realized_exposure_difference": "0",
+    "nominal_budget": "0.25",
+    "partition": "test",
+    "removed_signal_group": "TREND",
+    "status": "MATCHED_WITHIN_DECLARED_0.001_TOLERANCE"
+  }
+]

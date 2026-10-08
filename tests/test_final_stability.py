@@ -258,6 +258,8 @@ def test_missing_or_unknown_legacy_health_is_never_green(components: dict[str, s
 
 @pytest.mark.parametrize("missing", ["run_health_json", "paper_report_json", "paper_report_markdown"])
 def test_ledger_owner_survives_missing_report_artifacts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, missing: str) -> None:
+    # This is a synthetic persistence scenario, independent of wall-clock NYSE
+    # hours. Production market gates are unchanged and separately tested.
     import meridian.application as application
     import scripts.safe_acceptance as acceptance
     monkeypatch.setattr(application, "datetime", acceptance.FixtureClock)

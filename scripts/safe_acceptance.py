@@ -58,6 +58,10 @@ def fixture(mode: str) -> dict[str, object]:
 
 
 def accept(root: Path) -> dict[str, object]:
+    # Freeze the disposable fixture clock; production session gates stay intact.
+    canonical = Path("E:/MeridianAlphaRuntime").resolve()
+    if root.resolve() == canonical or canonical in root.resolve().parents:
+        raise RuntimeError("synthetic acceptance must not use canonical runtime")
     with patch("meridian.application.datetime", FixtureClock), patch(__name__ + ".datetime", FixtureClock):
         return _accept(root)
 
@@ -97,9 +101,12 @@ def _accept(root: Path) -> dict[str, object]:
 
 
 def main() -> int:
-    base = Path(__file__).resolve().parents[1] / ".tmp"
-    base.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="meridian-safe-acceptance-", dir=base) as directory:
+    workspace = Path(__file__).resolve().parents[1]
+    temporary_root = (workspace / ".tmp").resolve()
+    require(workspace == temporary_root.parent, "acceptance temporary directory stays in workspace")
+    temporary_root.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="meridian-safe-acceptance-", dir=temporary_root) as directory:
+        require(temporary_root in Path(directory).resolve().parents, "acceptance cleanup stays in workspace")
         print(json.dumps(accept(Path(directory)), indent=2))
     return 0
 

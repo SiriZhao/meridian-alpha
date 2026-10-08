@@ -1,0 +1,69 @@
+{
+  "status": "INSUFFICIENT_EVIDENCE",
+  "purpose": "PUBLIC_HISTORY_AVAILABILITY_AUDIT_ONLY",
+  "observations": [
+    {
+      "symbol": "AAPL",
+      "provider": "yahoo",
+      "status": "RETRIEVED_UNCERTIFIED",
+      "bars": 825,
+      "first": "2023-06-26",
+      "last": "2026-10-07",
+      "source_mode": "LIVE_SHADOW",
+      "content_hash": "b9dda45c045b1bf8ceefc81abe329f7528e41dde8fa59dd5e0dbfcdebf31b04e",
+      "historically_known_at_close_rows": 0,
+      "availability": "2026-10-08T07:30:03.924278+00:00",
+      "retrieved_at": "2026-10-08T07:30:03.946447+00:00",
+      "adjustment_basis": "RAW",
+      "feature_quality": "REJECTED",
+      "rejection_reasons": [
+        "UNVERIFIED_ADJUSTMENT_BASIS",
+        "UNVERIFIED_PRICE_SERIES"
+      ]
+    },
+    {
+      "symbol": "MSFT",
+      "provider": "yahoo",
+      "status": "RETRIEVED_UNCERTIFIED",
+      "bars": 825,
+      "first": "2023-06-26",
+      "last": "2026-10-07",
+      "source_mode": "LIVE_SHADOW",
+      "content_hash": "10f79abfa196b04120eaef719a8147c99fdab3b0a1f9b2faeca058b0fb8c9536",
+      "historically_known_at_close_rows": 0,
+      "availability": "2026-10-08T07:30:04.746635+00:00",
+      "retrieved_at": "2026-10-08T07:30:04.770307+00:00",
+      "adjustment_basis": "RAW",
+      "feature_quality": "REJECTED",
+      "rejection_reasons": [
+        "UNVERIFIED_ADJUSTMENT_BASIS",
+        "UNVERIFIED_PRICE_SERIES"
+      ]
+    },
+    {
+      "symbol": "SPY",
+      "provider": "yahoo",
+      "status": "RETRIEVED_UNCERTIFIED",
+      "bars": 825,
+      "first": "2023-06-26",
+      "last": "2026-10-07",
+      "source_mode": "LIVE_SHADOW",
+      "content_hash": "8abe86a4ec731cf9cb58a39c3b88f62920661f901824c8a56e19cb07e4bfc67c",
+      "historically_known_at_close_rows": 0,
+      "availability": "2026-10-08T07:30:05.498230+00:00",
+      "retrieved_at": "2026-10-08T07:30:05.579459+00:00",
+      "adjustment_basis": "RAW",
+      "feature_quality": "REJECTED",
+      "rejection_reasons": [
+        "UNVERIFIED_ADJUSTMENT_BASIS",
+        "UNVERIFIED_PRICE_SERIES"
+      ]
+    }
+  ],
+  "historical_OOS_performance": null,
+  "corporate_action_coverage": "UNVERIFIED",
+  "historical_membership": "UNVERIFIED",
+  "financial_alpha_demonstrated": false,
+  "canonical_runtime_written": false,
+  "broker_submission": "DISABLED"
+}

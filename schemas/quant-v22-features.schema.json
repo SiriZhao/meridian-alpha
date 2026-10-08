@@ -1,0 +1,293 @@
+{
+  "$defs": {
+    "FactorValue": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "const": "price-factor-v2.1",
+          "default": "price-factor-v2.1",
+          "title": "Version",
+          "type": "string"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "lookback": {
+          "minimum": 1,
+          "title": "Lookback",
+          "type": "integer"
+        },
+        "raw_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw Value"
+        },
+        "normalized_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Normalized Value"
+        },
+        "provenance": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Provenance",
+          "type": "array"
+        },
+        "availability_cutoff": {
+          "format": "date-time",
+          "title": "Availability Cutoff",
+          "type": "string"
+        },
+        "quality_status": {
+          "enum": [
+            "AVAILABLE",
+            "UNAVAILABLE"
+          ],
+          "title": "Quality Status",
+          "type": "string"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        }
+      },
+      "required": [
+        "name",
+        "symbol",
+        "as_of",
+        "lookback",
+        "raw_value",
+        "availability_cutoff",
+        "quality_status"
+      ],
+      "title": "FactorValue",
+      "type": "object"
+    },
+    "FeatureSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "quant-features-v2.1",
+          "default": "quant-features-v2.1",
+          "title": "Version",
+          "type": "string"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "last_session": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Session"
+        },
+        "factors": {
+          "items": {
+            "$ref": "#/$defs/FactorValue"
+          },
+          "title": "Factors",
+          "type": "array"
+        },
+        "input_hash": {
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "quality_status": {
+          "enum": [
+            "VERIFIED",
+            "REJECTED",
+            "SYNTHETIC_DIAGNOSTIC"
+          ],
+          "title": "Quality Status",
+          "type": "string"
+        },
+        "reasons": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "synthetic": {
+          "default": false,
+          "title": "Synthetic",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "symbol",
+        "as_of",
+        "last_session",
+        "factors",
+        "input_hash",
+        "quality_status"
+      ],
+      "title": "FeatureSnapshot",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": "quant-features-v2.2",
+      "default": "quant-features-v2.2",
+      "title": "Version",
+      "type": "string"
+    },
+    "base": {
+      "$ref": "#/$defs/FeatureSnapshot"
+    },
+    "medium_distance": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Medium Distance"
+    },
+    "momentum_acceleration": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Momentum Acceleration"
+    },
+    "trend_instability": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Trend Instability"
+    },
+    "residual_momentum_63": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Residual Momentum 63"
+    },
+    "missing_reasons": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Missing Reasons",
+      "type": "object"
+    },
+    "provenance": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Provenance",
+      "type": "array"
+    },
+    "availability_cutoff": {
+      "format": "date-time",
+      "title": "Availability Cutoff",
+      "type": "string"
+    },
+    "input_hash": {
+      "title": "Input Hash",
+      "type": "string"
+    }
+  },
+  "required": [
+    "base",
+    "medium_distance",
+    "momentum_acceleration",
+    "trend_instability",
+    "residual_momentum_63",
+    "missing_reasons",
+    "provenance",
+    "availability_cutoff",
+    "input_hash"
+  ],
+  "title": "ChallengerFeatureSnapshot",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meridian-alpha.local/schemas/quant-v22-features.schema.json"
+}

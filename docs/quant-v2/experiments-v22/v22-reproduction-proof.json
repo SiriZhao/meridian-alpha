@@ -1,0 +1,8 @@
+{
+  "status": "EXACT_V22_INDEPENDENT_REPLAY_MATCH",
+  "head": "5bdb7a4408ab01ae5d712fb8af9196ab38701a7d",
+  "evaluations": 76,
+  "distinct_replays": 76,
+  "summary_and_all_payloads_identical": true,
+  "financial_evidence": false
+}

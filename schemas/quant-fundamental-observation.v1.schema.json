@@ -1,0 +1,137 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "default": "quant-fundamental-observation.v1",
+      "title": "Version",
+      "type": "string"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    },
+    "metric": {
+      "enum": [
+        "QUALITY",
+        "PROFITABILITY",
+        "LEVERAGE",
+        "VALUATION",
+        "ANALYST_ESTIMATE"
+      ],
+      "title": "Metric",
+      "type": "string"
+    },
+    "fiscal_start": {
+      "format": "date",
+      "title": "Fiscal Start",
+      "type": "string"
+    },
+    "fiscal_end": {
+      "format": "date",
+      "title": "Fiscal End",
+      "type": "string"
+    },
+    "release_at": {
+      "format": "date-time",
+      "title": "Release At",
+      "type": "string"
+    },
+    "available_at": {
+      "format": "date-time",
+      "title": "Available At",
+      "type": "string"
+    },
+    "ingested_at": {
+      "format": "date-time",
+      "title": "Ingested At",
+      "type": "string"
+    },
+    "revision_id": {
+      "minLength": 1,
+      "title": "Revision Id",
+      "type": "string"
+    },
+    "supersedes_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes Revision"
+    },
+    "value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Value"
+    },
+    "unit": {
+      "minLength": 1,
+      "title": "Unit",
+      "type": "string"
+    },
+    "source": {
+      "minLength": 1,
+      "title": "Source",
+      "type": "string"
+    },
+    "source_hash": {
+      "maxLength": 64,
+      "minLength": 64,
+      "title": "Source Hash",
+      "type": "string"
+    },
+    "missing_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Missing Reason"
+    },
+    "certification": {
+      "default": "UNVERIFIED",
+      "enum": [
+        "UNVERIFIED",
+        "REVIEWED_PIT"
+      ],
+      "title": "Certification",
+      "type": "string"
+    }
+  },
+  "required": [
+    "symbol",
+    "metric",
+    "fiscal_start",
+    "fiscal_end",
+    "release_at",
+    "available_at",
+    "ingested_at",
+    "revision_id",
+    "value",
+    "unit",
+    "source",
+    "source_hash"
+  ],
+  "title": "FundamentalObservation",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meridian-alpha.local/schemas/quant-fundamental-observation.v1.schema.json"
+}

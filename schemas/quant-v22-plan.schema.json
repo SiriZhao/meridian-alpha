@@ -1,0 +1,920 @@
+{
+  "$defs": {
+    "ChallengerExperimentVariant": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "strategy": {
+          "enum": [
+            "CASH",
+            "SPY_BUY_HOLD",
+            "SPY_POLICY",
+            "EQUAL_WEIGHT",
+            "A0",
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "V22"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/QuantPolicy"
+        },
+        "challenger": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChallengerPolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "costs": {
+          "$ref": "#/$defs/CostPolicy"
+        },
+        "purpose": {
+          "title": "Purpose",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "strategy",
+        "policy",
+        "costs",
+        "purpose"
+      ],
+      "title": "ChallengerExperimentVariant",
+      "type": "object"
+    },
+    "ChallengerPolicy": {
+      "additionalProperties": false,
+      "description": "Research-only composition; the V2.1 contract and production file stay frozen.",
+      "properties": {
+        "version": {
+          "const": "quant-v2.2",
+          "default": "quant-v2.2",
+          "title": "Version",
+          "type": "string"
+        },
+        "authority": {
+          "const": "SHADOW_ONLY",
+          "default": "SHADOW_ONLY",
+          "title": "Authority",
+          "type": "string"
+        },
+        "controls": {
+          "$ref": "#/$defs/QuantPolicy"
+        },
+        "absolute_weight": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.50",
+          "title": "Absolute Weight"
+        },
+        "relative_weight": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.25",
+          "title": "Relative Weight"
+        },
+        "trend_weight": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.25",
+          "title": "Trend Weight"
+        },
+        "maximum_rank_blend": {
+          "anyOf": [
+            {
+              "maximum": 0.25,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.20",
+          "title": "Maximum Rank Blend"
+        },
+        "cluster_correlation": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.80",
+          "title": "Cluster Correlation"
+        },
+        "cluster_weight_cap": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.40",
+          "title": "Cluster Weight Cap"
+        },
+        "unknown_correlation_exposure": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.25",
+          "title": "Unknown Correlation Exposure"
+        },
+        "covariance_diagonal_shrinkage": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.50",
+          "title": "Covariance Diagonal Shrinkage"
+        },
+        "neutral_groups": {
+          "default": [],
+          "items": {
+            "enum": [
+              "absolute",
+              "relative",
+              "trend"
+            ],
+            "type": "string"
+          },
+          "title": "Neutral Groups",
+          "type": "array"
+        },
+        "diagnostic_exposure": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Diagnostic Exposure"
+        }
+      },
+      "title": "ChallengerPolicy",
+      "type": "object"
+    },
+    "CostPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "quant-cost-v1",
+          "default": "quant-cost-v1",
+          "title": "Version",
+          "type": "string"
+        },
+        "commission_per_order": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "1",
+          "title": "Commission Per Order"
+        },
+        "slippage_bps": {
+          "anyOf": [
+            {
+              "maximum": 1000.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "5",
+          "title": "Slippage Bps"
+        },
+        "spread_bps": {
+          "anyOf": [
+            {
+              "maximum": 1000.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Spread Bps"
+        }
+      },
+      "title": "CostPolicy",
+      "type": "object"
+    },
+    "QuantPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "quant-v2.1",
+          "default": "quant-v2.1",
+          "title": "Version",
+          "type": "string"
+        },
+        "mode": {
+          "default": "QUANT_V1_BASELINE",
+          "enum": [
+            "QUANT_V1_BASELINE",
+            "QUANT_V2_SHADOW",
+            "QUANT_V2_PAPER_CANDIDATE"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "strategy": {
+          "default": "A4",
+          "enum": [
+            "A0",
+            "A1",
+            "A2",
+            "A3",
+            "A4"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "paper_approved": {
+          "default": false,
+          "title": "Paper Approved",
+          "type": "boolean"
+        },
+        "approval_reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Approval Reference"
+        },
+        "momentum_weight": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.7",
+          "title": "Momentum Weight"
+        },
+        "trend_weight": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.3",
+          "title": "Trend Weight"
+        },
+        "cross_section_minimum": {
+          "default": 5,
+          "minimum": 3,
+          "title": "Cross Section Minimum",
+          "type": "integer"
+        },
+        "momentum_scale": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.10",
+          "title": "Momentum Scale"
+        },
+        "trend_scale": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.05",
+          "title": "Trend Scale"
+        },
+        "volatility_floor": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.05",
+          "title": "Volatility Floor"
+        },
+        "target_volatility": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.15",
+          "title": "Target Volatility"
+        },
+        "minimum_dollar_volume": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "1000000",
+          "title": "Minimum Dollar Volume"
+        },
+        "max_volume_participation": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.01",
+          "title": "Max Volume Participation"
+        },
+        "allocation": {
+          "default": "risk_adjusted",
+          "enum": [
+            "score",
+            "inverse_volatility",
+            "risk_adjusted"
+          ],
+          "title": "Allocation",
+          "type": "string"
+        },
+        "regime_trend_band": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.02",
+          "title": "Regime Trend Band"
+        },
+        "high_volatility_percentile": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.80",
+          "title": "High Volatility Percentile"
+        },
+        "high_volatility_absolute": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.25",
+          "title": "High Volatility Absolute"
+        },
+        "risk_off_drawdown": {
+          "anyOf": [
+            {
+              "exclusiveMaximum": 0.0,
+              "exclusiveMinimum": -1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "-0.15",
+          "title": "Risk Off Drawdown"
+        },
+        "high_volatility_multiplier": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.5",
+          "title": "High Volatility Multiplier"
+        },
+        "downtrend_multiplier": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.25",
+          "title": "Downtrend Multiplier"
+        },
+        "rebalance": {
+          "default": "threshold",
+          "enum": [
+            "daily",
+            "weekly",
+            "threshold"
+          ],
+          "title": "Rebalance",
+          "type": "string"
+        },
+        "no_trade_band": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.01",
+          "title": "No Trade Band"
+        },
+        "rebalance_threshold": {
+          "anyOf": [
+            {
+              "maximum": 2.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.02",
+          "title": "Rebalance Threshold"
+        },
+        "minimum_trade_notional": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "100",
+          "title": "Minimum Trade Notional"
+        },
+        "max_turnover": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 2.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "0.20",
+          "title": "Max Turnover"
+        },
+        "minimum_benefit_cost_ratio": {
+          "anyOf": [
+            {
+              "minimum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "1.5",
+          "title": "Minimum Benefit Cost Ratio"
+        },
+        "minimum_oos_sessions": {
+          "default": 252,
+          "minimum": 252,
+          "title": "Minimum Oos Sessions",
+          "type": "integer"
+        },
+        "minimum_oos_folds": {
+          "default": 2,
+          "minimum": 2,
+          "title": "Minimum Oos Folds",
+          "type": "integer"
+        },
+        "correlation_limit": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Correlation Limit"
+        },
+        "correlation_lookback": {
+          "default": 60,
+          "minimum": 20,
+          "title": "Correlation Lookback",
+          "type": "integer"
+        },
+        "use_momentum": {
+          "default": true,
+          "title": "Use Momentum",
+          "type": "boolean"
+        },
+        "use_trend": {
+          "default": true,
+          "title": "Use Trend",
+          "type": "boolean"
+        },
+        "use_volatility_adjustment": {
+          "default": true,
+          "title": "Use Volatility Adjustment",
+          "type": "boolean"
+        },
+        "use_cost_gate": {
+          "default": true,
+          "title": "Use Cost Gate",
+          "type": "boolean"
+        }
+      },
+      "title": "QuantPolicy",
+      "type": "object"
+    },
+    "RiskPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "example_defaults": {
+          "default": true,
+          "title": "Example Defaults",
+          "type": "boolean"
+        },
+        "long_only": {
+          "default": true,
+          "title": "Long Only",
+          "type": "boolean"
+        },
+        "allow_leverage": {
+          "default": false,
+          "title": "Allow Leverage",
+          "type": "boolean"
+        },
+        "max_position_weight": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Max Position Weight"
+        },
+        "max_sector_weight": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Max Sector Weight"
+        },
+        "min_cash_weight": {
+          "anyOf": [
+            {
+              "exclusiveMaximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Min Cash Weight"
+        },
+        "max_daily_turnover": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 2.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Max Daily Turnover"
+        },
+        "max_single_order_nav_percent": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Max Single Order Nav Percent"
+        },
+        "max_number_positions": {
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Max Number Positions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_position_weight",
+        "max_sector_weight",
+        "min_cash_weight",
+        "max_daily_turnover",
+        "max_single_order_nav_percent",
+        "max_number_positions"
+      ],
+      "title": "RiskPolicy",
+      "type": "object"
+    },
+    "WalkForwardFold": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "train_start": {
+          "format": "date",
+          "title": "Train Start",
+          "type": "string"
+        },
+        "train_end": {
+          "format": "date",
+          "title": "Train End",
+          "type": "string"
+        },
+        "validation_start": {
+          "format": "date",
+          "title": "Validation Start",
+          "type": "string"
+        },
+        "validation_end": {
+          "format": "date",
+          "title": "Validation End",
+          "type": "string"
+        },
+        "test_start": {
+          "format": "date",
+          "title": "Test Start",
+          "type": "string"
+        },
+        "test_end": {
+          "format": "date",
+          "title": "Test End",
+          "type": "string"
+        },
+        "embargo_sessions": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Embargo Sessions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "train_start",
+        "train_end",
+        "validation_start",
+        "validation_end",
+        "test_start",
+        "test_end"
+      ],
+      "title": "WalkForwardFold",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": "quant-experiment-plan-v2.2",
+      "default": "quant-experiment-plan-v2.2",
+      "title": "Version",
+      "type": "string"
+    },
+    "declared_at": {
+      "format": "date-time",
+      "title": "Declared At",
+      "type": "string"
+    },
+    "folds": {
+      "items": {
+        "$ref": "#/$defs/WalkForwardFold"
+      },
+      "title": "Folds",
+      "type": "array"
+    },
+    "variants": {
+      "items": {
+        "$ref": "#/$defs/ChallengerExperimentVariant"
+      },
+      "title": "Variants",
+      "type": "array"
+    },
+    "risk": {
+      "$ref": "#/$defs/RiskPolicy"
+    },
+    "selection": {
+      "const": "NONE_FIXED_PREDECLARED_MODELS",
+      "default": "NONE_FIXED_PREDECLARED_MODELS",
+      "title": "Selection",
+      "type": "string"
+    },
+    "final_oos_tuning": {
+      "const": false,
+      "default": false,
+      "title": "Final Oos Tuning",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "declared_at",
+    "folds",
+    "variants",
+    "risk"
+  ],
+  "title": "ChallengerExperimentPlan",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meridian-alpha.local/schemas/quant-v22-plan.schema.json"
+}

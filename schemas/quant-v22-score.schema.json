@@ -1,0 +1,541 @@
+{
+  "$defs": {
+    "AlphaScoreV2": {
+      "additionalProperties": false,
+      "properties": {
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "strategy": {
+          "title": "Strategy",
+          "type": "string"
+        },
+        "policy_version": {
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "quant_score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Quant Score"
+        },
+        "relative_rank": {
+          "minimum": 1,
+          "title": "Relative Rank",
+          "type": "integer"
+        },
+        "contributions": {
+          "items": {
+            "$ref": "#/$defs/FactorContribution"
+          },
+          "title": "Contributions",
+          "type": "array"
+        },
+        "data_quality_status": {
+          "title": "Data Quality Status",
+          "type": "string"
+        },
+        "completeness": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Completeness"
+        },
+        "risk_multiplier": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Risk Multiplier"
+        },
+        "risk_adjustments": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Risk Adjustments",
+          "type": "array"
+        },
+        "inclusion_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Inclusion Reasons",
+          "type": "array"
+        },
+        "exclusion_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclusion Reasons",
+          "type": "array"
+        },
+        "score_change": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score Change"
+        },
+        "input_hash": {
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "predictive_confidence": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Predictive Confidence"
+        }
+      },
+      "required": [
+        "symbol",
+        "as_of",
+        "strategy",
+        "policy_version",
+        "quant_score",
+        "relative_rank",
+        "contributions",
+        "data_quality_status",
+        "completeness",
+        "risk_multiplier",
+        "risk_adjustments",
+        "inclusion_reasons",
+        "exclusion_reasons",
+        "input_hash"
+      ],
+      "title": "AlphaScoreV2",
+      "type": "object"
+    },
+    "ChallengerContribution": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "default": "quant-factor-contribution.v2.2",
+          "title": "Version",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "group": {
+          "title": "Group",
+          "type": "string"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "availability_cutoff": {
+          "format": "date-time",
+          "title": "Availability Cutoff",
+          "type": "string"
+        },
+        "provenance": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Provenance",
+          "type": "array"
+        },
+        "lookback": {
+          "title": "Lookback",
+          "type": "integer"
+        },
+        "raw": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw"
+        },
+        "normalized": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Normalized"
+        },
+        "weight": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Weight"
+        },
+        "contribution": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Contribution"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Missing Reason"
+        },
+        "transformation": {
+          "default": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND",
+          "title": "Transformation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "group",
+        "symbol",
+        "as_of",
+        "availability_cutoff",
+        "provenance",
+        "lookback",
+        "raw",
+        "normalized",
+        "weight",
+        "contribution",
+        "missing_reason"
+      ],
+      "title": "ChallengerContribution",
+      "type": "object"
+    },
+    "FactorContribution": {
+      "additionalProperties": false,
+      "properties": {
+        "factor": {
+          "$ref": "#/$defs/FactorValue"
+        },
+        "group": {
+          "title": "Group",
+          "type": "string"
+        },
+        "weight": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Weight"
+        },
+        "contribution": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Contribution"
+        },
+        "normalization": {
+          "title": "Normalization",
+          "type": "string"
+        }
+      },
+      "required": [
+        "factor",
+        "group",
+        "weight",
+        "contribution",
+        "normalization"
+      ],
+      "title": "FactorContribution",
+      "type": "object"
+    },
+    "FactorValue": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "const": "price-factor-v2.1",
+          "default": "price-factor-v2.1",
+          "title": "Version",
+          "type": "string"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "lookback": {
+          "minimum": 1,
+          "title": "Lookback",
+          "type": "integer"
+        },
+        "raw_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw Value"
+        },
+        "normalized_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Normalized Value"
+        },
+        "provenance": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Provenance",
+          "type": "array"
+        },
+        "availability_cutoff": {
+          "format": "date-time",
+          "title": "Availability Cutoff",
+          "type": "string"
+        },
+        "quality_status": {
+          "enum": [
+            "AVAILABLE",
+            "UNAVAILABLE"
+          ],
+          "title": "Quality Status",
+          "type": "string"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        }
+      },
+      "required": [
+        "name",
+        "symbol",
+        "as_of",
+        "lookback",
+        "raw_value",
+        "availability_cutoff",
+        "quality_status"
+      ],
+      "title": "FactorValue",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "default": "quant-score-v2.2",
+      "title": "Version",
+      "type": "string"
+    },
+    "bridge": {
+      "$ref": "#/$defs/AlphaScoreV2"
+    },
+    "signal_strength": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "title": "Signal Strength"
+    },
+    "risk_adjusted_score": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "title": "Risk Adjusted Score"
+    },
+    "factor_attribution": {
+      "items": {
+        "$ref": "#/$defs/ChallengerContribution"
+      },
+      "title": "Factor Attribution",
+      "type": "array"
+    },
+    "score_change_attribution": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          }
+        ]
+      },
+      "title": "Score Change Attribution",
+      "type": "object"
+    },
+    "risk_score_change_attribution": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          }
+        ]
+      },
+      "title": "Risk Score Change Attribution",
+      "type": "object"
+    },
+    "positive_observations": {
+      "minimum": 0,
+      "title": "Positive Observations",
+      "type": "integer"
+    },
+    "persistence_definition": {
+      "default": "CONSECUTIVE_OBSERVED_ELIGIBLE_SESSIONS_NOT_CONFIDENCE",
+      "title": "Persistence Definition",
+      "type": "string"
+    },
+    "policy_hash": {
+      "title": "Policy Hash",
+      "type": "string"
+    }
+  },
+  "required": [
+    "bridge",
+    "signal_strength",
+    "risk_adjusted_score",
+    "factor_attribution",
+    "score_change_attribution",
+    "risk_score_change_attribution",
+    "positive_observations",
+    "policy_hash"
+  ],
+  "title": "ChallengerScore",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meridian-alpha.local/schemas/quant-v22-score.schema.json"
+}

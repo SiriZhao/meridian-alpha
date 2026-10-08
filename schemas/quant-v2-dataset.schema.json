@@ -1,0 +1,446 @@
+{
+  "$defs": {
+    "HistoricalAdjustmentStatus": {
+      "enum": [
+        "RAW",
+        "ADJUSTED_CLOSE",
+        "FULLY_ADJUSTED_OHLCV"
+      ],
+      "title": "HistoricalAdjustmentStatus",
+      "type": "string"
+    },
+    "HistoricalBar": {
+      "additionalProperties": false,
+      "properties": {
+        "adjustment_status": {
+          "$ref": "#/$defs/HistoricalAdjustmentStatus"
+        },
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "calendar": {
+          "$ref": "#/$defs/TradingCalendarName"
+        },
+        "canonical_asset_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Canonical Asset Id",
+          "type": "string"
+        },
+        "canonical_symbol": {
+          "pattern": "^[A-Z][A-Z0-9.\\-]{0,15}$",
+          "title": "Canonical Symbol",
+          "type": "string"
+        },
+        "certification": {
+          "$ref": "#/$defs/HistoricalBarCertification",
+          "default": "UNVERIFIED"
+        },
+        "close": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Close"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "high": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "High"
+        },
+        "low": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Low"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "open": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Open"
+        },
+        "provider": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Provider",
+          "type": "string"
+        },
+        "provider_symbol": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Provider Symbol",
+          "type": "string"
+        },
+        "quality": {
+          "$ref": "#/$defs/HistoricalQuality",
+          "default": "UNVERIFIED"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "title": "Retrieved At",
+          "type": "string"
+        },
+        "session": {
+          "format": "date",
+          "title": "Session",
+          "type": "string"
+        },
+        "source": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "volume": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Volume"
+        }
+      },
+      "required": [
+        "canonical_asset_id",
+        "canonical_symbol",
+        "provider_symbol",
+        "session",
+        "calendar",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "currency",
+        "adjustment_status",
+        "provider",
+        "observed_at",
+        "available_at",
+        "retrieved_at",
+        "source"
+      ],
+      "title": "HistoricalBar",
+      "type": "object"
+    },
+    "HistoricalBarCertification": {
+      "enum": [
+        "CERTIFIED_MARKET_SESSION",
+        "CERTIFIED_RESEARCH_PIT_ADJUSTED",
+        "UNVERIFIED",
+        "SYNTHETIC",
+        "REPLAY_UNSAFE"
+      ],
+      "title": "HistoricalBarCertification",
+      "type": "string"
+    },
+    "HistoricalBarSeries": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "bars": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/HistoricalBar"
+          },
+          "maxItems": 5000,
+          "title": "Bars",
+          "type": "array"
+        },
+        "canonical_asset_id": {
+          "title": "Canonical Asset Id",
+          "type": "string"
+        },
+        "canonical_symbol": {
+          "title": "Canonical Symbol",
+          "type": "string"
+        },
+        "content_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Hash"
+        },
+        "provider": {
+          "title": "Provider",
+          "type": "string"
+        },
+        "source_mode": {
+          "default": "REPLAY",
+          "title": "Source Mode",
+          "type": "string"
+        },
+        "warnings": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "canonical_asset_id",
+        "canonical_symbol",
+        "provider",
+        "as_of"
+      ],
+      "title": "HistoricalBarSeries",
+      "type": "object"
+    },
+    "HistoricalQuality": {
+      "enum": [
+        "VERIFIED",
+        "UNVERIFIED",
+        "MISSING",
+        "INVALID",
+        "CONFLICT"
+      ],
+      "title": "HistoricalQuality",
+      "type": "string"
+    },
+    "QuantSecurityMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_type": {
+          "enum": [
+            "EQUITY",
+            "DIVERSIFIED_ETF"
+          ],
+          "title": "Asset Type",
+          "type": "string"
+        },
+        "known_at": {
+          "format": "date-time",
+          "title": "Known At",
+          "type": "string"
+        },
+        "sector": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sector"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol",
+        "asset_type",
+        "known_at",
+        "source"
+      ],
+      "title": "QuantSecurityMetadata",
+      "type": "object"
+    },
+    "TradingCalendarName": {
+      "enum": [
+        "US_EQUITY",
+        "CBOE_VIX"
+      ],
+      "title": "TradingCalendarName",
+      "type": "string"
+    },
+    "UniverseMembership": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End"
+        },
+        "known_at": {
+          "format": "date-time",
+          "title": "Known At",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "start": {
+          "format": "date",
+          "title": "Start",
+          "type": "string"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol",
+        "start",
+        "known_at",
+        "source"
+      ],
+      "title": "UniverseMembership",
+      "type": "object"
+    }
+  },
+  "$id": "https://meridian-alpha.local/schemas/quant-v2-dataset.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "corporate_action_source": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Corporate Action Source"
+    },
+    "corporate_actions_covered_until": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Corporate Actions Covered Until"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "evidence_status": {
+      "default": "UNVERIFIED",
+      "enum": [
+        "VERIFIED_PIT",
+        "UNVERIFIED",
+        "SYNTHETIC_DIAGNOSTIC"
+      ],
+      "title": "Evidence Status",
+      "type": "string"
+    },
+    "memberships": {
+      "items": {
+        "$ref": "#/$defs/UniverseMembership"
+      },
+      "title": "Memberships",
+      "type": "array"
+    },
+    "security_metadata": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/QuantSecurityMetadata"
+      },
+      "title": "Security Metadata",
+      "type": "array"
+    },
+    "series": {
+      "items": {
+        "$ref": "#/$defs/HistoricalBarSeries"
+      },
+      "title": "Series",
+      "type": "array"
+    },
+    "universe_basis": {
+      "default": "CURRENT_SURVIVORS",
+      "enum": [
+        "PIT_MEMBERSHIP",
+        "PREDECLARED_STATIC",
+        "CURRENT_SURVIVORS"
+      ],
+      "title": "Universe Basis",
+      "type": "string"
+    },
+    "version": {
+      "default": "quant-dataset-v1",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "series",
+    "memberships",
+    "description"
+  ],
+  "title": "QuantDataset",
+  "type": "object"
+}

@@ -514,7 +514,17 @@ class MeridianApplicationService:
                 "execution_mode": execution_mode,
             }
         )
-        closure = DailyClosureService(policies)
+        from meridian.quant.policy import load_quant_policy
+        quant_policy_path = policy_directory() / "quant.yaml"
+        quant_policy_error: str | None = None
+        try:
+            quant_policy = load_quant_policy(quant_policy_path) if quant_policy_path.exists() else None
+        except (ValueError, OSError) as error:
+            # A non-authoritative challenger configuration must not disrupt the
+            # existing canonical strategy or relax any of its gates.
+            quant_policy = None
+            quant_policy_error = type(error).__name__
+        closure = DailyClosureService(policies, quant_policy)
         parent_id = daily_run_id(account, quotes, cutoff, policies)
         settings = policies.models.research
         if settings is not None and research_live_enabled:
@@ -1012,8 +1022,25 @@ class MeridianApplicationService:
         )
         evaluated_at = datetime.now(UTC)
         result = closure.run(
-            account, quotes, cutoff=cutoff, research=research.context, evaluated_at=evaluated_at
+            account, quotes, cutoff=cutoff, research=research.context, evaluated_at=evaluated_at,
+            quant_history=operational.quant_histories if market_fixture is None else None,
         )
+        if quant_policy_error:
+            result.report["quant_shadow"] = {"status": "SHADOW_BLOCKED", "authority": "SHADOW_ONLY",
+                                             "reason": "QUANT_POLICY_INVALID", "error_type": quant_policy_error}
+        quant_shadow_payload = result.report.get("quant_shadow")
+        if isinstance(quant_shadow_payload, dict) and quant_shadow_payload.get("schema_version") == "quant-shadow-comparison.v1":
+            from meridian.quant.integration import (
+                QuantShadowRecord,
+                persist_shadow,
+                rejection_payload,
+            )
+            try:
+                shadow_record = QuantShadowRecord.model_validate(quant_shadow_payload)
+                shadow_path = persist_shadow(shadow_record, self.paths.reports / "quant-shadow")
+                result.report["quant_shadow_path"] = str(shadow_path)
+            except (OSError, ValueError) as error:
+                result.report["quant_shadow_persistence"] = rejection_payload(error)
         execution_gate_blocked = current_market.status is not MarketStatus.OPEN or (
             native_result is not None
             and native_result.execution_state is not ExecutionState.READY

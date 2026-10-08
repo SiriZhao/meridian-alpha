@@ -1,0 +1,45 @@
+{
+  "status": "ENGINEERING_AND_SYNTHETIC_ACCEPTANCE_PASS",
+  "validated_head": "baa4a1b1de4d1b5433f9d8d4d65582344ab82052",
+  "engine_hash": "e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c",
+  "project_python": "3.12.10",
+  "frozen_dependencies": 48,
+  "windows_local": {
+    "passed": 971,
+    "seconds": 195.86
+  },
+  "windows_independent_remote_clone": {
+    "passed": 971,
+    "seconds": 197.34
+  },
+  "push_ci": {
+    "run": 37779606774,
+    "conclusion": "success",
+    "windows": {
+      "passed": 971,
+      "seconds": 274.96
+    },
+    "ubuntu": {
+      "passed": 969,
+      "skipped": 2,
+      "seconds": 192.08
+    }
+  },
+  "pr_ci": {
+    "run": 37779612308,
+    "conclusion": "success",
+    "windows": "success",
+    "ubuntu": "success"
+  },
+  "all_repository_gates": "PASS",
+  "independent_replay": {
+    "evaluations": 76,
+    "replays": 76,
+    "all_payloads_identical": true
+  },
+  "canonical_runtime_written": false,
+  "broker_submission": "DISABLED",
+  "real_broker_side_effects": false,
+  "financial_evidence": false,
+  "final_tip_semantics": "Evidence-only delivery descendants are verified separately at handoff."
+}

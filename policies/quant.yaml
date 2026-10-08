@@ -1,0 +1,17 @@
+# V1 remains canonical. Opt into SHADOW only; candidate review is a separate API.
+version: quant-v2.1
+mode: QUANT_V1_BASELINE
+strategy: A4
+paper_approved: false
+approval_reference: null
+momentum_weight: 0.7
+trend_weight: 0.3
+allocation: risk_adjusted
+rebalance: threshold
+minimum_dollar_volume: 1000000
+max_volume_participation: 0.01
+target_volatility: 0.15
+no_trade_band: 0.01
+rebalance_threshold: 0.02
+max_turnover: 0.20
+correlation_limit: null

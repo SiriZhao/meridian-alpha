@@ -72,6 +72,22 @@ Markdown/health consistency and a separate CLI process. It does not validate
 live GPT or a regular-market session. Pytest uses `.pytest-tmp`, which is
 ignored by Git and avoids stale system temp permissions on Windows.
 
+### Quant V2 research-only reproduction
+
+```powershell
+.\.venv\Scripts\python.exe scripts/quant_diagnostic.py --output .tmp/quant-v2/new-diagnostic
+.\.venv\Scripts\python.exe -m meridian quant inspect --dataset DATASET.json
+.\.venv\Scripts\python.exe -m meridian quant backtest --dataset DATASET.json --plan PLAN.json --output .tmp/quant-v2/financial-oos
+```
+
+The diagnostic generates explicitly synthetic data and seals all 23 variants
+before evaluating them. For an archived synthetic dataset, backtest additionally
+requires `--diagnostic`. Financial evaluation rejects uncertified prices,
+unknown corporate-action coverage, future availability and current-survivor
+membership. This CLI never initializes the daily runtime. See
+[research report](docs/quant-v2/RESEARCH_REPORT.md) for the complete saved registry,
+mathematics, timing, costs, limitations and paper-review evidence gate.
+
 ## Layout and boundaries
 
 - `src/meridian`: domain, pipeline, research, decision, paper and reporting code
@@ -106,3 +122,13 @@ credentials, caches or `.env` files.
 tracked artifacts were removed from the current tree without deleting local
 copies or rewriting history; durable audit records remain in `docs/` and
 `reports/`. Published audit documents use `<USER_HOME>` for personal paths.
+
+## Quant V2.2 research-only challenger
+
+Use project Python with `scripts/quant_v22_diagnostic.py --output .tmp/quant-v22/new-run`
+for a new isolated synthetic registry. Replay the saved dataset/plan via the
+Quant CLI; `quant packet` emits a research packet with no trade authority.
+`scripts/validate_quant_v22_artifacts.py` verifies seven contracts, the current
+archive and paired realized exposure. Full validation checks both this registry
+and the preserved V2.1 archive. Exact V2.1 replay uses pinned commit 4664cb4.
+Synthetic diagnostics never qualify financial evidence or promote a strategy.

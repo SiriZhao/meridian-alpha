@@ -375,3 +375,29 @@ compatibility notes. The current Astra Skill does not use them as its
 intelligence layer. Deterministic code continues to own weights, quantity,
 risk, limit policy, and reconciliation. FinRL-X remains optional/deferred and
 may remain `MODEL_UNAVAILABLE`.
+
+## Quant V2 challenger boundary
+
+Project-owned historical bars feed PIT quality checks, versioned factors,
+deterministic scores and SPY regime dimensions. Constrained targets and
+friction decisions reuse RiskEngine, ReconciliationEngine, OrderPlanner and
+projected validation. V1 stays the shipped default; V2 shadow is opt-in and
+paper review is a separate, evidence-gated non-executing call. No ledger
+migration or broker adapter is involved.
+
+The next-open walk-forward replay owns only disposable in-memory simulation
+state. Archived adjusted research certification is disjoint from raw session
+facts and execution quotes. The predeclared horizon laboratory remains a
+separate reviewed-outcome analysis; its samples are not promoted into V2
+portfolio OOS evidence. See [Quant V2 architecture](quant-v2/ARCHITECTURE.md),
+[ADR 0037](adr/0037-quant-engine-v2.md) and the documented financial limits.
+
+V2.2 adds bounded absolute/relative/trend composition with signal/risk
+attribution, proportional correlation caps, an explicit covariance estimate,
+typed future calibration/fundamental contracts and a Chinese research packet.
+It extends the same feature/portfolio/replay modules. Hypothetical changes reuse
+the manual planner and include a no-sell-fill risk scenario. The separate policy
+is SHADOW_ONLY and does not change the canonical switch; V2.1 schemas/archives
+remain preserved. See [algorithm audit](quant-v2/ALGORITHM_V22_AUDIT.md),
+[research evidence](quant-v2/ALGORITHM_V22_RESEARCH.md) and
+[ADR 0038](adr/0038-quant-v22-separated-signal-risk-and-review.md).
