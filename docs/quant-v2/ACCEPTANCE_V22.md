@@ -100,7 +100,24 @@ unchanged simulated trades, daily NAV/cash/cost/exposure/turnover in all 76 rows
 not additional independent financial observations. An intermediate local
 registry is preserved in `.tmp/quant-v22/intermediate-registry-e817a1b`.
 
-Independent remote clone/replay, current wheel packaging and final Windows/Linux
-CI are pending delivery verification. Real financial validation remains PENDING;
+Independent remote clone of `baa4a1b` with its own Python 3.12.10 and frozen
+48-package environment passed **971 tests in 197.34 seconds** and all repository
+gates. Its 76 replay payloads and summary exactly match the resumed archive.
+The wheel was built offline from that clone and verified against seven contracts,
+two policies and eight quant modules; SHA-256 is recorded in `wheel-content-proof.json`.
+
+Exact-source push CI [37779606774](https://github.com/SiriZhao/meridian-alpha/actions/runs/37779606774)
+and PR CI [37779612308](https://github.com/SiriZhao/meridian-alpha/actions/runs/37779612308)
+both succeeded on Windows and Ubuntu. Push counts: Windows **971 passed in
+274.96 seconds**; Ubuntu **969 passed, 2 platform skips in 192.08 seconds**.
+The skips are Windows-specific launcher/review packaging tests. Authority and
+replay integrity gates also passed. Inspect the additive independent replay,
+wheel and delivery proofs in `experiments-v22-resumed`; original proof files
+and historical registries remain unchanged. Final evidence-only tip CI and
+matching remote SHA are verified at handoff.
+
+**ENGINEERING_COMPLETE / SYNTHETIC_VALIDATION_COMPLETE /
+REAL_FINANCIAL_VALIDATION_PENDING / ALPHA_NOT_YET_DEMONSTRATED**.
+Real financial validation remains PENDING;
 Alpha NOT_DEMONSTRATED; expected return uncalibrated; confidence null; V1 default;
 paper candidate INSUFFICIENT_EVIDENCE. No canonical writes or broker side effects.

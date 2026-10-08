@@ -263,3 +263,15 @@ exact V2.1 replay uses pinned 4664cb4. Current artifact validation verifies the
 original V2.1 archive, pinned original V2.2 archive and current resumed registry.
 Current local/clone/CI acceptance is tracked in ACCEPTANCE_V22.md and the updated
 CHECKPOINT_V22.json. No canonical write or strategy promotion was performed.
+
+
+### Completed resumed engineering delivery
+
+Source/registry commit `baa4a1b` passed the independent remote-clone full
+validation (971 tests), all 76 exact replay comparisons, offline wheel
+content verification and Windows/Linux push and PR CI. See
+`ACCEPTANCE_V22.md` and `experiments-v22-resumed/delivery-proof.json` for
+measured timings, run identities and packaging hash. This closes the
+engineering delivery checklist; certified real-data validation and
+expected-return calibration remain separate evidence blockers. No
+new independent financial observation or predictive improvement is claimed.

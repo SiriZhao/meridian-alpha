@@ -90,3 +90,15 @@ The earlier first-hardening full run passed 968 tests; final source validation,
 independent replay and CI are recorded in ACCEPTANCE_V22.md when completed.
 Final engine: e510e84d05b227e2ed2333ff886d4906ecd7a80ac4e5b925c964e91567df821c.
 Factor weights, thresholds, policies, frozen plan and old archives are unchanged.
+
+
+### Completed resumed engineering delivery
+
+Source/registry commit `baa4a1b` passed the independent remote-clone full
+validation (971 tests), all 76 exact replay comparisons, offline wheel
+content verification and Windows/Linux push and PR CI. See
+`ACCEPTANCE_V22.md` and `experiments-v22-resumed/delivery-proof.json` for
+measured timings, run identities and packaging hash. This closes the
+engineering delivery checklist; certified real-data validation and
+expected-return calibration remain separate evidence blockers. No
+new independent financial observation or predictive improvement is claimed.
