@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
+import sys
 from decimal import Decimal
 from pathlib import Path
 from uuid import uuid4
@@ -17,8 +18,11 @@ from meridian.runtime_io import filesystem_detail
 
 
 def main() -> int:
+    if len(sys.argv) > 1 and sys.argv[1] == "quant":
+        from meridian.quant.cli import main as quant_main
+        return quant_main(sys.argv[2:])
     parser = argparse.ArgumentParser(prog="meridian")
-    parser.add_argument("command", choices=("version", "paths", "doctor", "init", "data-status", "snapshot", "daily", "dip-scout", "forward-status", "paper", "shadow-run", "live-advisory", "host-llm"))
+    parser.add_argument("command", choices=("version", "paths", "doctor", "init", "data-status", "snapshot", "daily", "dip-scout", "forward-status", "paper", "shadow-run", "live-advisory", "host-llm", "quant"))
     parser.add_argument("subcommand", nargs="?")
     parser.add_argument("file", nargs="?")
     parser.add_argument("--snapshot")

@@ -222,6 +222,7 @@ class OperationalMarketSnapshot:
     data_quality_mode: str = "NORMAL"
     provider_probes: dict[str, dict[str, object]] = field(default_factory=dict)
     research_quotes: dict[str, MarketSnapshot] = field(default_factory=dict)
+    quant_histories: dict[str, HistoricalBarSeries] = field(default_factory=dict)
 
     @property
     def snapshot_hash(self) -> str:
@@ -344,6 +345,7 @@ class OperationalMarketSnapshotService:
         probes: dict[str, dict[str, object]] = {}
         observations: dict[str, OperationalSnapshot] = {}
         research_quotes: dict[str, MarketSnapshot] = {}
+        quant_histories: dict[str, HistoricalBarSeries] = {}
         data_quality_mode = "NORMAL"
         for symbol in requested:
             refresh = (
@@ -403,6 +405,7 @@ class OperationalMarketSnapshotService:
                         live=live,
                         diagnostic=probes[symbol],
                         research_only=True,
+                        history_sink=quant_histories,
                     )
                     probes[symbol]["research_selection"] = "LAST_COMPLETED_SESSION_ONLY"
                     missing[symbol] = "MARKET_DATA_STALE"
@@ -421,7 +424,7 @@ class OperationalMarketSnapshotService:
                 continue
             try:
                 quotes[symbol] = self._market_snapshot(
-                    symbol, refresh, analysis_time, live=live, diagnostic=probes[symbol]
+                    symbol, refresh, analysis_time, live=live, diagnostic=probes[symbol], history_sink=quant_histories
                 )
                 research_quotes[symbol] = quotes[symbol]
             except (HistoricalProviderError, OSError, ValueError) as error:
@@ -489,6 +492,7 @@ class OperationalMarketSnapshotService:
             missing_symbols=missing,
             data_quality_mode="DATA_DEGRADED" if missing else data_quality_mode,
             research_quotes=research_quotes,
+            quant_histories=quant_histories,
         )
 
     def _market_snapshot(
@@ -500,6 +504,7 @@ class OperationalMarketSnapshotService:
         live: bool = False,
         diagnostic: dict[str, object] | None = None,
         research_only: bool = False,
+        history_sink: dict[str, HistoricalBarSeries] | None = None,
     ) -> MarketSnapshot:
         selected = refresh.selected
         if selected is None:
@@ -515,6 +520,8 @@ class OperationalMarketSnapshotService:
             as_of=analysis_time,
             live=live,
         )
+        if history_sink is not None:
+            history_sink[symbol] = series
         if live:
             # Live collection binds its cutoff after receipt, as build() does.
             # Replay keeps the caller's immutable cutoff and rejects late rows.

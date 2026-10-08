@@ -1,0 +1,414 @@
+{
+  "$id": "https://meridian-alpha.local/schemas/quant-v2-policy.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "allocation": {
+      "default": "risk_adjusted",
+      "enum": [
+        "score",
+        "inverse_volatility",
+        "risk_adjusted"
+      ],
+      "title": "Allocation",
+      "type": "string"
+    },
+    "approval_reference": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Approval Reference"
+    },
+    "correlation_limit": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Correlation Limit"
+    },
+    "correlation_lookback": {
+      "default": 60,
+      "minimum": 20,
+      "title": "Correlation Lookback",
+      "type": "integer"
+    },
+    "cross_section_minimum": {
+      "default": 5,
+      "minimum": 3,
+      "title": "Cross Section Minimum",
+      "type": "integer"
+    },
+    "downtrend_multiplier": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.25",
+      "title": "Downtrend Multiplier"
+    },
+    "high_volatility_absolute": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.25",
+      "title": "High Volatility Absolute"
+    },
+    "high_volatility_multiplier": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.5",
+      "title": "High Volatility Multiplier"
+    },
+    "high_volatility_percentile": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.80",
+      "title": "High Volatility Percentile"
+    },
+    "max_turnover": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "maximum": 2.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.20",
+      "title": "Max Turnover"
+    },
+    "max_volume_participation": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.01",
+      "title": "Max Volume Participation"
+    },
+    "minimum_benefit_cost_ratio": {
+      "anyOf": [
+        {
+          "minimum": 1.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "1.5",
+      "title": "Minimum Benefit Cost Ratio"
+    },
+    "minimum_dollar_volume": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "1000000",
+      "title": "Minimum Dollar Volume"
+    },
+    "minimum_oos_folds": {
+      "default": 2,
+      "minimum": 2,
+      "title": "Minimum Oos Folds",
+      "type": "integer"
+    },
+    "minimum_oos_sessions": {
+      "default": 252,
+      "minimum": 252,
+      "title": "Minimum Oos Sessions",
+      "type": "integer"
+    },
+    "minimum_trade_notional": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "100",
+      "title": "Minimum Trade Notional"
+    },
+    "mode": {
+      "default": "QUANT_V1_BASELINE",
+      "enum": [
+        "QUANT_V1_BASELINE",
+        "QUANT_V2_SHADOW",
+        "QUANT_V2_PAPER_CANDIDATE"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "momentum_scale": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.10",
+      "title": "Momentum Scale"
+    },
+    "momentum_weight": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.7",
+      "title": "Momentum Weight"
+    },
+    "no_trade_band": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.01",
+      "title": "No Trade Band"
+    },
+    "paper_approved": {
+      "default": false,
+      "title": "Paper Approved",
+      "type": "boolean"
+    },
+    "rebalance": {
+      "default": "threshold",
+      "enum": [
+        "daily",
+        "weekly",
+        "threshold"
+      ],
+      "title": "Rebalance",
+      "type": "string"
+    },
+    "rebalance_threshold": {
+      "anyOf": [
+        {
+          "maximum": 2.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.02",
+      "title": "Rebalance Threshold"
+    },
+    "regime_trend_band": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.02",
+      "title": "Regime Trend Band"
+    },
+    "risk_off_drawdown": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 0.0,
+          "exclusiveMinimum": -1.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "-0.15",
+      "title": "Risk Off Drawdown"
+    },
+    "strategy": {
+      "default": "A4",
+      "enum": [
+        "A0",
+        "A1",
+        "A2",
+        "A3",
+        "A4"
+      ],
+      "title": "Strategy",
+      "type": "string"
+    },
+    "target_volatility": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.15",
+      "title": "Target Volatility"
+    },
+    "trend_scale": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.05",
+      "title": "Trend Scale"
+    },
+    "trend_weight": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.3",
+      "title": "Trend Weight"
+    },
+    "use_cost_gate": {
+      "default": true,
+      "title": "Use Cost Gate",
+      "type": "boolean"
+    },
+    "use_momentum": {
+      "default": true,
+      "title": "Use Momentum",
+      "type": "boolean"
+    },
+    "use_trend": {
+      "default": true,
+      "title": "Use Trend",
+      "type": "boolean"
+    },
+    "use_volatility_adjustment": {
+      "default": true,
+      "title": "Use Volatility Adjustment",
+      "type": "boolean"
+    },
+    "version": {
+      "const": "quant-v2.1",
+      "default": "quant-v2.1",
+      "title": "Version",
+      "type": "string"
+    },
+    "volatility_floor": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "default": "0.05",
+      "title": "Volatility Floor"
+    }
+  },
+  "title": "QuantPolicy",
+  "type": "object"
+}

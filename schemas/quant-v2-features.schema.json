@@ -1,0 +1,183 @@
+{
+  "$defs": {
+    "FactorValue": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "availability_cutoff": {
+          "format": "date-time",
+          "title": "Availability Cutoff",
+          "type": "string"
+        },
+        "lookback": {
+          "minimum": 1,
+          "title": "Lookback",
+          "type": "integer"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "normalized_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Normalized Value"
+        },
+        "provenance": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Provenance",
+          "type": "array"
+        },
+        "quality_status": {
+          "enum": [
+            "AVAILABLE",
+            "UNAVAILABLE"
+          ],
+          "title": "Quality Status",
+          "type": "string"
+        },
+        "raw_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw Value"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "version": {
+          "const": "price-factor-v2.1",
+          "default": "price-factor-v2.1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "symbol",
+        "as_of",
+        "lookback",
+        "raw_value",
+        "availability_cutoff",
+        "quality_status"
+      ],
+      "title": "FactorValue",
+      "type": "object"
+    }
+  },
+  "$id": "https://meridian-alpha.local/schemas/quant-v2-features.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "factors": {
+      "items": {
+        "$ref": "#/$defs/FactorValue"
+      },
+      "title": "Factors",
+      "type": "array"
+    },
+    "input_hash": {
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "last_session": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Session"
+    },
+    "quality_status": {
+      "enum": [
+        "VERIFIED",
+        "REJECTED",
+        "SYNTHETIC_DIAGNOSTIC"
+      ],
+      "title": "Quality Status",
+      "type": "string"
+    },
+    "reasons": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    },
+    "synthetic": {
+      "default": false,
+      "title": "Synthetic",
+      "type": "boolean"
+    },
+    "version": {
+      "const": "quant-features-v2.1",
+      "default": "quant-features-v2.1",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "symbol",
+    "as_of",
+    "last_session",
+    "factors",
+    "input_hash",
+    "quality_status"
+  ],
+  "title": "FeatureSnapshot",
+  "type": "object"
+}

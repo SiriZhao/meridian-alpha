@@ -1,0 +1,672 @@
+{
+  "$defs": {
+    "AlphaScoreV2": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "completeness": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Completeness"
+        },
+        "contributions": {
+          "items": {
+            "$ref": "#/$defs/FactorContribution"
+          },
+          "title": "Contributions",
+          "type": "array"
+        },
+        "data_quality_status": {
+          "title": "Data Quality Status",
+          "type": "string"
+        },
+        "exclusion_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclusion Reasons",
+          "type": "array"
+        },
+        "inclusion_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Inclusion Reasons",
+          "type": "array"
+        },
+        "input_hash": {
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "policy_version": {
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "predictive_confidence": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Predictive Confidence"
+        },
+        "quant_score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Quant Score"
+        },
+        "relative_rank": {
+          "minimum": 1,
+          "title": "Relative Rank",
+          "type": "integer"
+        },
+        "risk_adjustments": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Risk Adjustments",
+          "type": "array"
+        },
+        "risk_multiplier": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Risk Multiplier"
+        },
+        "score_change": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score Change"
+        },
+        "strategy": {
+          "title": "Strategy",
+          "type": "string"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol",
+        "as_of",
+        "strategy",
+        "policy_version",
+        "quant_score",
+        "relative_rank",
+        "contributions",
+        "data_quality_status",
+        "completeness",
+        "risk_multiplier",
+        "risk_adjustments",
+        "inclusion_reasons",
+        "exclusion_reasons",
+        "input_hash"
+      ],
+      "title": "AlphaScoreV2",
+      "type": "object"
+    },
+    "FactorContribution": {
+      "additionalProperties": false,
+      "properties": {
+        "contribution": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Contribution"
+        },
+        "factor": {
+          "$ref": "#/$defs/FactorValue"
+        },
+        "group": {
+          "title": "Group",
+          "type": "string"
+        },
+        "normalization": {
+          "title": "Normalization",
+          "type": "string"
+        },
+        "weight": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Weight"
+        }
+      },
+      "required": [
+        "factor",
+        "group",
+        "weight",
+        "contribution",
+        "normalization"
+      ],
+      "title": "FactorContribution",
+      "type": "object"
+    },
+    "FactorValue": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "availability_cutoff": {
+          "format": "date-time",
+          "title": "Availability Cutoff",
+          "type": "string"
+        },
+        "lookback": {
+          "minimum": 1,
+          "title": "Lookback",
+          "type": "integer"
+        },
+        "missing_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Reason"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "normalized_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Normalized Value"
+        },
+        "provenance": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Provenance",
+          "type": "array"
+        },
+        "quality_status": {
+          "enum": [
+            "AVAILABLE",
+            "UNAVAILABLE"
+          ],
+          "title": "Quality Status",
+          "type": "string"
+        },
+        "raw_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw Value"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "version": {
+          "const": "price-factor-v2.1",
+          "default": "price-factor-v2.1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "symbol",
+        "as_of",
+        "lookback",
+        "raw_value",
+        "availability_cutoff",
+        "quality_status"
+      ],
+      "title": "FactorValue",
+      "type": "object"
+    },
+    "RegimeState": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "As Of"
+        },
+        "drawdown_stress": {
+          "default": false,
+          "title": "Drawdown Stress",
+          "type": "boolean"
+        },
+        "exposure_ceiling": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Exposure Ceiling"
+        },
+        "input_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Input Hash"
+        },
+        "reasons": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "rebalance_urgency": {
+          "title": "Rebalance Urgency",
+          "type": "string"
+        },
+        "risk_multiplier": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Risk Multiplier"
+        },
+        "trend": {
+          "enum": [
+            "TRENDING_UP",
+            "TRENDING_DOWN",
+            "RANGE_BOUND",
+            "INSUFFICIENT_DATA"
+          ],
+          "title": "Trend",
+          "type": "string"
+        },
+        "version": {
+          "default": "quant-regime-v2.1",
+          "title": "Version",
+          "type": "string"
+        },
+        "volatility": {
+          "enum": [
+            "NORMAL",
+            "HIGH_VOLATILITY",
+            "INSUFFICIENT_DATA"
+          ],
+          "title": "Volatility",
+          "type": "string"
+        }
+      },
+      "required": [
+        "as_of",
+        "trend",
+        "volatility",
+        "risk_multiplier",
+        "exposure_ceiling",
+        "rebalance_urgency",
+        "input_hash"
+      ],
+      "title": "RegimeState",
+      "type": "object"
+    },
+    "SymbolComparison": {
+      "additionalProperties": false,
+      "properties": {
+        "new_quant_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "New Quant Score"
+        },
+        "new_target_weight": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "New Target Weight"
+        },
+        "old_quant_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Old Quant Score"
+        },
+        "old_target_weight": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Old Target Weight"
+        },
+        "proposed_target_weight": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Proposed Target Weight"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "weight_difference": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Weight Difference"
+        }
+      },
+      "required": [
+        "symbol",
+        "old_quant_score",
+        "new_quant_score",
+        "old_target_weight",
+        "new_target_weight",
+        "proposed_target_weight",
+        "weight_difference",
+        "reasons"
+      ],
+      "title": "SymbolComparison",
+      "type": "object"
+    }
+  },
+  "$id": "https://meridian-alpha.local/schemas/quant-shadow-comparison.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "authority": {
+      "const": "SHADOW_ONLY",
+      "default": "SHADOW_ONLY",
+      "title": "Authority",
+      "type": "string"
+    },
+    "automatic_promotion": {
+      "const": false,
+      "default": false,
+      "title": "Automatic Promotion",
+      "type": "boolean"
+    },
+    "broker_submission": {
+      "const": "DISABLED",
+      "default": "DISABLED",
+      "title": "Broker Submission",
+      "type": "string"
+    },
+    "canonical_orders_changed": {
+      "const": false,
+      "default": false,
+      "title": "Canonical Orders Changed",
+      "type": "boolean"
+    },
+    "engine_hash": {
+      "title": "Engine Hash",
+      "type": "string"
+    },
+    "estimated_cost_fraction": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "title": "Estimated Cost Fraction"
+    },
+    "expected_turnover": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "title": "Expected Turnover"
+    },
+    "history_hashes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "History Hashes",
+      "type": "array"
+    },
+    "market_snapshot_hash": {
+      "title": "Market Snapshot Hash",
+      "type": "string"
+    },
+    "paper_ledger_changed": {
+      "const": false,
+      "default": false,
+      "title": "Paper Ledger Changed",
+      "type": "boolean"
+    },
+    "policy_hash": {
+      "title": "Policy Hash",
+      "type": "string"
+    },
+    "reasons": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "regime": {
+      "$ref": "#/$defs/RegimeState"
+    },
+    "risk_violations": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Risk Violations",
+      "type": "array"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "quant-shadow-comparison.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scores": {
+      "items": {
+        "$ref": "#/$defs/AlphaScoreV2"
+      },
+      "title": "Scores",
+      "type": "array"
+    },
+    "status": {
+      "enum": [
+        "SHADOW_COMPUTED",
+        "INSUFFICIENT_DATA",
+        "SHADOW_BLOCKED"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "symbols": {
+      "items": {
+        "$ref": "#/$defs/SymbolComparison"
+      },
+      "title": "Symbols",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "as_of",
+    "market_snapshot_hash",
+    "policy_hash",
+    "engine_hash",
+    "history_hashes",
+    "status",
+    "symbols",
+    "scores",
+    "regime",
+    "expected_turnover",
+    "estimated_cost_fraction"
+  ],
+  "title": "QuantShadowRecord",
+  "type": "object"
+}
