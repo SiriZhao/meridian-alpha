@@ -7,6 +7,8 @@ Without a verified production market-data adapter, non-zero accounts fail closed
 from __future__ import annotations
 
 import json
+import re
+import sqlite3
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -21,7 +23,6 @@ from starlette.routing import Route
 
 from meridian.analytics.derived_market_features import derive_market_features
 from meridian.application import MeridianApplicationService
-from meridian.audit import AuditStore
 from meridian.config import load_policies
 from meridian.daily_closure import DailyClosureService
 from meridian.data.models import ResearchEvidencePackage
@@ -33,11 +34,30 @@ from meridian.fundamentals import (
 )
 from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_snapshot
 from meridian.host_readiness import evaluate_host_readiness
+from meridian.live_account import ReadOnlyAuditStore
 from meridian.macro_context import compact_macro_context
 from meridian.market import Bar
 from meridian.operational_data import FreshnessPolicy
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
 from meridian.provider_registry import provider_certification_map
+from meridian.readonly_storage import ReadOnlyStorageRefusal
+from meridian.research_terminal import (
+    EvidenceTraceRequest,
+    EvidenceTraceResult,
+    PortfolioWhatIfRequest,
+    PortfolioWhatIfResult,
+    QuantTerminalRequest,
+    QuantTerminalSnapshot,
+)
+from meridian.research_terminal import (
+    portfolio_what_if as calculate_what_if,
+)
+from meridian.research_terminal import (
+    quant_terminal_snapshot as calculate_quant_snapshot,
+)
+from meridian.research_terminal import (
+    research_evidence_trace as calculate_evidence_trace,
+)
 from meridian.runtime import RuntimePaths, policy_directory
 from meridian.runtime_diagnostics import report
 from meridian.schemas import (
@@ -55,8 +75,10 @@ def _service() -> MeridianApplicationService:
     return MeridianApplicationService()
 
 
-def _store() -> AuditStore:
-    return AuditStore(RuntimePaths.from_environment().db)
+def _store() -> ReadOnlyAuditStore:
+    return ReadOnlyAuditStore(RuntimePaths.from_environment().db)
+
+
 READ_ONLY = ToolAnnotations(
     readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=False
 )
@@ -65,6 +87,7 @@ ASTRA_TOOL_NAMES = frozenset({
     "runtime_status", "market_snapshot", "account_snapshot", "company_facts",
     "event_evidence", "macro_context", "research_packet", "quant_metrics", "portfolio_context", "risk_analysis",
     "forward_evidence", "daily_closure", "audit_lookup", "validate_market_evidence",
+    "quant_research_snapshot", "portfolio_what_if", "research_evidence_trace",
 })
 
 
@@ -208,9 +231,16 @@ def get_provider_health() -> dict[str, Any]:
     structured_output=True,
 )
 def get_run(run_id: str) -> dict[str, Any]:
-    result = _store().get_decision_summary(run_id)
+    if not run_id or len(run_id) > 160:
+        return {"found": False, "status": "REJECTED", "reason": "RUN_ID_REQUIRED_MAX_160"}
+    try:
+        result = _store().get_decision_summary(run_id)
+    except ReadOnlyStorageRefusal as error:
+        return {"found": False, "status": "UNAVAILABLE", "reason": str(error), "execution_authority": "NONE"}
+    except (OSError, sqlite3.Error):
+        return {"found": False, "status": "UNAVAILABLE", "reason": "READ_ONLY_AUDIT_UNAVAILABLE_OR_SCHEMA_REVIEW_REQUIRED"}
     if result is None:
-        return {"found": False, "run_id": run_id}
+        return {"found": False, "run_id": run_id, "status": "NOT_FOUND"}
     return {"found": True, "result": result}
 
 
@@ -231,9 +261,10 @@ def get_daily_report(run_id: str) -> dict[str, Any]:
     structured_output=True,
 )
 def inspect_evidence(run_id: str) -> dict[str, Any]:
-    result = _store().get_decision_summary(run_id)
+    lookup = get_run(run_id)
+    result = lookup.get("result")
     if result is None:
-        return {"found": False, "run_id": run_id, "evidence_ids": []}
+        return {**lookup, "evidence_ids": []}
     return {"found": True, "run_id": run_id, "evidence_ids": [], "reason": "Raw evidence is not persisted in the default audit store."}
 
 
@@ -244,9 +275,10 @@ def inspect_evidence(run_id: str) -> dict[str, Any]:
     structured_output=True,
 )
 def inspect_research(run_id: str) -> dict[str, Any]:
-    result = _store().get_decision_summary(run_id)
+    lookup = get_run(run_id)
+    result = lookup.get("result")
     if result is None:
-        return {"found": False, "run_id": run_id}
+        return lookup
     return {"found": True, "run_id": run_id, "status": "SANITIZED_AUDIT_ONLY", "transcript_available": False}
 
 
@@ -257,9 +289,10 @@ def inspect_research(run_id: str) -> dict[str, Any]:
     structured_output=True,
 )
 def inspect_target_portfolio(run_id: str) -> dict[str, Any]:
-    result = _store().get_decision_summary(run_id)
+    lookup = get_run(run_id)
+    result = lookup.get("result")
     if result is None:
-        return {"found": False, "run_id": run_id, "target": []}
+        return {**lookup, "target": []}
     return {"found": True, "run_id": run_id, "target": result.get("recommendations", [])}
 
 
@@ -299,9 +332,10 @@ def provider_health() -> dict[str, Any]:
     structured_output=True,
 )
 def get_order_ticket(run_id: str) -> dict[str, Any]:
-    result = _store().get_decision_summary(run_id)
+    lookup = get_run(run_id)
+    result = lookup.get("result")
     if result is None:
-        return {"found": False, "ticket_available": False, "reason": "Unknown run."}
+        return {**lookup, "ticket_available": False}
     run = result["run"]
     if not isinstance(run, dict):
         raise RuntimeError("Invalid sanitized audit record")
@@ -339,9 +373,10 @@ def get_order_ticket(run_id: str) -> dict[str, Any]:
     structured_output=True,
 )
 def explain_decision(run_id: str) -> dict[str, Any]:
-    result = _store().get_decision_summary(run_id)
+    lookup = get_run(run_id)
+    result = lookup.get("result")
     if result is None:
-        return {"found": False, "explanation": "No run with that identifier exists."}
+        return {**lookup, "explanation": "No readable sanitized decision is available."}
     run = result["run"]
     recommendations = result["recommendations"]
     orders = result["orders"]
@@ -374,6 +409,10 @@ def runtime_status() -> dict[str, Any]:
 
 @mcp.tool(title="Market snapshot", annotations=READ_ONLY, structured_output=True)
 def market_snapshot(symbols: list[str], analysis_cutoff: datetime) -> dict[str, Any]:
+    if not 1 <= len(symbols) <= 4 or len(set(symbols)) != len(symbols):
+        return {"status": "REJECTED", "errors": ["UNIQUE_SYMBOL_LIMIT_1_TO_4"], "execution_authority": "NONE"}
+    if any(not re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,14}", s) for s in symbols):
+        return {"status": "REJECTED", "errors": ["INVALID_SYMBOL"], "execution_authority": "NONE"}
     if analysis_cutoff.tzinfo is None or analysis_cutoff.utcoffset() is None:
         return _tool_metadata(source="operational-market", observed_at=None,
                               analysis_cutoff=None, freshness="UNKNOWN",
@@ -384,6 +423,7 @@ def market_snapshot(symbols: list[str], analysis_cutoff: datetime) -> dict[str, 
         RuntimePaths.from_environment(),
         policy=FreshnessPolicy(quote_max_age_seconds=policies.data.quote_max_age_seconds,
                                account_max_age_seconds=policies.data.account_snapshot_max_age_seconds),
+        read_only=True,
     ).build(symbols, analysis_time=analysis_cutoff, live=True)
     quotes = {key: value for key, value in snapshot.research_quotes.items() if value.timestamp <= analysis_cutoff}
     excluded = set(snapshot.research_quotes) - set(quotes)
@@ -425,6 +465,8 @@ def validate_market_evidence(evidence: list[TrustedWebMarketEvidence]) -> dict[s
 
 @mcp.tool(title="Account snapshot", annotations=READ_ONLY, structured_output=True)
 def account_snapshot(account: AccountSnapshot, analysis_cutoff: datetime) -> dict[str, Any]:
+    if analysis_cutoff.tzinfo is None:
+        return {"valid": False, "errors": ["ANALYSIS_TIME_TIMEZONE_REQUIRED"], "execution_authority": "NONE"}
     errors: list[str] = []
     if account.as_of > analysis_cutoff:
         errors.append("ACCOUNT_AFTER_CUTOFF")
@@ -480,6 +522,8 @@ def _fundamental_trends(snapshot: Any) -> dict[str, Any]:
 @mcp.tool(title="Company facts", annotations=READ_ONLY, structured_output=True)
 def company_facts(symbol: str, analysis_cutoff: datetime) -> dict[str, Any]:
     """Certified, point-in-time SEC fundamentals for Astra research only."""
+    if analysis_cutoff.tzinfo is None or not re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,14}", symbol.upper()):
+        return {"status": "REJECTED", "errors": ["TIMEZONE_AND_VALID_SYMBOL_REQUIRED"], "execution_authority": "NONE"}
     try:
         numeric, snapshot = certified_company_snapshot(symbol, analysis_cutoff)
     except (OSError, ValueError, json.JSONDecodeError) as error:
@@ -619,6 +663,8 @@ def quant_metrics(
     qqq_bars: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Derive a bounded research view; callers receive metrics, never raw rows back."""
+    if max(len(bars), len(spy_bars or []), len(qqq_bars or [])) > 800:
+        return {"status": "REJECTED", "metrics": {}, "errors": ["BAR_LIMIT_800"], "execution_authority": "NONE"}
     def parse(rows: list[dict[str, Any]]) -> list[Bar]:
         return [
             Bar(timestamp=datetime.fromisoformat(str(row["observed_at"])), open=Decimal(str(row["open"])),
@@ -634,7 +680,7 @@ def quant_metrics(
             source="caller-supplied-provenance-bearing-bars", observed_at=None,
             analysis_cutoff=analysis_cutoff, freshness="UNKNOWN", data_quality="REJECTED",
             provenance="none", errors=["MALFORMED_BAR_SERIES"])}
-    if analysis_cutoff.tzinfo is None or not parsed or any(item.timestamp > analysis_cutoff for item in [*parsed, *parsed_spy, *parsed_qqq]):
+    if analysis_cutoff.tzinfo is None or not parsed or any(item.timestamp.tzinfo is None for item in [*parsed, *parsed_spy, *parsed_qqq]) or any(item.timestamp > analysis_cutoff for item in [*parsed, *parsed_spy, *parsed_qqq]):
         return {"status": "REJECTED", "metrics": {}, **_tool_metadata(
             source="caller-supplied-provenance-bearing-bars", observed_at=None,
             analysis_cutoff=analysis_cutoff, freshness="UNKNOWN", data_quality="REJECTED",
@@ -721,6 +767,36 @@ def audit_lookup(run_id: str) -> dict[str, Any]:
                                         data_quality="PASS" if result.get("found") else "MISSING",
                                         provenance="sanitized immutable audit summary",
                                         errors=[] if result.get("found") else ["RUN_NOT_FOUND"])}
+
+
+@mcp.tool(title="Quant V2.2 research snapshot", annotations=READ_ONLY, structured_output=True)
+def quant_research_snapshot(request: QuantTerminalRequest) -> QuantTerminalSnapshot:
+    """Bounded caller history -> actual V2.2 factors/ranks/regime/targets. Shadow only.
+
+    No network, writes, quotes, account loading or model inference. Missing SPY
+    blocks benchmark-dependent calculations; rejected ranks remain null.
+    """
+    return calculate_quant_snapshot(request)
+
+
+@mcp.tool(title="Isolated portfolio what-if", annotations=READ_ONLY, structured_output=True)
+def portfolio_what_if(request: PortfolioWhatIfRequest) -> PortfolioWhatIfResult:
+    """In-memory paper snapshot, desired weights and declared shocks.
+
+    Existing RiskEngine constraints apply. No order/ledger writes, prices or
+    fills. Outputs are weight fractions; no raw account amounts returned.
+    """
+    return calculate_what_if(request)
+
+
+@mcp.tool(title="Quant research evidence trace", annotations=READ_ONLY, structured_output=True)
+def research_evidence_trace(request: EvidenceTraceRequest) -> EvidenceTraceResult:
+    """Recompute the same bounded cutoff/input, then resolve exact factor lineage.
+
+    Wrong, replayed or model-invented IDs never resolve into a different snapshot.
+    No arbitrary file/database access or source authentication is implied.
+    """
+    return calculate_evidence_trace(request)
 
 
 async def health(_: Any) -> JSONResponse:

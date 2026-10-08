@@ -9,13 +9,13 @@ from typing import Any
 
 from meridian.audit import SCHEMA_VERSION, AuditStore
 from meridian.paper import DEFAULT_ACCOUNT, PaperLedger, PaperSettings
+from meridian.readonly_storage import ReadOnlyStorageRefusal, connect_read_only
 
 
 class ReadOnlyAuditStore(AuditStore):
     def connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.path.resolve().as_uri() + '?mode=ro', uri=True)
+        connection = connect_read_only(self.path)
         connection.row_factory = sqlite3.Row
-        connection.execute('PRAGMA query_only=ON')
         return connection
 
     def migrate(self) -> None:
@@ -52,5 +52,5 @@ def inspect_paper(path: Path, settings: PaperSettings, now: datetime) -> dict[st
                 'real_schwab_account': False, 'sector_metadata': 'NOT_IN_LEDGER',
                 'account_freshness': 'READ_TIME_LOCAL_LEDGER_NOT_FRESH_BROKER_CONFIRMATION'}
     except (ValueError, sqlite3.Error, OSError) as error:
-        code = str(error) if isinstance(error, ValueError) else 'PAPER_STORAGE_OR_SCHEMA_UNAVAILABLE'
+        code = str(error) if isinstance(error, (ValueError, ReadOnlyStorageRefusal)) else 'PAPER_STORAGE_OR_SCHEMA_UNAVAILABLE'
         return {'ready': False, 'status': code, 'account': DEFAULT_ACCOUNT, 'ledger_written': False}

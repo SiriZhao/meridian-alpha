@@ -27,6 +27,7 @@ from meridian.audit import SCHEMA_VERSION
 from meridian.cache_health import CacheHealth, CacheHealthStatus, check_cache_health
 from meridian.codex_provider import AUTH_MODE, discover_codex_executable
 from meridian.config import load_policies
+from meridian.readonly_storage import ReadOnlyStorageRefusal, connect_read_only
 from meridian.runtime import RuntimePaths, policy_directory, project_root
 from meridian.runtime_io import FilesystemFailure
 
@@ -47,7 +48,7 @@ def _database(path: Path) -> dict[str, object]:
     if not path.exists():
         return {"status": "DEGRADED", "detail": "database_not_initialized", "schema_version": None, "migration_status": "PENDING"}
     try:
-        with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=rw", uri=True)) as connection:
+        with closing(connect_read_only(path)) as connection:
             quick = connection.execute("PRAGMA quick_check").fetchone()
             table = connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'").fetchone()
             version = connection.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0] if table else None
@@ -55,6 +56,8 @@ def _database(path: Path) -> dict[str, object]:
             return {"status": "FAIL", "detail": "MERIDIAN_DATABASE_NEWER_SCHEMA: upgrade Meridian; preserve DB", "schema_version": version, "migration_status": "FAILED"}
         healthy = quick == ("ok",) and version == SCHEMA_VERSION
         return {"status": "PASS" if healthy else "DEGRADED", "detail": "healthy" if healthy else "migration_required", "schema_version": version, "migration_status": "CURRENT" if version == SCHEMA_VERSION else "PENDING"}
+    except ReadOnlyStorageRefusal as error:
+        return {"status": "FAIL", "detail": str(error), "schema_version": None, "migration_status": "NOT_VERIFIED"}
     except sqlite3.DatabaseError:
         return {"status": "FAIL", "detail": "DATABASE_CORRUPT_OR_INCOMPATIBLE", "schema_version": None, "migration_status": "FAILED"}
     except OSError:
@@ -184,8 +187,11 @@ def report(
     ]
     cache_health = None
     try:
-        paths.ensure_directories()
-        checks.append(Check("runtime_directories", "PASS", str(paths.home)))
+        if probe_writes:
+            paths.ensure_directories()
+        present = all(path.is_dir() for path in paths.directories().values())
+        checks.append(Check("runtime_directories", "PASS" if present else "INFO",
+                            str(paths.home) if present else "DIRECTORIES_NOT_PRESENT_NO_READ_ONLY_CREATION"))
         if probe_writes:
             checks.extend(_attempt(f"runtime_write:{name}", lambda path=path: _writable(path)) for name, path in paths.directories().items() if name != "cache")
             cache_health = check_cache_health(paths.cache)
@@ -217,12 +223,12 @@ def report(
             else "CODEX_NOT_INSTALLED",
         )
     )
-    codex_version_status, codex_version = _codex_version(codex_executable)
+    codex_version_status, codex_version = _codex_version(codex_executable) if probe_writes else ("INFO", "NOT_PROBED_READ_ONLY_HOST")
     checks.append(Check("codex_compatibility", codex_version_status if codex_executable else "INFO", f"{codex_version}; minimum 0.153.0"))
     checks.append(Check("codex_auth_mode", "PASS", AUTH_MODE))
     skill_check, skill = _skill_check()
     checks.append(skill_check)
-    mcp_check, mcp = _mcp_check()
+    mcp_check, mcp = _mcp_check() if probe_writes else (Check("mcp_tools", "INFO", "NOT_PROBED_READ_ONLY_HOST"), {"configured": None, "registered": [], "discovery_status": "NOT_PROBED"})
     checks.append(mcp_check)
     for package in ("pydantic", "PyYAML", "mcp"):
         checks.append(_attempt(f"dependency:{package}", lambda package=package: importlib.metadata.version(package)))

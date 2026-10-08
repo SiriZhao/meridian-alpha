@@ -223,3 +223,11 @@ See [architecture](docs/quant-v2/ARCHITECTURE.md),
 [ADR 0037](docs/adr/0037-quant-engine-v2.md).
 Verified financial OOS alpha is **not demonstrated**; synthetic diagnostics are
 engineering evidence only.
+
+The [read-only Quant research terminal](docs/research-terminal/OPERATOR_GUIDE.md)
+exposes the existing V2.2 engine through three bounded MCP tools and a Chinese
+stdout/JSON CLI. Its native GPT bridge retains numerical attribution, evidence
+cutoffs and disagreement without granting order authority. The
+[fixture-only example](docs/research-terminal/SYNTHETIC_EXAMPLE.txt) has no current
+market/account claim. See the [architecture audit](docs/research-terminal/ARCHITECTURE_AUDIT.md)
+for delivered and data-blocked capabilities.

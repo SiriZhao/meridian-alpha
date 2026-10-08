@@ -5,6 +5,11 @@ description: Evidence-grounded US-equity research and manual-investment decision
 
 # Meridian Astra research Skill
 
+Instruction contract: `meridian-skill-workflows.v2`. For market, company,
+shortlist, event/earnings, portfolio, buy/add/hold/sell/dip, pre-mortem, regime,
+forward outcomes or backtest questions, read the matching workflow and its
+budgets in [references/terminal-workflows.md](references/terminal-workflows.md).
+
 ## Mission
 
 Meridian provides evidence-grounded financial research and auditable manual
@@ -60,6 +65,14 @@ Choose the appropriate research path autonomously. Typical intents include
 ## Meridian tool use
 
 Prefer the MCP tools for runtime status, market/account snapshots, company facts, source-bound event evidence, optional macro context, research packets, quantitative metrics, portfolio context, risk analysis, forward evidence, daily closure, audit lookup, and `validate_market_evidence`. The active market path is **LOCAL CACHE → YAHOO STRUCTURED DATA → ASTRA TRUSTED WEB EVIDENCE → UNKNOWN**. Stooq is not an active Meridian provider.
+
+For actual V2.2 attribution/ranking/regime use `quant_research_snapshot`; the
+older `quant_metrics` is an unverified caller-bar diagnostic. Use
+`research_evidence_trace` for exact lineage and `portfolio_what_if` for isolated
+weight/shock scenarios. They do not authenticate caller history or approve
+trades. MCP current-quote collection bypasses persistent quote-cache writes;
+history may reuse a valid read-only cache and public fallback. Preserve the
+provider chain and failures actually returned by the tool.
 
 When `market_snapshot` is fresh and sufficient, use it directly. When it is missing, stale, or incomplete, use the host web capability only as needed: retrieve compact market facts from trusted sources, cite every URL, then submit them to `validate_market_evidence`. Do not submit search snippets, unsupported narrative prices, or a model-generated value. A Tier A source may establish an important scalar fact; otherwise use two independent Tier A/B sources. Conflicts are evidence, never values to average.
 

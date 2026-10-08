@@ -8,6 +8,15 @@ and research mode share `run_live_advisory.ps1`; neither runs paper trades.
 V1 stays canonical. V2.2_SHADOW and GPT_ADVISORY retain separate provenance,
 public inputs remain unverified, and missing factors/prices remain UNKNOWN.
 
+For the separate read-only Quant terminal, follow the
+[Mission 4 operator guide](research-terminal/OPERATOR_GUIDE.md) from its verified
+development checkout and Python environment. `meridian terminal` reads an
+explicit bounded history request and prints Chinese/JSON research views; it
+does not initialize accounts, invoke Doctor, fetch prices or run a paper day.
+The Skill's Quant/what-if/lineage tools are research-only. Missing current prices
+and account evidence stay blockers, and journal-review refusal must not be
+resolved by deleting canonical SQLite coordination files.
+
 ## Forward evidence and alpha lab
 
 The [isolated alpha lab](alpha-lab.md) is a separate read-only research workflow.
