@@ -125,6 +125,7 @@ class ForwardOutcome(StableModel):
     outcome_source: str = "LEGACY_UNVERIFIED"
     price_timestamp: AwareDatetime | None = None
     price_quality: str = Field(default="UNVERIFIED", pattern="^(UNVERIFIED|VERIFIED_HORIZON_CLOSE)$")
+    close_evidence: dict[str, object] | None = None
 
     @model_validator(mode="after")
     def verified_requires_price_provenance(self) -> ForwardOutcome:
@@ -145,7 +146,13 @@ class ForwardOutcome(StableModel):
                 raise ValueError("FORWARD_VERIFIED_OUTCOME_PROVENANCE_REQUIRED")
             if self.benchmark_symbol != prediction.benchmark:
                 raise ValueError("FORWARD_BENCHMARK_MISMATCH")
-            if not terminal.is_finite() or terminal <= 0 or self.return_at_horizon != terminal / prediction.price - Decimal("1"):
+            if self.close_evidence is not None:
+                from meridian.dated_close import ReviewedPricePair, evaluate_close
+                pair = ReviewedPricePair.model_validate(self.close_evidence)
+                result = evaluate_close(pair, as_of=self.observed_at)
+                if pair.prediction.content_hash != prediction.content_hash or not result.financial_sample_eligible or self.return_at_horizon != result.return_at_horizon or self.benchmark_return != result.benchmark_return or terminal != pair.terminal.price:
+                    raise ValueError("FORWARD_REVIEWED_CLOSE_PROVENANCE_MISMATCH")
+            elif not terminal.is_finite() or terminal <= 0 or self.return_at_horizon != terminal / prediction.price - Decimal("1"):
                 raise ValueError("FORWARD_OUTCOME_RETURN_MISMATCH")
 
 
@@ -326,7 +333,9 @@ class ForwardLedger:
                 outcome_source=source,
                 price_timestamp=prediction.maturity_at if observations is not None else None,
                 price_quality=quality,
-                **legacy,
+                return_5d=legacy.get("return_5d"),
+                return_20d=legacy.get("return_20d"),
+                return_60d=legacy.get("return_60d"),
             )
             if self.append_outcome(outcome) == "APPENDED":
                 appended.append(prediction.prediction_id)
@@ -362,14 +371,20 @@ class ForwardLedger:
         by_horizon: dict[str, int] = {}
         for prediction, _, _ in rows:
             by_horizon[prediction.horizon_name] = by_horizon.get(prediction.horizon_name, 0) + 1
+        reviewed_count = sum(outcome.close_evidence is not None for _, outcome, _ in rows)
+        quality = {"reviewed_financial_sample_count": reviewed_count,
+                   "reviewed_evaluation_readiness": "EVALUATION_ELIGIBLE" if reviewed_count >= minimum_samples else "INSUFFICIENT_EVIDENCE",
+                   "sample_definition": "SYMBOL_HORIZON_ROWS_NOT_INDEPENDENT_PORTFOLIO_SAMPLES",
+                   "legacy_sample_count": len(rows) - reviewed_count,
+                   "financial_alpha_validated": False}
         if len(rows) < minimum_samples:
             return {"status": "INSUFFICIENT_FORWARD_EVIDENCE", "maturity_status": "PENDING_OBSERVATION_TIME" if future_outcomes else "PENDING_OUTCOMES" if len(self.outcomes) < len(self.predictions) else "OUTCOMES_RECORDED", "evaluation_cutoff": cutoff.isoformat(), "future_outcome_count": future_outcomes, "evaluation_readiness": "INSUFFICIENT_VERIFIED_SAMPLES", "unverified_outcome_count": len(self.outcomes) - len(rows) - future_outcomes, "sample_count": len(rows), "required": minimum_samples,
                     "prediction_count": len(self.predictions), "pending_count": len(self.predictions) - len(self.outcomes),
-                    "by_horizon": by_horizon, "promotion_readiness": "NOT_ELIGIBLE_AUTOMATIC_PROMOTION_DISABLED"}
+                    "by_horizon": by_horizon, "promotion_readiness": "NOT_ELIGIBLE_AUTOMATIC_PROMOTION_DISABLED", **quality}
         excess = [value - outcome.benchmark_return for _, outcome, value in rows if outcome.benchmark_return is not None]
         return {"status": "EVALUABLE_SHADOW_ONLY", "evaluation_cutoff": cutoff.isoformat(), "future_outcome_count": future_outcomes, "evaluation_readiness": "EVALUATION_ELIGIBLE", "authority": "SHADOW_EVIDENCE_ONLY", "policy_promotion": "NO_AUTOMATIC_PROMOTION", "sample_count": len(excess),
                 "mean_excess_return": str(sum(excess, Decimal("0")) / len(excess)), "by_horizon": by_horizon,
-                "promotion_readiness": "NOT_ELIGIBLE_AUTOMATIC_PROMOTION_DISABLED"}
+                "promotion_readiness": "NOT_ELIGIBLE_AUTOMATIC_PROMOTION_DISABLED", **quality}
 
 
 def policy_hash(policy: ForwardEvidencePolicy) -> str:
