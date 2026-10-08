@@ -156,6 +156,8 @@ def evaluate_close(pair: ReviewedPricePair, *, as_of: AwareDatetime) -> CloseEva
         return blocked(CloseStatus.NOT_MATURE, "HORIZON_NOT_COMPLETE")
     if prediction.maturity_session is None or prediction.trading_session is None or prediction.benchmark_price is None:
         return blocked(CloseStatus.MISSING, "INCEPTION_OR_SESSION_PROVENANCE_MISSING")
+    if prediction.trading_session.year not in {2026, 2027, 2028}:
+        return blocked(CloseStatus.MISSING, "INCEPTION_SESSION_OUTSIDE_REVIEWED_CALENDAR_SCOPE")
     for close, symbol in ((pair.terminal, prediction.symbol), (pair.benchmark_terminal, prediction.benchmark)):
         if close.symbol != symbol or close.session_date != prediction.maturity_session:
             return blocked(CloseStatus.CONFLICT, "EXACT_SYMBOL_AND_MATURITY_REQUIRED")
