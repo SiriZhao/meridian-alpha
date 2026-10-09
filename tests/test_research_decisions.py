@@ -328,6 +328,10 @@ def test_actual_v23_live_service_report_and_model_grounding(tmp_path, monkeypatc
             if role == 'PRIMARY_ANALYST':
                 assert input_data['market_context']['quant_live']['flagship']['engine_hash']
                 assert any(e['source'] == 'V2.3_SHADOW' for e in input_data['evidence'])
+                authoritative = {s['bridge']['symbol']:s for s in input_data['market_context']['quant_live']['flagship']['scores']}
+                for evidence in input_data['evidence']:
+                    if evidence['source'] == 'V2.3_SHADOW':
+                        assert evidence['structured_value']['quant']['score'] == authoritative.get(evidence['symbol'])
                 if fault == 'quota':
                     return ModelInvocationResult(status=InvocationStatus.RATE_LIMITED, error_type='FIXTURE_QUOTA_EXHAUSTED')
             if role == 'SYMBOL_ADVISORY':
@@ -357,6 +361,9 @@ def test_actual_v23_live_service_report_and_model_grounding(tmp_path, monkeypatc
     assert all(r['engine'] == 'V2.3_SHADOW' for r in report['research_recommendations'])
     assert not (tmp_path/'db/meridian.sqlite3').exists() and report['ORDER_AUTHORITY'] == 'NONE'
     assert report['quant_live']['shadow_comparison']['engine_hash'] == report['quant_live']['flagship']['engine_hash']
+    authoritative = {s['bridge']['symbol']:s['bridge']['quant_score'] for s in report['quant_live']['flagship']['scores']}
+    assert all(r['new_quant_score'] == authoritative.get(r['symbol']) for r in report['quant_live']['shadow_comparison']['symbols'])
+    assert all(r['quant_score'] == authoritative.get(r['symbol']) for r in report['quant_research_rows'] if r['quant_rank'] is not None)
     assert Path(report['report_markdown']).is_file()
     if fault:
         assert report['blockers'] and report['decision_provenance']['gpt']['status'] != 'COMPLETE'

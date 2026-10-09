@@ -145,20 +145,24 @@ def build_live_quant_snapshot(*, histories: Mapping[str, HistoricalBarSeries],
         from meridian.quant.portfolio import weights
         proposed = weights(flagship.allocation.allocation.preferred_target) if flagship else {}
         feasible = weights(flagship.allocation.allocation.feasible_target) if flagship else {}
+        flagship_scores = {s.bridge.symbol:s for s in flagship.scores} if flagship else {}
         scored = {r.symbol: r for r in packet.symbols}
         comparisons = []
         for symbol in symbols:
             row = scored[symbol]
             quote = valid_quotes.get(symbol)
             old_score = max(D(0), quote.last / quote.previous_close - 1) if quote and quote.last and quote.previous_close else None
-            new = row.score.bridge.quant_score if qualified and row.score and (engine != 'V2.3_SHADOW' or symbol != 'SPY') else None
+            actual_score = flagship_scores.get(symbol) if engine == 'V2.3_SHADOW' else row.score
+            new = actual_score.bridge.quant_score if qualified and actual_score and not actual_score.bridge.exclusion_reasons else None
             new_weight = feasible.get(symbol, D(0)) if engine == 'V2.3_SHADOW' else row.feasible_exposure
             preferred_weight = proposed.get(symbol, D(0)) if engine == 'V2.3_SHADOW' else row.preferred_exposure
             old_weight = (baseline_weights or {}).get(symbol, D(0))
             comparisons.append(SymbolComparison(symbol=symbol, old_quant_score=old_score, new_quant_score=new,
                 old_target_weight=old_weight, new_target_weight=new_weight,
                 proposed_target_weight=preferred_weight, weight_difference=new_weight - old_weight,
-                reasons=row.reasons_for_waiting + (() if qualified else ('INSUFFICIENT_VERIFIED_HISTORY',))))
+                reasons=(tuple(actual_score.bridge.exclusion_reasons) if actual_score else ('BENCHMARK_REFERENCE_NOT_V23_CANDIDATE',))
+                    + flagship.allocation.reasons + flagship.allocation.allocation.modifications
+                    if flagship else row.reasons_for_waiting + (() if qualified else ('INSUFFICIENT_VERIFIED_HISTORY',))))
         shadow = QuantShadowRecord(run_id=run_id, as_of=cutoff,
             market_snapshot_hash=hashlib.sha256('|'.join(f'{s}:{h}' for s, h in quote_hashes.items()).encode()).hexdigest(),
             policy_hash=flagship.allocation.policy_hash if flagship else packet.strategy_hash,

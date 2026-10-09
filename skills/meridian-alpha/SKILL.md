@@ -25,7 +25,7 @@ An explicitly authorized sanitized Schwab-Paper snapshot can be passed to
 reconciliation and order engines; no ledger write or fill is performed. It
 does not issue the seven-gate production manual readiness certificate. Missing
 quotes, account, history, session or risk evidence must stay named blockers.
-See [decision operator guide](../../docs/decision-integration/OPERATOR.md).
+See [terminal workflow reference](references/terminal-workflows.md).
 
 Meridian provides evidence-grounded financial research and auditable manual
 investment decision support for US equities. It is not a brokerage client,

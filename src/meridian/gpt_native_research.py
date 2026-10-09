@@ -20,6 +20,7 @@ import subprocess
 import time
 from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
+from decimal import Decimal
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, Literal, Protocol, cast
@@ -991,12 +992,24 @@ class GPTNativeResearchOrchestrator:
                 raise ValueError('LIVE_QUANT_CUTOFF_OR_HASH_MISMATCH')
             for symbol in sorted(snapshot.price_conditions):
                 quant_row = next((row for row in snapshot.quant_packet.symbols if row.symbol == symbol), None) if snapshot.quant_packet else None
+                quant_value = quant_row.model_dump(mode='json') if quant_row else None
+                if snapshot.engine == 'V2.3_SHADOW' and quant_value:
+                    from meridian.quant.portfolio import weights
+                    actual = next((s for s in snapshot.flagship.scores if s.bridge.symbol == symbol), None) if snapshot.flagship else None
+                    allocation = snapshot.flagship.allocation.allocation if snapshot.flagship else None
+                    quant_value.update(score=actual.model_dump(mode='json') if actual else None,
+                        preferred_exposure=str(weights(allocation.preferred_target).get(symbol, Decimal(0))) if allocation else None,
+                        feasible_exposure=str(weights(allocation.feasible_target).get(symbol, Decimal(0))) if allocation else None,
+                        cost_adjusted_exposure=str(weights(snapshot.flagship.cost_adjusted_proposal.target).get(symbol, Decimal(0))) if snapshot.flagship else None,
+                        current_exposure=None, eligible_change=None, candidate_action='WAIT',
+                        symbol_role='BENCHMARK_REFERENCE' if symbol == 'SPY' else 'V23_RESEARCH_CANDIDATE',
+                        source_engine='V2.3_SHADOW', portfolio_basis=snapshot.portfolio_basis)
                 items.append(ResearchEvidence(evidence_id='quant-' + snapshot.digest + '-' + symbol,
                     symbol=symbol, category=EvidenceCategory.TECHNICAL,
                     source_type=EvidenceSourceType.DETERMINISTIC_MODEL, source=snapshot.engine,
                     observed_at=request.analysis_cutoff, market_timestamp=request.analysis_cutoff,
                     structured_value={'strict_status': snapshot.strict_status,
-                        'quant': quant_row.model_dump(mode='json') if quant_row else None,
+                        'quant': quant_value,
                         'provisional': snapshot.provisional_diagnostics.get(symbol),
                         'price_condition': snapshot.price_conditions[symbol], 'trade_authorized': False,
                         **({'flagship': {'engine_hash': snapshot.flagship.engine_hash,

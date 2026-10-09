@@ -157,7 +157,7 @@ def build_recommendations(snapshot: QuantTerminalSnapshot, *, request: DailyRese
     results = []
     for row in snapshot.rows:
         entry = raw.get(row.symbol)
-        score = v23scores.get(row.symbol) or (entry.score if entry else None)
+        score = v23scores.get(row.symbol) if flagship else entry.score if entry else None
         feature = entry.feature.base if entry else None
         plan = research_price_plan(feature, request, max_age) if feature else None
         weight = current.get(row.symbol, D(0)) if current is not None else None
