@@ -1,0 +1,42 @@
+{
+  "version": "quant-v23-verification.v1",
+  "verified_at": "2026-10-09T01:39:33.066814+00:00",
+  "validated_code_commit": "ec28d78c92e3b0bb5227be40b91eef298d888438",
+  "python": "3.12.10",
+  "engine_hash": "7d85f0ba5fb84fd574d548cd71fe2ef45d60922b7efbd298ec3a9ef24228952e",
+  "logs": {
+    "source": {
+      "status": "PASS",
+      "sha256": "a74d3c3fa20d5bd6481c1d1ba9a90332dec3c31cd649baf4d89e5dc5e960c7ce",
+      "relative_path": ".tmp/v23-final-validation-3.log",
+      "pytest_passed": 1079
+    },
+    "fresh_clone": {
+      "status": "PASS",
+      "sha256": "adc25f7df6ed05125c6ed2d6e7ad100f4a80c18194e8bf40e11d68e9024b7eb7",
+      "relative_path": ".tmp/v23-independent-clone/.tmp/v23-clone-final-validation.log",
+      "pytest_passed": 1079
+    }
+  },
+  "ci": {
+    "push": 37869337550,
+    "pull_request": 37869341809,
+    "status": "SUCCESS",
+    "windows_passed": 1079,
+    "linux_passed": 1077,
+    "linux_skipped": 2
+  },
+  "synthetic_evaluations": 88,
+  "public_reference_symbols": [
+    "SPY",
+    "QQQM",
+    "AAPL",
+    "MSFT",
+    "NVDA"
+  ],
+  "certified_real_oos": "MISSING_EVIDENCE",
+  "alpha": "ALPHA_NOT_YET_DEMONSTRATED",
+  "canonical_runtime_accessed": false,
+  "broker_submission": "DISABLED",
+  "automatic_promotion": false
+}
