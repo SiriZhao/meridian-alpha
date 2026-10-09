@@ -25,7 +25,9 @@ from meridian.analytics.derived_market_features import derive_market_features
 from meridian.application import MeridianApplicationService
 from meridian.config import load_policies
 from meridian.daily_closure import DailyClosureService
+from meridian.daily_research import DailyResearchInput
 from meridian.data.models import ResearchEvidencePackage
+from meridian.decision_brief import DecisionBrief, generate_decision_brief
 from meridian.event_evidence import QualitativeEventEvidence
 from meridian.evidence_foundation import MacroObservation
 from meridian.execution_quote_providers import provider_preflight
@@ -41,6 +43,11 @@ from meridian.operational_data import FreshnessPolicy
 from meridian.operational_market_snapshot import OperationalMarketSnapshotService
 from meridian.provider_registry import provider_certification_map
 from meridian.readonly_storage import ReadOnlyStorageRefusal
+from meridian.research_order_review import (
+    ManualOrderTicket,
+    PaperReviewRequest,
+    review_paper_request,
+)
 from meridian.research_terminal import (
     EvidenceTraceRequest,
     EvidenceTraceResult,
@@ -769,7 +776,7 @@ def audit_lookup(run_id: str) -> dict[str, Any]:
                                         errors=[] if result.get("found") else ["RUN_NOT_FOUND"])}
 
 
-@mcp.tool(title="Quant V2.2 research snapshot", annotations=READ_ONLY, structured_output=True)
+@mcp.tool(title="Versioned Quant research snapshot", annotations=READ_ONLY, structured_output=True)
 def quant_research_snapshot(request: QuantTerminalRequest) -> QuantTerminalSnapshot:
     """Bounded caller history -> actual V2.2 factors/ranks/regime/targets. Shadow only.
 
@@ -777,6 +784,32 @@ def quant_research_snapshot(request: QuantTerminalRequest) -> QuantTerminalSnaps
     blocks benchmark-dependent calculations; rejected ranks remain null.
     """
     return calculate_quant_snapshot(request)
+
+
+@mcp.tool(title="Deterministic research decision brief", annotations=READ_ONLY, structured_output=True)
+def decision_research_brief(request: QuantTerminalRequest, research: DailyResearchInput | None = None) -> DecisionBrief:
+    """Quant -> attraction/conditions/Chinese diagnostics; no model call or orders.
+
+    Missing account never invents holdings; missing execution quotes never grant
+    ticket authority. Optional observations bind price plans to the same cutoff.
+    """
+    from meridian.terminal_service import TerminalPlanner
+    if research and len(research.stable_json().encode()) > 2000000:
+        raise ValueError('DECISION_RESEARCH_INPUT_LIMIT_2MB')
+    return generate_decision_brief(TerminalPlanner().build(request), request=research)
+
+
+@mcp.tool(title="Isolated shadow paper order review", annotations=READ_ONLY, structured_output=True)
+def research_paper_plan(request: PaperReviewRequest) -> ManualOrderTicket:
+    """Explicit sanctioned paper snapshot -> gated non-executing planning.
+
+    No account loading, DB, fills, readiness-certificate issuance or promotion.
+    Research price zones never supply planner prices. Raw account is not echoed.
+    """
+    payload = {**request.model_dump(), 'account':request.account.model_dump() if request.account else None}
+    if len(json.dumps(payload, default=str).encode()) > 2000000:
+        raise ValueError('RESEARCH_PAPER_PLAN_INPUT_LIMIT_2MB')
+    return review_paper_request(PaperReviewRequest.model_validate(payload))
 
 
 @mcp.tool(title="Isolated portfolio what-if", annotations=READ_ONLY, structured_output=True)

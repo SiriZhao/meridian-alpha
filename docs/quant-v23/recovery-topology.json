@@ -1,0 +1,44 @@
+[
+  {
+    "parent": "main",
+    "child": "codex/canonical-truth-hardening",
+    "parent_is_ancestor": true,
+    "ahead_behind": "0\t5",
+    "merge_base": "1d7e0643ed53a805d2691bc8e42592fe53d28280"
+  },
+  {
+    "parent": "codex/canonical-truth-hardening",
+    "child": "feature/forward-evidence-alpha-lab-20261008",
+    "parent_is_ancestor": true,
+    "ahead_behind": "0\t13",
+    "merge_base": "414d8698a905b14eaea558490a5f30d995d07b9d"
+  },
+  {
+    "parent": "feature/forward-evidence-alpha-lab-20261008",
+    "child": "codex/quant-engine-v2",
+    "parent_is_ancestor": true,
+    "ahead_behind": "0\t19",
+    "merge_base": "fd7481d4de1b69b7bf174f921fd7726efaed8616"
+  },
+  {
+    "parent": "codex/quant-engine-v2",
+    "child": "codex/quant-live-bridge",
+    "parent_is_ancestor": true,
+    "ahead_behind": "0\t6",
+    "merge_base": "69eb57aa0f8464b18c98c9464b1c1d52a267c960"
+  },
+  {
+    "parent": "codex/quant-live-bridge",
+    "child": "codex/live-session-integrity",
+    "parent_is_ancestor": true,
+    "ahead_behind": "0\t1",
+    "merge_base": "c7b330c3c954592d3d19fa205baacfc84d070f6c"
+  },
+  {
+    "parent": "codex/live-session-integrity",
+    "child": "codex/research-terminal",
+    "parent_is_ancestor": true,
+    "ahead_behind": "0\t3",
+    "merge_base": "f2d06396268af9ba560f839a82012aa693fe60c0"
+  }
+]

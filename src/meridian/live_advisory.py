@@ -32,9 +32,14 @@ from meridian.host_account import HostAccountSnapshotEnvelope, normalize_host_sn
 from meridian.host_readiness import ReadinessStatus, inspect_snapshot
 from meridian.live_account import read_only_ledger
 from meridian.live_features import collect_live_features
-from meridian.live_quant_bridge import build_live_quant_snapshot, persist_live_quant
+from meridian.live_quant_bridge import (
+    build_live_quant_snapshot,
+    live_recommendations,
+    persist_live_quant,
+)
 from meridian.live_report import quant_research_rows, render_quant_research
 from meridian.market_identity import canonical_market_reference
+from meridian.numerical_grounding import NumericalCitation, validate_numerical_claim
 from meridian.paper import DEFAULT_ACCOUNT, PaperSettings
 from meridian.quant.policy import ChallengerPolicy
 from meridian.quotes import (
@@ -80,6 +85,7 @@ class MarketDataFreshnessGate:
 
 
 class AdvisoryThesis(StableModel):
+    numerical_citations: tuple[NumericalCitation, ...] = Field(default=(), max_length=20)
     symbol: str = Field(pattern=r"^[A-Z][A-Z0-9.\-]{0,14}$")
     action: Action
     confidence: float = Field(ge=0, le=1)
@@ -237,14 +243,12 @@ def render_report(report: dict[str, Any]) -> str:
              f"Provider: {report.get('provider', 'UNAVAILABLE')}",
              f"Freshness: {report.get('freshness', 'UNAVAILABLE')}", "",
              "## Portfolio summary", "", json.dumps(report.get('portfolio_summary', {}), default=str),
-             "", "## Market regime and current signals", "",
-             json.dumps(report.get('signals', {}), default=str),
-             "", "## Completed-session historical features", "",
-             json.dumps(report.get('historical_features', {}), default=str),
-             "", "## LLM research", "", json.dumps(report.get('research_summary', {}), default=str),
-             "", "## Risk review", "", json.dumps(report.get('risk', {}), default=str),
+             "", "## 市场、Quant 与研究状态", "",
+             'Quant：' + str(report.get('quant_live', {}).get('engine', 'UNKNOWN')) + ' / ' + str(report.get('quant_live', {}).get('strict_status', 'UNKNOWN')),
+             'GPT：' + str(report.get('research_summary', {}).get('state', 'NOT_RUN')),
+             '完整因子、模型调用和风险证明保留在配套 JSON；原 canonical 默认仍为 V1。',
              "", "## Action table", "",
-             "| Symbol | Observed price | GPT opinion | Uncalibrated narrative confidence | Research zone anchor | Invalidation | V1 reference guidance | Main reason |",
+             "| Symbol | Observed price | GPT opinion | Uncalibrated narrative confidence | Research zone anchor | Invalidation | Shadow research guidance | Main reason |",
              "|---|---:|---|---:|---:|---:|---|---|"]
     for row in report.get('decisions', []):
         values = [row['symbol'], row['current_price'], row['action'], row['confidence'],
@@ -264,8 +268,11 @@ def render_report(report: dict[str, Any]) -> str:
 
 
 class LiveAdvisoryService:
-    def __init__(self, paths: RuntimePaths | None = None):
+    def __init__(self, paths: RuntimePaths | None = None, *, quant_engine: Literal['V2.2_SHADOW', 'V2.3_SHADOW'] = 'V2.2_SHADOW'):
         self.paths = paths or RuntimePaths.from_environment()
+        if quant_engine not in {'V2.2_SHADOW', 'V2.3_SHADOW'}:
+            raise ValueError('LIVE_RESEARCH_ENGINE_UNSUPPORTED')
+        self.quant_engine: Literal['V2.2_SHADOW', 'V2.3_SHADOW'] = quant_engine
 
     def run(self, *, account_name: str = DEFAULT_ACCOUNT, snapshot_path: Path | None = None,
             role_timeout: int = 90, reasoning_effort: str | None = None) -> dict[str, Any]:
@@ -469,17 +476,18 @@ class LiveAdvisoryService:
             (policy_directory() / 'quant-v22.yaml').read_text(encoding='utf-8')))
         quant_snapshot = build_live_quant_snapshot(histories=histories, quotes=observations, cutoff=cutoff,
             policies=policies, policy=challenger_policy, run_id=run_id, baseline_weights=target_weights,
-            account=marked if marked is not None and marked.account_alias == DEFAULT_ACCOUNT else None)
+            account=marked if marked is not None and marked.account_alias == DEFAULT_ACCOUNT else None, engine=self.quant_engine)
         report['quant_live'] = quant_snapshot.model_dump(mode='json')
         report['quant_live_hash'] = quant_snapshot.digest
         report['quant_evidence_path'] = str(persist_live_quant(quant_snapshot, self.paths.home / 'research' / 'live-quant'))
         report['decision_provenance'] = {
             'operational': {'engine': 'QUANT_V1_BASELINE', 'status': 'NOT_RUN_BY_LIVE_ADVISORY', 'canonical_orders_changed': False},
-            'challenger': {'engine': 'V2.2_SHADOW', 'status': quant_snapshot.strict_status,
-                           'engine_hash': quant_snapshot.quant_packet.engine_hash if quant_snapshot.quant_packet else None,
+            'challenger': {'engine': quant_snapshot.engine, 'status': quant_snapshot.strict_status,
+                           'engine_hash': quant_snapshot.flagship.engine_hash if quant_snapshot.flagship else None,
                            'snapshot_hash': quant_snapshot.digest, 'authority': 'SHADOW_ONLY'},
             'gpt': {'engine': 'GPT_ADVISORY', 'status': 'NOT_RUN', 'authority': 'ADVISORY_ONLY'}}
         fresh_rows = {s:r for s,r in rows.items() if r['freshness'] in {'LIVE','DELAYED'} and observations[s].last}
+        report['research_recommendations'] = [r.model_dump(mode='json') for r in live_recommendations(quant_snapshot)]
         logger.info('[RISK] %s', checks['risk'])
         if not fresh_rows:
             return report
@@ -493,10 +501,12 @@ class LiveAdvisoryService:
                     observations=tuple(PublicResearchObservation(ticker=symbol, observed_at=observations[symbol].observed_at,
                         price=cast(Decimal, observations[symbol].last), daily_return=row['daily_change'], reference=references[symbol]) for symbol,row in fresh_rows.items()),
                     freshness_status='PASS' if fresh else 'BLOCKED', portfolio_context=context,
+                    provider_provenance={s: observations[s].source for s in fresh_rows},
                     market_context={'current_time':cutoff.isoformat(),'market_session':session_context(cutoff),
                                     'snapshot':rows,'signals':report['signals'],'risk':report.get('risk'),
                                     'historical_features':report['historical_features'],
                                     'quant_live':quant_snapshot.model_dump(mode='json'), 'quant_live_hash':quant_snapshot.digest})
+        report['research_recommendations'] = [r.model_dump(mode='json') for r in live_recommendations(quant_snapshot, request)]
         runtime = CodexResearchModelRuntime()
         preflight = runtime.preflight({key: value.model_dump() for key,value in settings.models.items()})
         report['llm_preflight'] = preflight.model_dump(mode='json')
@@ -574,11 +584,17 @@ class LiveAdvisoryService:
         report['research_quant_live'] = report['quant_live']
         quant_snapshot = build_live_quant_snapshot(histories=histories, quotes=observations, cutoff=refresh_cutoff,
             policies=policies, policy=challenger_policy, run_id=run_id, baseline_weights=target_weights,
-            account=marked if marked is not None and marked.account_alias == DEFAULT_ACCOUNT else None)
+            account=marked if marked is not None and marked.account_alias == DEFAULT_ACCOUNT else None, engine=self.quant_engine)
         report['quant_live'] = quant_snapshot.model_dump(mode='json')
         report['quant_live_hash'] = quant_snapshot.digest
         report['quant_evidence_path'] = str(persist_live_quant(quant_snapshot, self.paths.home / 'research' / 'live-quant'))
         report['decision_provenance']['challenger']['snapshot_hash'] = quant_snapshot.digest
+        current_request = request.model_copy(update={'analysis_cutoff': refresh_cutoff, 'temporal_context': None,
+            'universe_plan': None, 'observations': tuple(PublicResearchObservation(ticker=s, observed_at=q.observed_at,
+                price=cast(Decimal, q.last), reference=references[s]) for s, q in observations.items()),
+            'provider_provenance': {s: q.source for s, q in observations.items()}, 'freshness_status': 'PASS'})
+        recommendations = live_recommendations(quant_snapshot, current_request)
+        report['research_recommendations'] = [r.model_dump(mode='json') for r in recommendations]
         result = runtime.invoke('SYMBOL_ADVISORY', {
             'instruction':'用中文解释。Return one explicit research opinion for every symbol. WAIT needs an observable condition. Use only supplied evidence; catalysts and intrinsic value remain UNKNOWN without source-bound news/valuation. Scenarios are FORECAST and opinions INFERENCE. Never alter quant scores, ranks or targets. Cite each symbol quote and quant evidence ID. No numeric sizing or price advice; deterministic code owns those. Do not include private account amounts in prose.',
             'market':rows,'evidence_ids':references,'portfolio':context,
@@ -608,6 +624,10 @@ class LiveAdvisoryService:
                     raise ValueError('ADVISORY_EVIDENCE_INVALID')
                 if quant_snapshot.strict_status == 'VERIFIED_RESEARCH_AVAILABLE' and 'quant-' + quant_snapshot.digest + '-' + thesis.symbol not in thesis.evidence_ids:
                     raise ValueError('ADVISORY_QUANT_EVIDENCE_REQUIRED')
+                catalog = {references[s]: row for s, row in rows.items()}
+                catalog.update({r.evidence_ids[0]: r.model_dump(mode='json') for r in recommendations})
+                for text in (thesis.thesis, *thesis.positive_drivers, *thesis.negative_drivers, *thesis.risk_flags, thesis.wait_until or ''):
+                    validate_numerical_claim(text, thesis.numerical_citations, thesis.evidence_ids, catalog)
         except ValueError:
             checks['advisory'] = 'FAILED'
             report['blockers'].append('ADVISORY_SCHEMA_OR_EVIDENCE_INVALID')
@@ -620,18 +640,19 @@ class LiveAdvisoryService:
             condition = quant_snapshot.price_conditions[thesis.symbol]
             zone = (Decimal(condition['quantitative_entry_zone'][0]), Decimal(condition['quantitative_entry_zone'][1])) if condition['quantitative_entry_zone'] else None
             entry = (zone[0] + zone[1]) / 2 if zone else None
-            weight = target_weights.get(thesis.symbol, Decimal(0))
+            recommendation = next(r for r in recommendations if r.symbol == thesis.symbol)
             decision = AdvisoryDecision(**thesis.model_dump(), market_context=regime, current_price=quote.last,
                 suggested_entry=entry, suggested_limit_zone=zone,
                 invalidation_level=None,
-                position_guidance=f'V1 legacy live reference target {weight:.2%}; not a V2 target or authorized trade.',
+                position_guidance=f'{recommendation.engine} shadow feasible weight {recommendation.feasible_weight}; no authorized sizing or trade.',
                 portfolio_impact='Research opinion and deterministic allocation may disagree; no order generated.',
                 data_as_of=quote.observed_at, data_freshness=row['freshness'], reasoning_summary=thesis.thesis)
             values = decision.model_dump(mode='json')
             categories = {'BUY':'BUY_RESEARCH','ADD':'ADD_RESEARCH','HOLD':'HOLD','WAIT':'WAIT_FOR_PRICE' if zone else 'WAIT_FOR_EVIDENCE',
                           'TRIM':'REDUCE_RESEARCH','SELL':'REDUCE_RESEARCH','AVOID':'AVOID'}
-            values.update(decision_category=categories[thesis.action] if quant_snapshot.strict_status == 'VERIFIED_RESEARCH_AVAILABLE' else 'WAIT_FOR_EVIDENCE',
+            values.update(decision_category=recommendation.category,
                           gpt_suggested_category=categories[thesis.action], engine='GPT_ADVISORY',
+                          deterministic_recommendation=recommendation.model_dump(mode='json'),
                           price_condition=condition, gpt_catalysts_status='UNKNOWN_NO_SOURCE_BOUND_NEWS',
                           gpt_claim_class='INFERENCE_OR_FORECAST_NOT_FACT', predictive_confidence=None)
             decisions.append(values)
@@ -645,6 +666,14 @@ class LiveAdvisoryService:
             checks['freshness'] = 'STALE'
             report['freshness'] = 'STALE'
             report['blockers'].append('MARKET_AGED_DURING_RESEARCH_RERUN_REQUIRED')
+            report['market_snapshot'] = {s:market_row(q,finished) for s,q in observations.items()}
+            for recommendation in report.get('research_recommendations', []):
+                recommendation['price_plan'] = recommendation['observed_reference'] = None
+                recommendation['state'] = 'RESEARCH_ONLY'
+                recommendation['blockers'].append('QUOTE_AGED_AT_PUBLICATION_RECALCULATE_REQUIRED')
+            for decision in report['decisions']:
+                decision['current_price'] = decision['suggested_entry'] = decision['suggested_limit_zone'] = None
+                decision['data_freshness'] = 'STALE'
         report['generated_at'] = finished.isoformat()
         logger.info('[ADVISORY] %s', checks['advisory'])
         return report

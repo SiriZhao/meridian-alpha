@@ -13,6 +13,7 @@ from pydantic import AwareDatetime
 from meridian.config import Policies
 from meridian.historical import HistoricalAdjustmentStatus, HistoricalBarSeries
 from meridian.quant.backtest import QuantSecurityMetadata
+from meridian.quant.flagship_packet import FlagshipResearchPacket, build_flagship_packet
 from meridian.quant.integration import QuantShadowRecord, SymbolComparison, immutable_record
 from meridian.quant.packet import QuantResearchPacketV22, build_research_packet
 from meridian.quant.policy import ChallengerPolicy
@@ -24,6 +25,9 @@ D = Decimal
 
 
 class LiveQuantSnapshot(StableModel):
+    engine: Literal['V2.2_SHADOW', 'V2.3_SHADOW'] = 'V2.2_SHADOW'
+    flagship: FlagshipResearchPacket | None = None
+    portfolio_basis: Literal['NO_ACCOUNT_NORMALIZED_RESEARCH', 'ACCOUNT_BOUND_RESEARCH'] = 'NO_ACCOUNT_NORMALIZED_RESEARCH'
     schema_version: Literal['quant-live-information.v1'] = 'quant-live-information.v1'
     analysis_cutoff: AwareDatetime
     quote_hashes: dict[str, str]
@@ -90,7 +94,7 @@ def build_live_quant_snapshot(*, histories: Mapping[str, HistoricalBarSeries],
         quotes: Mapping[str, QuoteObservation], cutoff: datetime, policies: Policies,
         policy: ChallengerPolicy, run_id: str, metadata: tuple[QuantSecurityMetadata, ...] = (),
         baseline_weights: Mapping[str, Decimal] | None = None, account: AccountSnapshot | None = None,
-        diagnostic: bool = False) -> LiveQuantSnapshot:
+        diagnostic: bool = False, engine: Literal['V2.2_SHADOW', 'V2.3_SHADOW'] = 'V2.2_SHADOW') -> LiveQuantSnapshot:
     from meridian.live_advisory import MarketDataFreshnessGate
 
     if cutoff.tzinfo is None:
@@ -121,32 +125,55 @@ def build_live_quant_snapshot(*, histories: Mapping[str, HistoricalBarSeries],
             policy=policy, metadata=metadata, account=account, diagnostic=diagnostic)
     if not qualified:
         missing.append('INSUFFICIENT_VERIFIED_HISTORY')
+    flagship = None
+    if engine == 'V2.3_SHADOW' and (qualified or diagnostic and packet and packet.data_certification_class == 'SYNTHETIC_DIAGNOSTIC'):
+        from meridian.quant.policy import CostPolicy
+        from meridian.research_terminal import flagship_policy
+        try:
+            flagship = build_flagship_packet(histories, cutoff, symbols=tuple(s for s in symbols if s != 'SPY'), current={}, nav=D(100000),
+                risk=policies.risk, policy=flagship_policy(), costs=CostPolicy(),
+                sector_map={m.symbol: m.sector for m in metadata}, asset_types={m.symbol: m.asset_type for m in metadata},
+                diagnostic=diagnostic)
+        except ValueError:
+            missing.append('V23_HISTORY_OR_PORTFOLIO_CONTRACT_REJECTED')
+    if engine == 'V2.3_SHADOW' and flagship is None:
+        qualified = False
     quote_hashes = {s: hashlib.sha256(q.stable_json().encode()).hexdigest() for s, q in valid_quotes.items()}
     history_hashes = {s: h.stable_hash for s, h in sorted(histories.items())}
     shadow = None
     if packet:
+        from meridian.quant.portfolio import weights
+        proposed = weights(flagship.allocation.allocation.preferred_target) if flagship else {}
+        feasible = weights(flagship.allocation.allocation.feasible_target) if flagship else {}
+        flagship_scores = {s.bridge.symbol:s for s in flagship.scores} if flagship else {}
         scored = {r.symbol: r for r in packet.symbols}
         comparisons = []
         for symbol in symbols:
             row = scored[symbol]
             quote = valid_quotes.get(symbol)
             old_score = max(D(0), quote.last / quote.previous_close - 1) if quote and quote.last and quote.previous_close else None
-            new = row.score.bridge.quant_score if qualified and row.score else None
+            actual_score = flagship_scores.get(symbol) if engine == 'V2.3_SHADOW' else row.score
+            new = actual_score.bridge.quant_score if qualified and actual_score and not actual_score.bridge.exclusion_reasons else None
+            new_weight = feasible.get(symbol, D(0)) if engine == 'V2.3_SHADOW' else row.feasible_exposure
+            preferred_weight = proposed.get(symbol, D(0)) if engine == 'V2.3_SHADOW' else row.preferred_exposure
             old_weight = (baseline_weights or {}).get(symbol, D(0))
             comparisons.append(SymbolComparison(symbol=symbol, old_quant_score=old_score, new_quant_score=new,
-                old_target_weight=old_weight, new_target_weight=row.feasible_exposure,
-                proposed_target_weight=row.preferred_exposure, weight_difference=row.feasible_exposure - old_weight,
-                reasons=row.reasons_for_waiting + (() if qualified else ('INSUFFICIENT_VERIFIED_HISTORY',))))
+                old_target_weight=old_weight, new_target_weight=new_weight,
+                proposed_target_weight=preferred_weight, weight_difference=new_weight - old_weight,
+                reasons=(tuple(actual_score.bridge.exclusion_reasons) if actual_score else ('BENCHMARK_REFERENCE_NOT_V23_CANDIDATE',))
+                    + flagship.allocation.reasons + flagship.allocation.allocation.modifications
+                    if flagship else row.reasons_for_waiting + (() if qualified else ('INSUFFICIENT_VERIFIED_HISTORY',))))
         shadow = QuantShadowRecord(run_id=run_id, as_of=cutoff,
             market_snapshot_hash=hashlib.sha256('|'.join(f'{s}:{h}' for s, h in quote_hashes.items()).encode()).hexdigest(),
-            policy_hash=packet.strategy_hash, engine_hash=packet.engine_hash,
+            policy_hash=flagship.allocation.policy_hash if flagship else packet.strategy_hash,
+            engine_hash=flagship.engine_hash if flagship else packet.engine_hash,
             history_hashes=tuple(history_hashes.values()),
             status='SHADOW_COMPUTED' if qualified else 'INSUFFICIENT_DATA', symbols=tuple(comparisons),
-            scores=tuple(r.score.bridge for r in packet.symbols if r.score), regime=packet.regime,
-            expected_turnover=packet.rebalance.expected_turnover if packet.rebalance else D(0),
-            estimated_cost_fraction=packet.rebalance.estimated_cost / account.total_equity if packet.rebalance and account and account.total_equity else D(0),
-            reasons=(('ACCOUNT_BOUND_RESEARCH_COST_ESTIMATE' if packet.rebalance else 'NO_ACCOUNT_BOUND_TURNOVER_ESTIMATE'), 'LEGACY_TARGET_IS_NOT_CANONICAL_RUN',
-                     'V22_RESEARCH_ONLY_NOT_CALIBRATED_FORECAST'))
+            scores=tuple(s.bridge for s in flagship.scores) if flagship else tuple(r.score.bridge for r in packet.symbols if r.score), regime=packet.regime,
+            expected_turnover=flagship.cost_adjusted_proposal.expected_turnover if flagship else packet.rebalance.expected_turnover if packet.rebalance else D(0),
+            estimated_cost_fraction=flagship.cost_adjusted_proposal.estimated_cost / D(100000) if flagship else packet.rebalance.estimated_cost / account.total_equity if packet.rebalance and account and account.total_equity else D(0),
+            reasons=(('V23_NORMALIZED_REFERENCE_COST_NOT_ACCOUNT_COST' if flagship else 'ACCOUNT_BOUND_RESEARCH_COST_ESTIMATE' if packet.rebalance else 'NO_ACCOUNT_BOUND_TURNOVER_ESTIMATE'), 'LEGACY_TARGET_IS_NOT_CANONICAL_RUN',
+                     engine + '_RESEARCH_ONLY_NOT_CALIBRATED_FORECAST'))
     provisional = {s: provisional_diagnostics(h, cutoff) for s, h in sorted(histories.items())}
     conditions = {}
     for symbol in symbols:
@@ -157,24 +184,61 @@ def build_live_quant_snapshot(*, histories: Mapping[str, HistoricalBarSeries],
         price = quote.last if quote and quote.last and quote.last > 0 else None
         zone = None
         if price and atr and sma:
-            anchor = min(price, sma)
-            half_width = min(atr / 2, price / 10)
+            anchor = sma
+            half_width = atr / 2
             zone = (max(D('.01'), anchor - half_width), anchor + half_width)
         conditions[symbol] = {'observed_price': str(price) if price else None,
             'quote_hash': quote_hashes.get(symbol), 'observation_at': quote.observed_at.isoformat() if quote else None,
             'timezone': 'America/New_York', 'quantitative_entry_zone': tuple(str(v) for v in zone) if zone else None,
-            'method': 'MIN_OBSERVED_PRICE_SMA20_PLUS_MINUS_HALF_ATR14' if zone else None,
+            'method': 'SMA20_PULLBACK_WITH_HALF_ATR14' if zone else None,
+            'price_basis': 'ADJUSTED_HISTORY_RESEARCH_UNITS_NOT_EXECUTION_UNITS',
+            'feature_input_hash': row.feature.base.input_hash if qualified and row else None,
+            'feature_session': row.feature.base.last_session.isoformat() if qualified and row and row.feature.base.last_session else None,
             'assumptions': ['HISTORY_AND_CURRENT_PRICE_BASIS_COMPATIBLE', 'NO_NEW_OVERNIGHT_CORPORATE_ACTION'] if zone else [],
             'fair_value': None, 'user_approved_executable_limit': None,
             'assessment': 'WAIT_FOR_PRICE' if zone and price and price > zone[1] else 'CONDITIONAL_RESEARCH_ONLY' if zone else 'WAIT_FOR_EVIDENCE',
             'invalidation_condition': 'Recompute after a new completed session, corporate action or stale observation.',
             'reason': 'No valuation or calibrated expected return; manual review required.' if zone else 'Qualified ATR/price basis/current observation unavailable; no invented entry price.'}
-    return LiveQuantSnapshot(analysis_cutoff=cutoff, quote_hashes=quote_hashes,
+    return LiveQuantSnapshot(engine=engine, flagship=flagship, analysis_cutoff=cutoff, quote_hashes=quote_hashes,
         historical_input_hashes=history_hashes, strict_status='VERIFIED_RESEARCH_AVAILABLE' if qualified else 'INSUFFICIENT_VERIFIED_HISTORY',
         quant_packet=packet, shadow_comparison=shadow, provisional_diagnostics=provisional,
         price_conditions=conditions, missing_reasons=tuple(missing),
-        expected_turnover=packet.rebalance.expected_turnover if packet and packet.rebalance else None,
-        estimated_cost=packet.rebalance.estimated_cost if packet and packet.rebalance else None)
+        expected_turnover=flagship.cost_adjusted_proposal.expected_turnover if flagship else packet.rebalance.expected_turnover if packet and packet.rebalance else None,
+        estimated_cost=None if engine == 'V2.3_SHADOW' else packet.rebalance.estimated_cost if packet and packet.rebalance else None)
+
+
+def live_recommendations(snapshot: LiveQuantSnapshot, request=None) -> tuple:
+    """Reuse the terminal decision contract on the exact sealed live snapshot."""
+    from meridian.research_recommendations import build_recommendations
+    from meridian.research_terminal import (
+        QuantTerminalRow,
+        QuantTerminalSnapshot,
+        risk_policy_fingerprint,
+    )
+    packet = snapshot.quant_packet
+    qualified = snapshot.strict_status == 'VERIFIED_RESEARCH_AVAILABLE'
+    scores = {s.bridge.symbol: s for s in snapshot.flagship.scores} if snapshot.flagship else {}
+    rows = []
+    for symbol in sorted(snapshot.price_conditions):
+        raw = next((r for r in packet.symbols if r.symbol == symbol), None) if packet else None
+        score = scores.get(symbol) or (raw.score if raw else None)
+        eligible = bool(qualified and score and not score.bridge.exclusion_reasons and (snapshot.engine != 'V2.3_SHADOW' or symbol != 'SPY'))
+        rows.append(QuantTerminalRow(symbol=symbol, evidence_id='quant-' + snapshot.digest + '-' + symbol,
+            score=score.bridge.quant_score if eligible and score else None,
+            rank=score.bridge.relative_rank if eligible and score else None,
+            quality=raw.feature.base.quality_status if raw else 'MISSING', eligible=eligible,
+            reasons=('BENCHMARK_REFERENCE_NOT_V23_CANDIDATE',) if snapshot.engine == 'V2.3_SHADOW' and symbol == 'SPY' else tuple(score.bridge.exclusion_reasons) if qualified and score else snapshot.missing_reasons,
+            chinese_explanation='影子研究；不能直接下单。'))
+    terminal = QuantTerminalSnapshot(engine=snapshot.engine, flagship=snapshot.flagship,
+        public_diagnostics=snapshot.provisional_diagnostics,
+        status='AVAILABLE' if qualified else 'BLOCKED', analysis_cutoff=snapshot.analysis_cutoff,
+        request_hash=snapshot.digest, input_hashes=snapshot.historical_input_hashes,
+        policy_hash=snapshot.flagship.allocation.policy_hash if snapshot.flagship else packet.strategy_hash if packet else '0' * 64,
+        risk_policy_hash=risk_policy_fingerprint(),
+        engine_hash=snapshot.flagship.engine_hash if snapshot.flagship else packet.engine_hash if packet else '0' * 64,
+        packet=packet, rows=tuple(rows), reasons=snapshot.missing_reasons,
+        certification=packet.data_certification_class if packet else 'UNKNOWN')
+    return build_recommendations(terminal, request=request)
 
 
 def persist_live_quant(snapshot: LiveQuantSnapshot, directory: Path) -> Path:

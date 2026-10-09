@@ -21,6 +21,7 @@ from meridian.research_terminal import (
     QuantTerminalSnapshot,
     challenger_policy,
     fingerprint,
+    flagship_policy,
     portfolio_what_if,
     quant_terminal_snapshot,
     risk_policy_fingerprint,
@@ -92,7 +93,7 @@ class TerminalPlanner:
             raise ValueError("TERMINAL_SHARED_CUTOFF_REQUIRED")
         if portfolio and budget.max_calculations < 2:
             raise ValueError("TERMINAL_CALCULATION_BUDGET_EXCEEDED")
-        quant_policy_hash, hard_risk_hash = challenger_policy().digest, risk_policy_fingerprint()
+        quant_policy_hash, hard_risk_hash = (flagship_policy().digest if request.engine == "V2.3_SHADOW" else challenger_policy().digest), risk_policy_fingerprint()
         key = fingerprint(request) + quant_policy_hash + hard_risk_hash + ENGINE_SOURCE_HASH
         cached = self._cache.get(key)
         hit = cached is not None and 0 <= start - cached[0] <= budget.cache_ttl_seconds
@@ -116,8 +117,8 @@ class TerminalPlanner:
             "MARKET_OVERVIEW": {"analysis_cutoff": request.analysis_cutoff.isoformat(),
                 "regime": packet.regime.model_dump(mode="json") if packet else None,
                 "current_price": None, "unknowns": ["NO_CURRENT_QUOTE_SUPPLIED", "BREADTH_UNKNOWN"]},
-            "QUANT_EXPLORER": {"engine": "V2.2_SHADOW", "rows": [r.model_dump(mode="json") for r in snapshot.rows],
-                "packet": packet.model_dump(mode="json") if packet else None},
+            "QUANT_EXPLORER": {"engine": snapshot.engine, "rows": [r.model_dump(mode="json") for r in snapshot.rows],
+                "packet": snapshot.flagship.model_dump(mode="json") if snapshot.flagship else packet.model_dump(mode="json") if packet else None},
             "PORTFOLIO_RISK": hypothetical.model_dump(mode="json") if hypothetical else {"status": "BLOCKED", "reason": "AUTHORIZED_PAPER_SNAPSHOT_REQUIRED"},
             "RESEARCH_WORKSPACE": {"status": "NOT_RUN", "gpt_interpretation": None,
                 "unknowns": unknowns, "reason": "DETERMINISTIC_EVIDENCE_AVAILABLE_WITHOUT_MODEL"},
@@ -130,6 +131,9 @@ class TerminalPlanner:
             "OPERATIONAL_HEALTH": {"provider_status": "NOT_PROBED", "model_status": "NOT_RUN", "paper_status": "NOT_RUN",
                 "broker_submission": "DISABLED", "canonical_strategy": "QUANT_V1_BASELINE"},
         }
+        from meridian.research_recommendations import build_recommendations
+        recommendations = build_recommendations(snapshot, current=hypothetical.current if hypothetical and hypothetical.status != "BLOCKED" else None)
+        views["DECISION_CONSOLE"] = [r.model_dump(mode="json") for r in recommendations]
         end = self.clock()
         if end - start > budget.deadline_seconds:
             raise ValueError("TERMINAL_DEADLINE_EXCEEDED_REPORT")
@@ -145,7 +149,7 @@ class TerminalPlanner:
 def render_terminal(brief: TerminalBrief) -> str:
     """Concise Chinese terminal; structured JSON retains complete attribution."""
     lines = ["Meridian 量化研究终端 — RESEARCH_ONLY", f"状态：{brief.status}",
-        f"分析截止：{brief.quant.analysis_cutoff.isoformat()}", f"引擎：V2.2_SHADOW / {brief.quant.engine_hash}",
+        f"分析截止：{brief.quant.analysis_cutoff.isoformat()}", f"引擎：{brief.quant.engine} / {brief.quant.engine_hash}",
         f"数据：{brief.quant.certification}；获利置信度：UNKNOWN", ""]
     labels = {"MARKET_OVERVIEW": "市场概览", "QUANT_EXPLORER": "量化因子", "PORTFOLIO_RISK": "组合风险",
         "RESEARCH_WORKSPACE": "研究与反证", "DECISION_CONSOLE": "决策条件", "EXPERIMENT_LABORATORY": "实验室", "OPERATIONAL_HEALTH": "运行健康"}
@@ -154,6 +158,19 @@ def render_terminal(brief: TerminalBrief) -> str:
         if key == "QUANT_EXPLORER":
             for row in brief.quant.rows:
                 lines.append(f"  {row.symbol}  score={row.score if row.score is not None else 'UNKNOWN'}  rank={row.rank if row.rank is not None else 'UNKNOWN'}  {row.chinese_explanation}")
+        elif key == "DECISION_CONSOLE":
+            for row in value:
+                lines.append(f"  {row['symbol']}：{row['category']} / {row['state']}；{row['explanation_zh']}")
+                lines.append("  下一步：" + "；".join(row["next_inputs"]))
+        elif key == "PORTFOLIO_RISK":
+            lines.append("  未提供合格账户；不推断持仓、现金或数量。" if brief.portfolio is None else f"  账户研究状态：{brief.portfolio.status}；约束：{'、'.join(brief.portfolio.violations) or '已计算'}")
+        elif key == "MARKET_OVERVIEW":
+            lines.append("  市场状态：" + str((value.get("regime") or {}).get("trend", "UNKNOWN")))
+            lines.append("  数据缺口：" + "、".join(value.get("unknowns", [])))
+        elif key == "RESEARCH_WORKSPACE":
+            lines.append("  GPT 尚未运行；确定性量化结果可以独立检查。")
+        elif key == "EXPERIMENT_LABORATORY":
+            lines.append("  真实金融验证待完成；合成回归不证明 Alpha。")
         else:
             lines.append(json.dumps(value, ensure_ascii=False, sort_keys=True))
         lines.append("")
@@ -164,12 +181,19 @@ def render_terminal(brief: TerminalBrief) -> str:
 def terminal_model_context(snapshot: QuantTerminalSnapshot) -> dict[str, Any]:
     """Input to the existing native chain; hash-bound, numerical and prose separate."""
     rows = {r.symbol: r for r in snapshot.packet.symbols} if snapshot.packet else {}
-    view = QuantModelView(analysis_cutoff=snapshot.analysis_cutoff, snapshot_hash=snapshot.digest,
+    from meridian.quant.portfolio import weights
+    v23 = snapshot.flagship
+    scores = {s.bridge.symbol: s for s in v23.scores} if v23 else {}
+    preferred = weights(v23.allocation.allocation.preferred_target) if v23 else {}
+    feasible = weights(v23.allocation.allocation.feasible_target) if v23 else {}
+    view = QuantModelView(engine=snapshot.engine, signal_policy_hash=v23.scores[0].policy_hash if v23 and v23.scores else snapshot.packet.strategy_hash if snapshot.packet else None,
+        portfolio_assumption="NO_ACCOUNT_NORMALIZED_RESEARCH" if v23 else "V22_RESEARCH",
+        analysis_cutoff=snapshot.analysis_cutoff, snapshot_hash=snapshot.digest,
         engine_hash=snapshot.engine_hash, policy_hash=snapshot.policy_hash, risk_policy_hash=snapshot.risk_policy_hash, input_hashes=snapshot.input_hashes,
         certification=snapshot.certification, regime=snapshot.packet.regime if snapshot.packet else None,
-        rows=tuple(QuantModelRow(signal=r, quant=rows[r.symbol].score if r.symbol in rows else None,
-            desired_weight=rows[r.symbol].preferred_exposure if r.symbol in rows else Decimal(0),
-            feasible_weight=rows[r.symbol].feasible_exposure if r.symbol in rows else Decimal(0)) for r in snapshot.rows),
+        rows=tuple(QuantModelRow(signal=r, quant=scores.get(r.symbol) or (rows[r.symbol].score if r.symbol in rows else None),
+            desired_weight=preferred.get(r.symbol, Decimal(0)) if v23 else rows[r.symbol].preferred_exposure if r.symbol in rows else Decimal(0),
+            feasible_weight=feasible.get(r.symbol, Decimal(0)) if v23 else rows[r.symbol].feasible_exposure if r.symbol in rows else Decimal(0)) for r in snapshot.rows),
         unknowns=snapshot.packet.important_unknowns if snapshot.packet else snapshot.reasons)
     return {"quant_terminal_view": view.model_dump(mode="json"), "quant_terminal_view_hash": fingerprint(view)}
 
@@ -191,7 +215,7 @@ def review_terminal(brief: TerminalBrief, request: DailyResearchInput, settings:
     from meridian.gpt_native_research import ExecutionState, GPTNativeResearchOrchestrator
     if request.analysis_cutoff != brief.quant.analysis_cutoff:
         raise ValueError("TERMINAL_SHARED_CUTOFF_REQUIRED")
-    if brief.quant.status == "BLOCKED":
+    if brief.quant.status == "BLOCKED" and not request.observations:
         raise ValueError("TERMINAL_MODEL_BLOCKED_UNQUALIFIED_QUANT")
     if brief.quant.status == "SYNTHETIC_DIAGNOSTIC" and request.mode == "LIVE":
         raise ValueError("TERMINAL_SYNTHETIC_NOT_LIVE")
@@ -199,7 +223,7 @@ def review_terminal(brief: TerminalBrief, request: DailyResearchInput, settings:
     validate_model_input_budget(context, budget or TerminalBudget())
     prepared = DailyResearchInput.model_validate({**request.model_dump(), "market_context": context})
     return GPTNativeResearchOrchestrator(runtime=runtime).run(prepared, settings=settings,
-        research_data_status="PASS", execution_data_status="BLOCKED_POLICY",
+        research_data_status="PASS" if request.freshness_status == 'PASS' else 'BLOCKED_STALE_RESEARCH', execution_data_status="BLOCKED_POLICY",
         execution_state=ExecutionState.BLOCKED_POLICY)
 
 

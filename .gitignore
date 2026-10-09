@@ -35,3 +35,5 @@ secrets*
 tokens*
 logs/
 var/
+# Immutable research publication uses local lock guards, never source artifacts.
+/docs/quant-v23/.locks/

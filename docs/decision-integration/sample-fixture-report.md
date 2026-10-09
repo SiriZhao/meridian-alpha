@@ -1,0 +1,62 @@
+FIXTURE_ONLY / SYNTHETIC_DIAGNOSTIC — NOT TODAY
+
+# Meridian 中文决策研究
+
+分析时点：2021-02-11T21:00:00+00:00；数据模式：FIXTURE
+研究评级不等于订单许可；自动交易禁用。
+
+## 市场综述与数据健康
+
+数据缺口：EXPECTED_RETURN_UNCALIBRATED、EXECUTION_QUOTES_AND_MANUAL_REVIEW_REQUIRED、GPT_NOT_RUN
+
+## 今日值得研究的标的
+
+### NVDA — ACCUMULATE_CONDITIONALLY / CONDITIONAL_PLAN
+
+关注依据：合格多周期因子与约束组合均支持研究。 当前没有账户，不推断持仓、现金或份额。 研究价位基于 SMA20 与 ATR14，必须核实价格口径，不能直接下单。
+Quant：V2.3_SHADOW；排名：1；评分：0.6095096199312570320456270183；证据等级：SYNTHETIC_DIAGNOSTIC。
+仓位偏好：0.328393；风险可行目标：0.073333；成本调整参考：0.066666；当前持仓：None。
+这些权重是影子研究目标，未证明净预期收益。
+条件价位：[125.7225635174285714285714286, 126.9349707795714285714285714]（SMA20 ± ATR14/2，复权历史研究口径）。
+观察价：127.06328117；来源：ENGINEERING_FIXTURE_NOT_REAL_PRICE；时点：2021-02-11T20:59:55+00:00；区间状态：ABOVE_ZONE。
+行动前条件：核实价格口径、企业行动、流动性、账户与认证执行报价；区间不代表内在价值或可执行限价。
+GPT 未运行；不补写催化剂、估值或模型结论。
+不应操作的条件：绝对动量转弱或趋势失稳；市场风险预算收缩；数据过期、复权变化或投资假设被新证据否定
+阻塞原因：EXECUTION_QUOTES_AND_MANUAL_REVIEW_REQUIRED、SHADOW_STRATEGY_NOT_PROMOTED、FRESH_AUTHORIZED_ACCOUNT_REQUIRED_FOR_SIZING
+下一步：新鲜且授权的 Schwab-Paper 账户快照；认证执行报价及独立人工审核
+证据 ID：terminal-ee5c69c3929eded6b51d92deb9d963c24541f7854c5c515440d1d84211a7355b-NVDA、0000000000000000000000000000000000000000000000000000000000000003
+
+### MSFT — ACCUMULATE_CONDITIONALLY / CONDITIONAL_PLAN
+
+关注依据：合格多周期因子与约束组合均支持研究。 当前没有账户，不推断持仓、现金或份额。 研究价位基于 SMA20 与 ATR14，必须核实价格口径，不能直接下单。
+Quant：V2.3_SHADOW；排名：2；评分：0.5458082192015176605938611925；证据等级：SYNTHETIC_DIAGNOSTIC。
+仓位偏好：0.294072；风险可行目标：0.073333；成本调整参考：0.066666；当前持仓：None。
+这些权重是影子研究目标，未证明净预期收益。
+条件价位：[102.2590905187142857142857143, 103.1994277022857142857142857]（SMA20 ± ATR14/2，复权历史研究口径）。
+观察价：102.14361222；来源：ENGINEERING_FIXTURE_NOT_REAL_PRICE；时点：2021-02-11T20:59:55+00:00；区间状态：BELOW_ZONE_REVIEW。
+行动前条件：核实价格口径、企业行动、流动性、账户与认证执行报价；区间不代表内在价值或可执行限价。
+GPT 未运行；不补写催化剂、估值或模型结论。
+不应操作的条件：绝对动量转弱或趋势失稳；市场风险预算收缩；数据过期、复权变化或投资假设被新证据否定
+阻塞原因：EXECUTION_QUOTES_AND_MANUAL_REVIEW_REQUIRED、SHADOW_STRATEGY_NOT_PROMOTED、FRESH_AUTHORIZED_ACCOUNT_REQUIRED_FOR_SIZING
+下一步：新鲜且授权的 Schwab-Paper 账户快照；认证执行报价及独立人工审核
+证据 ID：terminal-ee5c69c3929eded6b51d92deb9d963c24541f7854c5c515440d1d84211a7355b-MSFT、0000000000000000000000000000000000000000000000000000000000000002
+
+### AAPL — ACCUMULATE_CONDITIONALLY / CONDITIONAL_PLAN
+
+关注依据：合格多周期因子与约束组合均支持研究。 当前没有账户，不推断持仓、现金或份额。 研究价位基于 SMA20 与 ATR14，必须核实价格口径，不能直接下单。
+Quant：V2.3_SHADOW；排名：3；评分：0.5151129145057145575816107577；证据等级：SYNTHETIC_DIAGNOSTIC。
+仓位偏好：0.277534；风险可行目标：0.073333；成本调整参考：0.066666；当前持仓：None。
+这些权重是影子研究目标，未证明净预期收益。
+条件价位：[78.49335261021428571428571429, 79.23389759878571428571428571]（SMA20 ± ATR14/2，复权历史研究口径）。
+观察价：78.23489682；来源：ENGINEERING_FIXTURE_NOT_REAL_PRICE；时点：2021-02-11T20:59:55+00:00；区间状态：BELOW_ZONE_REVIEW。
+行动前条件：核实价格口径、企业行动、流动性、账户与认证执行报价；区间不代表内在价值或可执行限价。
+GPT 未运行；不补写催化剂、估值或模型结论。
+不应操作的条件：绝对动量转弱或趋势失稳；市场风险预算收缩；数据过期、复权变化或投资假设被新证据否定
+阻塞原因：EXECUTION_QUOTES_AND_MANUAL_REVIEW_REQUIRED、SHADOW_STRATEGY_NOT_PROMOTED、FRESH_AUTHORIZED_ACCOUNT_REQUIRED_FOR_SIZING
+下一步：新鲜且授权的 Schwab-Paper 账户快照；认证执行报价及独立人工审核
+证据 ID：terminal-ee5c69c3929eded6b51d92deb9d963c24541f7854c5c515440d1d84211a7355b-AAPL、0000000000000000000000000000000000000000000000000000000000000001
+
+## 风险与人工审核
+
+研究结果未授权交易；缺失的新鲜执行报价、账户或证据必须先补齐，等待是有效选择。
+V1 canonical、真实账户与 Paper Ledger 未因本研究报告改变；金融 Alpha 尚未证明。

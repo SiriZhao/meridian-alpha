@@ -1,0 +1,11 @@
+# New content-bound V2.3 sources/artifacts have stable bytes on both platforms.
+# Existing source and frozen V2.1/V2.2 archive checkout rules are unchanged.
+src/meridian/quant/flagship*.py text eol=lf
+src/meridian/quant/public_history.py text eol=lf
+src/meridian/quant/public_research.py text eol=lf
+scripts/*quant_v23*.py text eol=lf
+policies/quant-v23.yaml text eol=lf
+schemas/quant-v23-*.json text eol=lf
+docs/quant-v23/*.json text eol=lf
+docs/quant-v23/*.md text eol=lf
+docs/quant-v23/*.zip binary

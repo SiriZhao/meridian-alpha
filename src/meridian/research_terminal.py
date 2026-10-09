@@ -14,6 +14,9 @@ from pydantic import AwareDatetime, Field, model_validator
 from meridian.config import Policies, load_policies
 from meridian.historical import HistoricalBarSeries
 from meridian.quant.backtest import QuantSecurityMetadata
+from meridian.quant.flagship_packet import FlagshipResearchPacket, build_flagship_packet
+from meridian.quant.flagship_policy import FlagshipPolicy
+from meridian.quant.flagship_replay import flagship_engine_hash
 from meridian.quant.numerics import deterministic_decimal
 from meridian.quant.packet import QuantResearchPacketV22, build_research_packet
 from meridian.quant.policy import ChallengerPolicy, CostPolicy
@@ -37,6 +40,7 @@ def fingerprint(value: StableModel) -> str:
 
 
 class QuantTerminalRequest(StableModel):
+    engine: Literal["V2.2_SHADOW", "V2.3_SHADOW"] = "V2.2_SHADOW"
     analysis_cutoff: AwareDatetime
     symbols: tuple[Symbol, ...] = Field(min_length=1, max_length=8)
     histories: tuple[HistoricalBarSeries, ...] = Field(max_length=9)
@@ -71,6 +75,9 @@ class QuantTerminalRow(StableModel):
 
 
 class QuantTerminalSnapshot(StableModel):
+    public_diagnostics: dict = Field(default_factory=dict)
+    engine: Literal["V2.2_SHADOW", "V2.3_SHADOW"] = "V2.2_SHADOW"
+    flagship: FlagshipResearchPacket | None = None
     schema_version: Literal["meridian-quant-terminal.v1"] = "meridian-quant-terminal.v1"
     status: Literal["AVAILABLE", "SYNTHETIC_DIAGNOSTIC", "BLOCKED"]
     analysis_cutoff: AwareDatetime
@@ -105,6 +112,9 @@ class QuantModelRow(StableModel):
 class QuantModelView(StableModel):
     """Compact numerical evidence before inference; full factors remain in MCP."""
     version: Literal["terminal-quant-model-view.v1"] = "terminal-quant-model-view.v1"
+    engine: Literal["V2.2_SHADOW", "V2.3_SHADOW"] = "V2.2_SHADOW"
+    signal_policy_hash: Hash | None = None
+    portfolio_assumption: Literal["NO_ACCOUNT_NORMALIZED_RESEARCH", "V22_RESEARCH"] = "V22_RESEARCH"
     analysis_cutoff: AwareDatetime
     snapshot_hash: Hash
     engine_hash: Hash
@@ -127,7 +137,7 @@ class QuantModelView(StableModel):
         for row in self.rows:
             if row.quant:
                 score = row.quant
-                if score.bridge.as_of != self.analysis_cutoff or score.bridge.symbol != row.signal.symbol or score.policy_hash != self.policy_hash:
+                if score.bridge.as_of != self.analysis_cutoff or score.bridge.symbol != row.signal.symbol or score.policy_hash != (self.signal_policy_hash or self.policy_hash):
                     raise ValueError("TERMINAL_MODEL_SCORE_CUTOFF_OR_IDENTITY_MISMATCH")
                 if any(c.as_of != self.analysis_cutoff or c.availability_cutoff > self.analysis_cutoff
                        or c.symbol != row.signal.symbol for c in score.factor_attribution):
@@ -174,6 +184,12 @@ def challenger_policy() -> ChallengerPolicy:
         (policy_directory() / "quant-v22.yaml").read_text(encoding="utf-8")))
 
 
+def flagship_policy() -> FlagshipPolicy:
+    import yaml
+    return FlagshipPolicy.model_validate(yaml.safe_load(
+        (policy_directory() / "quant-v23.yaml").read_text(encoding="utf-8")))
+
+
 def risk_policy_fingerprint(policies: Policies | None = None) -> str:
     return hashlib.sha256((policies or load_policies(policy_directory())).risk.model_dump_json().encode()).hexdigest()
 
@@ -197,6 +213,18 @@ def quant_terminal_snapshot(request: QuantTerminalRequest) -> QuantTerminalSnaps
             reasons = ("HISTORY_CONTRACT_OR_ENGINE_REJECTED",)
     qualified = packet is not None and packet.data_certification_class in {
         "CERTIFIED_RESEARCH_PIT_ADJUSTED", "SYNTHETIC_DIAGNOSTIC"}
+    flagship = None
+    v23 = flagship_policy() if request.engine == "V2.3_SHADOW" else None
+    if qualified and v23:
+        try:
+            # Reference notional is a declared model convention, never an account balance.
+            flagship = build_flagship_packet(histories, request.analysis_cutoff,
+                symbols=request.symbols, current={}, nav=D(100000), risk=policies.risk,
+                policy=v23, costs=CostPolicy(), sector_map={m.symbol: m.sector for m in request.metadata},
+                asset_types={m.symbol: m.asset_type for m in request.metadata}, diagnostic=request.diagnostic)
+        except ValueError:
+            reasons = (*reasons, "V23_HISTORY_OR_PORTFOLIO_CONTRACT_REJECTED")
+            qualified = False
     rows = []
     key = fingerprint(request)
     row_map = {r.symbol: r for r in packet.symbols} if packet else {}
@@ -214,10 +242,17 @@ def quant_terminal_snapshot(request: QuantTerminalRequest) -> QuantTerminalSnaps
     certification = packet.data_certification_class if packet else "UNKNOWN"
     if not qualified and not reasons:
         reasons = ("INSUFFICIENT_VERIFIED_HISTORY",)
-    return QuantTerminalSnapshot(status="SYNTHETIC_DIAGNOSTIC" if qualified and certification == "SYNTHETIC_DIAGNOSTIC"
+    diagnostics = {}
+    if not qualified:
+        from meridian.live_quant_bridge import provisional_diagnostics
+        diagnostics = {s: provisional_diagnostics(h, request.analysis_cutoff) for s, h in histories.items() if s in request.symbols}
+    return QuantTerminalSnapshot(engine=request.engine, flagship=flagship,
+        public_diagnostics=diagnostics,
+        status="SYNTHETIC_DIAGNOSTIC" if qualified and certification == "SYNTHETIC_DIAGNOSTIC"
         else "AVAILABLE" if qualified else "BLOCKED", analysis_cutoff=request.analysis_cutoff,
         request_hash=key, input_hashes={s: h.stable_hash for s, h in sorted(histories.items())},
-        policy_hash=policy.digest, risk_policy_hash=risk_policy_fingerprint(policies), engine_hash=ENGINE_SOURCE_HASH, packet=packet,
+        policy_hash=v23.digest if v23 else policy.digest, risk_policy_hash=risk_policy_fingerprint(policies),
+        engine_hash=flagship_engine_hash() if v23 else ENGINE_SOURCE_HASH, packet=packet,
         rows=tuple(rows), reasons=reasons, certification=certification)
 
 

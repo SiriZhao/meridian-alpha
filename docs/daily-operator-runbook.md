@@ -224,6 +224,14 @@ runtime condition; never freeze a fixture or use a second daily command.
 
 ## Startup status and degraded operation
 
+V2.3 research recommendations and measured price conditions now use the
+existing read-only terminal and live-advisory bridge. See
+[decision research workflow](decision-integration/OPERATOR.md). The live launcher
+selects V2.3_SHADOW explicitly; research ratings never authorize orders. Its
+V2.2_SHADOW option restores the research baseline. Canonical paper remains V1,
+requires the existing account and approved host execution, and is not invoked
+by terminal research or isolated PaperReviewRequest planning.
+
 The first screen of every canonical daily report shows Environment, Cache, Data Provider, Market Status, and Execution Mode. Treat `DATA_DEGRADED` as usable only for the stages whose individual freshness and provenance checks pass. Treat `SAFE_ANALYSIS` as analysis-only: review the account risk and portfolio checks, resolve the stated cache/provider/session blocker, and rerun. It never authorizes a real or paper fill from stale or missing data.
 
 For `MERIDIAN_FILESYSTEM_ERROR` on a Windows cache path, run `doctor --json` and inspect the cache diagnostic. If the configured directory is EFS-encrypted and the current identity lacks its key, configure an absolute non-EFS `MERIDIAN_CACHE` path as documented in `docs/runtime.md`; do not move the database or reports as an implicit fallback.

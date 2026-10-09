@@ -10,7 +10,7 @@ from meridian.schemas import StableModel
 READ_ONLY_RESEARCH_TOOLS = frozenset({"runtime_status", "market_snapshot", "account_snapshot", "company_facts",
     "event_evidence", "macro_context", "research_packet", "quant_metrics", "portfolio_context", "risk_analysis",
     "forward_evidence", "audit_lookup", "validate_market_evidence", "quant_research_snapshot",
-    "portfolio_what_if", "research_evidence_trace"})
+    "portfolio_what_if", "research_evidence_trace", "decision_research_brief", "research_paper_plan"})
 
 
 class WorkflowDefaults(StableModel):

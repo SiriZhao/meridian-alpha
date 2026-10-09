@@ -4,6 +4,7 @@ param(
     [string]$Snapshot,
     [string]$RuntimeHome,
     [switch]$Readiness,
+    [ValidateSet('V2.2_SHADOW','V2.3_SHADOW')][string]$QuantEngine = 'V2.3_SHADOW',
     [ValidateRange(15,120)][int]$RoleTimeout = 90,
     [ValidateSet('low','medium','high')][string]$ReasoningEffort
 )
@@ -23,6 +24,7 @@ Write-Output ('[BOOT] Python=' + $python)
 Write-Output ('[RUNTIME] MERIDIAN_HOME=' + $env:MERIDIAN_HOME)
 $entryPoint = if ($Readiness) { 'live-readiness' } else { 'live-advisory' }
 $arguments = @('-m','meridian',$entryPoint,'--account',$Account,'--role-timeout',"$RoleTimeout",'--json')
+if (-not $Readiness) { $arguments += @('--quant-engine',$QuantEngine) }
 if ($Snapshot) { $arguments += @('--snapshot',$Snapshot) }
 if ($ReasoningEffort) { $arguments += @('--reasoning-effort',$ReasoningEffort) }
 Push-Location $root

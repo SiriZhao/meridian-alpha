@@ -7,7 +7,8 @@ The contract is application guidance, never permission to change risk or state.
 
 `quant_research_snapshot` takes a `QuantTerminalRequest`: timezone-aware cutoff,
 unique bounded symbols and project-owned historical series, including SPY.
-It computes existing V2.2 factors, ranks, regime and constrained shadow targets.
+It computes the selected V2.2_SHADOW or V2.3_SHADOW factors, ranks, regime and
+constrained shadow targets. Select the engine explicitly when comparing versions.
 Rejected scores/ranks are null. `diagnostic=true` supports engineering fixtures,
 labelled SYNTHETIC_DIAGNOSTIC. Caller certification is attestation, not proof.
 
@@ -44,3 +45,15 @@ The compact local command is `meridian terminal <request.json> --json` (omit
 `--json` for Chinese text). It reads one explicit input and prints to stdout;
 it does not initialize an account or write canonical reports. Fixture output
 is preparation evidence, never a today's market acceptance.
+
+`decision_research_brief` returns deterministic ResearchRecommendation rows
+inside DecisionBrief. Missing account still permits attraction, ranking and
+exclusion research. Its SMA20/ATR14 zone is in adjusted-history research units,
+not fair value or an executable limit. Use source/time-bound observations;
+do not overwrite the computed category with GPT BUY/SELL text.
+
+`research_paper_plan` accepts explicit sanitized PaperReviewRequest. It reuses
+the original risk, reconciliation, order and projected-portfolio engines and
+requires qualified history and certified execution observations. It is pure
+BLOCKED/PAPER_ONLY planning: no ledger writes, fills, production manual
+readiness certificate or promotion. Raw account is excluded from request dumps.

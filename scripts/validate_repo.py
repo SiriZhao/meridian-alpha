@@ -32,6 +32,7 @@ def main() -> int:
         steps.append(("pytest", [python, "-m", "pytest", "-q"]))
     steps.append(("quant contracts and experiment archive", [python, "scripts/validate_quant_artifacts.py"]))
     steps.append(("quant v2.2 contracts and archive", [python, "scripts/validate_quant_v22_artifacts.py"]))
+    steps.append(("quant v2.3 contracts and archive", [python, "scripts/validate_quant_v23_artifacts.py"]))
     steps.append(("terminal contracts and workflows", [python, "scripts/validate_terminal_artifacts.py"]))
     steps.append(("cli smoke", [python, "-m", "meridian", "--help"]))
     steps.append(("safe paper acceptance", [python, "-O", "scripts/safe_acceptance.py"]))

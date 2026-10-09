@@ -7,6 +7,8 @@ from pathlib import Path
 
 from meridian.decision_brief import DecisionBrief
 from meridian.numerical_grounding import NumericalCitation
+from meridian.research_order_review import ManualOrderTicket, PaperReviewRequest
+from meridian.research_recommendations import ResearchPricePlan, ResearchRecommendation
 from meridian.research_terminal import (
     EvidenceTraceRequest,
     EvidenceTraceResult,
@@ -21,7 +23,8 @@ from meridian.terminal_service import TerminalBrief, TerminalBudget
 ROOT = Path(__file__).resolve().parents[1]
 MODELS = (QuantTerminalRequest, QuantTerminalSnapshot, PortfolioWhatIfRequest,
     PortfolioWhatIfResult, EvidenceTraceRequest, EvidenceTraceResult,
-    TerminalBrief, TerminalBudget, DecisionBrief, NumericalCitation, SkillWorkflowContract)
+    TerminalBrief, TerminalBudget, DecisionBrief, ResearchRecommendation, ResearchPricePlan,
+    ManualOrderTicket, PaperReviewRequest, NumericalCitation, SkillWorkflowContract)
 
 
 def main() -> int:

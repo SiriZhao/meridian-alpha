@@ -1,0 +1,18 @@
+{
+  "schema_version": "reliability-checkpoint.v1",
+  "branch": "codex/flagship-quant-20261009",
+  "recovered_head": "c84d3011806a6f11fd70c2df04559c28fb9bcb67",
+  "phase": "FIXES_TARGETED_VALIDATED_FULL_ACCEPTANCE_PENDING",
+  "completed": ["Exact source/venv/runtime recovery", "Linux golden failure diagnosed; canonicalized fixture inputs without changing algorithms", "Read-only launch identity and wrong-checkout refusal", "Actual V2.3 readiness identity", "Traceable DATA_GAP_REQUEST", "Isolated V2.3 paper draft/fill/cash/restart/idempotency regression"],
+  "targeted": "49 PASS; .tmp/reliability-targeted.log",
+  "prior_ci": "c84d301: Windows success; Linux 1101 PASS/2 SKIP/1 FAIL (golden libm input tail bits)",
+  "interrupted_validation": "c84d301 source/clone stopped at pytest 58%; NOT_COMPLETE, not claimed PASS",
+  "remaining": ["Full validator and independent clone", "Approved-host Doctor and logical ledger comparison", "Windows/Linux CI", "External operator native GPT acceptance", "Regular-session live acceptance"],
+  "market_status": "CLOSED at 2026-10-09T02:45:31Z / 2026-10-08T22:45:31-04:00",
+  "canonical_write_status": "NOT_RUN_YET",
+  "model_inference_actually_run": false,
+  "authority": "SHADOW_ONLY",
+  "broker_submission": "DISABLED",
+  "financial_alpha": "ALPHA_NOT_YET_DEMONSTRATED",
+  "exact_next_action": "Commit validated fixes, run scripts/validate_repo.py in isolated runtime; capture canonical state using read-only inspection before approved-host Doctor. CLOSED: no canonical paper run."
+}
