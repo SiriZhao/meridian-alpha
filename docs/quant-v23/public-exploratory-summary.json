@@ -1,0 +1,509 @@
+{
+  "coverage": {
+    "AAPL": {
+      "bars": 1760,
+      "corporate_actions": 29,
+      "event_kinds": [
+        "dividends",
+        "splits"
+      ],
+      "execution_certified": false,
+      "first": "2019-01-02",
+      "historical_available_at": null,
+      "last": "2025-12-31",
+      "retrieved_at": "2026-10-09T00:46:52.925101+00:00",
+      "source_hash": "d65a3bdb063995a04e590ec96353e391c8e3ae72ebfedb91cf744bfac1b7084c",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/AAPL?period1=1546300800&period2=1767225600&interval=1d&events=div%2Csplits%2CcapitalGains"
+    },
+    "MSFT": {
+      "bars": 1760,
+      "corporate_actions": 28,
+      "event_kinds": [
+        "dividends"
+      ],
+      "execution_certified": false,
+      "first": "2019-01-02",
+      "historical_available_at": null,
+      "last": "2025-12-31",
+      "retrieved_at": "2026-10-09T00:58:10.254469+00:00",
+      "source_hash": "322c1a1e8ea0fba108bd7279c735cfbfbec7d39e153d2bb746493f761f0d3c43",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/MSFT?period1=1546300800&period2=1767225600&interval=1d&events=div%2Csplits%2CcapitalGains"
+    },
+    "NVDA": {
+      "bars": 1760,
+      "corporate_actions": 30,
+      "event_kinds": [
+        "dividends",
+        "splits"
+      ],
+      "execution_certified": false,
+      "first": "2019-01-02",
+      "historical_available_at": null,
+      "last": "2025-12-31",
+      "retrieved_at": "2026-10-09T00:58:12.541191+00:00",
+      "source_hash": "87fe2db7ce730d2eeac6740e7883045d8e4a6748eb6eeee73568584926944cd8",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/NVDA?period1=1546300800&period2=1767225600&interval=1d&events=div%2Csplits%2CcapitalGains"
+    },
+    "QQQM": {
+      "bars": 1311,
+      "corporate_actions": 21,
+      "event_kinds": [
+        "dividends"
+      ],
+      "execution_certified": false,
+      "first": "2020-10-13",
+      "historical_available_at": null,
+      "last": "2025-12-31",
+      "retrieved_at": "2026-10-09T00:46:50.847896+00:00",
+      "source_hash": "beb310a0b2b36ab95e040eb31562f449daa6a958d38e7932db3139b5714dbcc2",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/QQQM?period1=1546300800&period2=1767225600&interval=1d&events=div%2Csplits%2CcapitalGains"
+    },
+    "SPY": {
+      "bars": 1760,
+      "corporate_actions": 28,
+      "event_kinds": [
+        "dividends"
+      ],
+      "execution_certified": false,
+      "first": "2019-01-02",
+      "historical_available_at": null,
+      "last": "2025-12-31",
+      "retrieved_at": "2026-10-09T00:46:48.950974+00:00",
+      "source_hash": "df5d5cf3570efb8b8417f9597a76a2e1dbf9651bb91d8e07f4156759c9b731e6",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/SPY?period1=1546300800&period2=1767225600&interval=1d&events=div%2Csplits%2CcapitalGains"
+    }
+  },
+  "evidence_level": "PUBLIC_EXPLORATORY",
+  "failures": [],
+  "financial_alpha_demonstrated": false,
+  "results": [
+    {
+      "CAGR_actual_calendar_years": 0.14685541471061692,
+      "Calmar": 0.599498051665917,
+      "Sharpe_zero_rf": 0.8882805212715724,
+      "Sortino_zero_rf": 1.290848082911562,
+      "Ulcer_Index_fraction": 0.084239187959522,
+      "annualized_volatility_252_assumption": 0.17111020681536396,
+      "benchmark_hash": "df5d5cf3570efb8b8417f9597a76a2e1dbf9651bb91d8e07f4156759c9b731e6",
+      "beta_to_SPY": 1.0,
+      "cost_sensitivity": [
+        {
+          "commission": null,
+          "net_terminal_reference_return": 0.9808469085639648,
+          "one_way_adverse_bps_assumption": 0,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 0.9788670515838911,
+          "one_way_adverse_bps_assumption": 5,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 0.9709673728604042,
+          "one_way_adverse_bps_assumption": 25,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 0.9611369890757664,
+          "one_way_adverse_bps_assumption": 50,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        }
+      ],
+      "downside_capture": 1.0,
+      "end": "2025-12-31",
+      "evidence_level": "PUBLIC_EXPLORATORY",
+      "financial_oos_eligible": false,
+      "historical_available_at": null,
+      "limitations": [
+        "NOT_V23_SIGNAL_OR_STRATEGY_BACKTEST",
+        "LATEST_VINTAGE_ADJUSTED_CLOSE_TOTAL_RETURN_PROXY",
+        "ACTIONS_NOT_INDEPENDENTLY_VERIFIED",
+        "OBSERVED_PROVIDER_SESSION_GRID_NOT_CERTIFIED_CALENDAR",
+        "NO_DELISTING_OR_HISTORICAL_UNIVERSE_PROOF",
+        "REFERENCE_IS_UNCONSTRAINED",
+        "NO_STRATEGY_TRADE_COUNT_OR_EXPOSURE_DAYS_AVAILABLE"
+      ],
+      "max_drawdown": -0.2449639566009052,
+      "missing_price_rows": 0,
+      "missing_volume_rows": 0,
+      "paired_uncertainty": {
+        "block_sessions": 20,
+        "estimand": "ANNUALIZED_MEAN_PAIRED_DAILY_RETURN_DIFFERENCE",
+        "interval": [
+          0.0,
+          0.0
+        ],
+        "repetitions": 500,
+        "seed": 1729,
+        "status": "DESCRIPTIVE_POINTWISE_NOT_MULTIPLE_TEST_CORRECTED"
+      },
+      "retrieved_at": "2026-10-09T00:46:48.950974+00:00",
+      "retrospective_factor_diagnostics": {
+        "distance_SMA200": 0.09366345138323529,
+        "distance_SMA60": 0.01088242798647543,
+        "momentum_126_sessions": 0.10537695778115519,
+        "momentum_12_minus_1_sessions": 0.1533097174969167,
+        "momentum_21_sessions": 0.005387526252468744,
+        "momentum_252_sessions": 0.15952320387715857,
+        "momentum_63_sessions": 0.023165409182158037,
+        "relative_momentum_126": 0.0
+      },
+      "return_intervals": 1254,
+      "source_hash": "df5d5cf3570efb8b8417f9597a76a2e1dbf9651bb91d8e07f4156759c9b731e6",
+      "start": "2021-01-04",
+      "symbol": "SPY",
+      "upside_capture": 1.0,
+      "version": "public-reference-diagnostics.v23"
+    },
+    {
+      "CAGR_actual_calendar_years": 0.1552362662492095,
+      "Calmar": 0.44297770601016107,
+      "Sharpe_zero_rf": 0.7545516530536007,
+      "Sortino_zero_rf": 1.0868161729039356,
+      "Ulcer_Index_fraction": 0.13520183473422676,
+      "annualized_volatility_252_assumption": 0.22534108856701754,
+      "benchmark_hash": "df5d5cf3570efb8b8417f9597a76a2e1dbf9651bb91d8e07f4156759c9b731e6",
+      "beta_to_SPY": 1.2454496840504419,
+      "cost_sensitivity": [
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.0541154157079782,
+          "one_way_adverse_bps_assumption": 0,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.0520623268367064,
+          "one_way_adverse_bps_assumption": 5,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.0438704510411054,
+          "one_way_adverse_bps_assumption": 25,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.0336764563477,
+          "one_way_adverse_bps_assumption": 50,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        }
+      ],
+      "downside_capture": 1.2877220499436002,
+      "end": "2025-12-31",
+      "evidence_level": "PUBLIC_EXPLORATORY",
+      "financial_oos_eligible": false,
+      "historical_available_at": null,
+      "limitations": [
+        "NOT_V23_SIGNAL_OR_STRATEGY_BACKTEST",
+        "LATEST_VINTAGE_ADJUSTED_CLOSE_TOTAL_RETURN_PROXY",
+        "ACTIONS_NOT_INDEPENDENTLY_VERIFIED",
+        "OBSERVED_PROVIDER_SESSION_GRID_NOT_CERTIFIED_CALENDAR",
+        "NO_DELISTING_OR_HISTORICAL_UNIVERSE_PROOF",
+        "REFERENCE_IS_UNCONSTRAINED",
+        "NO_STRATEGY_TRADE_COUNT_OR_EXPOSURE_DAYS_AVAILABLE"
+      ],
+      "max_drawdown": -0.3504381013830269,
+      "missing_price_rows": 0,
+      "missing_volume_rows": 0,
+      "paired_uncertainty": {
+        "block_sessions": 20,
+        "estimand": "ANNUALIZED_MEAN_PAIRED_DAILY_RETURN_DIFFERENCE",
+        "interval": [
+          -0.0625214967443095,
+          0.08923074868829259
+        ],
+        "repetitions": 500,
+        "seed": 1729,
+        "status": "DESCRIPTIVE_POINTWISE_NOT_MULTIPLE_TEST_CORRECTED"
+      },
+      "retrieved_at": "2026-10-09T00:46:50.847896+00:00",
+      "retrospective_factor_diagnostics": {
+        "distance_SMA200": 0.10405458663493095,
+        "distance_SMA60": 0.0013296970829808075,
+        "momentum_126_sessions": 0.11839855056123705,
+        "momentum_12_minus_1_sessions": 0.18625423989751888,
+        "momentum_21_sessions": -0.0034947430128218215,
+        "momentum_252_sessions": 0.18210858618120684,
+        "momentum_63_sessions": 0.019779673307249057,
+        "relative_momentum_126": 0.013021592780081859
+      },
+      "return_intervals": 1254,
+      "source_hash": "beb310a0b2b36ab95e040eb31562f449daa6a958d38e7932db3139b5714dbcc2",
+      "start": "2021-01-04",
+      "symbol": "QQQM",
+      "upside_capture": 1.2644091382447187,
+      "version": "public-reference-diagnostics.v23"
+    },
+    {
+      "CAGR_actual_calendar_years": 0.16672474002110116,
+      "Calmar": 0.499766645077097,
+      "Sharpe_zero_rf": 0.6934953562004815,
+      "Sortino_zero_rf": 1.0275987985276576,
+      "Ulcer_Index_fraction": 0.11874030458917546,
+      "annualized_volatility_252_assumption": 0.2786262728351464,
+      "benchmark_hash": "df5d5cf3570efb8b8417f9597a76a2e1dbf9651bb91d8e07f4156759c9b731e6",
+      "beta_to_SPY": 1.2346499446275565,
+      "cost_sensitivity": [
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.158056445590069,
+          "one_way_adverse_bps_assumption": 0,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.1558994676334575,
+          "one_way_adverse_bps_assumption": 5,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.1472930717966023,
+          "one_way_adverse_bps_assumption": 25,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.1365832471264863,
+          "one_way_adverse_bps_assumption": 50,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        }
+      ],
+      "downside_capture": 1.1997756127716084,
+      "end": "2025-12-31",
+      "evidence_level": "PUBLIC_EXPLORATORY",
+      "financial_oos_eligible": false,
+      "historical_available_at": null,
+      "limitations": [
+        "NOT_V23_SIGNAL_OR_STRATEGY_BACKTEST",
+        "LATEST_VINTAGE_ADJUSTED_CLOSE_TOTAL_RETURN_PROXY",
+        "ACTIONS_NOT_INDEPENDENTLY_VERIFIED",
+        "OBSERVED_PROVIDER_SESSION_GRID_NOT_CERTIFIED_CALENDAR",
+        "NO_DELISTING_OR_HISTORICAL_UNIVERSE_PROOF",
+        "REFERENCE_IS_UNCONSTRAINED",
+        "NO_STRATEGY_TRADE_COUNT_OR_EXPOSURE_DAYS_AVAILABLE"
+      ],
+      "max_drawdown": -0.33360517686285607,
+      "missing_price_rows": 0,
+      "missing_volume_rows": 0,
+      "paired_uncertainty": {
+        "block_sessions": 20,
+        "estimand": "ANNUALIZED_MEAN_PAIRED_DAILY_RETURN_DIFFERENCE",
+        "interval": [
+          -0.11167877186121689,
+          0.20172196894026598
+        ],
+        "repetitions": 500,
+        "seed": 1729,
+        "status": "DESCRIPTIVE_POINTWISE_NOT_MULTIPLE_TEST_CORRECTED"
+      },
+      "retrieved_at": "2026-10-09T00:46:52.925101+00:00",
+      "retrospective_factor_diagnostics": {
+        "distance_SMA200": 0.17481915716337926,
+        "distance_SMA60": 0.01015336122640953,
+        "momentum_126_sessions": 0.2823965636763148,
+        "momentum_12_minus_1_sessions": 0.11264299222419605,
+        "momentum_21_sessions": -0.03970333696195805,
+        "momentum_252_sessions": 0.06846735258555747,
+        "momentum_63_sessions": 0.06527121793462509,
+        "relative_momentum_126": 0.17701960589515964
+      },
+      "return_intervals": 1254,
+      "source_hash": "d65a3bdb063995a04e590ec96353e391c8e3ae72ebfedb91cf744bfac1b7084c",
+      "start": "2021-01-04",
+      "symbol": "AAPL",
+      "upside_capture": 1.212328562540863,
+      "version": "public-reference-diagnostics.v23"
+    },
+    {
+      "CAGR_actual_calendar_years": 0.18328848811171738,
+      "Calmar": 0.49339397556042935,
+      "Sharpe_zero_rf": 0.7844868631466732,
+      "Sortino_zero_rf": 1.1604369261237713,
+      "Ulcer_Index_fraction": 0.13122187381509465,
+      "annualized_volatility_252_assumption": 0.2571431205027617,
+      "benchmark_hash": "df5d5cf3570efb8b8417f9597a76a2e1dbf9651bb91d8e07f4156759c9b731e6",
+      "beta_to_SPY": 1.1398182395761023,
+      "cost_sensitivity": [
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.3152757559615869,
+          "one_way_adverse_bps_assumption": 0,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.3129616372649737,
+          "one_way_adverse_bps_assumption": 5,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.3037282459567914,
+          "one_way_adverse_bps_assumption": 25,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 1.2922381862505268,
+          "one_way_adverse_bps_assumption": 50,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        }
+      ],
+      "downside_capture": 1.1281677460825241,
+      "end": "2025-12-31",
+      "evidence_level": "PUBLIC_EXPLORATORY",
+      "financial_oos_eligible": false,
+      "historical_available_at": null,
+      "limitations": [
+        "NOT_V23_SIGNAL_OR_STRATEGY_BACKTEST",
+        "LATEST_VINTAGE_ADJUSTED_CLOSE_TOTAL_RETURN_PROXY",
+        "ACTIONS_NOT_INDEPENDENTLY_VERIFIED",
+        "OBSERVED_PROVIDER_SESSION_GRID_NOT_CERTIFIED_CALENDAR",
+        "NO_DELISTING_OR_HISTORICAL_UNIVERSE_PROOF",
+        "REFERENCE_IS_UNCONSTRAINED",
+        "NO_STRATEGY_TRADE_COUNT_OR_EXPOSURE_DAYS_AVAILABLE"
+      ],
+      "max_drawdown": -0.3714850549270008,
+      "missing_price_rows": 0,
+      "missing_volume_rows": 0,
+      "paired_uncertainty": {
+        "block_sessions": 20,
+        "estimand": "ANNUALIZED_MEAN_PAIRED_DAILY_RETURN_DIFFERENCE",
+        "interval": [
+          -0.09698851631415628,
+          0.18842469345897098
+        ],
+        "repetitions": 500,
+        "seed": 1729,
+        "status": "DESCRIPTIVE_POINTWISE_NOT_MULTIPLE_TEST_CORRECTED"
+      },
+      "retrieved_at": "2026-10-09T00:58:10.254469+00:00",
+      "retrospective_factor_diagnostics": {
+        "distance_SMA200": 0.015432231386876216,
+        "distance_SMA60": -0.03145958631426726,
+        "momentum_126_sessions": -0.011745944543924525,
+        "momentum_12_minus_1_sessions": 0.13889981155526132,
+        "momentum_21_sessions": -0.006410078448109036,
+        "momentum_252_sessions": 0.13159937441865543,
+        "momentum_63_sessions": -0.06770106671728171,
+        "relative_momentum_126": -0.11712290232507971
+      },
+      "return_intervals": 1254,
+      "source_hash": "322c1a1e8ea0fba108bd7279c735cfbfbec7d39e153d2bb746493f761f0d3c43",
+      "start": "2021-01-04",
+      "symbol": "MSFT",
+      "upside_capture": 1.160557853961152,
+      "version": "public-reference-diagnostics.v23"
+    },
+    {
+      "CAGR_actual_calendar_years": 0.7036266658789949,
+      "Calmar": 1.0607156152950528,
+      "Sharpe_zero_rf": 1.2819515714835055,
+      "Sortino_zero_rf": 1.9978183202894135,
+      "Ulcer_Index_fraction": 0.24050519890198976,
+      "annualized_volatility_252_assumption": 0.5222467220388324,
+      "benchmark_hash": "df5d5cf3570efb8b8417f9597a76a2e1dbf9651bb91d8e07f4156759c9b731e6",
+      "beta_to_SPY": 2.1331523132796204,
+      "cost_sensitivity": [
+        {
+          "commission": null,
+          "net_terminal_reference_return": 13.261982665405842,
+          "one_way_adverse_bps_assumption": 0,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 13.247727810168058,
+          "one_way_adverse_bps_assumption": 5,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 13.190850582286613,
+          "one_way_adverse_bps_assumption": 25,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        },
+        {
+          "commission": null,
+          "net_terminal_reference_return": 13.120072390128174,
+          "one_way_adverse_bps_assumption": 50,
+          "scope": "FRACTIONAL_BUY_HOLD_ENTRY_AND_TERMINAL_EXIT_REFERENCE_NOT_LIMIT_FILLS",
+          "spread_observed": null
+        }
+      ],
+      "downside_capture": 2.0583621732510062,
+      "end": "2025-12-31",
+      "evidence_level": "PUBLIC_EXPLORATORY",
+      "financial_oos_eligible": false,
+      "historical_available_at": null,
+      "limitations": [
+        "NOT_V23_SIGNAL_OR_STRATEGY_BACKTEST",
+        "LATEST_VINTAGE_ADJUSTED_CLOSE_TOTAL_RETURN_PROXY",
+        "ACTIONS_NOT_INDEPENDENTLY_VERIFIED",
+        "OBSERVED_PROVIDER_SESSION_GRID_NOT_CERTIFIED_CALENDAR",
+        "NO_DELISTING_OR_HISTORICAL_UNIVERSE_PROOF",
+        "REFERENCE_IS_UNCONSTRAINED",
+        "NO_STRATEGY_TRADE_COUNT_OR_EXPOSURE_DAYS_AVAILABLE"
+      ],
+      "max_drawdown": -0.6633509073808359,
+      "missing_price_rows": 0,
+      "missing_volume_rows": 0,
+      "paired_uncertainty": {
+        "block_sessions": 20,
+        "estimand": "ANNUALIZED_MEAN_PAIRED_DAILY_RETURN_DIFFERENCE",
+        "interval": [
+          0.1229261397874321,
+          0.8790746248503103
+        ],
+        "repetitions": 500,
+        "seed": 1729,
+        "status": "DESCRIPTIVE_POINTWISE_NOT_MULTIPLE_TEST_CORRECTED"
+      },
+      "retrieved_at": "2026-10-09T00:58:12.541191+00:00",
+      "retrospective_factor_diagnostics": {
+        "distance_SMA200": 0.16480684505433718,
+        "distance_SMA60": 0.0024033552451263596,
+        "momentum_126_sessions": 0.18614255872260843,
+        "momentum_12_minus_1_sessions": 0.3134750870258245,
+        "momentum_21_sessions": 0.03662951192275199,
+        "momentum_252_sessions": 0.3615870383862747,
+        "momentum_63_sessions": -0.003896620973412701,
+        "relative_momentum_126": 0.08076560094145324
+      },
+      "return_intervals": 1254,
+      "source_hash": "87fe2db7ce730d2eeac6740e7883045d8e4a6748eb6eeee73568584926944cd8",
+      "start": "2021-01-04",
+      "symbol": "NVDA",
+      "upside_capture": 2.4096592694174586,
+      "version": "public-reference-diagnostics.v23"
+    }
+  ],
+  "retrieved_at": "2026-10-09T00:58:14.694466+00:00",
+  "v23_real_oos_status": "MISSING_EVIDENCE",
+  "version": "public-research-summary.v23"
+}

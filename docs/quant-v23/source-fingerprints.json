@@ -1,0 +1,18 @@
+{
+  "files": {
+    "scripts/package_quant_v23.py": "c5cbcad7afbe8d94c6df0caa223ff2a3f3e52aa48eec2b8789dd87448ec40587",
+    "scripts/quant_v23_diagnostic.py": "182b055925d6f90f471d943d7290bd22eb62bed6172513dcc67f8decd37b2774",
+    "scripts/quant_v23_public_research.py": "00f2cc7899a58923166cebab45c165ef820f86350b6f046e5a1df878690fa80e",
+    "scripts/validate_quant_v23_artifacts.py": "8c0eae20277e7e10517f4daaa14f4f481969e1028d92ee863e07033ddc192c61",
+    "src/meridian/quant/flagship_experiments.py": "3d283a66bae1cf5a194b66e73606c586ec7541bb2527d593e26f6121b259f2df",
+    "src/meridian/quant/flagship_metrics.py": "c4ea06d0d45e8e0da96b1b3dd013ba0a70e87191f04a011b079a7b8482f6e1b0",
+    "src/meridian/quant/flagship_packet.py": "acab5e812e452a0474905e941d2c2f2e3e2d9f1830c768252f97b299ceff37f8",
+    "src/meridian/quant/flagship_policy.py": "e847abb30a3b1b2c32f6873c5b60be607905428a554f3e1697137c52eb9edcdc",
+    "src/meridian/quant/flagship_portfolio.py": "cba52132ff4234e3ad287959b6074b13b0c6509d98a6f5c16ffeed6eb8255dce",
+    "src/meridian/quant/flagship_replay.py": "67612ec859519137f1eba52b4699c6b81f837f1cc7b77f7a64d82c48a5aac19d",
+    "src/meridian/quant/public_history.py": "7c4fefe68498eeda9c5e862475b86a54782abd99a499a9e41cecd3b35a80d53a",
+    "src/meridian/quant/public_research.py": "4f623beb7bf5032e5128ec87706bf734b73f95763fd3dc51597cde61b37d2096"
+  },
+  "numeric_engine_hash": "7d85f0ba5fb84fd574d548cd71fe2ef45d60922b7efbd298ec3a9ef24228952e",
+  "version": "v23-research-source-fingerprints"
+}

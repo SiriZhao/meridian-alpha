@@ -1,0 +1,311 @@
+{
+  "$defs": {
+    "PublicCorporateAction": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amount"
+        },
+        "date": {
+          "exclusiveMinimum": 0,
+          "title": "Date",
+          "type": "integer"
+        },
+        "denominator": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Denominator"
+        },
+        "kind": {
+          "enum": [
+            "dividends",
+            "splits",
+            "capitalGains"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "numerator": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Numerator"
+        },
+        "splitRatio": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Splitratio"
+        }
+      },
+      "required": [
+        "kind",
+        "date"
+      ],
+      "title": "PublicCorporateAction",
+      "type": "object"
+    },
+    "PublicPriceObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "adjusted_close": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Adjusted Close"
+        },
+        "close": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Close"
+        },
+        "high": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "High"
+        },
+        "historical_available_at": {
+          "default": null,
+          "title": "Historical Available At",
+          "type": "null"
+        },
+        "low": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Low"
+        },
+        "open": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Open"
+        },
+        "provider_timestamp": {
+          "format": "date-time",
+          "title": "Provider Timestamp",
+          "type": "string"
+        },
+        "session": {
+          "format": "date",
+          "title": "Session",
+          "type": "string"
+        },
+        "volume": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Volume"
+        }
+      },
+      "required": [
+        "session",
+        "provider_timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "adjusted_close"
+      ],
+      "title": "PublicPriceObservation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "corporate_actions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PublicCorporateAction"
+      },
+      "maxItems": 1000,
+      "title": "Corporate Actions",
+      "type": "array"
+    },
+    "currency": {
+      "const": "USD",
+      "default": "USD",
+      "title": "Currency",
+      "type": "string"
+    },
+    "evidence_level": {
+      "const": "PUBLIC_EXPLORATORY",
+      "default": "PUBLIC_EXPLORATORY",
+      "title": "Evidence Level",
+      "type": "string"
+    },
+    "execution_certified": {
+      "const": false,
+      "default": false,
+      "title": "Execution Certified",
+      "type": "boolean"
+    },
+    "financial_oos_eligible": {
+      "const": false,
+      "default": false,
+      "title": "Financial Oos Eligible",
+      "type": "boolean"
+    },
+    "historical_availability": {
+      "const": "UNKNOWN_NOT_MANUFACTURED",
+      "default": "UNKNOWN_NOT_MANUFACTURED",
+      "title": "Historical Availability",
+      "type": "string"
+    },
+    "missing_rows": {
+      "default": [],
+      "items": {
+        "format": "date",
+        "type": "string"
+      },
+      "title": "Missing Rows",
+      "type": "array"
+    },
+    "observations": {
+      "items": {
+        "$ref": "#/$defs/PublicPriceObservation"
+      },
+      "maxItems": 10000,
+      "minItems": 1,
+      "title": "Observations",
+      "type": "array"
+    },
+    "response_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Response Hash",
+      "type": "string"
+    },
+    "retrieved_at": {
+      "format": "date-time",
+      "title": "Retrieved At",
+      "type": "string"
+    },
+    "rights": {
+      "const": "PUBLIC_ENDPOINT_NO_CREDENTIALS_RIGHTS_NOT_INDEPENDENTLY_VERIFIED",
+      "default": "PUBLIC_ENDPOINT_NO_CREDENTIALS_RIGHTS_NOT_INDEPENDENTLY_VERIFIED",
+      "title": "Rights",
+      "type": "string"
+    },
+    "source_url": {
+      "title": "Source Url",
+      "type": "string"
+    },
+    "source_vintage": {
+      "const": "LATEST_RETROSPECTIVE_DOWNLOAD",
+      "default": "LATEST_RETROSPECTIVE_DOWNLOAD",
+      "title": "Source Vintage",
+      "type": "string"
+    },
+    "symbol": {
+      "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+      "title": "Symbol",
+      "type": "string"
+    },
+    "version": {
+      "const": "public-exploratory-history.v1",
+      "default": "public-exploratory-history.v1",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "symbol",
+    "retrieved_at",
+    "source_url",
+    "response_hash",
+    "observations"
+  ],
+  "title": "PublicHistoryReceipt",
+  "type": "object"
+}
