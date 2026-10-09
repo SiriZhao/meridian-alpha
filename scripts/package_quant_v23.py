@@ -19,6 +19,15 @@ from meridian.quant.public_history import PublicHistoryReceipt
 from meridian.trading_calendar import session_close
 
 
+def seal_source_file(path: Path, text: str) -> None:
+    """Offline source generator: preserve immutable content without runtime locks."""
+    if path.exists():
+        if path.read_text(encoding='utf-8') != text:
+            raise ValueError('V23_SOURCE_ARTIFACT_EXISTS_DIFFERENT_CONTENT')
+        return
+    path.write_text(text, encoding='utf-8', newline='\n')
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--registry', type=Path, required=True)
@@ -60,9 +69,9 @@ def main() -> int:
         'members': {n: hashlib.sha256(b).hexdigest() for n, b in payloads.items()},
         'evidence_level': 'SYNTHETIC_DIAGNOSTIC', 'automatic_promotion': False}
     immutable_record(destination / 'archive-manifest.json', json.dumps(manifest, indent=2, sort_keys=True) + '\n')
-    immutable_record(root / 'policies/quant-v23.yaml', yaml.safe_dump(FlagshipPolicy().model_dump(mode='json'), sort_keys=True))
+    seal_source_file(root / 'policies/quant-v23.yaml', yaml.safe_dump(FlagshipPolicy().model_dump(mode='json'), sort_keys=True))
     for name, model in [('policy', FlagshipPolicy), ('plan', FlagshipExperimentPlan), ('packet', FlagshipResearchPacket), ('public-history', PublicHistoryReceipt)]:
-        immutable_record(root / ('schemas/quant-v23-' + name + '.json'), json.dumps(model.model_json_schema(), indent=2, sort_keys=True) + '\n')
+        seal_source_file(root / ('schemas/quant-v23-' + name + '.json'), json.dumps(model.model_json_schema(), indent=2, sort_keys=True) + '\n')
     print(json.dumps({'archive_bytes': len(blob), 'members': len(payloads), 'engine_hash': plan.engine_hash}))
     return 0
 

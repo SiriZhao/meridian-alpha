@@ -49,6 +49,13 @@ is fabricated where history availability and membership are unqualified.
 * Packet evidence labeling initially compared the wrong synthetic enum string.
   A regression caught it; the final API derives the class from the underlying
   `synthetic` flag. No incorrect packet was promoted or delivered as real evidence.
+* Source packaging initially left runtime lock directories under policies/schemas.
+  Full regression found four existing configuration tests failing to read those
+  directories. Preserve the tests; fix the offline generator to produce source
+  artifacts without runtime locks. Local guard evidence was moved into isolated
+  `.tmp` and the old tests plus a no-lock/no-overwrite regression now pass.
+* The first full validation attempt stopped at public-parser typing errors;
+  validated column narrowing fixed the implementation without type suppressions.
 * Initial public receipt filename used response hash only: repeated retrieval
   changes availability metadata. Fixed by separate receipt-content identity;
   raw response retains its byte hash. No immutable object overwritten.
