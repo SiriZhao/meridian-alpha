@@ -1,6 +1,7 @@
 """Evidence-bound research decisions. No model-authored orders or inferred accounts."""
 from __future__ import annotations
 
+import hashlib
 from decimal import Decimal
 from typing import Literal
 
@@ -50,6 +51,18 @@ class ResearchPricePlan(StableModel):
         return self
 
 
+class DataGapRequest(StableModel):
+    version: Literal["data-gap-request.v1"] = "data-gap-request.v1"
+    request_id: str = Field(pattern=r"^[a-f0-9]{64}$")
+    symbol: str
+    analysis_cutoff: AwareDatetime
+    snapshot_hash: str
+    required_evidence: str
+    reason_codes: tuple[str, ...]
+    status: Literal["MISSING_EVIDENCE"] = "MISSING_EVIDENCE"
+    authorization_granted: Literal[False] = False
+
+
 class ResearchRecommendation(StableModel):
     version: Literal["research-recommendation.v1"] = "research-recommendation.v1"
     symbol: str
@@ -85,6 +98,7 @@ class ResearchRecommendation(StableModel):
     portfolio_concentration: dict = Field(default_factory=dict)
     important_unknowns: tuple[str, ...]
     next_inputs: tuple[str, ...]
+    data_gap_requests: tuple[DataGapRequest, ...] = Field(default=(), max_length=8)
     monitoring_triggers: tuple[str, ...]
     invalidation_conditions: tuple[str, ...]
     explanation_zh: str
@@ -234,6 +248,10 @@ def build_recommendations(snapshot: QuantTerminalSnapshot, *, request: DailyRese
             current_weight=weight, account_context="AUTHORIZED_PAPER_RESEARCH" if current is not None else "NOT_SUPPLIED_OR_NOT_VALIDATED",
             price_plan=plan, evidence_ids=evidence_ids, gpt_interpretation=interpretation, quant_gpt_conflict=conflict,
             reasons=tuple(reasons), blockers=tuple(blockers), important_unknowns=tuple(unknowns), next_inputs=tuple(next_inputs),
+            data_gap_requests=tuple(DataGapRequest(
+                request_id=hashlib.sha256(f'{snapshot.digest}|{row.symbol}|{need}'.encode()).hexdigest(),
+                symbol=row.symbol, analysis_cutoff=snapshot.analysis_cutoff, snapshot_hash=snapshot.digest,
+                required_evidence=need, reason_codes=tuple(blockers)) for need in next_inputs),
             cost_assumptions={**(packet.cost_assumptions.model_dump(mode='json') if packet else {}),
                 'monetary_cost': None, 'basis': 'NO_ACCOUNT_NORMALIZED_RESEARCH_NOT_ACCOUNT_COST', 'spread_observed': False},
             portfolio_concentration=allocation.risk.model_dump(mode='json') if allocation else {},

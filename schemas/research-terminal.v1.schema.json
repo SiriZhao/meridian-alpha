@@ -5949,6 +5949,68 @@
   },
   "DecisionBrief": {
     "$defs": {
+      "DataGapRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "data-gap-request.v1",
+            "default": "data-gap-request.v1",
+            "title": "Version",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "snapshot_hash": {
+            "title": "Snapshot Hash",
+            "type": "string"
+          },
+          "required_evidence": {
+            "title": "Required Evidence",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "status": {
+            "const": "MISSING_EVIDENCE",
+            "default": "MISSING_EVIDENCE",
+            "title": "Status",
+            "type": "string"
+          },
+          "authorization_granted": {
+            "const": false,
+            "default": false,
+            "title": "Authorization Granted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "request_id",
+          "symbol",
+          "analysis_cutoff",
+          "snapshot_hash",
+          "required_evidence",
+          "reason_codes"
+        ],
+        "title": "DataGapRequest",
+        "type": "object"
+      },
       "ManualOrderTicket": {
         "additionalProperties": false,
         "properties": {
@@ -6748,6 +6810,15 @@
             "title": "Next Inputs",
             "type": "array"
           },
+          "data_gap_requests": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/DataGapRequest"
+            },
+            "maxItems": 8,
+            "title": "Data Gap Requests",
+            "type": "array"
+          },
           "monitoring_triggers": {
             "items": {
               "type": "string"
@@ -6996,6 +7067,68 @@
   },
   "ResearchRecommendation": {
     "$defs": {
+      "DataGapRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "data-gap-request.v1",
+            "default": "data-gap-request.v1",
+            "title": "Version",
+            "type": "string"
+          },
+          "request_id": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "snapshot_hash": {
+            "title": "Snapshot Hash",
+            "type": "string"
+          },
+          "required_evidence": {
+            "title": "Required Evidence",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "status": {
+            "const": "MISSING_EVIDENCE",
+            "default": "MISSING_EVIDENCE",
+            "title": "Status",
+            "type": "string"
+          },
+          "authorization_granted": {
+            "const": false,
+            "default": false,
+            "title": "Authorization Granted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "request_id",
+          "symbol",
+          "analysis_cutoff",
+          "snapshot_hash",
+          "required_evidence",
+          "reason_codes"
+        ],
+        "title": "DataGapRequest",
+        "type": "object"
+      },
       "ResearchPricePlan": {
         "additionalProperties": false,
         "properties": {
@@ -7462,6 +7595,15 @@
           "type": "string"
         },
         "title": "Next Inputs",
+        "type": "array"
+      },
+      "data_gap_requests": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/DataGapRequest"
+        },
+        "maxItems": 8,
+        "title": "Data Gap Requests",
         "type": "array"
       },
       "monitoring_triggers": {

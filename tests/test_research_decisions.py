@@ -39,6 +39,12 @@ def quant_request(*, verified=False, regular=False):
     data = synthetic_dataset()
     when = cutoff(data) + (timedelta(hours=19) if regular else timedelta())
     series = tuple(s for s in data.series if s.canonical_symbol in {'AAPL', 'MSFT', 'NVDA', 'SPY'})
+    # Seal decimal input precision before hashing. libm sin/cos used by the
+    # shared synthetic generator has platform-specific binary float tail bits.
+    # This fixture contract is independent of the frozen experiment generator.
+    series = tuple(s.model_copy(update={'bars': tuple(b.model_copy(update={
+        name: getattr(b, name).quantize(D('.00000001'))
+        for name in ('open', 'high', 'low', 'close')}) for b in s.bars)}) for s in series)
     if verified:
         series = tuple(s.model_copy(update={'bars': tuple(b.model_copy(update={
             'certification': HistoricalBarCertification.CERTIFIED_RESEARCH_PIT_ADJUSTED,

@@ -8,7 +8,7 @@
       "company_name": null,
       "company_name_source": null,
       "observed_reference": {
-        "price": "78.23489681886724429774523624",
+        "price": "78.23489682",
         "observed_at": "2021-02-11T20:59:55+00:00",
         "source": "ENGINEERING_FIXTURE_NOT_REAL_PRICE",
         "evidence_id": "0000000000000000000000000000000000000000000000000000000000000001",
@@ -18,11 +18,11 @@
       "analysis_cutoff": "2021-02-11T21:00:00Z",
       "engine": "V2.3_SHADOW",
       "engine_hash": "7d85f0ba5fb84fd574d548cd71fe2ef45d60922b7efbd298ec3a9ef24228952e",
-      "snapshot_hash": "bdcf620e33e186e8cfc78bb4298228ac31bccce6ca5e9b958ba07709bf2d8d29",
+      "snapshot_hash": "a152445acdeb9cde7b60889021420baed9b4a2347197e89acef72b8d15733e8b",
       "certification": "SYNTHETIC_DIAGNOSTIC",
       "category": "ACCUMULATE_CONDITIONALLY",
       "state": "CONDITIONAL_PLAN",
-      "score": "0.5151129144816234124422158411",
+      "score": "0.5151129145057145575816107577",
       "rank": 3,
       "factor_attribution": [
         {
@@ -33,14 +33,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 63,
-          "raw": "0.018397591173764765084444459",
-          "normalized": "0.5732544474831905656527794906",
+          "raw": "0.018397591206481781717754322",
+          "normalized": "0.5732544475932187284162921165",
           "weight": "0.100",
-          "contribution": "0.05732544474831905656527794906",
+          "contribution": "0.05732544475932187284162921165",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -52,14 +52,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 126,
-          "raw": "0.026024165688286693107362936",
-          "normalized": "0.5783030373605728230852950614",
+          "raw": "0.026024165686129678042977031",
+          "normalized": "0.5783030373541701486969349861",
           "weight": "0.150",
-          "contribution": "0.08674545560408592346279425921",
+          "contribution": "0.08674545560312552230454024792",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -71,14 +71,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 252,
-          "raw": "0.115174541914575159333662418",
-          "normalized": "0.7332897126674133271498995068",
+          "raw": "0.115174541898829894124759756",
+          "normalized": "0.7332897126513814599792056548",
           "weight": "0.250",
-          "contribution": "0.1833224281668533317874748767",
+          "contribution": "0.1833224281628453649948014137",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -90,14 +90,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 126,
-          "raw": "-0.073438422068598996912654499",
-          "normalized": "0.2813370362620637968754232153",
+          "raw": "-0.073438422070409021775022333",
+          "normalized": "0.2813370362592271203625514715",
           "weight": "0.25",
-          "contribution": "0.07033425906551594921885580382",
+          "contribution": "0.07033425906480678009063786788",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -109,14 +109,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 60,
-          "raw": "0.000419004232829572360244113",
-          "normalized": "0.4848701609623389988082911642",
+          "raw": "0.000419004249020108143253670",
+          "normalized": "0.4848701611124659263458036778",
           "weight": "0.125",
-          "contribution": "0.06060877012029237485103639552",
+          "contribution": "0.06060877013905824079322545972",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -128,7 +128,7 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 60,
@@ -141,12 +141,12 @@
         }
       ],
       "historical_risk": {
-        "volatility_20": "0.06684262172986537446405499375",
-        "volatility_60": "0.06770664281582535286734174824",
-        "downside_deviation": "0.04591605382793883969905611371",
-        "drawdown_60": "-0.0227529102260893043627801429",
-        "beta_60": "0.2847897821595395117873351460",
-        "dollar_volume_20": "78863625.1039910870880033684"
+        "volatility_20": "0.06684262163297548975691214929",
+        "volatility_60": "0.06770664275530708214622080762",
+        "downside_deviation": "0.04591605383622734157743303549",
+        "drawdown_60": "-0.0227529102887309286824147049",
+        "beta_60": "0.2847897820399226590438768006",
+        "dollar_volume_20": "78863625.10450000"
       },
       "regime": {
         "version": "quant-regime-v2.1",
@@ -157,7 +157,7 @@
         "risk_multiplier": "0.5",
         "exposure_ceiling": "0.5",
         "rebalance_urgency": "RISK_REDUCTION",
-        "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+        "input_hash": "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9",
         "reasons": [
           "SPY_TREND_AND_TRAILING_VOLATILITY"
         ]
@@ -172,18 +172,18 @@
         "version": "research-price-plan.v1",
         "symbol": "AAPL",
         "analysis_cutoff": "2021-02-11T21:00:00Z",
-        "observed_price": "78.23489681886724429774523624",
+        "observed_price": "78.23489682",
         "observed_at": "2021-02-11T20:59:55Z",
         "source": "ENGINEERING_FIXTURE_NOT_REAL_PRICE",
         "quote_evidence_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "feature_input_hash": "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+        "feature_input_hash": "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
         "feature_session": "2021-02-11",
-        "lower": "78.49335260996026486292233709",
-        "upper": "79.23389759802190931308439971",
+        "lower": "78.49335261021428571428571429",
+        "upper": "79.23389759878571428571428571",
         "method": "SMA20_PULLBACK_WITH_HALF_ATR14",
         "measurement": {
-          "sma20": "78.8636251039910870880033684",
-          "atr14": "0.7405449880616444501620626236"
+          "sma20": "78.8636251045",
+          "atr14": "0.7405449885714285714285714286"
         },
         "scenario": "TREND_PULLBACK_RESEARCH_NOT_FAIR_VALUE",
         "price_basis": "ADJUSTED_HISTORY_RESEARCH_UNITS_NOT_EXECUTION_UNITS",
@@ -202,7 +202,7 @@
         "executable_limit": null
       },
       "evidence_ids": [
-        "terminal-a0379f306eab2341558a7b73f1fee4ed18bde7d8b0ed6702eb7fde45c47f4313-AAPL",
+        "terminal-ee5c69c3929eded6b51d92deb9d963c24541f7854c5c515440d1d84211a7355b-AAPL",
         "0000000000000000000000000000000000000000000000000000000000000001"
       ],
       "gpt_interpretation": null,
@@ -225,8 +225,8 @@
         "spread_observed": false
       },
       "portfolio_concentration": {
-        "conservative_volatility_bound": "0.01490304360137793105297069015",
-        "shrunk_volatility_estimate": "0.009505626175066962025985143945",
+        "conservative_volatility_bound": "0.01490304359711068738231713988",
+        "shrunk_volatility_estimate": "0.009505626173185099002954905570",
         "covariance_status": "PSD_FIXED_DIAGONAL_SHRINKAGE",
         "correlated_components": [
           [
@@ -257,6 +257,38 @@
         "新鲜且授权的 Schwab-Paper 账户快照",
         "认证执行报价及独立人工审核"
       ],
+      "data_gap_requests": [
+        {
+          "version": "data-gap-request.v1",
+          "request_id": "c5494dfd339221ff2aa59c0650db6d2a10eb9afa562419ee51bfadc50296886a",
+          "symbol": "AAPL",
+          "analysis_cutoff": "2021-02-11T21:00:00Z",
+          "snapshot_hash": "a152445acdeb9cde7b60889021420baed9b4a2347197e89acef72b8d15733e8b",
+          "required_evidence": "新鲜且授权的 Schwab-Paper 账户快照",
+          "reason_codes": [
+            "EXECUTION_QUOTES_AND_MANUAL_REVIEW_REQUIRED",
+            "SHADOW_STRATEGY_NOT_PROMOTED",
+            "FRESH_AUTHORIZED_ACCOUNT_REQUIRED_FOR_SIZING"
+          ],
+          "status": "MISSING_EVIDENCE",
+          "authorization_granted": false
+        },
+        {
+          "version": "data-gap-request.v1",
+          "request_id": "e2e7cd3474c71ca4266b5ea00b9e9df55febddf59297931b1a6a6ef788fb115b",
+          "symbol": "AAPL",
+          "analysis_cutoff": "2021-02-11T21:00:00Z",
+          "snapshot_hash": "a152445acdeb9cde7b60889021420baed9b4a2347197e89acef72b8d15733e8b",
+          "required_evidence": "认证执行报价及独立人工审核",
+          "reason_codes": [
+            "EXECUTION_QUOTES_AND_MANUAL_REVIEW_REQUIRED",
+            "SHADOW_STRATEGY_NOT_PROMOTED",
+            "FRESH_AUTHORIZED_ACCOUNT_REQUIRED_FOR_SIZING"
+          ],
+          "status": "MISSING_EVIDENCE",
+          "authorization_granted": false
+        }
+      ],
       "monitoring_triggers": [
         "下一完整交易日重算动量、趋势及风险预算",
         "价格进入测量区间后核实流动性、企业行动与反方证据"
@@ -277,7 +309,7 @@
       "company_name": null,
       "company_name_source": null,
       "observed_reference": {
-        "price": "102.1436122202917284464820861",
+        "price": "102.14361222",
         "observed_at": "2021-02-11T20:59:55+00:00",
         "source": "ENGINEERING_FIXTURE_NOT_REAL_PRICE",
         "evidence_id": "0000000000000000000000000000000000000000000000000000000000000002",
@@ -287,11 +319,11 @@
       "analysis_cutoff": "2021-02-11T21:00:00Z",
       "engine": "V2.3_SHADOW",
       "engine_hash": "7d85f0ba5fb84fd574d548cd71fe2ef45d60922b7efbd298ec3a9ef24228952e",
-      "snapshot_hash": "bdcf620e33e186e8cfc78bb4298228ac31bccce6ca5e9b958ba07709bf2d8d29",
+      "snapshot_hash": "a152445acdeb9cde7b60889021420baed9b4a2347197e89acef72b8d15733e8b",
       "certification": "SYNTHETIC_DIAGNOSTIC",
       "category": "ACCUMULATE_CONDITIONALLY",
       "state": "CONDITIONAL_PLAN",
-      "score": "0.5458082191931544573410811190",
+      "score": "0.5458082192015176605938611925",
       "rank": 2,
       "factor_attribution": [
         {
@@ -302,14 +334,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 63,
-          "raw": "0.009502521702052085765972601",
-          "normalized": "0.5218624911611348098389913116",
+          "raw": "0.009502521738155920000988206",
+          "normalized": "0.5218624913030800994293244139",
           "weight": "0.100",
-          "contribution": "0.05218624911611348098389913116",
+          "contribution": "0.05218624913030800994293244139",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -321,14 +353,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 126,
-          "raw": "0.038918007167158275474943906",
-          "normalized": "0.6320711468282405226483883875",
+          "raw": "0.038918007142061142841681779",
+          "normalized": "0.6320711467669317084025350314",
           "weight": "0.150",
-          "contribution": "0.09481067202423607839725825812",
+          "contribution": "0.09481067201503975626038025471",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -340,14 +372,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 252,
-          "raw": "0.129808590197781645914637700",
-          "normalized": "0.7853365257565893406257733669",
+          "raw": "0.129808590279472771566373630",
+          "normalized": "0.7853365258295112888714164800",
           "weight": "0.250",
-          "contribution": "0.1963341314391473351564433417",
+          "contribution": "0.1963341314573778222178541200",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -359,14 +391,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 126,
-          "raw": "-0.060544580589727414545073529",
-          "normalized": "0.3222148326009359979677110016",
+          "raw": "-0.060544580614477556976317585",
+          "normalized": "0.3222148325556668518781402463",
           "weight": "0.25",
-          "contribution": "0.08055370815023399949192775040",
+          "contribution": "0.08055370813891671296953506158",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -378,14 +410,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 60,
-          "raw": "0.002351477576104530667246256",
-          "normalized": "0.5211752134949342940382086461",
+          "raw": "0.002351477572804100373390899",
+          "normalized": "0.5211752134665486611710620642",
           "weight": "0.125",
-          "contribution": "0.06514690168686678675477608076",
+          "contribution": "0.06514690168331858264638275802",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -397,7 +429,7 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 60,
@@ -410,12 +442,12 @@
         }
       ],
       "historical_risk": {
-        "volatility_20": "0.06648043745092750427399249198",
-        "volatility_60": "0.06769443553259702521412871245",
-        "downside_deviation": "0.04525525085547386854458232442",
-        "drawdown_60": "-0.0224075479400726304036940945",
-        "beta_60": "-0.6527536986705684373101522800",
-        "dollar_volume_20": "113002185.0210235292458375138"
+        "volatility_20": "0.06648043747622464255581476605",
+        "volatility_60": "0.06769443553560269314472402503",
+        "downside_deviation": "0.04525525084263306161953181062",
+        "drawdown_60": "-0.0224075479370889672854240912",
+        "beta_60": "-0.6527536984901771267308712559",
+        "dollar_volume_20": "113002185.02155000"
       },
       "regime": {
         "version": "quant-regime-v2.1",
@@ -426,7 +458,7 @@
         "risk_multiplier": "0.5",
         "exposure_ceiling": "0.5",
         "rebalance_urgency": "RISK_REDUCTION",
-        "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+        "input_hash": "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9",
         "reasons": [
           "SPY_TREND_AND_TRAILING_VOLATILITY"
         ]
@@ -441,18 +473,18 @@
         "version": "research-price-plan.v1",
         "symbol": "MSFT",
         "analysis_cutoff": "2021-02-11T21:00:00Z",
-        "observed_price": "102.1436122202917284464820861",
+        "observed_price": "102.14361222",
         "observed_at": "2021-02-11T20:59:55Z",
         "source": "ENGINEERING_FIXTURE_NOT_REAL_PRICE",
         "quote_evidence_id": "0000000000000000000000000000000000000000000000000000000000000002",
-        "feature_input_hash": "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+        "feature_input_hash": "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
         "feature_session": "2021-02-11",
-        "lower": "102.2590905181280745230774337",
-        "upper": "103.1994277019147059238998643",
+        "lower": "102.2590905187142857142857143",
+        "upper": "103.1994277022857142857142857",
         "method": "SMA20_PULLBACK_WITH_HALF_ATR14",
         "measurement": {
-          "sma20": "102.729259110021390223488649",
-          "atr14": "0.9403371837866314008224306857"
+          "sma20": "102.7292591105",
+          "atr14": "0.9403371835714285714285714286"
         },
         "scenario": "TREND_PULLBACK_RESEARCH_NOT_FAIR_VALUE",
         "price_basis": "ADJUSTED_HISTORY_RESEARCH_UNITS_NOT_EXECUTION_UNITS",
@@ -471,7 +503,7 @@
         "executable_limit": null
       },
       "evidence_ids": [
-        "terminal-a0379f306eab2341558a7b73f1fee4ed18bde7d8b0ed6702eb7fde45c47f4313-MSFT",
+        "terminal-ee5c69c3929eded6b51d92deb9d963c24541f7854c5c515440d1d84211a7355b-MSFT",
         "0000000000000000000000000000000000000000000000000000000000000002"
       ],
       "gpt_interpretation": null,
@@ -494,8 +526,8 @@
         "spread_observed": false
       },
       "portfolio_concentration": {
-        "conservative_volatility_bound": "0.01490304360137793105297069015",
-        "shrunk_volatility_estimate": "0.009505626175066962025985143945",
+        "conservative_volatility_bound": "0.01490304359711068738231713988",
+        "shrunk_volatility_estimate": "0.009505626173185099002954905570",
         "covariance_status": "PSD_FIXED_DIAGONAL_SHRINKAGE",
         "correlated_components": [
           [
@@ -526,6 +558,38 @@
         "新鲜且授权的 Schwab-Paper 账户快照",
         "认证执行报价及独立人工审核"
       ],
+      "data_gap_requests": [
+        {
+          "version": "data-gap-request.v1",
+          "request_id": "4d4529f659e5dbbdff499e52b83bca1d8c67a5775d309ffe6d766f37f23130d6",
+          "symbol": "MSFT",
+          "analysis_cutoff": "2021-02-11T21:00:00Z",
+          "snapshot_hash": "a152445acdeb9cde7b60889021420baed9b4a2347197e89acef72b8d15733e8b",
+          "required_evidence": "新鲜且授权的 Schwab-Paper 账户快照",
+          "reason_codes": [
+            "EXECUTION_QUOTES_AND_MANUAL_REVIEW_REQUIRED",
+            "SHADOW_STRATEGY_NOT_PROMOTED",
+            "FRESH_AUTHORIZED_ACCOUNT_REQUIRED_FOR_SIZING"
+          ],
+          "status": "MISSING_EVIDENCE",
+          "authorization_granted": false
+        },
+        {
+          "version": "data-gap-request.v1",
+          "request_id": "de1ddfd4ded4236f3d9fc1f08928d809ee90a27a5e2b150840e23d950f70889e",
+          "symbol": "MSFT",
+          "analysis_cutoff": "2021-02-11T21:00:00Z",
+          "snapshot_hash": "a152445acdeb9cde7b60889021420baed9b4a2347197e89acef72b8d15733e8b",
+          "required_evidence": "认证执行报价及独立人工审核",
+          "reason_codes": [
+            "EXECUTION_QUOTES_AND_MANUAL_REVIEW_REQUIRED",
+            "SHADOW_STRATEGY_NOT_PROMOTED",
+            "FRESH_AUTHORIZED_ACCOUNT_REQUIRED_FOR_SIZING"
+          ],
+          "status": "MISSING_EVIDENCE",
+          "authorization_granted": false
+        }
+      ],
       "monitoring_triggers": [
         "下一完整交易日重算动量、趋势及风险预算",
         "价格进入测量区间后核实流动性、企业行动与反方证据"
@@ -546,7 +610,7 @@
       "company_name": null,
       "company_name_source": null,
       "observed_reference": {
-        "price": "127.0632811719226998695736667",
+        "price": "127.06328117",
         "observed_at": "2021-02-11T20:59:55+00:00",
         "source": "ENGINEERING_FIXTURE_NOT_REAL_PRICE",
         "evidence_id": "0000000000000000000000000000000000000000000000000000000000000003",
@@ -556,11 +620,11 @@
       "analysis_cutoff": "2021-02-11T21:00:00Z",
       "engine": "V2.3_SHADOW",
       "engine_hash": "7d85f0ba5fb84fd574d548cd71fe2ef45d60922b7efbd298ec3a9ef24228952e",
-      "snapshot_hash": "bdcf620e33e186e8cfc78bb4298228ac31bccce6ca5e9b958ba07709bf2d8d29",
+      "snapshot_hash": "a152445acdeb9cde7b60889021420baed9b4a2347197e89acef72b8d15733e8b",
       "certification": "SYNTHETIC_DIAGNOSTIC",
       "category": "ACCUMULATE_CONDITIONALLY",
       "state": "CONDITIONAL_PLAN",
-      "score": "0.6095096199946595842220533417",
+      "score": "0.6095096199312570320456270183",
       "rank": 1,
       "factor_attribution": [
         {
@@ -571,14 +635,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 63,
-          "raw": "0.018828617595818829033457359",
-          "normalized": "0.5937463614445352421582708054",
+          "raw": "0.018828617600338776960926767",
+          "normalized": "0.5937463614596258676717987041",
           "weight": "0.100",
-          "contribution": "0.05937463614445352421582708054",
+          "contribution": "0.05937463614596258676717987041",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -590,14 +654,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 126,
-          "raw": "0.071393615242919871420420339",
-          "normalized": "0.7154201034916166717728131625",
+          "raw": "0.071393615184393733554225978",
+          "normalized": "0.7154201033976926918714841569",
           "weight": "0.150",
-          "contribution": "0.1073130155237425007659219744",
+          "contribution": "0.1073130155096539037807226235",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -609,14 +673,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 252,
-          "raw": "0.128365100168091669959885542",
-          "normalized": "0.7649922240700787670866622078",
+          "raw": "0.128365100168139074645675840",
+          "normalized": "0.7649922240701216197387312891",
           "weight": "0.250",
-          "contribution": "0.1912480560175196917716655520",
+          "contribution": "0.1912480560175304049346828223",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -628,14 +692,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 126,
-          "raw": "-0.028068972513965818599597096",
-          "normalized": "0.4157242663730768367526262314",
+          "raw": "-0.028068972572144966263773386",
+          "normalized": "0.4157242662058540703969400375",
           "weight": "0.25",
-          "contribution": "0.1039310665932692091881565578",
+          "contribution": "0.1039310665514635175992350094",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -647,14 +711,14 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 60,
-          "raw": "0.014642166459673867727791068",
-          "normalized": "0.6258314104140419548885460611",
+          "raw": "0.014642166446870349298749822",
+          "normalized": "0.6258314103418176403551421862",
           "weight": "0.125",
-          "contribution": "0.07822892630175524436106825764",
+          "contribution": "0.07822892629272720504439277328",
           "missing_reason": null,
           "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
         },
@@ -666,7 +730,7 @@
           "as_of": "2021-02-11T21:00:00Z",
           "availability_cutoff": "2021-02-11T21:00:00Z",
           "provenance": [
-            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "lookback": 60,
@@ -679,12 +743,12 @@
         }
       ],
       "historical_risk": {
-        "volatility_20": "0.06894619481625076279055002892",
-        "volatility_60": "0.06782316723512024328913608954",
-        "downside_deviation": "0.04254301905746121595414436734",
-        "drawdown_60": "-0.0219725262730210537772282059",
-        "beta_60": "-0.9901584392708694255923598447",
-        "dollar_volume_20": "151594520.5794070066777251180"
+        "volatility_20": "0.06894619477585368984417737303",
+        "volatility_60": "0.06782316723444289516188186044",
+        "downside_deviation": "0.04254301905737116389512830630",
+        "drawdown_60": "-0.0219725262808389814537501629",
+        "beta_60": "-0.9901584393339317791479427681",
+        "dollar_volume_20": "151594520.57820000"
       },
       "regime": {
         "version": "quant-regime-v2.1",
@@ -695,7 +759,7 @@
         "risk_multiplier": "0.5",
         "exposure_ceiling": "0.5",
         "rebalance_urgency": "RISK_REDUCTION",
-        "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+        "input_hash": "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9",
         "reasons": [
           "SPY_TREND_AND_TRAILING_VOLATILITY"
         ]
@@ -710,18 +774,18 @@
         "version": "research-price-plan.v1",
         "symbol": "NVDA",
         "analysis_cutoff": "2021-02-11T21:00:00Z",
-        "observed_price": "127.0632811719226998695736667",
+        "observed_price": "127.06328117",
         "observed_at": "2021-02-11T20:59:55Z",
         "source": "ENGINEERING_FIXTURE_NOT_REAL_PRICE",
         "quote_evidence_id": "0000000000000000000000000000000000000000000000000000000000000003",
-        "feature_input_hash": "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+        "feature_input_hash": "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
         "feature_session": "2021-02-11",
-        "lower": "125.7225635183155967676314190",
-        "upper": "126.9349707806960810285771110",
+        "lower": "125.7225635174285714285714286",
+        "upper": "126.9349707795714285714285714",
         "method": "SMA20_PULLBACK_WITH_HALF_ATR14",
         "measurement": {
-          "sma20": "126.328767149505838898104265",
-          "atr14": "1.2124072623804842609456919"
+          "sma20": "126.3287671485",
+          "atr14": "1.212407262142857142857142857"
         },
         "scenario": "TREND_PULLBACK_RESEARCH_NOT_FAIR_VALUE",
         "price_basis": "ADJUSTED_HISTORY_RESEARCH_UNITS_NOT_EXECUTION_UNITS",
@@ -740,7 +804,7 @@
         "executable_limit": null
       },
       "evidence_ids": [
-        "terminal-a0379f306eab2341558a7b73f1fee4ed18bde7d8b0ed6702eb7fde45c47f4313-NVDA",
+        "terminal-ee5c69c3929eded6b51d92deb9d963c24541f7854c5c515440d1d84211a7355b-NVDA",
         "0000000000000000000000000000000000000000000000000000000000000003"
       ],
       "gpt_interpretation": null,
@@ -763,8 +827,8 @@
         "spread_observed": false
       },
       "portfolio_concentration": {
-        "conservative_volatility_bound": "0.01490304360137793105297069015",
-        "shrunk_volatility_estimate": "0.009505626175066962025985143945",
+        "conservative_volatility_bound": "0.01490304359711068738231713988",
+        "shrunk_volatility_estimate": "0.009505626173185099002954905570",
         "covariance_status": "PSD_FIXED_DIAGONAL_SHRINKAGE",
         "correlated_components": [
           [
@@ -795,6 +859,38 @@
         "新鲜且授权的 Schwab-Paper 账户快照",
         "认证执行报价及独立人工审核"
       ],
+      "data_gap_requests": [
+        {
+          "version": "data-gap-request.v1",
+          "request_id": "e71c77db8eddacbf6b5c8728bd7c232100d98a18059c5f372e9f6d1ff022a9f7",
+          "symbol": "NVDA",
+          "analysis_cutoff": "2021-02-11T21:00:00Z",
+          "snapshot_hash": "a152445acdeb9cde7b60889021420baed9b4a2347197e89acef72b8d15733e8b",
+          "required_evidence": "新鲜且授权的 Schwab-Paper 账户快照",
+          "reason_codes": [
+            "EXECUTION_QUOTES_AND_MANUAL_REVIEW_REQUIRED",
+            "SHADOW_STRATEGY_NOT_PROMOTED",
+            "FRESH_AUTHORIZED_ACCOUNT_REQUIRED_FOR_SIZING"
+          ],
+          "status": "MISSING_EVIDENCE",
+          "authorization_granted": false
+        },
+        {
+          "version": "data-gap-request.v1",
+          "request_id": "57b5cc1c79a005ce9c9a4bf3637a9f16d745f21eb30541a7511dd571c159c045",
+          "symbol": "NVDA",
+          "analysis_cutoff": "2021-02-11T21:00:00Z",
+          "snapshot_hash": "a152445acdeb9cde7b60889021420baed9b4a2347197e89acef72b8d15733e8b",
+          "required_evidence": "认证执行报价及独立人工审核",
+          "reason_codes": [
+            "EXECUTION_QUOTES_AND_MANUAL_REVIEW_REQUIRED",
+            "SHADOW_STRATEGY_NOT_PROMOTED",
+            "FRESH_AUTHORIZED_ACCOUNT_REQUIRED_FOR_SIZING"
+          ],
+          "status": "MISSING_EVIDENCE",
+          "authorization_granted": false
+        }
+      ],
       "monitoring_triggers": [
         "下一完整交易日重算动量、趋势及风险预算",
         "价格进入测量区间后核实流动性、企业行动与反方证据"
@@ -814,11 +910,11 @@
   "version": "meridian-decision-brief.v1",
   "analysis_cutoff": "2021-02-11T21:00:00Z",
   "data_mode": "FIXTURE",
-  "quant_snapshot_hash": "bdcf620e33e186e8cfc78bb4298228ac31bccce6ca5e9b958ba07709bf2d8d29",
+  "quant_snapshot_hash": "a152445acdeb9cde7b60889021420baed9b4a2347197e89acef72b8d15733e8b",
   "observed_facts": [
     {
       "symbol": "AAPL",
-      "price": "78.23489681886724429774523624",
+      "price": "78.23489682",
       "observed_at": "2021-02-11T20:59:55Z",
       "source": "ENGINEERING_FIXTURE_NOT_REAL_PRICE",
       "evidence_id": "0000000000000000000000000000000000000000000000000000000000000001",
@@ -827,7 +923,7 @@
     },
     {
       "symbol": "MSFT",
-      "price": "102.1436122202917284464820861",
+      "price": "102.14361222",
       "observed_at": "2021-02-11T20:59:55Z",
       "source": "ENGINEERING_FIXTURE_NOT_REAL_PRICE",
       "evidence_id": "0000000000000000000000000000000000000000000000000000000000000002",
@@ -836,7 +932,7 @@
     },
     {
       "symbol": "NVDA",
-      "price": "127.0632811719226998695736667",
+      "price": "127.06328117",
       "observed_at": "2021-02-11T20:59:55Z",
       "source": "ENGINEERING_FIXTURE_NOT_REAL_PRICE",
       "evidence_id": "0000000000000000000000000000000000000000000000000000000000000003",
@@ -849,8 +945,8 @@
     "rows": [
       {
         "symbol": "AAPL",
-        "evidence_id": "terminal-a0379f306eab2341558a7b73f1fee4ed18bde7d8b0ed6702eb7fde45c47f4313-AAPL",
-        "score": "0.5151129144816234124422158411",
+        "evidence_id": "terminal-ee5c69c3929eded6b51d92deb9d963c24541f7854c5c515440d1d84211a7355b-AAPL",
+        "score": "0.5151129145057145575816107577",
         "rank": 3,
         "quality": "SYNTHETIC_DIAGNOSTIC",
         "eligible": true,
@@ -859,8 +955,8 @@
       },
       {
         "symbol": "MSFT",
-        "evidence_id": "terminal-a0379f306eab2341558a7b73f1fee4ed18bde7d8b0ed6702eb7fde45c47f4313-MSFT",
-        "score": "0.5458082191931544573410811190",
+        "evidence_id": "terminal-ee5c69c3929eded6b51d92deb9d963c24541f7854c5c515440d1d84211a7355b-MSFT",
+        "score": "0.5458082192015176605938611925",
         "rank": 2,
         "quality": "SYNTHETIC_DIAGNOSTIC",
         "eligible": true,
@@ -869,8 +965,8 @@
       },
       {
         "symbol": "NVDA",
-        "evidence_id": "terminal-a0379f306eab2341558a7b73f1fee4ed18bde7d8b0ed6702eb7fde45c47f4313-NVDA",
-        "score": "0.6095096199946595842220533417",
+        "evidence_id": "terminal-ee5c69c3929eded6b51d92deb9d963c24541f7854c5c515440d1d84211a7355b-NVDA",
+        "score": "0.6095096199312570320456270183",
         "rank": 1,
         "quality": "SYNTHETIC_DIAGNOSTIC",
         "eligible": true,
@@ -884,10 +980,10 @@
       "cutoff": "2021-02-11T21:00:00Z",
       "engine_hash": "7d85f0ba5fb84fd574d548cd71fe2ef45d60922b7efbd298ec3a9ef24228952e",
       "history_hashes": {
-        "AAPL": "1cb4fd763d90184cd98c9cd08edff1503050932ec7c86be4e06ea948c0376a5d",
-        "MSFT": "25afa6e37e34f6b8f24fea5c0325cfb7eefae37f24289a478e36dc111becd670",
-        "NVDA": "e14ee65a0c11040cb8b83ab58bd6bfb402ae0ccad86fe1453d13d1039ec20c02",
-        "SPY": "4b60a5d5b481f8cc50a263c176d3f6bdff1567478a40e9c74598199ba123ca57"
+        "AAPL": "4753717f6929121276c38909bbcb3faae191400b3a59224671b2230eda986591",
+        "MSFT": "f4f41ce2fc73d98e0871fc7a0cca8205506d0274583bb91ac4b9c645b638691b",
+        "NVDA": "d64c6406020b326605c062ca8a54d84232276a532c32ecff50fcca2469df85f1",
+        "SPY": "3e901c152a7018ceaf2c6ef70928cfcabd886b3b9a782c2cd39ebd525e65024a"
       },
       "features": [
         {
@@ -904,11 +1000,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 1,
-                "raw_value": "-0.0039741294942666630000000000",
+                "raw_value": "-0.0039741294950872643166096287",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -920,11 +1016,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 21,
-                "raw_value": "-0.0091704422110023270571376553",
+                "raw_value": "-0.0091704421507270064963725902",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -936,11 +1032,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 63,
-                "raw_value": "0.018397591173764765084444459",
+                "raw_value": "0.018397591206481781717754322",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -952,11 +1048,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "0.026024165688286693107362936",
+                "raw_value": "0.026024165686129678042977031",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -968,11 +1064,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "0.104947898222766555461499456",
+                "raw_value": "0.104947898274383184291448245",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -984,11 +1080,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "0.115174541914575159333662418",
+                "raw_value": "0.115174541898829894124759756",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1000,11 +1096,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "-0.073438422068598996912654499",
+                "raw_value": "-0.073438422070409021775022333",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1016,11 +1112,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "0.3843665053527651430055608476",
+                "raw_value": "0.3843665056644654474934790280",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1032,11 +1128,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "78.8636251039910870880033684",
+                "raw_value": "78.8636251045",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1048,11 +1144,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "78.2021297954666561490133691",
+                "raw_value": "78.20212979533333333333333333",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1064,11 +1160,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 200,
-                "raw_value": "76.0901657775764004121702818",
+                "raw_value": "76.09016577735",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1080,11 +1176,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 200,
-                "raw_value": "0.028186704804405765505761396",
+                "raw_value": "0.028186704822352074099781689",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1096,11 +1192,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 80,
-                "raw_value": "0.008392677744931599699405046",
+                "raw_value": "0.008392677749293471701134793",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1116,7 +1212,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1128,11 +1224,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.0211874673007492547546106733",
+                "raw_value": "-0.0211874673317602191878069531",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1144,11 +1240,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "0.06684262172986537446405499375",
+                "raw_value": "0.06684262163297548975691214929",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1160,11 +1256,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.06770664281582535286734174824",
+                "raw_value": "0.06770664275530708214622080762",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1176,11 +1272,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.04591605382793883969905611371",
+                "raw_value": "0.04591605383622734157743303549",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1192,11 +1288,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 14,
-                "raw_value": "0.7405449880616444501620626236",
+                "raw_value": "0.7405449885714285714285714286",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1208,11 +1304,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.0227529102260893043627801429",
+                "raw_value": "-0.0227529102887309286824147049",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1224,11 +1320,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "-0.0228223143783107260305463560",
+                "raw_value": "-0.0228223142635637549890504501",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1240,11 +1336,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.9984045479974843448140367178",
+                "raw_value": "0.9984045471331806473163472481",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1256,11 +1352,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.2847897821595395117873351460",
+                "raw_value": "0.2847897820399226590438768006",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1272,11 +1368,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.2852448766692287639104359811",
+                "raw_value": "0.2852448767963529333850948477",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1288,11 +1384,11 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "78863625.1039910870880033684",
+                "raw_value": "78863625.10450000",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1308,7 +1404,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1320,33 +1416,33 @@
                 "symbol": "AAPL",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 5,
-                "raw_value": "-0.0211874673007492547546106733",
+                "raw_value": "-0.0211874673317602191878069531",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363"
+                  "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
                 "missing_reason": null
               }
             ],
-            "input_hash": "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "input_hash": "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
             "quality_status": "SYNTHETIC_DIAGNOSTIC",
             "reasons": [],
             "synthetic": true
           },
-          "medium_distance": "0.000419004232829572360244113",
-          "momentum_acceleration": "0.010908792515343116595614583",
+          "medium_distance": "0.000419004249020108143253670",
+          "momentum_acceleration": "0.010908792582544742335630800",
           "trend_instability": "0.1",
-          "residual_momentum_63": "0.000631477552470278854886807117",
+          "residual_momentum_63": "0.000631477593338920495281090093",
           "missing_reasons": {},
           "provenance": [
-            "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+            "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "availability_cutoff": "2021-02-11T21:00:00Z",
-          "input_hash": "a6594ff0437e015cfc76da3da9dc73e1d2bdc9bbace54521c82b90a1855084dd"
+          "input_hash": "da113c7afdb152bb4c441f2d2e8246a7be2372002212b1d32b36a74510882987"
         },
         {
           "version": "quant-features-v2.2",
@@ -1362,11 +1458,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 1,
-                "raw_value": "0.001562522180390073800000000",
+                "raw_value": "0.001562522203947305121165632",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1378,11 +1474,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 21,
-                "raw_value": "-0.0148444164292921431641328849",
+                "raw_value": "-0.0148444164511463791076104864",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1394,11 +1490,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 63,
-                "raw_value": "0.009502521702052085765972601",
+                "raw_value": "0.009502521738155920000988206",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1410,11 +1506,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "0.038918007167158275474943906",
+                "raw_value": "0.038918007142061142841681779",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1426,11 +1522,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "0.113037240999494301834262897",
+                "raw_value": "0.113037241055281666895311417",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1442,11 +1538,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "0.129808590197781645914637700",
+                "raw_value": "0.129808590279472771566373630",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1458,11 +1554,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "-0.060544580589727414545073529",
+                "raw_value": "-0.060544580614477556976317585",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1474,11 +1570,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "0.5749070342483026745052335135",
+                "raw_value": "0.5749070338520350631877904834",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1490,11 +1586,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "102.729259110021390223488649",
+                "raw_value": "102.7292591105",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1506,11 +1602,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "101.9039872792888393996214529",
+                "raw_value": "101.9039872793333333333333333",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1522,11 +1618,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 200,
-                "raw_value": "98.76002802167862170459382935",
+                "raw_value": "98.7600280214",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1538,11 +1634,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 200,
-                "raw_value": "0.034260664627093693757250994",
+                "raw_value": "0.034260664627057636891121240",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1554,11 +1650,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 80,
-                "raw_value": "0.008059047371937787482467497",
+                "raw_value": "0.008059047374761569578701436",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1574,7 +1670,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1586,11 +1682,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.0207351089289674331365787380",
+                "raw_value": "-0.0207351089156584177539893976",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1602,11 +1698,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "0.06648043745092750427399249198",
+                "raw_value": "0.06648043747622464255581476605",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1618,11 +1714,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.06769443553259702521412871245",
+                "raw_value": "0.06769443553560269314472402503",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1634,11 +1730,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.04525525085547386854458232442",
+                "raw_value": "0.04525525084263306161953181062",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1650,11 +1746,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 14,
-                "raw_value": "0.9403371837866314008224306857",
+                "raw_value": "0.9403371835714285714285714286",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1666,11 +1762,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.0224075479400726304036940945",
+                "raw_value": "-0.0224075479370889672854240912",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1682,11 +1778,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "-0.0224089216580147217680102347",
+                "raw_value": "-0.0224089216407438096656218417",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1698,11 +1794,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.9982245389675430901330621409",
+                "raw_value": "0.9982245390399605707288747815",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1714,11 +1810,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.6527536986705684373101522800",
+                "raw_value": "-0.6527536984901771267308712559",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1730,11 +1826,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.6539146987367262945513664927",
+                "raw_value": "-0.6539146985085750553468096155",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1746,11 +1842,11 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "113002185.0210235292458375138",
+                "raw_value": "113002185.02155000",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1766,7 +1862,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1778,33 +1874,33 @@
                 "symbol": "MSFT",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 5,
-                "raw_value": "-0.0139157928235873989345389318",
+                "raw_value": "-0.0139157927927681605628104084",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236"
+                  "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
                 "missing_reason": null
               }
             ],
-            "input_hash": "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "input_hash": "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
             "quality_status": "SYNTHETIC_DIAGNOSTIC",
             "reasons": [],
             "synthetic": true
           },
-          "medium_distance": "0.002351477576104530667246256",
-          "momentum_acceleration": "-0.019636073628557671156889105",
+          "medium_distance": "0.002351477572804100373390899",
+          "momentum_acceleration": "-0.019636073530786846950666274",
           "trend_instability": "0",
-          "residual_momentum_63": "0.05168263440618304490860791011",
+          "residual_momentum_63": "0.05168263442645460862203483180",
           "missing_reasons": {},
           "provenance": [
-            "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+            "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "availability_cutoff": "2021-02-11T21:00:00Z",
-          "input_hash": "7d70f0e674fdf32e376ff062ee2640698f875dbfe0cdf831e399a02574e255ee"
+          "input_hash": "ed62d39915421fc07f8f54b4036a1ffda9fad5ffdce9d1f4394016bf136f2d08"
         },
         {
           "version": "quant-features-v2.2",
@@ -1820,11 +1916,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 1,
-                "raw_value": "0.006094714000820352000000000",
+                "raw_value": "0.006094713949181138463524257",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1836,11 +1932,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 21,
-                "raw_value": "0.001936268110456771300953731",
+                "raw_value": "0.001936268089451867451271534",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1852,11 +1948,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 63,
-                "raw_value": "0.018828617595818829033457359",
+                "raw_value": "0.018828617600338776960926767",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1868,11 +1964,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "0.071393615242919871420420339",
+                "raw_value": "0.071393615184393733554225978",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1884,11 +1980,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "0.130549917528499506294740080",
+                "raw_value": "0.130549917504845802332342977",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1900,11 +1996,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "0.128365100168091669959885542",
+                "raw_value": "0.128365100168139074645675840",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1916,11 +2012,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "-0.028068972513965818599597096",
+                "raw_value": "-0.028068972572144966263773386",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1932,11 +2028,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "1.052643486781177274008826941",
+                "raw_value": "1.052643485928767483532434861",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1948,11 +2044,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "126.328767149505838898104265",
+                "raw_value": "126.3287671485",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1964,11 +2060,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "125.2296478228147117046496550",
+                "raw_value": "125.2296478225",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1980,11 +2076,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 200,
-                "raw_value": "120.8209630368632938948758620",
+                "raw_value": "120.82096303685",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -1996,11 +2092,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 200,
-                "raw_value": "0.051665853161217002096617631",
+                "raw_value": "0.051665853145419088503634147",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2012,11 +2108,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 80,
-                "raw_value": "0.008829952103599284702547763",
+                "raw_value": "0.008829952100684126362562882",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2032,7 +2128,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2044,11 +2140,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.0093510652238719936985555695",
+                "raw_value": "-0.0093510652356289800033780365",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2060,11 +2156,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "0.06894619481625076279055002892",
+                "raw_value": "0.06894619477585368984417737303",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2076,11 +2172,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.06782316723512024328913608954",
+                "raw_value": "0.06782316723444289516188186044",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2092,11 +2188,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.04254301905746121595414436734",
+                "raw_value": "0.04254301905737116389512830630",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2108,11 +2204,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 14,
-                "raw_value": "1.2124072623804842609456919",
+                "raw_value": "1.212407262142857142857142857",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2124,11 +2220,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.0219725262730210537772282059",
+                "raw_value": "-0.0219725262808389814537501629",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2140,11 +2236,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "-0.0219978545336030347378296466",
+                "raw_value": "-0.0219978545378087440124688255",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2156,11 +2252,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "1.000122821202866079310902863",
+                "raw_value": "1.000122821221027103552037082",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2172,11 +2268,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.9901584392708694255923598447",
+                "raw_value": "-0.9901584393339317791479427681",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2188,11 +2284,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.9900368417550833320422325633",
+                "raw_value": "-0.9900368418001600661355641992",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2204,11 +2300,11 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "151594520.5794070066777251180",
+                "raw_value": "151594520.57820000",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2224,7 +2320,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2236,33 +2332,33 @@
                 "symbol": "NVDA",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 5,
-                "raw_value": "0.008422493908067385791018005",
+                "raw_value": "0.008422493918134485824565824",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236"
+                  "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
                 "missing_reason": null
               }
             ],
-            "input_hash": "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "input_hash": "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
             "quality_status": "SYNTHETIC_DIAGNOSTIC",
             "reasons": [],
             "synthetic": true
           },
-          "medium_distance": "0.014642166459673867727791068",
-          "momentum_acceleration": "-0.032764944598322628395574360",
+          "medium_distance": "0.014642166446870349298749822",
+          "momentum_acceleration": "-0.032764944531692836952699460",
           "trend_instability": "0",
-          "residual_momentum_63": "0.08244031298001995839087177262",
+          "residual_momentum_63": "0.08244031298223141805836379894",
           "missing_reasons": {},
           "provenance": [
-            "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+            "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "availability_cutoff": "2021-02-11T21:00:00Z",
-          "input_hash": "46657703c5695c8e154bb8631dbb8ef6194bc8e9066eadb1cf6ee3120591d2fa"
+          "input_hash": "1fbd0a33d29548efbe0921247ddf8e4cc4c4090cb357661296f727c8b4bd2a0f"
         },
         {
           "version": "quant-features-v2.2",
@@ -2278,11 +2374,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 1,
-                "raw_value": "-0.0044290236789208699999999998",
+                "raw_value": "-0.0044290236546087938122459011",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2294,11 +2390,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 21,
-                "raw_value": "0.028356455411238664529737533",
+                "raw_value": "0.028356455418865820166400096",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2310,11 +2406,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 63,
-                "raw_value": "0.065303023698422805084393694",
+                "raw_value": "0.065303023691657618452136719",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2326,11 +2422,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "0.099462587756885690020017435",
+                "raw_value": "0.099462587756538699817999364",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2342,11 +2438,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "0.219165866629895560664552089",
+                "raw_value": "0.219165866641969941425840038",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2358,11 +2454,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "0.185547929625581446220739403",
+                "raw_value": "0.185547929628529861793310077",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2378,7 +2474,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2390,11 +2486,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 126,
-                "raw_value": "1.466678834485984402679635652",
+                "raw_value": "1.466678834522148473297341559",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2406,11 +2502,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "208.4403810301935288040379022",
+                "raw_value": "208.4403810305",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2422,11 +2518,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "205.0131662536433109258613427",
+                "raw_value": "205.0131662535",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2438,11 +2534,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 200,
-                "raw_value": "194.6410457215913744930910178",
+                "raw_value": "194.6410457217",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2454,11 +2550,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 200,
-                "raw_value": "0.079463668923866846044860079",
+                "raw_value": "0.079463668934530587471667525",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2470,11 +2566,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 80,
-                "raw_value": "0.016796022914228847032679681",
+                "raw_value": "0.016796022913703103658532945",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2490,7 +2586,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2502,11 +2598,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.0069134172630610268501186419",
+                "raw_value": "-0.0069134172624124189645782559",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2518,11 +2614,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "0.06877229857201646471211007139",
+                "raw_value": "0.06877229855736833386211726292",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2534,11 +2630,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.06781483813512831836236952353",
+                "raw_value": "0.06781483813321961774477506392",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2550,11 +2646,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "0.03934492561545741872700893566",
+                "raw_value": "0.03934492560987517466710020877",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2566,11 +2662,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 14,
-                "raw_value": "1.968837480936137527020291657",
+                "raw_value": "1.96883748",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2582,11 +2678,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 60,
-                "raw_value": "-0.0207267243877688685602667682",
+                "raw_value": "-0.0207267244178603158862803391",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2598,11 +2694,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 252,
-                "raw_value": "-0.0207604015253966918686532426",
+                "raw_value": "-0.0207604015516767962937021192",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2618,7 +2714,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2634,7 +2730,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2650,7 +2746,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2662,11 +2758,11 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 20,
-                "raw_value": "312660571.5452902932060568533",
+                "raw_value": "312660571.54575000",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2682,7 +2778,7 @@
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
@@ -2694,33 +2790,33 @@
                 "symbol": "SPY",
                 "as_of": "2021-02-11T21:00:00Z",
                 "lookback": 5,
-                "raw_value": "0.001310601922756951768977796",
+                "raw_value": "0.001310601916158060565688169",
                 "normalized_value": null,
                 "provenance": [
                   "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA",
-                  "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b"
+                  "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9"
                 ],
                 "availability_cutoff": "2021-02-11T21:00:00Z",
                 "quality_status": "AVAILABLE",
                 "missing_reason": null
               }
             ],
-            "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+            "input_hash": "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9",
             "quality_status": "SYNTHETIC_DIAGNOSTIC",
             "reasons": [],
             "synthetic": true
           },
-          "medium_distance": "0.024850945806380814729346597",
-          "momentum_acceleration": "0.033237439260418680969782580",
+          "medium_distance": "0.024850945817793405693707358",
+          "momentum_acceleration": "0.033237439247425101151855952",
           "trend_instability": "0",
           "residual_momentum_63": "0E-28",
           "missing_reasons": {},
           "provenance": [
-            "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+            "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9",
             "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
           ],
           "availability_cutoff": "2021-02-11T21:00:00Z",
-          "input_hash": "2d3e8512c6fecc529324762acd4e11a2fe3304bd81a10af37409f1d56c877a73"
+          "input_hash": "a1adb4c24ac7c039f6c39a76898887742050a0cb69cacc2000ad77d1d5870a89"
         }
       ],
       "scores": [
@@ -2731,7 +2827,7 @@
             "as_of": "2021-02-11T21:00:00Z",
             "strategy": "V22",
             "policy_version": "quant-v2.2",
-            "quant_score": "0.6095096199946595842220533417",
+            "quant_score": "0.6095096199312570320456270183",
             "relative_rank": 1,
             "contributions": [],
             "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
@@ -2746,11 +2842,11 @@
             ],
             "exclusion_reasons": [],
             "score_change": null,
-            "input_hash": "46657703c5695c8e154bb8631dbb8ef6194bc8e9066eadb1cf6ee3120591d2fa",
+            "input_hash": "1fbd0a33d29548efbe0921247ddf8e4cc4c4090cb357661296f727c8b4bd2a0f",
             "predictive_confidence": null
           },
-          "signal_strength": "0.6095096199946595842220533417",
-          "risk_adjusted_score": "0.3047548099973297921110266708",
+          "signal_strength": "0.6095096199312570320456270183",
+          "risk_adjusted_score": "0.3047548099656285160228135092",
           "factor_attribution": [
             {
               "version": "quant-factor-contribution.v2.2",
@@ -2760,14 +2856,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 63,
-              "raw": "0.018828617595818829033457359",
-              "normalized": "0.5937463614445352421582708054",
+              "raw": "0.018828617600338776960926767",
+              "normalized": "0.5937463614596258676717987041",
               "weight": "0.100",
-              "contribution": "0.05937463614445352421582708054",
+              "contribution": "0.05937463614596258676717987041",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -2779,14 +2875,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 126,
-              "raw": "0.071393615242919871420420339",
-              "normalized": "0.7154201034916166717728131625",
+              "raw": "0.071393615184393733554225978",
+              "normalized": "0.7154201033976926918714841569",
               "weight": "0.150",
-              "contribution": "0.1073130155237425007659219744",
+              "contribution": "0.1073130155096539037807226235",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -2798,14 +2894,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 252,
-              "raw": "0.128365100168091669959885542",
-              "normalized": "0.7649922240700787670866622078",
+              "raw": "0.128365100168139074645675840",
+              "normalized": "0.7649922240701216197387312891",
               "weight": "0.250",
-              "contribution": "0.1912480560175196917716655520",
+              "contribution": "0.1912480560175304049346828223",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -2817,14 +2913,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 126,
-              "raw": "-0.028068972513965818599597096",
-              "normalized": "0.4157242663730768367526262314",
+              "raw": "-0.028068972572144966263773386",
+              "normalized": "0.4157242662058540703969400375",
               "weight": "0.25",
-              "contribution": "0.1039310665932692091881565578",
+              "contribution": "0.1039310665514635175992350094",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -2836,14 +2932,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 60,
-              "raw": "0.014642166459673867727791068",
-              "normalized": "0.6258314104140419548885460611",
+              "raw": "0.014642166446870349298749822",
+              "normalized": "0.6258314103418176403551421862",
               "weight": "0.125",
-              "contribution": "0.07822892630175524436106825764",
+              "contribution": "0.07822892629272720504439277328",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -2855,7 +2951,7 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "553984518adceebc897ac194bebbd62611a21811ac7fe16d39f46946ec7c2236",
+                "4f9a18baf7d045bd6d77d2584b4de4c64616f5cb3797f7b9a3426a6003cc4e3a",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 60,
@@ -2880,7 +2976,7 @@
             "as_of": "2021-02-11T21:00:00Z",
             "strategy": "V22",
             "policy_version": "quant-v2.2",
-            "quant_score": "0.5458082191931544573410811190",
+            "quant_score": "0.5458082192015176605938611925",
             "relative_rank": 2,
             "contributions": [],
             "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
@@ -2895,11 +2991,11 @@
             ],
             "exclusion_reasons": [],
             "score_change": null,
-            "input_hash": "7d70f0e674fdf32e376ff062ee2640698f875dbfe0cdf831e399a02574e255ee",
+            "input_hash": "ed62d39915421fc07f8f54b4036a1ffda9fad5ffdce9d1f4394016bf136f2d08",
             "predictive_confidence": null
           },
-          "signal_strength": "0.5458082191931544573410811190",
-          "risk_adjusted_score": "0.2729041095965772286705405595",
+          "signal_strength": "0.5458082192015176605938611925",
+          "risk_adjusted_score": "0.2729041096007588302969305962",
           "factor_attribution": [
             {
               "version": "quant-factor-contribution.v2.2",
@@ -2909,14 +3005,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 63,
-              "raw": "0.009502521702052085765972601",
-              "normalized": "0.5218624911611348098389913116",
+              "raw": "0.009502521738155920000988206",
+              "normalized": "0.5218624913030800994293244139",
               "weight": "0.100",
-              "contribution": "0.05218624911611348098389913116",
+              "contribution": "0.05218624913030800994293244139",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -2928,14 +3024,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 126,
-              "raw": "0.038918007167158275474943906",
-              "normalized": "0.6320711468282405226483883875",
+              "raw": "0.038918007142061142841681779",
+              "normalized": "0.6320711467669317084025350314",
               "weight": "0.150",
-              "contribution": "0.09481067202423607839725825812",
+              "contribution": "0.09481067201503975626038025471",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -2947,14 +3043,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 252,
-              "raw": "0.129808590197781645914637700",
-              "normalized": "0.7853365257565893406257733669",
+              "raw": "0.129808590279472771566373630",
+              "normalized": "0.7853365258295112888714164800",
               "weight": "0.250",
-              "contribution": "0.1963341314391473351564433417",
+              "contribution": "0.1963341314573778222178541200",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -2966,14 +3062,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 126,
-              "raw": "-0.060544580589727414545073529",
-              "normalized": "0.3222148326009359979677110016",
+              "raw": "-0.060544580614477556976317585",
+              "normalized": "0.3222148325556668518781402463",
               "weight": "0.25",
-              "contribution": "0.08055370815023399949192775040",
+              "contribution": "0.08055370813891671296953506158",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -2985,14 +3081,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 60,
-              "raw": "0.002351477576104530667246256",
-              "normalized": "0.5211752134949342940382086461",
+              "raw": "0.002351477572804100373390899",
+              "normalized": "0.5211752134665486611710620642",
               "weight": "0.125",
-              "contribution": "0.06514690168686678675477608076",
+              "contribution": "0.06514690168331858264638275802",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -3004,7 +3100,7 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "c2291838772cd3a8bbac83e67f48c201471df801c286c4e247754e1b16f29236",
+                "12ec268bf1f6f40605b83cc9ac2c709c92bf8ed544fe36961b6ae17abd52ca28",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 60,
@@ -3029,7 +3125,7 @@
             "as_of": "2021-02-11T21:00:00Z",
             "strategy": "V22",
             "policy_version": "quant-v2.2",
-            "quant_score": "0.5151129144816234124422158411",
+            "quant_score": "0.5151129145057145575816107577",
             "relative_rank": 3,
             "contributions": [],
             "data_quality_status": "SYNTHETIC_DIAGNOSTIC",
@@ -3044,11 +3140,11 @@
             ],
             "exclusion_reasons": [],
             "score_change": null,
-            "input_hash": "a6594ff0437e015cfc76da3da9dc73e1d2bdc9bbace54521c82b90a1855084dd",
+            "input_hash": "da113c7afdb152bb4c441f2d2e8246a7be2372002212b1d32b36a74510882987",
             "predictive_confidence": null
           },
-          "signal_strength": "0.5151129144816234124422158411",
-          "risk_adjusted_score": "0.2575564572408117062211079206",
+          "signal_strength": "0.5151129145057145575816107577",
+          "risk_adjusted_score": "0.2575564572528572787908053788",
           "factor_attribution": [
             {
               "version": "quant-factor-contribution.v2.2",
@@ -3058,14 +3154,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 63,
-              "raw": "0.018397591173764765084444459",
-              "normalized": "0.5732544474831905656527794906",
+              "raw": "0.018397591206481781717754322",
+              "normalized": "0.5732544475932187284162921165",
               "weight": "0.100",
-              "contribution": "0.05732544474831905656527794906",
+              "contribution": "0.05732544475932187284162921165",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -3077,14 +3173,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 126,
-              "raw": "0.026024165688286693107362936",
-              "normalized": "0.5783030373605728230852950614",
+              "raw": "0.026024165686129678042977031",
+              "normalized": "0.5783030373541701486969349861",
               "weight": "0.150",
-              "contribution": "0.08674545560408592346279425921",
+              "contribution": "0.08674545560312552230454024792",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -3096,14 +3192,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 252,
-              "raw": "0.115174541914575159333662418",
-              "normalized": "0.7332897126674133271498995068",
+              "raw": "0.115174541898829894124759756",
+              "normalized": "0.7332897126513814599792056548",
               "weight": "0.250",
-              "contribution": "0.1833224281668533317874748767",
+              "contribution": "0.1833224281628453649948014137",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -3115,14 +3211,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 126,
-              "raw": "-0.073438422068598996912654499",
-              "normalized": "0.2813370362620637968754232153",
+              "raw": "-0.073438422070409021775022333",
+              "normalized": "0.2813370362592271203625514715",
               "weight": "0.25",
-              "contribution": "0.07033425906551594921885580382",
+              "contribution": "0.07033425906480678009063786788",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -3134,14 +3230,14 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 60,
-              "raw": "0.000419004232829572360244113",
-              "normalized": "0.4848701609623389988082911642",
+              "raw": "0.000419004249020108143253670",
+              "normalized": "0.4848701611124659263458036778",
               "weight": "0.125",
-              "contribution": "0.06060877012029237485103639552",
+              "contribution": "0.06060877013905824079322545972",
               "missing_reason": null,
               "transformation": "FIXED_SCALE_AND_BOUNDED_TIED_RANK_BLEND"
             },
@@ -3153,7 +3249,7 @@
               "as_of": "2021-02-11T21:00:00Z",
               "availability_cutoff": "2021-02-11T21:00:00Z",
               "provenance": [
-                "fa75f0310d6b0fca56ce688a2584f741a963d7d9850b20f485de68b023a1e363",
+                "e8f7f69c534c6f6273b5461f10c82efe95f23a37d8224b5ae9e69537e1a15adf",
                 "synthetic-diagnostic:ENGINEERING_FIXTURE_NOT_REAL_MARKET_DATA"
               ],
               "lookback": 60,
@@ -3181,7 +3277,7 @@
         "risk_multiplier": "0.5",
         "exposure_ceiling": "0.5",
         "rebalance_urgency": "RISK_REDUCTION",
-        "input_hash": "7eae7da4789cd81f6d20515a37ff91f7614cac5057520193f8d9d6abf58a5a4b",
+        "input_hash": "205513f6432d7c903cf5abda6c1ae704c95c7482d532c07481f139a1597886c9",
         "reasons": [
           "SPY_TREND_AND_TRAILING_VOLATILITY"
         ]
@@ -3243,8 +3339,8 @@
             "allocator_version": "quant-v2.3"
           },
           "risk": {
-            "conservative_volatility_bound": "0.01490304360137793105297069015",
-            "shrunk_volatility_estimate": "0.009505626175066962025985143945",
+            "conservative_volatility_bound": "0.01490304359711068738231713988",
+            "shrunk_volatility_estimate": "0.009505626173185099002954905570",
             "covariance_status": "PSD_FIXED_DIAGONAL_SHRINKAGE",
             "correlated_components": [
               [
@@ -3271,8 +3367,8 @@
           ]
         },
         "policy_hash": "f29015e6cc5be3aecaa1b2284b8aa9aab62f3125a9ab6a2e03381d7af5b29823",
-        "objective_before": "0.005673557481816967113513677321",
-        "objective_after": "0.005241565851022747389328334724",
+        "objective_before": "0.005673557481611637614863258832",
+        "objective_after": "0.005241565850863740399036457650",
         "evaluated_candidates": 30,
         "expected_return": null,
         "reasons": [

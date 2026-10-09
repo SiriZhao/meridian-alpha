@@ -17,6 +17,8 @@ from meridian.gpt_native_research import CodexResearchModelRuntime
 from meridian.live_account import inspect_paper
 from meridian.live_advisory import MarketDataFreshnessGate, market_row
 from meridian.paper import PaperSettings
+from meridian.quant.flagship_policy import FlagshipPolicy
+from meridian.quant.flagship_replay import flagship_engine_hash
 from meridian.quant.integration import immutable_record
 from meridian.quant.policy import load_quant_policy
 from meridian.quant.version import ENGINE_SOURCE_HASH
@@ -39,7 +41,11 @@ def environment_identity() -> dict[str, Any]:
             'package_origin': str(meridian.__file__), 'policy_directory': str(policy_directory()),
             'bridge_source_hash': hashlib.sha256('\n'.join((root / 'src/meridian' / name).read_text(encoding='utf-8')
                 for name in ('live_account.py','live_advisory.py','live_features.py','live_quant_bridge.py','live_readiness.py','live_report.py','gpt_native_research.py')).encode()).hexdigest(),
-            'quant_engine_hash': ENGINE_SOURCE_HASH}
+            'quant_engine_hash': ENGINE_SOURCE_HASH,
+            'challenger_engine_hash': flagship_engine_hash(),
+            'challenger_policy_hash': FlagshipPolicy().digest,
+            'policy_file_hashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+                                  for p in sorted(policy_directory().glob('*.yaml'))}}
 
 
 def readiness_report(paths: RuntimePaths, *, probe_providers: bool = True,
@@ -98,7 +104,7 @@ def readiness_report(paths: RuntimePaths, *, probe_providers: bool = True,
         'input_class': observation_class, 'environment': environment_identity(),
         'assessment_phase': 'FIXTURE_REGRESSION' if observation_class == 'FIXTURE_ONLY' else 'PREOPEN' if now < session_open(now) else 'POSTOPEN_READINESS',
         'paths': {'home': str(paths.home), 'cache': str(paths.cache), 'paper_ledger': str(paths.db)},
-        'quant_mode': quant.mode, 'challenger_mode': 'V2.2_SHADOW',
+        'quant_mode': quant.mode, 'challenger_mode': 'V2.3_SHADOW',
         'research_policy': {'provider': settings.provider, 'model': settings.model,
                             'reasoning_effort': settings.reasoning_effort} if settings else None,
         'model_preflight': model.model_dump(mode='json'), 'model_inference': 'NOT_PROBED_LOGIN_ONLY',
