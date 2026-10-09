@@ -31,6 +31,7 @@ def main() -> int:
     parser.add_argument("--snapshot")
     parser.add_argument("--role-timeout", type=int, default=90)
     parser.add_argument("--reasoning-effort", choices=("low", "medium", "high"))
+    parser.add_argument("--quant-engine", choices=("V2.2_SHADOW", "V2.3_SHADOW"), default="V2.3_SHADOW")
     parser.add_argument("--market-fixture")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--account", default="Schwab-Paper")
@@ -67,7 +68,7 @@ def main() -> int:
             payload['status'] = 'DEGRADED' if payload['conclusion'] != 'NO_GO' else 'FAILED'
         elif args.command == "live-advisory":
             from meridian.live_advisory import LiveAdvisoryService
-            payload = LiveAdvisoryService(service.paths).run(account_name=args.account,
+            payload = LiveAdvisoryService(service.paths, quant_engine=args.quant_engine).run(account_name=args.account,
                 snapshot_path=Path(args.snapshot) if args.snapshot else None, role_timeout=args.role_timeout,
                 reasoning_effort=args.reasoning_effort)
             payload["status"] = "PASS" if payload["LIVE_RUN_READY"] else "DEGRADED" if payload.get('research_workflow_available') else "FAILED"

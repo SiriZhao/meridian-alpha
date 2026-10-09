@@ -1,0 +1,21 @@
+{
+  "version": "decision-integration-checkpoint.v1",
+  "branch": "codex/flagship-quant-20261009",
+  "base_head": "bc25ebeab9c6b1dde02da9e0ca0ec35ed8ce2271",
+  "phase": "TARGETED_VALIDATED_FULL_ACCEPTANCE_PENDING",
+  "authority": "SHADOW_ONLY",
+  "completed": ["Recovery and function-level audit", "V2.3 terminal/live research bridge", "Versioned deterministic recommendations and measured research price plans", "Hash-bound native four-role numerical evidence", "Isolated paper planning using original safety engines", "Chinese report and readonly MCP/CLI"],
+  "baseline": "84 targeted tests PASS before edits; prior 1079 full tests and remote CI verified",
+  "targeted": "101 PASS, 1 existing workflow cache regression corrected and independently rechecked PASS; new V2.3 live fixture path included. Ruff/Pyright/terminal schemas/frozen V2.3 archive PASS",
+  "full_validation": "NOT_RUN_FOR_THIS_CHANGE",
+  "remaining": ["Full repository validator", "Independent clone", "Git commit/push and Windows/Linux CI", "Actual host/data/model acceptance remains independently pending"],
+  "known_blockers": ["CERTIFIED_REAL_PIT_HISTORY_NOT_PRESENT", "EXPECTED_RETURN_UNCALIBRATED", "REAL_GPT_AND_REGULAR_SESSION_ACCEPTANCE_NOT_EXECUTED", "SHADOW_STRATEGY_NOT_PROMOTED"],
+  "exact_next_action": ".venv\\Scripts\\python.exe scripts/validate_repo.py with isolated MERIDIAN_HOME/MERIDIAN_CACHE in approved host context; preserve full validation log",
+  "numerical_engine_hash": "7d85f0ba5fb84fd574d548cd71fe2ef45d60922b7efbd298ec3a9ef24228952e",
+  "canonical_runtime_accessed": false,
+  "canonical_strategy": "QUANT_V1_BASELINE",
+  "broker_submission": "DISABLED",
+  "financial_alpha": "ALPHA_NOT_YET_DEMONSTRATED",
+  "committed_inventory": "Resolve git show --stat HEAD after checkpoint commit",
+  "uncommitted_inventory": "Resolve git status --short; all changes in this clean recovered worktree belong to this task"
+}

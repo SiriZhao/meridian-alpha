@@ -12,6 +12,21 @@ budgets in [references/terminal-workflows.md](references/terminal-workflows.md).
 
 ## Mission
 
+Decision integration contract: `research-recommendation.v1`. For an auditable
+shortlist or conditional plan, use `decision_research_brief` with the explicit
+`V2.3_SHADOW` Quant request and source/time-bound research observations. It is
+useful without an account: explain attraction, exclusions, conditions and
+missing evidence without inferring holdings or quantities. The measured
+SMA20/ATR14 research band is in adjusted-history units, not intrinsic value or
+an executable limit. Never copy GPT BUY/SELL text into a deterministic category.
+
+An explicitly authorized sanitized Schwab-Paper snapshot can be passed to
+`research_paper_plan`. This is pure PAPER_ONLY planning through existing risk,
+reconciliation and order engines; no ledger write or fill is performed. It
+does not issue the seven-gate production manual readiness certificate. Missing
+quotes, account, history, session or risk evidence must stay named blockers.
+See [decision operator guide](../../docs/decision-integration/OPERATOR.md).
+
 Meridian provides evidence-grounded financial research and auditable manual
 investment decision support for US equities. It is not a brokerage client,
 trading executor, or autonomous portfolio manager.

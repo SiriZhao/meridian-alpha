@@ -313,6 +313,15 @@
     },
     "additionalProperties": false,
     "properties": {
+      "engine": {
+        "default": "V2.2_SHADOW",
+        "enum": [
+          "V2.2_SHADOW",
+          "V2.3_SHADOW"
+        ],
+        "title": "Engine",
+        "type": "string"
+      },
       "analysis_cutoff": {
         "format": "date-time",
         "title": "Analysis Cutoff",
@@ -1172,6 +1181,199 @@
         "title": "FeatureSnapshot",
         "type": "object"
       },
+      "FlagshipAllocation": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "quant-allocation-v2.3",
+            "default": "quant-allocation-v2.3",
+            "title": "Version",
+            "type": "string"
+          },
+          "authority": {
+            "const": "SHADOW_ONLY",
+            "default": "SHADOW_ONLY",
+            "title": "Authority",
+            "type": "string"
+          },
+          "allocation": {
+            "$ref": "#/$defs/ChallengerAllocation"
+          },
+          "policy_hash": {
+            "title": "Policy Hash",
+            "type": "string"
+          },
+          "objective_before": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective Before"
+          },
+          "objective_after": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective After"
+          },
+          "evaluated_candidates": {
+            "title": "Evaluated Candidates",
+            "type": "integer"
+          },
+          "expected_return": {
+            "default": null,
+            "title": "Expected Return",
+            "type": "null"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "factor_model": {
+            "const": "FROZEN_V22_SIX_FACTOR_SIGNAL",
+            "default": "FROZEN_V22_SIX_FACTOR_SIGNAL",
+            "title": "Factor Model",
+            "type": "string"
+          }
+        },
+        "required": [
+          "allocation",
+          "policy_hash",
+          "objective_before",
+          "objective_after",
+          "evaluated_candidates",
+          "reasons"
+        ],
+        "title": "FlagshipAllocation",
+        "type": "object"
+      },
+      "FlagshipResearchPacket": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "quant-research-v2.3",
+            "default": "quant-research-v2.3",
+            "title": "Version",
+            "type": "string"
+          },
+          "authority": {
+            "const": "SHADOW_ONLY",
+            "default": "SHADOW_ONLY",
+            "title": "Authority",
+            "type": "string"
+          },
+          "cutoff": {
+            "format": "date-time",
+            "title": "Cutoff",
+            "type": "string"
+          },
+          "engine_hash": {
+            "title": "Engine Hash",
+            "type": "string"
+          },
+          "history_hashes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "History Hashes",
+            "type": "object"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/$defs/ChallengerFeatureSnapshot"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/$defs/ChallengerScore"
+            },
+            "title": "Scores",
+            "type": "array"
+          },
+          "regime": {
+            "$ref": "#/$defs/RegimeState"
+          },
+          "allocation": {
+            "$ref": "#/$defs/FlagshipAllocation"
+          },
+          "cost_adjusted_proposal": {
+            "$ref": "#/$defs/RebalanceDecision"
+          },
+          "evidence_level": {
+            "enum": [
+              "CERTIFIED_PIT",
+              "SYNTHETIC_DIAGNOSTIC"
+            ],
+            "title": "Evidence Level",
+            "type": "string"
+          },
+          "expected_return": {
+            "default": null,
+            "title": "Expected Return",
+            "type": "null"
+          },
+          "predictive_confidence": {
+            "default": null,
+            "title": "Predictive Confidence",
+            "type": "null"
+          },
+          "authorized_trade": {
+            "const": false,
+            "default": false,
+            "title": "Authorized Trade",
+            "type": "boolean"
+          },
+          "unknowns": {
+            "default": [
+              "CALIBRATED_EXPECTED_RETURN",
+              "OBSERVED_SPREAD",
+              "ETF_LOOKTHROUGH",
+              "FUNDAMENTAL_PIT",
+              "ACTUAL_FILL_STATE"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Unknowns",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cutoff",
+          "engine_hash",
+          "history_hashes",
+          "features",
+          "scores",
+          "regime",
+          "allocation",
+          "cost_adjusted_proposal",
+          "evidence_level"
+        ],
+        "title": "FlagshipResearchPacket",
+        "type": "object"
+      },
       "OrderDraft": {
         "additionalProperties": false,
         "properties": {
@@ -2014,6 +2216,31 @@
     },
     "additionalProperties": false,
     "properties": {
+      "public_diagnostics": {
+        "additionalProperties": true,
+        "title": "Public Diagnostics",
+        "type": "object"
+      },
+      "engine": {
+        "default": "V2.2_SHADOW",
+        "enum": [
+          "V2.2_SHADOW",
+          "V2.3_SHADOW"
+        ],
+        "title": "Engine",
+        "type": "string"
+      },
+      "flagship": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/FlagshipResearchPacket"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
       "schema_version": {
         "const": "meridian-quant-terminal.v1",
         "default": "meridian-quant-terminal.v1",
@@ -3134,6 +3361,15 @@
       "QuantTerminalRequest": {
         "additionalProperties": false,
         "properties": {
+          "engine": {
+            "default": "V2.2_SHADOW",
+            "enum": [
+              "V2.2_SHADOW",
+              "V2.3_SHADOW"
+            ],
+            "title": "Engine",
+            "type": "string"
+          },
           "analysis_cutoff": {
             "format": "date-time",
             "title": "Analysis Cutoff",
@@ -4107,6 +4343,199 @@
         "title": "FeatureSnapshot",
         "type": "object"
       },
+      "FlagshipAllocation": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "quant-allocation-v2.3",
+            "default": "quant-allocation-v2.3",
+            "title": "Version",
+            "type": "string"
+          },
+          "authority": {
+            "const": "SHADOW_ONLY",
+            "default": "SHADOW_ONLY",
+            "title": "Authority",
+            "type": "string"
+          },
+          "allocation": {
+            "$ref": "#/$defs/ChallengerAllocation"
+          },
+          "policy_hash": {
+            "title": "Policy Hash",
+            "type": "string"
+          },
+          "objective_before": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective Before"
+          },
+          "objective_after": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective After"
+          },
+          "evaluated_candidates": {
+            "title": "Evaluated Candidates",
+            "type": "integer"
+          },
+          "expected_return": {
+            "default": null,
+            "title": "Expected Return",
+            "type": "null"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "factor_model": {
+            "const": "FROZEN_V22_SIX_FACTOR_SIGNAL",
+            "default": "FROZEN_V22_SIX_FACTOR_SIGNAL",
+            "title": "Factor Model",
+            "type": "string"
+          }
+        },
+        "required": [
+          "allocation",
+          "policy_hash",
+          "objective_before",
+          "objective_after",
+          "evaluated_candidates",
+          "reasons"
+        ],
+        "title": "FlagshipAllocation",
+        "type": "object"
+      },
+      "FlagshipResearchPacket": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "quant-research-v2.3",
+            "default": "quant-research-v2.3",
+            "title": "Version",
+            "type": "string"
+          },
+          "authority": {
+            "const": "SHADOW_ONLY",
+            "default": "SHADOW_ONLY",
+            "title": "Authority",
+            "type": "string"
+          },
+          "cutoff": {
+            "format": "date-time",
+            "title": "Cutoff",
+            "type": "string"
+          },
+          "engine_hash": {
+            "title": "Engine Hash",
+            "type": "string"
+          },
+          "history_hashes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "History Hashes",
+            "type": "object"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/$defs/ChallengerFeatureSnapshot"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/$defs/ChallengerScore"
+            },
+            "title": "Scores",
+            "type": "array"
+          },
+          "regime": {
+            "$ref": "#/$defs/RegimeState"
+          },
+          "allocation": {
+            "$ref": "#/$defs/FlagshipAllocation"
+          },
+          "cost_adjusted_proposal": {
+            "$ref": "#/$defs/RebalanceDecision"
+          },
+          "evidence_level": {
+            "enum": [
+              "CERTIFIED_PIT",
+              "SYNTHETIC_DIAGNOSTIC"
+            ],
+            "title": "Evidence Level",
+            "type": "string"
+          },
+          "expected_return": {
+            "default": null,
+            "title": "Expected Return",
+            "type": "null"
+          },
+          "predictive_confidence": {
+            "default": null,
+            "title": "Predictive Confidence",
+            "type": "null"
+          },
+          "authorized_trade": {
+            "const": false,
+            "default": false,
+            "title": "Authorized Trade",
+            "type": "boolean"
+          },
+          "unknowns": {
+            "default": [
+              "CALIBRATED_EXPECTED_RETURN",
+              "OBSERVED_SPREAD",
+              "ETF_LOOKTHROUGH",
+              "FUNDAMENTAL_PIT",
+              "ACTUAL_FILL_STATE"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Unknowns",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cutoff",
+          "engine_hash",
+          "history_hashes",
+          "features",
+          "scores",
+          "regime",
+          "allocation",
+          "cost_adjusted_proposal",
+          "evidence_level"
+        ],
+        "title": "FlagshipResearchPacket",
+        "type": "object"
+      },
       "OrderDraft": {
         "additionalProperties": false,
         "properties": {
@@ -4736,6 +5165,31 @@
       "QuantTerminalSnapshot": {
         "additionalProperties": false,
         "properties": {
+          "public_diagnostics": {
+            "additionalProperties": true,
+            "title": "Public Diagnostics",
+            "type": "object"
+          },
+          "engine": {
+            "default": "V2.2_SHADOW",
+            "enum": [
+              "V2.2_SHADOW",
+              "V2.3_SHADOW"
+            ],
+            "title": "Engine",
+            "type": "string"
+          },
+          "flagship": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FlagshipResearchPacket"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "schema_version": {
             "const": "meridian-quant-terminal.v1",
             "default": "meridian-quant-terminal.v1",
@@ -5495,6 +5949,142 @@
   },
   "DecisionBrief": {
     "$defs": {
+      "ManualOrderTicket": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis_cutoff": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Analysis Cutoff"
+          },
+          "request_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Request Hash"
+          },
+          "version": {
+            "const": "manual-order-ticket.v1",
+            "default": "manual-order-ticket.v1",
+            "title": "Version",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "BLOCKED",
+              "PAPER_ONLY"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "engine": {
+            "const": "V2.3_SHADOW",
+            "default": "V2.3_SHADOW",
+            "title": "Engine",
+            "type": "string"
+          },
+          "snapshot_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Hash"
+          },
+          "paper_drafts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/OrderDraft"
+            },
+            "maxItems": 8,
+            "title": "Paper Drafts",
+            "type": "array"
+          },
+          "planning_status": {
+            "enum": [
+              "BLOCKED",
+              "NO_ACTION",
+              "DRAFTS_AVAILABLE"
+            ],
+            "title": "Planning Status",
+            "type": "string"
+          },
+          "order_trace": {
+            "additionalProperties": true,
+            "title": "Order Trace",
+            "type": "object"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blockers",
+            "type": "array"
+          },
+          "manual_blockers": {
+            "default": [
+              "SHADOW_STRATEGY_NOT_PROMOTED",
+              "SEALED_SEVEN_GATE_MANUAL_AUTHORITY_REQUIRED",
+              "HUMAN_APPROVAL_REQUIRED"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Manual Blockers",
+            "type": "array"
+          },
+          "limit_source": {
+            "const": "EXISTING_ORDER_PLANNER_NOT_RESEARCH_ZONE",
+            "default": "EXISTING_ORDER_PLANNER_NOT_RESEARCH_ZONE",
+            "title": "Limit Source",
+            "type": "string"
+          },
+          "fills": {
+            "default": [],
+            "maxItems": 0,
+            "minItems": 0,
+            "title": "Fills",
+            "type": "array"
+          },
+          "broker_submission": {
+            "const": "DISABLED",
+            "default": "DISABLED",
+            "title": "Broker Submission",
+            "type": "string"
+          },
+          "execution_authority": {
+            "const": "NONE",
+            "default": "NONE",
+            "title": "Execution Authority",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "snapshot_hash",
+          "planning_status",
+          "blockers"
+        ],
+        "title": "ManualOrderTicket",
+        "type": "object"
+      },
       "ObservedResearchPrice": {
         "additionalProperties": false,
         "properties": {
@@ -5544,10 +6134,748 @@
         ],
         "title": "ObservedResearchPrice",
         "type": "object"
+      },
+      "OrderDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "side": {
+            "$ref": "#/$defs/Side"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,12}|(?=[\\d.]{1,19}0*$)\\d{0,12}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "preferred_limit": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Preferred Limit"
+          },
+          "max_acceptable_buy_price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Acceptable Buy Price"
+          },
+          "min_acceptable_sell_price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Min Acceptable Sell Price"
+          },
+          "target_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Target Weight"
+          },
+          "current_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Current Weight"
+          },
+          "estimated_notional": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Estimated Notional"
+          },
+          "time_in_force": {
+            "pattern": "^(DAY|GTC)$",
+            "title": "Time In Force",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/$defs/RunStatus"
+          },
+          "reason": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticker",
+          "side",
+          "quantity",
+          "target_weight",
+          "current_weight",
+          "estimated_notional",
+          "time_in_force",
+          "status",
+          "reason"
+        ],
+        "title": "OrderDraft",
+        "type": "object"
+      },
+      "ResearchPricePlan": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "research-price-plan.v1",
+            "default": "research-price-plan.v1",
+            "title": "Version",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "observed_price": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Observed Price"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "quote_evidence_id": {
+            "title": "Quote Evidence Id",
+            "type": "string"
+          },
+          "feature_input_hash": {
+            "title": "Feature Input Hash",
+            "type": "string"
+          },
+          "feature_session": {
+            "title": "Feature Session",
+            "type": "string"
+          },
+          "lower": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Lower"
+          },
+          "upper": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Upper"
+          },
+          "method": {
+            "const": "SMA20_PULLBACK_WITH_HALF_ATR14",
+            "default": "SMA20_PULLBACK_WITH_HALF_ATR14",
+            "title": "Method",
+            "type": "string"
+          },
+          "measurement": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Measurement",
+            "type": "object"
+          },
+          "scenario": {
+            "const": "TREND_PULLBACK_RESEARCH_NOT_FAIR_VALUE",
+            "default": "TREND_PULLBACK_RESEARCH_NOT_FAIR_VALUE",
+            "title": "Scenario",
+            "type": "string"
+          },
+          "price_basis": {
+            "const": "ADJUSTED_HISTORY_RESEARCH_UNITS_NOT_EXECUTION_UNITS",
+            "default": "ADJUSTED_HISTORY_RESEARCH_UNITS_NOT_EXECUTION_UNITS",
+            "title": "Price Basis",
+            "type": "string"
+          },
+          "assessment": {
+            "enum": [
+              "ABOVE_ZONE",
+              "IN_ZONE",
+              "BELOW_ZONE_REVIEW"
+            ],
+            "title": "Assessment",
+            "type": "string"
+          },
+          "recalculate_when": {
+            "default": [
+              "NEW_COMPLETED_SESSION",
+              "CORPORATE_ACTION_OR_PRICE_BASIS_CHANGE",
+              "QUOTE_STALE",
+              "TREND_INVALIDATED"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Recalculate When",
+            "type": "array"
+          },
+          "limitations": {
+            "default": [
+              "NOT_INTRINSIC_VALUE",
+              "NOT_EXECUTABLE_LIMIT",
+              "CURRENT_AND_ADJUSTED_PRICE_BASES_NOT_CERTIFIED_IDENTICAL"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "executable_limit": {
+            "default": null,
+            "title": "Executable Limit",
+            "type": "null"
+          }
+        },
+        "required": [
+          "symbol",
+          "analysis_cutoff",
+          "observed_price",
+          "observed_at",
+          "source",
+          "quote_evidence_id",
+          "feature_input_hash",
+          "feature_session",
+          "lower",
+          "upper",
+          "measurement",
+          "assessment"
+        ],
+        "title": "ResearchPricePlan",
+        "type": "object"
+      },
+      "ResearchRecommendation": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "research-recommendation.v1",
+            "default": "research-recommendation.v1",
+            "title": "Version",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "company_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Company Name"
+          },
+          "company_name_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Company Name Source"
+          },
+          "observed_reference": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Observed Reference"
+          },
+          "public_diagnostics": {
+            "additionalProperties": true,
+            "title": "Public Diagnostics",
+            "type": "object"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "engine": {
+            "title": "Engine",
+            "type": "string"
+          },
+          "engine_hash": {
+            "title": "Engine Hash",
+            "type": "string"
+          },
+          "snapshot_hash": {
+            "title": "Snapshot Hash",
+            "type": "string"
+          },
+          "certification": {
+            "title": "Certification",
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "BUY_CANDIDATE",
+              "ACCUMULATE_CONDITIONALLY",
+              "HOLD",
+              "TRIM_CANDIDATE",
+              "EXIT_REVIEW",
+              "WATCH",
+              "WAIT_FOR_EVIDENCE",
+              "NO_ACTION"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "RESEARCH_ONLY",
+              "CONDITIONAL_PLAN",
+              "MANUAL_TICKET_READY",
+              "PAPER_ONLY",
+              "BLOCKED"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "factor_attribution": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Factor Attribution",
+            "type": "array"
+          },
+          "historical_risk": {
+            "additionalProperties": true,
+            "title": "Historical Risk",
+            "type": "object"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regime"
+          },
+          "desired_weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desired Weight"
+          },
+          "feasible_weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feasible Weight"
+          },
+          "cost_adjusted_weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Adjusted Weight"
+          },
+          "current_weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Current Weight"
+          },
+          "actual_eligible_change": {
+            "default": null,
+            "title": "Actual Eligible Change",
+            "type": "null"
+          },
+          "account_context": {
+            "default": "NOT_SUPPLIED_OR_NOT_VALIDATED",
+            "enum": [
+              "NOT_SUPPLIED_OR_NOT_VALIDATED",
+              "AUTHORIZED_PAPER_RESEARCH"
+            ],
+            "title": "Account Context",
+            "type": "string"
+          },
+          "price_plan": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ResearchPricePlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "gpt_interpretation": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Gpt Interpretation"
+          },
+          "quant_gpt_conflict": {
+            "default": false,
+            "title": "Quant Gpt Conflict",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blockers",
+            "type": "array"
+          },
+          "cost_assumptions": {
+            "additionalProperties": true,
+            "title": "Cost Assumptions",
+            "type": "object"
+          },
+          "portfolio_concentration": {
+            "additionalProperties": true,
+            "title": "Portfolio Concentration",
+            "type": "object"
+          },
+          "important_unknowns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Important Unknowns",
+            "type": "array"
+          },
+          "next_inputs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Next Inputs",
+            "type": "array"
+          },
+          "monitoring_triggers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Monitoring Triggers",
+            "type": "array"
+          },
+          "invalidation_conditions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Invalidation Conditions",
+            "type": "array"
+          },
+          "explanation_zh": {
+            "title": "Explanation Zh",
+            "type": "string"
+          },
+          "expected_return": {
+            "default": null,
+            "title": "Expected Return",
+            "type": "null"
+          },
+          "predictive_confidence": {
+            "default": null,
+            "title": "Predictive Confidence",
+            "type": "null"
+          },
+          "order_authorized": {
+            "const": false,
+            "default": false,
+            "title": "Order Authorized",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "symbol",
+          "analysis_cutoff",
+          "engine",
+          "engine_hash",
+          "snapshot_hash",
+          "certification",
+          "category",
+          "state",
+          "score",
+          "rank",
+          "factor_attribution",
+          "historical_risk",
+          "regime",
+          "desired_weight",
+          "feasible_weight",
+          "cost_adjusted_weight",
+          "price_plan",
+          "evidence_ids",
+          "reasons",
+          "blockers",
+          "important_unknowns",
+          "next_inputs",
+          "monitoring_triggers",
+          "invalidation_conditions",
+          "explanation_zh"
+        ],
+        "title": "ResearchRecommendation",
+        "type": "object"
+      },
+      "RunStatus": {
+        "enum": [
+          "NO_CAPITAL",
+          "ANALYSIS_ONLY",
+          "DRAFT",
+          "READY_FOR_MANUAL_ENTRY",
+          "NO_ACTION",
+          "BLOCKED_STALE_ACCOUNT",
+          "BLOCKED_STALE_MARKET",
+          "FAILED"
+        ],
+        "title": "RunStatus",
+        "type": "string"
+      },
+      "Side": {
+        "enum": [
+          "BUY",
+          "SELL"
+        ],
+        "title": "Side",
+        "type": "string"
       }
     },
     "additionalProperties": false,
     "properties": {
+      "manual_ticket": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ManualOrderTicket"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "model_trace": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Model Trace"
+      },
+      "recommendations": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/ResearchRecommendation"
+        },
+        "title": "Recommendations",
+        "type": "array"
+      },
+      "recommendation_contract": {
+        "const": "research-recommendation.v1",
+        "default": "research-recommendation.v1",
+        "title": "Recommendation Contract",
+        "type": "string"
+      },
       "version": {
         "const": "meridian-decision-brief.v1",
         "default": "meridian-decision-brief.v1",
@@ -5664,6 +6992,2258 @@
       "quality_scorecard"
     ],
     "title": "DecisionBrief",
+    "type": "object"
+  },
+  "ResearchRecommendation": {
+    "$defs": {
+      "ResearchPricePlan": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": "research-price-plan.v1",
+            "default": "research-price-plan.v1",
+            "title": "Version",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "observed_price": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Observed Price"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "quote_evidence_id": {
+            "title": "Quote Evidence Id",
+            "type": "string"
+          },
+          "feature_input_hash": {
+            "title": "Feature Input Hash",
+            "type": "string"
+          },
+          "feature_session": {
+            "title": "Feature Session",
+            "type": "string"
+          },
+          "lower": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Lower"
+          },
+          "upper": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Upper"
+          },
+          "method": {
+            "const": "SMA20_PULLBACK_WITH_HALF_ATR14",
+            "default": "SMA20_PULLBACK_WITH_HALF_ATR14",
+            "title": "Method",
+            "type": "string"
+          },
+          "measurement": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Measurement",
+            "type": "object"
+          },
+          "scenario": {
+            "const": "TREND_PULLBACK_RESEARCH_NOT_FAIR_VALUE",
+            "default": "TREND_PULLBACK_RESEARCH_NOT_FAIR_VALUE",
+            "title": "Scenario",
+            "type": "string"
+          },
+          "price_basis": {
+            "const": "ADJUSTED_HISTORY_RESEARCH_UNITS_NOT_EXECUTION_UNITS",
+            "default": "ADJUSTED_HISTORY_RESEARCH_UNITS_NOT_EXECUTION_UNITS",
+            "title": "Price Basis",
+            "type": "string"
+          },
+          "assessment": {
+            "enum": [
+              "ABOVE_ZONE",
+              "IN_ZONE",
+              "BELOW_ZONE_REVIEW"
+            ],
+            "title": "Assessment",
+            "type": "string"
+          },
+          "recalculate_when": {
+            "default": [
+              "NEW_COMPLETED_SESSION",
+              "CORPORATE_ACTION_OR_PRICE_BASIS_CHANGE",
+              "QUOTE_STALE",
+              "TREND_INVALIDATED"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Recalculate When",
+            "type": "array"
+          },
+          "limitations": {
+            "default": [
+              "NOT_INTRINSIC_VALUE",
+              "NOT_EXECUTABLE_LIMIT",
+              "CURRENT_AND_ADJUSTED_PRICE_BASES_NOT_CERTIFIED_IDENTICAL"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "executable_limit": {
+            "default": null,
+            "title": "Executable Limit",
+            "type": "null"
+          }
+        },
+        "required": [
+          "symbol",
+          "analysis_cutoff",
+          "observed_price",
+          "observed_at",
+          "source",
+          "quote_evidence_id",
+          "feature_input_hash",
+          "feature_session",
+          "lower",
+          "upper",
+          "measurement",
+          "assessment"
+        ],
+        "title": "ResearchPricePlan",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "version": {
+        "const": "research-recommendation.v1",
+        "default": "research-recommendation.v1",
+        "title": "Version",
+        "type": "string"
+      },
+      "symbol": {
+        "title": "Symbol",
+        "type": "string"
+      },
+      "company_name": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Company Name"
+      },
+      "company_name_source": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Company Name Source"
+      },
+      "observed_reference": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Observed Reference"
+      },
+      "public_diagnostics": {
+        "additionalProperties": true,
+        "title": "Public Diagnostics",
+        "type": "object"
+      },
+      "analysis_cutoff": {
+        "format": "date-time",
+        "title": "Analysis Cutoff",
+        "type": "string"
+      },
+      "engine": {
+        "title": "Engine",
+        "type": "string"
+      },
+      "engine_hash": {
+        "title": "Engine Hash",
+        "type": "string"
+      },
+      "snapshot_hash": {
+        "title": "Snapshot Hash",
+        "type": "string"
+      },
+      "certification": {
+        "title": "Certification",
+        "type": "string"
+      },
+      "category": {
+        "enum": [
+          "BUY_CANDIDATE",
+          "ACCUMULATE_CONDITIONALLY",
+          "HOLD",
+          "TRIM_CANDIDATE",
+          "EXIT_REVIEW",
+          "WATCH",
+          "WAIT_FOR_EVIDENCE",
+          "NO_ACTION"
+        ],
+        "title": "Category",
+        "type": "string"
+      },
+      "state": {
+        "enum": [
+          "RESEARCH_ONLY",
+          "CONDITIONAL_PLAN",
+          "MANUAL_TICKET_READY",
+          "PAPER_ONLY",
+          "BLOCKED"
+        ],
+        "title": "State",
+        "type": "string"
+      },
+      "score": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Score"
+      },
+      "rank": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Rank"
+      },
+      "factor_attribution": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "title": "Factor Attribution",
+        "type": "array"
+      },
+      "historical_risk": {
+        "additionalProperties": true,
+        "title": "Historical Risk",
+        "type": "object"
+      },
+      "regime": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Regime"
+      },
+      "desired_weight": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Desired Weight"
+      },
+      "feasible_weight": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Feasible Weight"
+      },
+      "cost_adjusted_weight": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Cost Adjusted Weight"
+      },
+      "current_weight": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Current Weight"
+      },
+      "actual_eligible_change": {
+        "default": null,
+        "title": "Actual Eligible Change",
+        "type": "null"
+      },
+      "account_context": {
+        "default": "NOT_SUPPLIED_OR_NOT_VALIDATED",
+        "enum": [
+          "NOT_SUPPLIED_OR_NOT_VALIDATED",
+          "AUTHORIZED_PAPER_RESEARCH"
+        ],
+        "title": "Account Context",
+        "type": "string"
+      },
+      "price_plan": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ResearchPricePlan"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "evidence_ids": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Evidence Ids",
+        "type": "array"
+      },
+      "gpt_interpretation": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Gpt Interpretation"
+      },
+      "quant_gpt_conflict": {
+        "default": false,
+        "title": "Quant Gpt Conflict",
+        "type": "boolean"
+      },
+      "reasons": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Reasons",
+        "type": "array"
+      },
+      "blockers": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Blockers",
+        "type": "array"
+      },
+      "cost_assumptions": {
+        "additionalProperties": true,
+        "title": "Cost Assumptions",
+        "type": "object"
+      },
+      "portfolio_concentration": {
+        "additionalProperties": true,
+        "title": "Portfolio Concentration",
+        "type": "object"
+      },
+      "important_unknowns": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Important Unknowns",
+        "type": "array"
+      },
+      "next_inputs": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Next Inputs",
+        "type": "array"
+      },
+      "monitoring_triggers": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Monitoring Triggers",
+        "type": "array"
+      },
+      "invalidation_conditions": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Invalidation Conditions",
+        "type": "array"
+      },
+      "explanation_zh": {
+        "title": "Explanation Zh",
+        "type": "string"
+      },
+      "expected_return": {
+        "default": null,
+        "title": "Expected Return",
+        "type": "null"
+      },
+      "predictive_confidence": {
+        "default": null,
+        "title": "Predictive Confidence",
+        "type": "null"
+      },
+      "order_authorized": {
+        "const": false,
+        "default": false,
+        "title": "Order Authorized",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "symbol",
+      "analysis_cutoff",
+      "engine",
+      "engine_hash",
+      "snapshot_hash",
+      "certification",
+      "category",
+      "state",
+      "score",
+      "rank",
+      "factor_attribution",
+      "historical_risk",
+      "regime",
+      "desired_weight",
+      "feasible_weight",
+      "cost_adjusted_weight",
+      "price_plan",
+      "evidence_ids",
+      "reasons",
+      "blockers",
+      "important_unknowns",
+      "next_inputs",
+      "monitoring_triggers",
+      "invalidation_conditions",
+      "explanation_zh"
+    ],
+    "title": "ResearchRecommendation",
+    "type": "object"
+  },
+  "ResearchPricePlan": {
+    "additionalProperties": false,
+    "properties": {
+      "version": {
+        "const": "research-price-plan.v1",
+        "default": "research-price-plan.v1",
+        "title": "Version",
+        "type": "string"
+      },
+      "symbol": {
+        "title": "Symbol",
+        "type": "string"
+      },
+      "analysis_cutoff": {
+        "format": "date-time",
+        "title": "Analysis Cutoff",
+        "type": "string"
+      },
+      "observed_price": {
+        "anyOf": [
+          {
+            "exclusiveMinimum": 0.0,
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          }
+        ],
+        "title": "Observed Price"
+      },
+      "observed_at": {
+        "format": "date-time",
+        "title": "Observed At",
+        "type": "string"
+      },
+      "source": {
+        "title": "Source",
+        "type": "string"
+      },
+      "quote_evidence_id": {
+        "title": "Quote Evidence Id",
+        "type": "string"
+      },
+      "feature_input_hash": {
+        "title": "Feature Input Hash",
+        "type": "string"
+      },
+      "feature_session": {
+        "title": "Feature Session",
+        "type": "string"
+      },
+      "lower": {
+        "anyOf": [
+          {
+            "exclusiveMinimum": 0.0,
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          }
+        ],
+        "title": "Lower"
+      },
+      "upper": {
+        "anyOf": [
+          {
+            "exclusiveMinimum": 0.0,
+            "type": "number"
+          },
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          }
+        ],
+        "title": "Upper"
+      },
+      "method": {
+        "const": "SMA20_PULLBACK_WITH_HALF_ATR14",
+        "default": "SMA20_PULLBACK_WITH_HALF_ATR14",
+        "title": "Method",
+        "type": "string"
+      },
+      "measurement": {
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ]
+        },
+        "title": "Measurement",
+        "type": "object"
+      },
+      "scenario": {
+        "const": "TREND_PULLBACK_RESEARCH_NOT_FAIR_VALUE",
+        "default": "TREND_PULLBACK_RESEARCH_NOT_FAIR_VALUE",
+        "title": "Scenario",
+        "type": "string"
+      },
+      "price_basis": {
+        "const": "ADJUSTED_HISTORY_RESEARCH_UNITS_NOT_EXECUTION_UNITS",
+        "default": "ADJUSTED_HISTORY_RESEARCH_UNITS_NOT_EXECUTION_UNITS",
+        "title": "Price Basis",
+        "type": "string"
+      },
+      "assessment": {
+        "enum": [
+          "ABOVE_ZONE",
+          "IN_ZONE",
+          "BELOW_ZONE_REVIEW"
+        ],
+        "title": "Assessment",
+        "type": "string"
+      },
+      "recalculate_when": {
+        "default": [
+          "NEW_COMPLETED_SESSION",
+          "CORPORATE_ACTION_OR_PRICE_BASIS_CHANGE",
+          "QUOTE_STALE",
+          "TREND_INVALIDATED"
+        ],
+        "items": {
+          "type": "string"
+        },
+        "title": "Recalculate When",
+        "type": "array"
+      },
+      "limitations": {
+        "default": [
+          "NOT_INTRINSIC_VALUE",
+          "NOT_EXECUTABLE_LIMIT",
+          "CURRENT_AND_ADJUSTED_PRICE_BASES_NOT_CERTIFIED_IDENTICAL"
+        ],
+        "items": {
+          "type": "string"
+        },
+        "title": "Limitations",
+        "type": "array"
+      },
+      "executable_limit": {
+        "default": null,
+        "title": "Executable Limit",
+        "type": "null"
+      }
+    },
+    "required": [
+      "symbol",
+      "analysis_cutoff",
+      "observed_price",
+      "observed_at",
+      "source",
+      "quote_evidence_id",
+      "feature_input_hash",
+      "feature_session",
+      "lower",
+      "upper",
+      "measurement",
+      "assessment"
+    ],
+    "title": "ResearchPricePlan",
+    "type": "object"
+  },
+  "ManualOrderTicket": {
+    "$defs": {
+      "OrderDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "side": {
+            "$ref": "#/$defs/Side"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,12}|(?=[\\d.]{1,19}0*$)\\d{0,12}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "preferred_limit": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Preferred Limit"
+          },
+          "max_acceptable_buy_price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Acceptable Buy Price"
+          },
+          "min_acceptable_sell_price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Min Acceptable Sell Price"
+          },
+          "target_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Target Weight"
+          },
+          "current_weight": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,2}|(?=[\\d.]{1,9}0*$)\\d{0,2}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Current Weight"
+          },
+          "estimated_notional": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Estimated Notional"
+          },
+          "time_in_force": {
+            "pattern": "^(DAY|GTC)$",
+            "title": "Time In Force",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/$defs/RunStatus"
+          },
+          "reason": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticker",
+          "side",
+          "quantity",
+          "target_weight",
+          "current_weight",
+          "estimated_notional",
+          "time_in_force",
+          "status",
+          "reason"
+        ],
+        "title": "OrderDraft",
+        "type": "object"
+      },
+      "RunStatus": {
+        "enum": [
+          "NO_CAPITAL",
+          "ANALYSIS_ONLY",
+          "DRAFT",
+          "READY_FOR_MANUAL_ENTRY",
+          "NO_ACTION",
+          "BLOCKED_STALE_ACCOUNT",
+          "BLOCKED_STALE_MARKET",
+          "FAILED"
+        ],
+        "title": "RunStatus",
+        "type": "string"
+      },
+      "Side": {
+        "enum": [
+          "BUY",
+          "SELL"
+        ],
+        "title": "Side",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "analysis_cutoff": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Analysis Cutoff"
+      },
+      "request_hash": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Request Hash"
+      },
+      "version": {
+        "const": "manual-order-ticket.v1",
+        "default": "manual-order-ticket.v1",
+        "title": "Version",
+        "type": "string"
+      },
+      "state": {
+        "enum": [
+          "BLOCKED",
+          "PAPER_ONLY"
+        ],
+        "title": "State",
+        "type": "string"
+      },
+      "engine": {
+        "const": "V2.3_SHADOW",
+        "default": "V2.3_SHADOW",
+        "title": "Engine",
+        "type": "string"
+      },
+      "snapshot_hash": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Snapshot Hash"
+      },
+      "paper_drafts": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/OrderDraft"
+        },
+        "maxItems": 8,
+        "title": "Paper Drafts",
+        "type": "array"
+      },
+      "planning_status": {
+        "enum": [
+          "BLOCKED",
+          "NO_ACTION",
+          "DRAFTS_AVAILABLE"
+        ],
+        "title": "Planning Status",
+        "type": "string"
+      },
+      "order_trace": {
+        "additionalProperties": true,
+        "title": "Order Trace",
+        "type": "object"
+      },
+      "blockers": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Blockers",
+        "type": "array"
+      },
+      "manual_blockers": {
+        "default": [
+          "SHADOW_STRATEGY_NOT_PROMOTED",
+          "SEALED_SEVEN_GATE_MANUAL_AUTHORITY_REQUIRED",
+          "HUMAN_APPROVAL_REQUIRED"
+        ],
+        "items": {
+          "type": "string"
+        },
+        "title": "Manual Blockers",
+        "type": "array"
+      },
+      "limit_source": {
+        "const": "EXISTING_ORDER_PLANNER_NOT_RESEARCH_ZONE",
+        "default": "EXISTING_ORDER_PLANNER_NOT_RESEARCH_ZONE",
+        "title": "Limit Source",
+        "type": "string"
+      },
+      "fills": {
+        "default": [],
+        "maxItems": 0,
+        "minItems": 0,
+        "title": "Fills",
+        "type": "array"
+      },
+      "broker_submission": {
+        "const": "DISABLED",
+        "default": "DISABLED",
+        "title": "Broker Submission",
+        "type": "string"
+      },
+      "execution_authority": {
+        "const": "NONE",
+        "default": "NONE",
+        "title": "Execution Authority",
+        "type": "string"
+      }
+    },
+    "required": [
+      "state",
+      "snapshot_hash",
+      "planning_status",
+      "blockers"
+    ],
+    "title": "ManualOrderTicket",
+    "type": "object"
+  },
+  "PaperReviewRequest": {
+    "$defs": {
+      "AccountSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "snapshot_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "account_alias": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Account Alias",
+            "type": "string"
+          },
+          "provider": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "currency": {
+            "default": "USD",
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "total_equity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Total Equity"
+          },
+          "cash": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Cash"
+          },
+          "buying_power": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Buying Power"
+          },
+          "holdings": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Holding"
+            },
+            "title": "Holdings",
+            "type": "array"
+          },
+          "recent_investment_transactions": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/InvestmentTransaction"
+            },
+            "title": "Recent Investment Transactions",
+            "type": "array"
+          },
+          "sync_state": {
+            "$ref": "#/$defs/AccountSyncState"
+          },
+          "freshness_state": {
+            "$ref": "#/$defs/FreshnessState"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "account_alias",
+          "provider",
+          "as_of",
+          "total_equity",
+          "cash",
+          "sync_state",
+          "freshness_state"
+        ],
+        "title": "AccountSnapshot",
+        "type": "object"
+      },
+      "AccountSyncState": {
+        "enum": [
+          "SYNCED",
+          "PARTIAL",
+          "UNAVAILABLE"
+        ],
+        "title": "AccountSyncState",
+        "type": "string"
+      },
+      "ExecutionQuote": {
+        "additionalProperties": false,
+        "description": "A current, identity-bound quote suitable for deterministic ticket pricing.",
+        "properties": {
+          "symbol": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,15}$",
+            "title": "Symbol",
+            "type": "string"
+          },
+          "provider_symbol": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider Symbol",
+            "type": "string"
+          },
+          "bid": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,19}0*$)\\d{0,10}\\.\\d{0,8}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Bid"
+          },
+          "ask": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,19}0*$)\\d{0,10}\\.\\d{0,8}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Ask"
+          },
+          "last": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,19}0*$)\\d{0,10}\\.\\d{0,8}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Last"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "session": {
+            "$ref": "#/$defs/ExecutionSession"
+          },
+          "currency": {
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "provider": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "available_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Available At"
+          },
+          "extended_hours": {
+            "default": false,
+            "title": "Extended Hours",
+            "type": "boolean"
+          },
+          "certificate_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Certificate Id",
+            "type": "string"
+          },
+          "feed": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Feed"
+          },
+          "plan": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Plan"
+          }
+        },
+        "required": [
+          "symbol",
+          "provider_symbol",
+          "bid",
+          "ask",
+          "last",
+          "timestamp",
+          "session",
+          "currency",
+          "provider",
+          "retrieved_at",
+          "certificate_id"
+        ],
+        "title": "ExecutionQuote",
+        "type": "object"
+      },
+      "ExecutionQuoteCapabilityCertificate": {
+        "additionalProperties": false,
+        "description": "Documented provider capabilities; all execution fields are explicit.",
+        "properties": {
+          "provider": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "supports_bid": {
+            "default": false,
+            "title": "Supports Bid",
+            "type": "boolean"
+          },
+          "supports_ask": {
+            "default": false,
+            "title": "Supports Ask",
+            "type": "boolean"
+          },
+          "supports_last": {
+            "default": false,
+            "title": "Supports Last",
+            "type": "boolean"
+          },
+          "bid": {
+            "default": false,
+            "title": "Bid",
+            "type": "boolean"
+          },
+          "ask": {
+            "default": false,
+            "title": "Ask",
+            "type": "boolean"
+          },
+          "last": {
+            "default": false,
+            "title": "Last",
+            "type": "boolean"
+          },
+          "timestamp_semantics_verified": {
+            "default": false,
+            "title": "Timestamp Semantics Verified",
+            "type": "boolean"
+          },
+          "freshness_policy": {
+            "default": "UNVERIFIED",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Freshness Policy",
+            "type": "string"
+          },
+          "session_semantics": {
+            "default": "UNVERIFIED",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Session Semantics",
+            "type": "string"
+          },
+          "supports_stocks": {
+            "default": false,
+            "title": "Supports Stocks",
+            "type": "boolean"
+          },
+          "supports_etfs": {
+            "default": false,
+            "title": "Supports Etfs",
+            "type": "boolean"
+          },
+          "supports_indices": {
+            "default": false,
+            "title": "Supports Indices",
+            "type": "boolean"
+          },
+          "supports_extended_hours": {
+            "default": false,
+            "title": "Supports Extended Hours",
+            "type": "boolean"
+          },
+          "authentication": {
+            "default": "UNVERIFIED",
+            "maxLength": 256,
+            "title": "Authentication",
+            "type": "string"
+          },
+          "rate_limits": {
+            "default": "UNVERIFIED",
+            "maxLength": 256,
+            "title": "Rate Limits",
+            "type": "string"
+          },
+          "licensing": {
+            "default": "UNVERIFIED",
+            "maxLength": 512,
+            "title": "Licensing",
+            "type": "string"
+          },
+          "source_uri": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Uri"
+          },
+          "certified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Certified At"
+          },
+          "execution_quote_grade": {
+            "default": false,
+            "title": "Execution Quote Grade",
+            "type": "boolean"
+          },
+          "certificate_id": {
+            "default": "UNSPECIFIED",
+            "title": "Certificate Id",
+            "type": "string"
+          },
+          "feed": {
+            "default": "UNVERIFIED",
+            "title": "Feed",
+            "type": "string"
+          },
+          "plan": {
+            "default": "UNVERIFIED",
+            "title": "Plan",
+            "type": "string"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Valid To"
+          },
+          "symbol_scope": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Symbol Scope",
+            "type": "array"
+          },
+          "currency_scope": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Currency Scope",
+            "type": "array"
+          },
+          "capability_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Capability Hash"
+          }
+        },
+        "required": [
+          "provider"
+        ],
+        "title": "ExecutionQuoteCapabilityCertificate",
+        "type": "object"
+      },
+      "ExecutionSession": {
+        "enum": [
+          "REGULAR",
+          "PRE_MARKET",
+          "AFTER_HOURS",
+          "CLOSED"
+        ],
+        "title": "ExecutionSession",
+        "type": "string"
+      },
+      "FreshnessState": {
+        "enum": [
+          "VERIFIED",
+          "RECENT",
+          "UNKNOWN",
+          "STALE"
+        ],
+        "title": "FreshnessState",
+        "type": "string"
+      },
+      "HistoricalAdjustmentStatus": {
+        "enum": [
+          "RAW",
+          "ADJUSTED_CLOSE",
+          "FULLY_ADJUSTED_OHLCV"
+        ],
+        "title": "HistoricalAdjustmentStatus",
+        "type": "string"
+      },
+      "HistoricalBar": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_asset_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Canonical Asset Id",
+            "type": "string"
+          },
+          "canonical_symbol": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,15}$",
+            "title": "Canonical Symbol",
+            "type": "string"
+          },
+          "provider_symbol": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider Symbol",
+            "type": "string"
+          },
+          "session": {
+            "format": "date",
+            "title": "Session",
+            "type": "string"
+          },
+          "calendar": {
+            "$ref": "#/$defs/TradingCalendarName"
+          },
+          "open": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Open"
+          },
+          "high": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "High"
+          },
+          "low": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Low"
+          },
+          "close": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Close"
+          },
+          "volume": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Volume"
+          },
+          "currency": {
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "adjustment_status": {
+            "$ref": "#/$defs/HistoricalAdjustmentStatus"
+          },
+          "provider": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "available_at": {
+            "format": "date-time",
+            "title": "Available At",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "source": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          },
+          "quality": {
+            "$ref": "#/$defs/HistoricalQuality",
+            "default": "UNVERIFIED"
+          },
+          "certification": {
+            "$ref": "#/$defs/HistoricalBarCertification",
+            "default": "UNVERIFIED"
+          }
+        },
+        "required": [
+          "canonical_asset_id",
+          "canonical_symbol",
+          "provider_symbol",
+          "session",
+          "calendar",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume",
+          "currency",
+          "adjustment_status",
+          "provider",
+          "observed_at",
+          "available_at",
+          "retrieved_at",
+          "source"
+        ],
+        "title": "HistoricalBar",
+        "type": "object"
+      },
+      "HistoricalBarCertification": {
+        "enum": [
+          "CERTIFIED_MARKET_SESSION",
+          "CERTIFIED_RESEARCH_PIT_ADJUSTED",
+          "UNVERIFIED",
+          "SYNTHETIC",
+          "REPLAY_UNSAFE"
+        ],
+        "title": "HistoricalBarCertification",
+        "type": "string"
+      },
+      "HistoricalBarSeries": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_asset_id": {
+            "title": "Canonical Asset Id",
+            "type": "string"
+          },
+          "canonical_symbol": {
+            "title": "Canonical Symbol",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "bars": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/HistoricalBar"
+            },
+            "maxItems": 5000,
+            "title": "Bars",
+            "type": "array"
+          },
+          "source_mode": {
+            "default": "REPLAY",
+            "title": "Source Mode",
+            "type": "string"
+          },
+          "content_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Content Hash"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "canonical_asset_id",
+          "canonical_symbol",
+          "provider",
+          "as_of"
+        ],
+        "title": "HistoricalBarSeries",
+        "type": "object"
+      },
+      "HistoricalQuality": {
+        "enum": [
+          "VERIFIED",
+          "UNVERIFIED",
+          "MISSING",
+          "INVALID",
+          "CONFLICT"
+        ],
+        "title": "HistoricalQuality",
+        "type": "string"
+      },
+      "Holding": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,12}|(?=[\\d.]{1,19}0*$)\\d{0,12}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "market_value": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Market Value"
+          },
+          "cost_basis": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Basis"
+          },
+          "average_cost": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Average Cost"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Price"
+          }
+        },
+        "required": [
+          "ticker",
+          "quantity",
+          "market_value"
+        ],
+        "title": "Holding",
+        "type": "object"
+      },
+      "InvestmentTransaction": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "side": {
+            "$ref": "#/$defs/Side"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,12}|(?=[\\d.]{1,19}0*$)\\d{0,12}\\.\\d{0,6}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Price"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Amount"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticker",
+          "side",
+          "quantity",
+          "timestamp"
+        ],
+        "title": "InvestmentTransaction",
+        "type": "object"
+      },
+      "MarketSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "ticker": {
+            "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+            "title": "Ticker",
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "last": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Last"
+          },
+          "bid": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Bid"
+          },
+          "ask": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ask"
+          },
+          "previous_close": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Previous Close"
+          },
+          "volume": {
+            "minimum": 0,
+            "title": "Volume",
+            "type": "integer"
+          },
+          "atr14": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Atr14"
+          },
+          "vwap": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Vwap"
+          },
+          "daily_return": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": -1.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Daily Return"
+          },
+          "gap_percent": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": -1.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Gap Percent"
+          },
+          "freshness_state": {
+            "$ref": "#/$defs/FreshnessState"
+          }
+        },
+        "required": [
+          "ticker",
+          "timestamp",
+          "last",
+          "previous_close",
+          "volume",
+          "daily_return",
+          "freshness_state"
+        ],
+        "title": "MarketSnapshot",
+        "type": "object"
+      },
+      "QuantSecurityMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "asset_type": {
+            "enum": [
+              "EQUITY",
+              "DIVERSIFIED_ETF"
+            ],
+            "title": "Asset Type",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sector"
+          },
+          "known_at": {
+            "format": "date-time",
+            "title": "Known At",
+            "type": "string"
+          },
+          "source": {
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "asset_type",
+          "known_at",
+          "source"
+        ],
+        "title": "QuantSecurityMetadata",
+        "type": "object"
+      },
+      "QuantTerminalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "engine": {
+            "default": "V2.2_SHADOW",
+            "enum": [
+              "V2.2_SHADOW",
+              "V2.3_SHADOW"
+            ],
+            "title": "Engine",
+            "type": "string"
+          },
+          "analysis_cutoff": {
+            "format": "date-time",
+            "title": "Analysis Cutoff",
+            "type": "string"
+          },
+          "symbols": {
+            "items": {
+              "pattern": "^[A-Z][A-Z0-9.\\-]{0,14}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Symbols",
+            "type": "array"
+          },
+          "histories": {
+            "items": {
+              "$ref": "#/$defs/HistoricalBarSeries"
+            },
+            "maxItems": 9,
+            "title": "Histories",
+            "type": "array"
+          },
+          "metadata": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/QuantSecurityMetadata"
+            },
+            "maxItems": 9,
+            "title": "Metadata",
+            "type": "array"
+          },
+          "diagnostic": {
+            "default": false,
+            "title": "Diagnostic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "analysis_cutoff",
+          "symbols",
+          "histories"
+        ],
+        "title": "QuantTerminalRequest",
+        "type": "object"
+      },
+      "Side": {
+        "enum": [
+          "BUY",
+          "SELL"
+        ],
+        "title": "Side",
+        "type": "string"
+      },
+      "TradingCalendarName": {
+        "enum": [
+          "US_EQUITY",
+          "CBOE_VIX"
+        ],
+        "title": "TradingCalendarName",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "quant": {
+        "$ref": "#/$defs/QuantTerminalRequest"
+      },
+      "account": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/AccountSnapshot"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "planner_quotes": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/MarketSnapshot"
+        },
+        "maxItems": 8,
+        "title": "Planner Quotes",
+        "type": "array"
+      },
+      "execution_quotes": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/ExecutionQuote"
+        },
+        "maxItems": 8,
+        "title": "Execution Quotes",
+        "type": "array"
+      },
+      "certificates": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/ExecutionQuoteCapabilityCertificate"
+        },
+        "maxItems": 8,
+        "title": "Certificates",
+        "type": "array"
+      }
+    },
+    "required": [
+      "quant"
+    ],
+    "title": "PaperReviewRequest",
     "type": "object"
   },
   "NumericalCitation": {
