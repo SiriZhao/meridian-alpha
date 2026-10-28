@@ -1,198 +1,291 @@
-# Meridian Alpha
+<div align="center">
+  <img src="assets/meridian-mark.svg" alt="Meridian Alpha geometric mark" width="88" height="88">
+  <h1>Meridian Alpha</h1>
+  <p><strong>AI-Assisted Portfolio Decision Intelligence</strong></p>
+  <p>Evidence-driven market research. Deterministic risk controls. Human-authorized decisions.</p>
 
-US-equity portfolio decision support. All current outputs are research-only;
-there is no broker execution and a DRAFT is not authorization to enter an order.
+  <p>
+    <a href="https://github.com/SiriZhao/meridian-alpha/actions/workflows/ci.yml"><img src="https://github.com/SiriZhao/meridian-alpha/actions/workflows/ci.yml/badge.svg" alt="CI workflow"></a>
+    <a href="https://www.python.org/downloads/release/python-3120/"><img src="https://img.shields.io/badge/python-3.12-0f766e?logo=python&logoColor=white" alt="Python 3.12"></a>
+    <a href="#safety-model"><img src="https://img.shields.io/badge/mode-paper--only-334155" alt="Paper-only mode"></a>
+    <a href="https://modelcontextprotocol.io/"><img src="https://img.shields.io/badge/interface-CLI%20%7C%20MCP-155e75" alt="CLI and MCP interfaces"></a>
+  </p>
+</div>
 
-Meridian Alpha is independent from Personal Alpha Terminal. No implementation,
-runtime state, account semantics, or migration path is shared between them.
-Meridian remains `PAPER_ONLY`; `AUTO_EXECUTION = FALSE`; real broker writes and
-live orders are unsupported.
+> **Meridian Alpha is decision-support software, not a trading bot.** Research can inform a review; it cannot authorize an order, choose executable size or price, or imply a fill.
 
-The pipeline is `Market/Data -> Research -> Decision -> Execution Plan -> Paper/Ledger`.
-Research supplies grounded analysis; deterministic policy controls sizing,
-prices, risk gates and simulated fills.
+<p align="center"><a href="#overview">Overview</a> · <a href="#architecture">Architecture</a> · <a href="#capabilities">Capabilities</a> · <a href="#quick-start">Quick start</a> · <a href="#workflow">Workflow</a> · <a href="#safety-model">Safety model</a> · <a href="#documentation">Documentation</a> · <a href="#contributing">Contributing</a></p>
 
-Current canonical operation is one application service shared by CLI, the
-PowerShell launcher, the Skill paper command, and MCP Host-envelope delegation.
-Daily reports expose independent `DATA`, `RESEARCH`, `DECISION`, `RISK`,
-`PAPER`, and `HOST_LLM` status dimensions. A Host research result is bound to
-its job, as-of time, symbol universe, quote timestamps, evidence IDs, market
-snapshot ID, and model/runtime provenance. Resume classifies market movement as
-`EXACT`, explicitly `REVALIDATED`, or `REFRESH_REQUIRED`; market drift is not
-reported as a generic LLM failure.
+## Overview
 
-Final maintainer acceptance on 2026-09-11: **BLOCKED_WITH_EVIDENCE**.
-Source validation and a real clean wheel installation passed. The one fresh
-GPT-6 Astra acceptance session hit its usage limit before reading the Skill or
-calling tools; SEC retrieval also returned HTTP 403. This is not a production
-research acceptance. See [final review](reports/meridian-astra-final-review.md)
-and [clean installation](reports/meridian-clean-install-acceptance.md).
+Meridian Alpha is a Python 3.12 system for evidence-grounded US-equity research and manual portfolio decision support. It turns timestamped market and account inputs into a structured, auditable decision record and, where every gate permits, a paper-only execution plan.
 
-## Install (Windows PowerShell)
+The central design choice is to keep probabilistic research outside the control plane. AI may summarize evidence, surface risks, compare scenarios, and identify unknowns. Project-owned deterministic code controls allocation, quantities, limit prices, reconciliation, risk gates, readiness, and paper-ledger accounting.
 
-Use Python 3.12 and uv. On Windows, select it explicitly with `py -3.12`; on
-Linux use `python3.12`. From this checkout:
+Meridian is independent from Alpha Mosaic and Personal Alpha Terminal. It does not share their runtime state, account semantics, or migration path.
 
-```powershell
-uv sync --group dev --inexact
+### Why this boundary exists
+
+LLM output can be useful and still be stale, incomplete, or wrong. A model response is therefore treated as advisory evidence with provenance and a cutoff, never as an executable instruction. Missing, conflicting, or stale data remains explicit and fails closed; it is not filled with invented prices, bars, returns, or portfolio facts.
+
+**The useful distinction:** Meridian makes the reasoning inspectable and the control decisions deterministic, while leaving the final real-world action with a human.
+
+## Capabilities
+
+| Area | Maturity | What is actually in the repository |
+| --- | --- | --- |
+| Market evidence | **IMPLEMENTED / VERIFIED** | Provider-neutral observations, timestamps, source provenance, cutoffs, freshness checks, identity checks, and explicit unavailable states. |
+| Structured AI research | **IMPLEMENTED / BLOCKED** | GPT/Codex advisory research can be schema-validated and bound to a job, market snapshot, universe, evidence IDs, and model provenance. Production acceptance remains evidence-gated. |
+| Deterministic decisions | **IMPLEMENTED / VERIFIED** | Allocation, reconciliation, portfolio constraints, quantities, limit-price policy, and readiness are owned by Meridian code. |
+| Paper ledger | **IMPLEMENTED / VERIFIED** | `Schwab-Paper` is a local SQLite paper account with atomic updates, same-account/day idempotency, reports, and simulated fills only. |
+| Audit and reports | **IMPLEMENTED / VERIFIED** | JSON and Markdown reports expose `DATA`, `RESEARCH`, `DECISION`, `RISK`, `PAPER`, and `HOST_LLM` dimensions plus blockers and next actions. |
+| CLI / PowerShell / Skill / MCP | **IMPLEMENTED / VERIFIED** | One application service is shared by the CLI, Windows launcher, Skill workflow, and MCP Host-envelope delegation. The MCP research surface is read-only and no MCP tool exposes broker writes. |
+| TradingAgents adapter | **OPTIONAL / EXPERIMENTAL** | Legacy research adapter, lazy and disabled by default; not a base dependency or canonical decision path. |
+| FinRL-X | **OPTIONAL / BLOCKED** | Isolated challenger boundary exists, but no validated FinRL-X runtime or model artifact is shipped; unavailable is represented explicitly. |
+| Live broker integration | **BLOCKED / NOT IMPLEMENTED** | No broker login, broker SDK, order submission, automatic execution, or live-fill surface exists. |
+| Forward evidence | **EXPERIMENTAL / SHADOW-ONLY** | Append-only, cutoff-bound evaluation records; they cannot change allocation, risk, paper-fill eligibility, or promote a strategy automatically. |
+
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Market data<br/>+ account snapshot] --> B[Evidence validation<br/>provenance · cutoff · freshness]
+
+    subgraph R[Research boundary]
+      C[AI research<br/>advisory context]
+    end
+
+    subgraph D[Deterministic control boundary]
+      E[Decision engine<br/>allocation · quantities · prices]
+      F[Risk and policy gates<br/>reconciliation · readiness]
+      G[Execution plan<br/>or paper simulation]
+      E --> F --> G
+    end
+
+    B --> C --> E
+    G --> H[Audit trail<br/>JSON and Markdown reports]
+    F --> I[Human review<br/>manual order ticket]
+    I -. human enters manually .-> J[Authorized broker workflow]
+    G -. no broker write path .-> K[(Broker API absent)]
+
+    classDef source fill:#e2e8f0,stroke:#475569,color:#0f172a
+    classDef research fill:#ccfbf1,stroke:#0f766e,color:#134e4a
+    classDef deterministic fill:#dbeafe,stroke:#1d4ed8,color:#172554
+    classDef human fill:#fef3c7,stroke:#b45309,color:#78350f
+    classDef blocked fill:#f1f5f9,stroke:#64748b,stroke-dasharray:5 5,color:#334155
+    class A,B source
+    class C research
+    class E,F,G,H deterministic
+    class I,J human
+    class K blocked
 ```
 
-`--inexact` preserves already installed optional research packages. If uv is not
-on PATH but the existing environment is present, use `.\.venv\Scripts\uv.exe`.
+`MeridianApplicationService` is the canonical orchestration owner. The CLI, PowerShell launcher, Skill, and MCP Host-envelope path delegate to it; renderers only display the returned result. The paper sink is an optional terminal in the same application path, never a broker adapter.
 
-For an installed wheel, use `meridian doctor --json` and `meridian init --json`
-from its Python 3.12 environment. The checkout and its PowerShell launcher are
-not required for wheel operation. Mutable state uses `RuntimePaths`.
+Every daily run carries an explicit analysis cutoff. A Host research job records its job ID, market snapshot ID, quote timestamps, evidence IDs, symbol universe, and model/runtime provenance. A resumed result is accepted only when the references match exactly or a bounded price-only revalidation is recorded; otherwise the result is refreshed or blocked.
 
-## Configure
+## Quick start
 
-Runtime defaults to `%LOCALAPPDATA%\MeridianAlpha`, independent of the working
-folder. Optionally set `MERIDIAN_HOME` to an absolute writable user directory.
-Policies come from the checkout (or the installed wheel); `MERIDIAN_POLICY_DIR`
-selects an explicit policy directory. Do not put credentials or raw account
-identifiers in configuration or input files.
+The repository targets Python **3.12** (`>=3.12,<3.13`). The base install does not require broker credentials or a live account. `uv` is used by CI and is pinned there to `0.12.7`; a regular virtual environment and pip are also supported.
 
-## Market research evidence
-
-The active market-research path is **local cache → Yahoo structured data →
-Astra trusted-web evidence → UNKNOWN**. Yahoo public data and Astra-supplied
-web evidence are research-only and never execution quotes. When Yahoo is stale
-or unavailable, Astra may browse trusted sources and submit compact facts to
-the read-only `validate_market_evidence` tool. Meridian validates source URLs,
-source tier, timestamps, currency, corroboration and conflicts; it does not
-browse or call another model. Historical OHLCV needs an explicit machine-readable
-table, CSV or JSON source. Narrative text cannot create bars or technical metrics.
-
-## Doctor
+### Install from a fresh clone
 
 ```powershell
-.\scripts\run_meridian.ps1 doctor --json
+git clone https://github.com/SiriZhao/meridian-alpha.git
+Set-Location meridian-alpha
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip check
 ```
 
-A missing database is PENDING, and daily initializes it automatically. Other
-FAIL checks require correction before analysis. `meridian init --json` is also
-available for explicit, idempotent database initialization.
-
-## Run
-
-Supply a fresh sanitized HostAccountSnapshotEnvelope from your authorized source:
+For a lockfile-based setup, install `uv` and run:
 
 ```powershell
-.\scripts\run_meridian.ps1 daily --snapshot "C:\Inputs\today.json" --json
+python -m pip install uv==0.12.7
+python -m uv sync --frozen --group dev
 ```
 
-The launcher delegates to `python -m meridian`; installed `meridian` uses the
-same CLI. It runs DB initialization, doctor, public market retrieval,
-deterministic portfolio/risk analysis, audit persistence, and reports. JSON
-includes typed `readiness`, `snapshot_provenance`, actual `provider_probes`,
-`next_actions`, warnings/errors, and `output_files`. Reports and
-logs are under the runtime home. No raw snapshot is saved by default.
+On Linux, use `python3.12`, `.venv/bin/python`, and `.venv/bin/meridian`. The project launcher always selects the checkout's `.venv` Python on Windows.
 
-Canonical daily runs structured advisory research when the existing research
-policy is explicitly enabled and fresh inputs are available. Research status
-comes from a local `codex exec` final response and strict schema validation;
-disabled configuration
-remains NOT_RUN. Advisory completion does not certify a recommendation. Missing/stale market
-inputs block recommendations while still producing a diagnostic report.
-No real account snapshot means no real portfolio validation.
-
-For synthetic regression only, add `--market-fixture <synthetic-market.json>`
-with a synthetic account. Fixture success is not production verification.
-Old `--profile`, `--date`, and `--account-fixture` commands are historical.
-
-## Schwab-Paper daily workflow
-
-For the default persistent paper account, the only daily command is:
+### Readiness checks
 
 ```powershell
-.\scripts\run_meridian.ps1 paper run --account Schwab-Paper --json
+.\.venv\Scripts\python.exe -m meridian version --json
+.\.venv\Scripts\python.exe -m meridian paths --json
+.\.venv\Scripts\python.exe -m meridian doctor --json
 ```
 
-`paper run` requires an existing `Schwab-Paper` account. Missing account or
-storage returns a blocked result; it never initializes or resets the ledger.
-Explicit `paper init` is a separate setup action. Daily runs load the same
-SQLite ledger. The command creates a
-fresh internal `PAPER_LEDGER` account observation, calls the existing canonical
-daily path, invokes the Codex CLI advisory stage through its saved
-ChatGPT-managed login, evaluates deterministic decisions and gates, and simulates
-only eligible paper fills. It writes canonical and Schwab-Paper JSON/Markdown
-reports under the runtime home.
+`MERIDIAN_HOME` may point to an absolute writable user directory. Runtime state defaults to `%LOCALAPPDATA%\MeridianAlpha` on Windows. `doctor` performs runtime write probes; use a disposable local runtime for development, and use the approved host boundary for the canonical runtime. Do not place credentials, account numbers, or raw account snapshots in Git or configuration.
 
-Paper fills require a NYSE regular session, fresh public market observations,
-validated advisory research, a completed deterministic decision and current
-portfolio constraints. Closed/stale/unavailable inputs return `PAPER_BLOCKED`
-with evidence; no fixture, prior LLM response or stale quote is substituted.
-Public quotes remain `PUBLIC_RESEARCH_QUOTE`, never certified execution quotes.
-Paper execution does not grant manual authority and broker submission remains
-disabled.
+For an offline, disposable demonstration that does not touch the canonical runtime, use the repository's isolated acceptance harness:
 
-Canonical operation uses `E:\MeridianAlphaRuntime`. In Codex, both Doctor
-and paper run require approved host execution because they write runtime
-state. Run Doctor first and continue only on `PASS`; the PowerShell launcher
-does not grant host permissions. See [the canonical workflow](docs/canonical-production-workflow.md).
+```powershell
+.\.venv\Scripts\python.exe scripts/safe_acceptance.py
+```
 
-The GPT research layer may perform primary analysis, skepticism, scenarios,
-and synthesis. It cannot choose executable quantity or price, mutate the paper
-ledger, bypass deterministic risk gates, or acquire broker authority.
+The harness uses synthetic inputs and is useful for wiring checks only; it does not prove live market freshness, live GPT availability, profitability, or broker readiness.
 
-TradingAgents remains an optional, disabled-by-default legacy research adapter.
-It is not installed by the base runtime and is not part of the canonical daily
-path. See the current upstream assessment in
-[`docs/tradingagents-upgrade-assessment-2026-09-16.md`](docs/tradingagents-upgrade-assessment-2026-09-16.md).
+## Workflow
 
-Useful read-only commands are:
+### A research-only daily run
+
+Provide a newly authorized, sanitized `HostAccountSnapshotEnvelope` and an optional machine-readable market fixture for offline regression:
+
+```powershell
+.\.venv\Scripts\python.exe -m meridian snapshot validate .\schemas\examples\real-host-envelope-template.json --json
+.\.venv\Scripts\python.exe -m meridian daily --snapshot .\path\to\fresh-sanitized-snapshot.json --json
+```
+
+The daily path validates account identity and freshness, collects public market observations, performs deterministic analysis, optionally runs the configured advisory research stage, persists sanitized audit metadata, and emits JSON/Markdown reports. A missing or stale input produces a diagnostic or blocked result; it never becomes an invented recommendation.
+
+### Schwab-Paper inspection
+
+The persistent `Schwab-Paper` account is a local paper ledger, not a Schwab connection. These commands are read-only inspection commands:
 
 ```powershell
 .\scripts\run_meridian.ps1 paper status --account Schwab-Paper --json
 .\scripts\run_meridian.ps1 paper history --account Schwab-Paper --json
 .\scripts\run_meridian.ps1 paper trades --account Schwab-Paper --json
-```
-
-`paper init` is idempotent. `paper reset` requires `--confirm-reset` with the
-exact account name and is never called by `paper run` or the Skill. See
-[Schwab-Paper operations](docs/schwab-paper.md).
-## Common errors
-
-- Missing Python: install Python 3.12 and sync dependencies.
-- Runtime path failure: set an absolute writable `MERIDIAN_HOME`; rerun doctor.
-- Database failure: inspect permissions, locks and schema; preserve the DB.
-- Invalid input: use the Host envelope contract and `meridian snapshot validate <file> --json`.
-- Market data stale/unavailable: inspect `symbols_missing` and provider health;
-  never replace missing quotes with invented prices.
-
-Exit codes: 0 completed operational result, 2 degraded/blocked input, 3 failure.
-A zero exit code never grants recommendation or manual-entry authority.
-Read `readiness.recommendation_readiness` and `manual_execution_readiness`.
-A snapshot content digest does not authenticate the Host source. Repeated
-snapshot IDs/facts are explicitly rejected across processes; provide a new
-snapshot for each daily run, including after a failed run consumed its input. Use the PowerShell terminal
-so diagnostics remain visible; the launcher preserves the process exit code.
-
-## Maintenance
-
-Core regression: `python scripts/validate_repo.py` (or the equivalent `uv run`
-commands for pytest, Ruff and Pyright). The subprocess E2E creates a fresh runtime outside
-the checkout, runs twice, checks SQLite integrity and persisted reports.
-
-See [runtime baseline](docs/runtime-baseline.md), [maintenance backlog](MAINTENANCE.md)
-and [development guide](DEVELOPMENT.md). Historical Gate/ROUND documents remain
-for audit only and are not the daily operating instructions.
-
-
-Controlled Improvement Phase 1 implementation and evidence are recorded in
-[phase record](docs/controlled-improvement-phase1.md). Real acceptance remains
-DEGRADED/BLOCKED; no certified LLM/quote path is implied by this implementation.
-
-## Forward evidence
-
-Canonical daily freezes append-only, cutoff-bound operational forward evidence
-only after an eligible non-fixture decision. It is evaluated on configured NYSE
-trading-session horizons and can never promote a strategy automatically. Inspect
-its mature sample status with:
-
-```powershell
 .\scripts\run_meridian.ps1 forward-status --json
 ```
 
-See [Forward Evidence Factory](docs/forward-evidence.md) and the
-[canonical workflow](docs/canonical-production-workflow.md).
+The canonical daily paper command is intentionally documented separately because it writes the configured runtime and requires the approved host boundary:
+
+```powershell
+.\scripts\run_meridian.ps1 doctor --json
+.\scripts\run_meridian.ps1 paper run --account Schwab-Paper --json
+```
+
+Run those only through the approved host execution mechanism described in [the canonical workflow](docs/canonical-production-workflow.md). Never use a restricted sandbox as a fallback, force a historical trading date, or recreate an existing canonical day.
+
+### Status vocabulary
+
+Reports keep independent dimensions visible rather than collapsing them into one pass/fail value:
+
+```text
+DATA → RESEARCH → DECISION → RISK → PAPER
+                    └──────── HOST_LLM (advisory runtime)
+```
+
+Typical outcomes include `PAPER_NO_TRADE`, `PAPER_BLOCKED`, `PAPER_ALREADY_EXECUTED`, `BLOCKED_STALE_MARKET`, `RESEARCH_REFRESH_REQUIRED`, and `MODEL_UNAVAILABLE`. A blocked result is a fail-closed operating result, not a fill and not proof of a live account state.
+
+## AI research and decision governance
+
+The research layer may perform primary analysis, skepticism, scenario construction, synthesis, and evidence-gap planning. It must classify substantive claims as facts, inferences, forecasts, or unknowns and cite the evidence IDs or source URLs that support them.
+
+The deterministic layer then decides whether the evidence is usable. It owns:
+
+- candidate limits and quantitative calculations;
+- portfolio weights, whole-share quantities, and limit-price policy;
+- cash, concentration, turnover, reconciliation, and risk constraints;
+- manual-readiness certificates and paper-fill eligibility; and
+- ledger mutations, idempotency, and report projections.
+
+Schema validation does not make a response true. It checks shape, references, timestamps, cutoff chronology, and consistency. Provider attempts, source conflicts, freshness failures, and missing data remain inspectable in the report. Public research quotes stay `PUBLIC_RESEARCH_QUOTE`; execution quote certification remains blocked.
+
+## Sanitized output shape
+
+This is a representative **synthetic fixture shape**, not a market result or performance claim:
+
+```json
+{
+  "status": "PAPER_BLOCKED",
+  "status_dimensions": {
+    "DATA": "BLOCKED",
+    "RESEARCH": "NOT_RUN",
+    "DECISION": "BLOCKED",
+    "RISK": "NOT_RUN",
+    "PAPER": "BLOCKED",
+    "HOST_LLM": "NOT_RUN"
+  },
+  "recommendation_readiness": "BLOCKED",
+  "manual_authority": "BLOCKED",
+  "quote_certification": "BLOCKED",
+  "orders": [],
+  "fills": [],
+  "blockers": ["BLOCKED_STALE_MARKET"],
+  "execution_authority": "NONE"
+}
+```
+
+The real schema contracts live in [`schemas/`](schemas/) and the canonical projections are described in [the architecture record](docs/architecture.md).
+
+## Safety model
+
+| Boundary | Repository contract |
+| --- | --- |
+| `PAPER_ONLY` | The shipped operational account is `Schwab-Paper`, a local SQLite ledger for simulation. |
+| `AUTO_EXECUTION = FALSE` | No automatic broker action is available. Human review is required for every real order. |
+| Research authority | AI commentary cannot set quantity, price, risk limits, ledger state, or broker authority. |
+| Fill semantics | Recommendations and paper fills never imply a live fill. Only a later, newly supplied account snapshot can establish changed real account state. |
+| Freshness | Stale, missing, conflicting, or uncertified market/account evidence blocks dependent outputs. |
+| Data protection | Raw account snapshots, credentials, tokens, and private logs are not persisted by default and must not be committed. |
+
+Meridian has no Schwab Trading API integration, broker login, order route, cancellation route, or fill API. HSBC holdings and credentials are outside this system.
+
+## Repository structure
+
+```text
+src/meridian/   domain contracts, orchestration, research, decision, paper, reports
+scripts/         Windows launcher, validation, packaging, and bounded diagnostics
+policies/        data, allocation, model, risk, execution, paper, and universe policy
+schemas/         JSON contracts and sanitized examples
+skills/          packaged Meridian Skill and its references/scripts
+docs/            architecture records, operating procedures, ADRs, and audit evidence
+tests/           offline unit, integration, regression, and safety coverage
+```
+
+`policies/` and `schemas/` are packaged into the wheel. The mutable database, cache, reports, logs, and runs belong under `RuntimePaths`, outside the source tree.
+
+## Development and validation
+
+The cross-platform validation entrypoint is:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/validate_repo.py
+```
+
+It runs dependency checks, Ruff, Pyright, the offline pytest suite, CLI help smoke checks, and isolated safe acceptance. The individual commands are:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\pyright.exe
+```
+
+CI runs this validation on Ubuntu and Windows with Python 3.12, then exercises manual-authority and replay-integrity regressions, Skill packaging, and high-risk credential scanning. A workflow badge indicates that CI is configured; it is not a permanent claim about every commit.
+
+## Documentation
+
+- [Architecture and system boundaries](docs/architecture.md)
+- [Canonical production workflow](docs/canonical-production-workflow.md)
+- [Schwab-Paper operations](docs/schwab-paper.md)
+- [Development guide](DEVELOPMENT.md)
+- [Security policy](SECURITY.md)
+- [Maintenance backlog](MAINTENANCE.md)
+- [Forward Evidence Factory](docs/forward-evidence.md)
+- [Architecture decision records](docs/adr/)
+
+The repository currently has no `LICENSE` file. It should not be treated as openly licensed until the owner adds and publishes an explicit license.
+
+## Roadmap
+
+The project deliberately keeps proposed work separate from shipped behavior. Current documented directions include:
+
+- reviewed, receipt-qualified financial evidence and broader calendar/action coverage;
+- a sealed comparison dataset for native research ablations;
+- measured provider, research, ledger, and publication soak telemetry;
+- continued shadow evaluation with predeclared horizons and costs; and
+- any future FinRL-X or TradingAgents experiment only behind an isolated, pinned, human-reviewed adapter.
+
+None of these items enables broker execution, changes risk limits, or promotes a strategy automatically. See [MAINTENANCE.md](MAINTENANCE.md) for the maintained backlog and its evidence limits.
+
+## Contributing
+
+Read [DEVELOPMENT.md](DEVELOPMENT.md), [SECURITY.md](SECURITY.md), and the relevant ADR before changing an interface or boundary. Preserve the project-owned protocols, fail-closed states, timestamp provenance, paper/live separation, and manual approval boundary. Do not commit runtime databases, reports containing private inputs, credentials, or generated caches.
+
+Please report suspected security issues privately to the repository owner rather than opening a public issue containing sensitive data. There is no public license yet; contribution and redistribution terms remain owner-controlled until one is added.
+
+---
+
+Meridian Alpha is research infrastructure for careful decisions. It does not promise returns, production trading readiness, or live-broker integration.

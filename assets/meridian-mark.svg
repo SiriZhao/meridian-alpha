@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Meridian Alpha mark</title>
+  <desc id="desc">A geometric meridian mark showing evidence flowing through a deterministic decision point.</desc>
+  <rect width="128" height="128" rx="28" fill="#0b1220"/>
+  <path d="M64 18v92M24 64h80" stroke="#334155" stroke-width="2"/>
+  <path d="M64 18 96 64 64 110 32 64 64 18Z" fill="none" stroke="#2dd4bf" stroke-width="5"/>
+  <path d="M32 64h18M78 64h18" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="64" cy="64" r="12" fill="#0b1220" stroke="#e2e8f0" stroke-width="5"/>
+  <circle cx="64" cy="18" r="5" fill="#2dd4bf"/>
+  <circle cx="64" cy="110" r="5" fill="#2dd4bf"/>
+</svg>
